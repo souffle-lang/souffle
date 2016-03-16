@@ -1,3 +1,4 @@
+# Trigger
 sudo: required
 dist: trusty
 language: cpp
@@ -9,7 +10,7 @@ compiler:
 - gcc
 - clang
 os:
-- linux
+- osx
 script: 
 - sh ./bootstrap
 - ./configure
