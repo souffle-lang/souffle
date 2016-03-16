@@ -16,7 +16,7 @@ Soufflé is a translator of declarative Datalog programs into the C++ language. 
  
 Use git to obtain the source code of Soufflé. 
 
-    $ git clone git://github.com/souffle-lang/souffle.git
+    $ git clone git://github.com/oracle/souffle.git
 
 ## Soufflé home page
 
@@ -31,7 +31,6 @@ There is no mailing list to talk about Soufflé at the moment. It will be establ
 ## How to compile and install 
 
 Follow the steps below to compile and install Soufflé on a UNIX system:
-
 
 1.  G++ 4.8 or greater is recommended to compile Soufflé. 
 
