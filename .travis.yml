@@ -18,3 +18,5 @@ script:
 - sh ./bootstrap
 - ./configure
 - make check 
+- cat tests/testsuite.dir/*/*.out
+- cat tests/testsuite.dir/*/*.err
