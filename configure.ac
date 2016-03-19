@@ -39,7 +39,7 @@ AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS(config.h)
 
 dnl Do not set default CFLAGS and CXXFLAGS
-CXXFLAGS=" -O3 -Wall -std=c++11  $CXXFLAGS"
+CXXFLAGS=" -O3 -Wall -std=c++14  $CXXFLAGS"
 
 AC_ISC_POSIX
 AC_PROG_CPP
