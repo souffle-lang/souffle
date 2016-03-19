@@ -206,22 +206,22 @@ test_symbol_table_test_SOURCES = test/symbol_table_test.cpp
 test_symbol_table_test_LDADD = libsouffle.a 
 
 # graph utils
-check_PROGRAMS += test/graph_utils_test
-test_graph_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_graph_utils_test_SOURCES = test/graph_utils_test.cpp
-test_graph_utils_test_LDADD = libsouffle.a 
+# check_PROGRAMS += test/graph_utils_test
+# test_graph_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
+# test_graph_utils_test_SOURCES = test/graph_utils_test.cpp
+# test_graph_utils_test_LDADD = libsouffle.a 
 
 # trie implementation
-check_PROGRAMS += test/trie_test
-test_trie_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_trie_test_SOURCES = test/trie_test.cpp
-test_trie_test_LDADD = libsouffle.a 
+#check_PROGRAMS += test/trie_test
+#test_trie_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
+#test_trie_test_SOURCES = test/trie_test.cpp
+#test_trie_test_LDADD = libsouffle.a 
 
 # parallel utils implementation
-check_PROGRAMS += test/parallel_utils_test
-test_parallel_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_parallel_utils_test_SOURCES = test/parallel_utils_test.cpp
-test_parallel_utils_test_LDADD = libsouffle.a
+# check_PROGRAMS += test/parallel_utils_test
+# test_parallel_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
+# test_parallel_utils_test_SOURCES = test/parallel_utils_test.cpp
+# test_parallel_utils_test_LDADD = libsouffle.a
 
 
 # make all check-programs tests
