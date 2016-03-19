@@ -10,10 +10,11 @@ compiler:
 os:
 - linux
 - osx
+matrix:
+    exclude:
+        - os: osx
+          compiler: gcc
 script: 
 - sh ./bootstrap
 - ./configure
 - make check 
-- cat tests/testsuite.dir/*/testsuite.log
-- cat tests/testsuite.dir/*/*.out
-- cat tests/testsuite.dir/*/*.err
