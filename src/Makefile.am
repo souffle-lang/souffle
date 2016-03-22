@@ -158,10 +158,10 @@ test_compiled_ram_tuple_test_SOURCES = test/compiled_ram_tuple_test.cpp
 test_compiled_ram_tuple_test_LDADD = libsouffle.a 
 
 # compiled ram relation test
-check_PROGRAMS += test/compiled_ram_relation_test
-test_compiled_ram_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_compiled_ram_relation_test_SOURCES = test/compiled_ram_relation_test.cpp
-test_compiled_ram_relation_test_LDADD = libsouffle.a 
+#check_PROGRAMS += test/compiled_ram_relation_test
+#test_compiled_ram_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+#test_compiled_ram_relation_test_SOURCES = test/compiled_ram_relation_test.cpp
+#test_compiled_ram_relation_test_LDADD = libsouffle.a 
 
 # type system test
 check_PROGRAMS += test/type_system_test
