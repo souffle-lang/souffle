@@ -40,6 +40,7 @@
 #include <iterator>
 #include <type_traits>
 #include <mutex>
+#include <array>
 #include <libgen.h>
 
 #include "Util.h"
@@ -1050,12 +1051,12 @@ namespace index_utils {
     template<typename T, typename Index>
     struct direct_index_factory<T,Index,true> {
         // the arity of the tuple type determines the type of index
-        typedef typename std::conditional<
-            T::arity <= 2,            // if the arity is <= 2
-            TrieIndex<Index>,         // .. we use the faster Trie index
-            DirectIndex<T,Index>      // .. otherwise we fall back to the B-Tree index
-        >::type type;
-//        typedef DirectIndex<T,Index> type;
+        // typedef typename std::conditional<
+        //    T::arity <= 2,            // if the arity is <= 2
+        //    TrieIndex<Index>,         // .. we use the faster Trie index
+        //    DirectIndex<T,Index>      // .. otherwise we fall back to the B-Tree index
+        // >::type type;
+        typedef DirectIndex<T,Index> type;
     };
 
     // -------------------------------------------------------------

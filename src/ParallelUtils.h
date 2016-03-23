@@ -49,7 +49,8 @@
     #include <omp.h>
 
     #ifdef __APPLE__
-    #define pthread_yield pthread_yield_np
+    #include <sched.h>
+    #define pthread_yield sched_yield
     #endif
 
     // support for a parallel region
