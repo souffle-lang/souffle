@@ -52,15 +52,16 @@ Follow the steps below to compile and install Soufflé on a UNIX system:
 3.  For Linux users, skip this point. MAC OS X does not have OpenMP nor a bison version 3.0.2 or higher installed.
     We recommend [brew](http://brew.sh) to install the required tools to build Soufflé. Run the following commands prior to executing `./configure`:
 
-     `brew update`                
-     `brew reinstall gcc --without-multilib`                
-     `brew install bison`  
-     `brew link bison --force`
-     `export CXX=/usr/local/bin/g++-5`                
-     `export CXXFLAGS=-fopenmp`                
-     `export SOUFFLECPP=/usr/local/bin/cpp-5`
-     `export BISON=/usr/local/opt/bison/bin/bison`
-
+```
+     brew update                
+     brew reinstall gcc --without-multilib                
+     brew install bison  
+     brew link bison --force
+     export CXX=/usr/local/bin/g++-5                
+     export CXXFLAGS=-fopenmp                
+     export SOUFFLECPP=/usr/local/bin/cpp-5
+     export BISON=/usr/local/opt/bison/bin/bison
+```
 
 4.  Run `./configure`
 

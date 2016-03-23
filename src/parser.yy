@@ -579,6 +579,7 @@ component_body:
       component_body relation      { $$ = $1; $$->addRelation(std::unique_ptr<AstRelation>($2)); }
     | component_body fact          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
     | component_body rule          { $$ = $1; $$->addClause(std::unique_ptr<AstClause>($2)); }
+    | component_body type          { $$ = $1; $$->addType(std::unique_ptr<AstType>($2)); }
     | component_body comp_override { $$ = $1; $$->addOverride($2); }
     | component_body component     { $$ = $1; $$->addComponent(std::unique_ptr<AstComponent>($2)); }
     | component_body comp_init     { $$ = $1; $$->addInstantiation(std::unique_ptr<AstComponentInit>($2)); }

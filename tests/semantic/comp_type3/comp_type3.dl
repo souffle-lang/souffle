@@ -1,0 +1,19 @@
+.comp X<C> {
+
+  .comp C1 {
+     .type T = number
+     A(1).
+  } 
+
+  .comp C2 { 
+     .type T
+     A("a").
+  } 
+
+  .decl A(x:T) printsize
+
+  .init select = C
+}
+
+.init myC=X<C1> 
+// Alternative .init myC=X<C2> 
