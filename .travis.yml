@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: cpp
 before_install:
-    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk;
+    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk doxygen
 compiler:
 - gcc
 - clang
