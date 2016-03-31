@@ -1,0 +1,4 @@
+Error: Type t1 redefined in file comp_type1.dl at line 5
+.comp Y : X {
+^-------------
+1 errors generated, evaluation aborted

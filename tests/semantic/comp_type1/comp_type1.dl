@@ -1,0 +1,15 @@
+.comp X {
+  .type t1 = number
+}
+
+.comp Y : X {
+  .type t2 = t1
+  .type t1 = t0
+}
+  
+
+.init iX = X
+.init iY = Y
+
+.decl A(x:t1, y:t1)
+

@@ -24,7 +24,14 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
 # IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-SUBDIRS = src tests prof
+# directories
+SUBDIRS = src tests prof 
+
+# add doxygen support to the makefile 
+include $(top_srcdir)/aminclude.am
+
+# add doxygen configuration to the distribution
+EXTRA_DIST = doxygen.cfg
 
 # Debian packaging
 if DEB

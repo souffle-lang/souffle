@@ -1,0 +1,16 @@
+.comp X {
+  .type t1 = number
+}
+
+.comp Y : X {
+
+  .type t2 = t1
+}
+  
+
+.init iX = X
+.init iY = Y
+
+.decl A(x:t1, y:t2) printsize
+A(1,2).
+

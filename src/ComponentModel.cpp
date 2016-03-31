@@ -90,13 +90,16 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
     // unbound clauses with no relation defined
     std::vector<std::unique_ptr<AstClause>> unbound;
 
+    // type definitions in components 
+    std::vector<std::unique_ptr<AstType>> types;
+
     AstProgram &program = *translationUnit.getProgram();
 
     ComponentLookup *componentLookup = translationUnit.getAnalysis<ComponentLookup>();
 
     for(const auto& cur : program.instantiations) {
         std::vector<std::unique_ptr<AstClause>> orphans;
-        for(auto& rel : getInstantiatedRelations(*cur, nullptr, *componentLookup, orphans, translationUnit.getErrorReport())) {
+        for(auto& rel : getInstantiatedRelations(*cur, nullptr, *componentLookup, orphans, types, translationUnit.getErrorReport())) {
             program.relations.insert(std::make_pair(rel->getName(), std::move(rel)));
         }
         for(auto& cur : orphans) {
@@ -108,6 +111,11 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
             }
         }
     }
+
+    // add types 
+    for(auto& type : types) {
+        program.addType(std::move(type)); 
+    } 
 
     // add clauses
     for(auto& cur : program.clauses) {
@@ -125,7 +133,7 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
     return true;
 }
 
-std::vector<std::unique_ptr<AstRelation>> ComponentInstantiationTransformer::getInstantiatedRelations(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, ErrorReport &report, const TypeBinding& binding, unsigned int maxDepth) {
+std::vector<std::unique_ptr<AstRelation>> ComponentInstantiationTransformer::getInstantiatedRelations(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, std::vector<std::unique_ptr<AstType>> &types, ErrorReport &report, const TypeBinding& binding, unsigned int maxDepth) {
 
 
     // start with an empty list
@@ -147,7 +155,7 @@ std::vector<std::unique_ptr<AstRelation>> ComponentInstantiationTransformer::get
 
     // instantiated nested components
     for(const auto& cur : component->getInstantiations()) {
-        for(auto& rel : getInstantiatedRelations(*cur, component, componentLookup, orphans, report, activeBinding, maxDepth - 1)) {
+        for(auto& rel : getInstantiatedRelations(*cur, component, componentLookup, orphans, types, report, activeBinding, maxDepth - 1)) {
             // add to result list (check existence first)
             auto foundItem = std::find_if(res.begin(), res.end(),
                      [&](const std::unique_ptr<AstRelation> &element) { return (element->getName() == rel->getName()); });
@@ -162,7 +170,7 @@ std::vector<std::unique_ptr<AstRelation>> ComponentInstantiationTransformer::get
 
     // collect all relations and clauses in this component
     std::set<std::string> overridden;
-    collectAllRelations(*component, activeBinding, enclosingComponent, componentLookup, res, orphans, overridden, report, maxDepth);
+    collectAllRelations(*component, activeBinding, enclosingComponent, componentLookup, res, orphans, types, overridden, report, maxDepth);
 
     // update relation names
     std::map<AstRelationIdentifier,AstRelationIdentifier> mapping;
@@ -192,11 +200,27 @@ std::vector<std::unique_ptr<AstRelation>> ComponentInstantiationTransformer::get
         });
     }
 
+    // add types from the component 
+    for(const auto& cur : component->getTypes()) {
+        // check for type equivalence 
+        // add new type if not found
+        auto pos = find_if(types.begin(), 
+                           types.end(), 
+                           [&] (const std::unique_ptr<AstType> &elem){return elem->getName() == cur->getName();}); 
+        if(pos == types.end()) { 
+            types.push_back(std::unique_ptr<AstType>(cur->clone())); 
+        } else { 
+           if(!(**pos == *cur)) {
+               report.addError("Type " + cur->getName() + " redefined", component->getSrcLoc());
+           } 
+        } 
+    } 
+
     // done
     return res;
 }
 
-void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& component, const TypeBinding& binding, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstRelation>>& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth) {
+void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& component, const TypeBinding& binding, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstRelation>>& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::vector<std::unique_ptr<AstType>> &types, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth) {
 
     // start with relations and clauses of the base components
     for(const auto& base : component.getBaseComponents()) {
@@ -212,7 +236,7 @@ void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& 
             TypeBinding activeBinding = binding.extend(formalParams, actualParams);
 
             for(const auto& cur : comp->getInstantiations()) {
-                for(auto& rel : getInstantiatedRelations(*cur, enclosingComponent, componentLookup, orphans, report, activeBinding, maxInstantiationDepth - 1)) {
+                for(auto& rel : getInstantiatedRelations(*cur, enclosingComponent, componentLookup, orphans, types, report, activeBinding, maxInstantiationDepth - 1)) {
                     // add to result list (check existence first)
                     auto foundItem = std::find_if(res.begin(), res.end(),
                             [&](const std::unique_ptr<AstRelation> &element) { return (element->getName() == rel->getName()); });
@@ -229,7 +253,7 @@ void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& 
             std::set<std::string> superOverridden;
             superOverridden.insert(overridden.begin(), overridden.end());
             superOverridden.insert(component.getOverridden().begin(), component.getOverridden().end());
-            collectAllRelations(*comp, activeBinding, comp, componentLookup, res, orphans, superOverridden, report, maxInstantiationDepth);
+            collectAllRelations(*comp, activeBinding, comp, componentLookup, res, orphans, types, superOverridden, report, maxInstantiationDepth);
         }
     }
 
@@ -286,4 +310,19 @@ void ComponentInstantiationTransformer::collectAllRelations(const AstComponent& 
             ++iter;
         }
     }
+
+    // add types from the component 
+    for(const auto& cur : component.getTypes()) {
+        auto pos = find_if(types.begin(), 
+                           types.end(), 
+                           [&] (const std::unique_ptr<AstType> &elem){return elem->getName() == cur->getName();}); 
+        // check whether type does not exist yet
+        if(pos == types.end()) { 
+            types.push_back(std::unique_ptr<AstType>(cur->clone())); 
+        } else { 
+            if(!(**pos == *cur)) {
+                report.addError("Type " + cur->getName() + " redefined", component.getSrcLoc());
+            } 
+        } 
+    } 
 }
