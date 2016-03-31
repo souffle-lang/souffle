@@ -116,12 +116,12 @@ private:
      * Recursively computes the set of relations (and included clauses) introduced
      * by this init statement enclosed within the given scope.
      */
-    static std::vector<std::unique_ptr<AstRelation>> getInstantiatedRelations(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, ErrorReport &report, const TypeBinding& binding = TypeBinding(), unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
+    static std::vector<std::unique_ptr<AstRelation>> getInstantiatedRelations(const AstComponentInit &componentInit, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstClause>> &orphans, std::vector<std::unique_ptr<AstType>> &types,  ErrorReport &report, const TypeBinding& binding = TypeBinding(), unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
 
     /**
      * Collects clones of all relations in the given component and its base components.
      */
-    static void collectAllRelations(const AstComponent& component, const TypeBinding& binding, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstRelation>>& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth);
+    static void collectAllRelations(const AstComponent& component, const TypeBinding& binding, const AstComponent *enclosingComponent, const ComponentLookup &componentLookup, std::vector<std::unique_ptr<AstRelation>>& res, std::vector<std::unique_ptr<AstClause>> &orphans, std::vector<std::unique_ptr<AstType>> &types, std::set<std::string> overridden, ErrorReport &report, unsigned int maxInstantiationDepth);
 public:
     std::string getName() const {
         return "ComponentInstantiationTransformer";
