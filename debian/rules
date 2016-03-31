@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# debuild somehow finds /usr/local targets (which souffle does not use)
+# and starts emitting warnings. The below code is to silence that.
+override_dh_usrlocal:

@@ -3,20 +3,20 @@
 # The Universal Permissive License (UPL), Version 1.0
 #
 # Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
-# associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
-# Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+# associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the
+# Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified
 # Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
-# 
+#
 # (a) the Software, and
 # (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
 # Work” to which the Software is contributed by such licensors),
 #
-# without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
-# distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+# without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and
+# distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the
 # Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
 #
 # This license is subject to the following condition:
-# The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+# The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in
 # all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
@@ -32,3 +32,25 @@ include $(top_srcdir)/aminclude.am
 
 # add doxygen configuration to the distribution
 EXTRA_DIST = doxygen.cfg
+
+# Debian packaging
+if DEB
+dpkg_dir = packaging
+dist_src = $(PACKAGE)-$(VERSION).tar.gz
+deb_src  = $(PACKAGE)_$(VERSION).orig.tar.gz
+
+deb:
+	rm -rf $(dpkg_dir)
+	$(MKDIR_P) -p $(dpkg_dir)
+	$(MAKE) dist
+	tar -xvf $(dist_src) -C $(dpkg_dir)
+	cp -r debian $(dpkg_dir)/$(distdir)
+	mv $(dist_src) $(dpkg_dir)/$(deb_src)
+	cd $(dpkg_dir)/$(distdir) && $(DEBUILD) -us -uc
+
+clean-local:
+	-rm -rf $(dpkg_dir)
+endif
+
+# Man pages
+dist_man1_MANS = $(wildcard $(srcdir)/man/*.1)

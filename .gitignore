@@ -21,3 +21,4 @@ prof/build
 prof/com
 prof/souffleprof.jar
 warn.log
+packaging/*

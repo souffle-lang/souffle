@@ -79,6 +79,11 @@ AS_IF([test -z "$FLEX"], [AC_MSG_ERROR([flex not found.])])
 AC_CHECK_PROG(BISON, bison, bison)
 AS_IF([test -z "$BISON"], [AC_MSG_ERROR([bison not found.])])
 
+# Check for debuild
+AC_CHECK_PROG(DEBUILD, debuild, debuild)
+AC_SUBST([DEBUILD])
+AM_CONDITIONAL(DEB, [test -n "$DEBUILD"])
+
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
           [AC_MSG_ERROR([required library pthread missing])])
