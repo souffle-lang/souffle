@@ -42,6 +42,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <getopt.h>
 
@@ -69,6 +70,20 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 
+/**
+ * Check whether a string is a sequence of numbers
+ */ 
+static bool isNumber(const char *str)
+{
+    if (str==NULL) return false; 
+
+    while(*str) { 
+        if(!isdigit(*str)) 
+            return false; 
+        str++;
+    } 
+    return true; 
+}
 
 /** 
  *  Show help page.
@@ -214,7 +229,14 @@ int main(int argc, char **argv)
 
                 /* Set number of jobs */ 
             case 'j':
-                num_threads = atoi(optarg);
+                if (std::string(optarg) == "auto") { 
+                   num_threads = 0; 
+                } else if(isNumber(optarg)) {
+                   num_threads = atoi(optarg);
+                   if(num_threads == 0) { 
+                       fail("Number of jobs in the -j/--jobs options must be greater than zero!"); 
+                   } 
+                } else fail("Wrong parameter "+std::string(optarg)+" for option -j/--jobs!"); 
                 break;
 
                 /* Output file name of generated executable program */

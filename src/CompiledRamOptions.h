@@ -202,16 +202,19 @@ public:
                     profile_name = optarg;
                     break;
 #ifdef _OPENMP
-                case 'j': {
-                    int num = atoi(optarg);
-                    if (num > 0) {
-                        num_jobs = num;
-                    } else {
-                        std::cerr << "Invalid number of jobs [-j]: " << optarg << "\n";
-                        ok = false;
+                case 'j': 
+                    if (std::string(optarg) == "auto") { 
+                        num_jobs = 0; 
+                    } else { 
+                        int num = atoi(optarg);
+                        if (num > 0) {
+                            num_jobs = num;
+                        } else {
+                            std::cerr << "Invalid number of jobs [-j]: " << optarg << "\n";
+                            ok = false;
+                        }
                     }
                     break;
-                }
 #else
                 case 'j':
 #endif
@@ -229,7 +232,9 @@ public:
         output_dir = out_dir;
 
 #ifdef _OPENMP
-        omp_set_num_threads(num_jobs);
+        if (num_jobs > 0) { 
+            omp_set_num_threads(num_jobs);
+        } 
 #endif
 
         // return success state
@@ -258,7 +263,11 @@ private:
         }
 #ifdef _OPENMP
         std::cerr << "    -j <NUM>, --jobs=<NUM>       -- Specify number of threads\n";
-        std::cerr << "                                    (default: " << num_jobs << ")\n";
+        if (num_jobs > 0) { 
+            std::cerr << "                                    (default: " << num_jobs << ")\n";
+        } else { 
+            std::cerr << "                                    (default: auto)\n";
+        } 
 #endif
         std::cerr << "    -h                           -- prints this help page.\n";
         std::cerr << "--------------------------------------------------------------------\n";

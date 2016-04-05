@@ -1816,9 +1816,11 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     os << "std::atomic<RamDomain> ctr(0);\n\n";
 
     // set default threads (in embedded mode)
-    os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
-    os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
-    os << "#endif\n\n";
+    if (getConfig().getNumThreads() > 0) { 
+        os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
+        os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
+        os << "#endif\n\n";
+    } 
 
     // add actual program body
     os << "// -- query evaluation --\n";
