@@ -74,7 +74,7 @@ m4_define([TEST_EVAL],[
  m4_define([FACTS],[TESTDIR/$3])
  m4_define([EXPECTEDDIR], [TESTDIR$4])
  # invoke souffle
- AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+ AT_CHECK(["$SOUFFLE" -q FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
  # sort the expected and the generated CSV files
  # and compare whether both files are the same.
  for i in *.csv
@@ -102,7 +102,7 @@ m4_define([TEST_EVAL_ERROR],[
  m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
  m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
  m4_define([FACTS],[TESTDIR/facts])
- AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [1])
+ AT_CHECK(["$SOUFFLE" -q FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [1])
  SAME_FILES([TESTNAME.out],[TESTDIR/TESTNAME.out])
  SAME_FILES([TESTNAME.err],[TESTDIR/TESTNAME.err])
 ])
@@ -117,7 +117,7 @@ m4_define([TEST_EVAL_INTERFACE],[
  m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
  m4_define([FACTS],[TESTDIR/facts])
  # invoke souffle
- AT_CHECK(["$SOUFFLE" -D- -o $1 -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+ AT_CHECK(["$SOUFFLE" -q -D- -o $1 -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
  # remove executable and re-build it from scratch
  AT_CHECK([rm $1 2>>TESTNAME.err],[0])
  AT_CHECK(["$CXX" "-I$SOUFFLE_INC" $CXXFLAGS -D__EMBEDDED_SOUFFLE__ -o $1 TESTDIR/driver.cpp $1.cpp $LIBS 2>>TESTNAME.err],[0])

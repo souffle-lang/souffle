@@ -1,25 +1,25 @@
 /*
  * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
+ *
  * The Universal Permissive License (UPL), Version 1.0
- * 
+ *
  * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+ * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the
+ * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified
  * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
+ *
  * (a) the Software, and
  * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
  * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+ *
+ * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and
+ * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the
  * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
+ *
  * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+ * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
@@ -132,6 +132,8 @@ void helpPage(bool error, int argc, char**argv)
     std::cerr << "    --debug-report=<FILE>          Write debugging output to HTML report\n";
     std::cerr << "\n";
     std::cerr << "    -v, --verbose                  Verbose output\n";
+    std::cerr << "    -q, --quiet                    Suppress warnings\n";
+    std::cerr << "    -x, --cxx=<CXX>                Specify a C++ compiler to complile generated programs with\n";
     std::cerr << "-------------------------------------------------------------------------------------------------------\n";
     std::cerr << "Version: " << PACKAGE_VERSION << "\n";
     std::cerr << "-------------------------------------------------------------------------------------------------------\n";
@@ -191,6 +193,7 @@ int main(int argc, char **argv)
     std::string outputDir = "."; /* output directory for resulting csv files */
     std::string includeOpt;      /* include options for c-preprocessor */
     std::string profile;         /* filename of profile log */
+    std::string cxx = "";        /* name of a C++ compiler */
 
     std::string outputFileName = "";
     std::string factFileDir = ".";
@@ -198,6 +201,7 @@ int main(int argc, char **argv)
     std::string outputHeaderFileName = "";
 
     bool verbose  = false;        /* flag for verbose output */
+    bool quiet  = false;          /* flag for suppressing warnings */
     bool compile = false;         /* flag for enabling compilation */
     bool tune = false;            /* flag for enabling / disabling the rule scheduler */
     bool logging = false;         /* flag for profiling */
@@ -226,19 +230,30 @@ int main(int argc, char **argv)
         { "debug", false, nullptr, 'd' },
         // 
         { "verbose", false, nullptr, 'v' },
+        // suppress warnings
+        { "quiet",  false, nullptr, 'q' },
+        // C++ compiler	
+        { "cxx",    true, nullptr, 'x' },
         // the terminal option -- needs to be null
         { nullptr, false, nullptr, 0 }
     };
 
     static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
     int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:hvd", longOptions, nullptr)) != EOF) {
+    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:o:g:x:hvqd", longOptions, nullptr)) != EOF) {
         switch(c) {
                 /* Print debug / profiling information */
             case 'v':
                 verbose = true;
                 break;
-
+                /* Suppress warnings */
+            case 'q':
+                quiet = true;
+                break;
+                /* C++ compiler */
+            case 'x':
+                cxx = optarg;
+                break;
                 /* Enable compiler flag */
             case 'c':
                 compile = true; 
@@ -338,7 +353,6 @@ int main(int argc, char **argv)
     if (tune && outputFileName == "") { 
        fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
     } 
-        
 
     /* collect all input files for the C pre-processor */ 
     std::string filenames = "";
@@ -478,6 +492,8 @@ int main(int argc, char **argv)
     config.setLogging(logging);
     config.setProfileName(profile);
     config.setDebug(debug);
+    config.setQuiet(quiet);
+    config.setCXX(cxx);
 
     std::string dir = dirname(argv[0]); 
     if (dir == "." && argv[0][0] != '.' ) {
@@ -485,7 +501,7 @@ int main(int argc, char **argv)
     } else if (dir.size() > 0) {
        dir += "/";
     }
-    config.setCompileScript( "/bin/bash " + dir + "souffle-compile ");
+    config.setCompileScript(dir + "souffle-compile ");
 
     // check if this is code generation only
     if (generateHeader) {
@@ -516,5 +532,3 @@ int main(int argc, char **argv)
 int main(int argc, char **argv) {
 	return souffle::main(argc, argv);
 }
-
-

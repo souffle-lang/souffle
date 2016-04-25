@@ -1,25 +1,25 @@
 /*
  * Copyright (c) 2013, 2015, Oracle and/or its affiliates. All Rights reserved
- * 
+ *
  * The Universal Permissive License (UPL), Version 1.0
- * 
+ *
  * Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
- * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
- * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+ * associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the
+ * Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified
  * Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
- * 
+ *
  * (a) the Software, and
  * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
  * Work” to which the Software is contributed by such licensors),
- * 
- * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
- * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+ *
+ * without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and
+ * distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the
  * Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
- * 
+ *
  * This license is subject to the following condition:
- * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+ * The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
@@ -536,7 +536,7 @@ namespace {
             RamEnvironment& env;
             const QueryExecutionStrategy& queryExecutor;
             std::ostream* report;
-            std::ostream* profile; 
+            std::ostream* profile;
 
         public:
 
@@ -633,8 +633,8 @@ namespace {
                     std::cerr << "Cannot open fact file " << fname << " for table " << load.getRelation().getName() << "\n";
                 }
                 if(env.getRelation(load.getRelation()).load(csvfile, env.getSymbolTable(), load.getSymbolMask())) {
-                    char *bname = strdup(fname.c_str()); 
-                    std::string simplename = basename(bname); 
+                    char *bname = strdup(fname.c_str());
+                    std::string simplename = basename(bname);
                     std::cerr << "Wrong arity of fact file " << simplename << "!\n";
                 };
                 return true;
@@ -901,10 +901,10 @@ namespace {
     std::string getRelationType(std::size_t arity, const RamAutoIndex& indices) {
         std::stringstream res;
         res << "ram::Relation<" << arity;
-        for(auto &cur : indices.getAllOrders() ) { 
+        for(auto &cur : indices.getAllOrders() ) {
             res << ",ram::index<";
-            res << join(cur, ","); 
-            res << ">"; 
+            res << join(cur, ",");
+            res << ">";
         }
         res << ">";
         return res.str();
@@ -1615,11 +1615,11 @@ namespace {
         }
 
         void visitNegation(const RamNegation& neg, std::ostream& out) {
-            out << "(-(" << print(neg.getValue()) << "))"; 
+            out << "(-(" << print(neg.getValue()) << "))";
         }
-        
+
         void visitComplement(const RamComplement& neg, std::ostream& out) {
-            out << "(~(" << print(neg.getValue()) << "))"; 
+            out << "(~(" << print(neg.getValue()) << "))";
         }
 
         // -- safety net --
@@ -1699,9 +1699,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
             *report << "\tNumber of Scan Patterns: " << cur.second.getSearches().size() << "\n";
             for(auto& cols : cur.second.getSearches()) {
                 *report << "\t\t";
-                for(uint32_t i=0;i<cur.first.getArity();i++) { 
+                for(uint32_t i=0;i<cur.first.getArity();i++) {
                     if ((1UL<<i) & cols) {
-                       *report << cur.first.getArg(i) << " "; 
+                       *report << cur.first.getArg(i) << " ";
                     }
                 }
                 *report << "\n";
@@ -1729,7 +1729,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     	fname = resolveFileName();
     }
 
-    // generate class name 
+    // generate class name
     std::string classname = fname;
     if (endsWith(classname,".h")) {
     	classname = classname.substr(0,classname.size() - 2);
@@ -1770,7 +1770,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "     std::cerr << \"warning: wrong pattern provided for match(\\\"\" << pattern << \"\\\",\\\"\" << text << \"\\\")\\n\";\n}\n";
     os << "   return result;\n";
     os << "}\n";
-   
+
     if (getConfig().isLogging()) {
         os << "std::string profiling_fname;\n";
     }
@@ -1780,32 +1780,32 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "SymbolTable symTable;\n";
 
     // print relation definitions
-    std::string initCons; // initialization of constructor 
-    std::string registerRel; // registration of relations 
+    std::string initCons; // initialization of constructor
+    std::string registerRel; // registration of relations
     int relCtr=0;
     visitDepthFirst(stmt, [&](const RamCreate& create) {
         // get some table details
         const auto& rel = create.getRelation();
         auto type = getRelationType(rel.getArity(), indices[rel]);
-        int arity = rel.getArity(); 
-        const std::string &name = rel.getName(); 
+        int arity = rel.getArity();
+        const std::string &name = rel.getName();
 
         // defining table
         os << "// -- Table: " << name << "\n";
         os << type << " rel_" << name << ";\n";
         bool isTemp = (name.find("_temp1_")==0) || (name.find("_temp2_")==0);
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !isTemp) {
-           os << "souffle::RelationWrapper<"; 
+           os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
            os << type << ",";
            os << "Tuple<RamDomain," << arity << ">,";
-           os << arity << ","; 
+           os << arity << ",";
            os << (rel.isInput()?"true":"false") << ",";
            os << (rel.isComputed()?"true":"false");
-           os << "> wrapper_" << name << ";\n"; 
-          
-           // construct types 
-           std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{"; 
+           os << "> wrapper_" << name << ";\n";
+
+           // construct types
+           std::string tupleType = "std::array<const char *," + std::to_string(arity) + ">{";
            tupleType += "\"" + rel.getArgTypeQualifier(0) + "\"";
            for(int i=1; i<arity; i++) {
                tupleType += ",\"" + rel.getArgTypeQualifier(i) + "\"";
@@ -1817,7 +1817,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
                tupleName += ",\"" + rel.getArg(i) + "\"";
            }
            tupleName += "}";
-           if (initCons.size() > 0) { 
+           if (initCons.size() > 0) {
                initCons += ",\n";
            }
            initCons += "wrapper_" + name + "(rel_" + name + ",symTable,\"" + name + "\"," + tupleType + "," + tupleName + ")";
@@ -1826,7 +1826,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     });
 
     os << "public:\n";
-    
+
     // -- constructor --
 
     os << classname;
@@ -1838,9 +1838,9 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     } else {
        os << "() : \n";
     }
-    os << initCons; 
+    os << initCons;
     os << "{\n";
-    os << registerRel; 
+    os << registerRel;
 
     if (symTable.size() > 0) {
 
@@ -1866,11 +1866,11 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "std::atomic<RamDomain> ctr(0);\n\n";
 
     // set default threads (in embedded mode)
-    if (getConfig().getNumThreads() > 0) { 
+    if (getConfig().getNumThreads() > 0) {
         os << "#if defined(__EMBEDDED_SOUFFLE__) && defined(_OPENMP)\n";
         os << "omp_set_num_threads(" << getConfig().getNumThreads() << ");\n";
         os << "#endif\n\n";
-    } 
+    }
 
     // add actual program body
     os << "// -- query evaluation --\n";
@@ -2012,12 +2012,12 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "R\"(" << getConfig().getFactFileDir() << ")\",\n";
     os << "R\"(" << getConfig().getOutputDir() << ")\",\n";
     if (getConfig().isLogging()) {
-       os << "true,\n"; 
+       os << "true,\n";
        os << "R\"(" << getConfig().getProfileName() << ")\",\n";
-    } else { 
-       os << "false,\n"; 
+    } else {
+       os << "false,\n";
        os << "R\"()\",\n";
-    } 
+    }
     os << getConfig().getNumThreads() << ",\n";
     os << ((getConfig().isDebug())?"R\"(true)\"":"R\"(false)\"");
     os << ");\n";
@@ -2043,7 +2043,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "}\n";
     os << "#endif\n";
 
-    // close source file 
+    // close source file
     os.close();
 
     // return the filename
@@ -2057,24 +2057,34 @@ std::string RamCompiler::compileToBinary(const SymbolTable& symTable, const RamS
     //                       Code Generation
     // ---------------------------------------------------------------
 
-	std::string binary = resolveFileName();
-	std::string source = generateCode(symTable, stmt, binary + ".cpp");
+    std::string binary = resolveFileName();
+    std::string source = generateCode(symTable, stmt, binary + ".cpp");
 
     // ---------------------------------------------------------------
     //                    Compilation & Execution
     // ---------------------------------------------------------------
 
     // execute shell script that compiles the generated C++ program
-    std::string cmd = getConfig().getCompileScript(); 
-    cmd += source;
+    std::string cmd = getConfig().getCompileScript();
 
     // set up number of threads
     auto num_threads = getConfig().getNumThreads();
-    if (num_threads == 1) {
-        cmd+=" seq";
-    } else if (num_threads != 0) {
-        cmd += " " + std::to_string(num_threads);
+    if (num_threads != 0) {
+        cmd += " -o ";
     }
+
+    // do not produce warning about missing openmp
+    if (getConfig().isQuiet()) {
+        cmd += " -q ";
+    }
+
+    const std::string& cxx = getConfig().getCXX();
+    if (cxx.size()) {
+        cmd += " -x\"" + cxx + "\" ";
+    }
+
+    // add source file
+    cmd += "-f" + source;
 
     // separate souffle output form executable output
     if (getConfig().isLogging()) {
@@ -2124,4 +2134,3 @@ void RamCompiler::applyOn(const RamStatement& stmt, RamEnvironment& env) const {
 }
 
 } // end of namespace souffle
-
