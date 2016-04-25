@@ -296,6 +296,9 @@ namespace {
             case AstUnaryFunctor::BNOT:
                 val = std::unique_ptr<RamValue>(new RamComplement(translateValue(uf->getOperand(), index)));
                 break;
+            case AstUnaryFunctor::LNOT:
+                val = std::unique_ptr<RamValue>(new RamNot(translateValue(uf->getOperand(), index)));
+                break;
             default:
                 ASSERT(false && "unknown unary function");
             }

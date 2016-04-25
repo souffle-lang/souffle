@@ -101,6 +101,7 @@ struct RamVisitor : public ram_visitor_tag {
             FORWARD(Ord);
             FORWARD(Negation);
             FORWARD(Complement);
+            FORWARD(Not);
             FORWARD(Pack);
 
             // conditions
@@ -206,6 +207,7 @@ protected:
     LINK(Ord, Value)
     LINK(Negation, Value)
     LINK(Complement, Value)
+    LINK(Not, Value)
     LINK(AutoIncrement, Value)
     LINK(Pack, Value)
 

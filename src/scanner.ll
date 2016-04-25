@@ -117,7 +117,11 @@
 ".override"                      { return yy::parser::make_OVERRIDE(yylloc); }
 "band"                           { return yy::parser::make_BW_AND(yylloc); }
 "bor"                            { return yy::parser::make_BW_OR(yylloc); }
+"bxor"                           { return yy::parser::make_BW_XOR(yylloc); }
 "bnot"                           { return yy::parser::make_BW_NOT(yylloc); }
+"land"                           { return yy::parser::make_L_AND(yylloc); }
+"lor"                            { return yy::parser::make_L_OR(yylloc); }
+"lnot"                           { return yy::parser::make_L_NOT(yylloc); }
 "match"                          { return yy::parser::make_TMATCH(yylloc); }
 "cat"                            { return yy::parser::make_CAT(yylloc); }
 "ord"                            { return yy::parser::make_ORD(yylloc); }

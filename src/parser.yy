@@ -154,7 +154,11 @@
 %token GT                        ">"
 %token BW_AND                    "band"
 %token BW_OR                     "bor"
+%token BW_XOR                    "bxor"
 %token BW_NOT                    "bnot"
+%token L_AND                     "land"
+%token L_OR                      "lor"
+%token L_NOT                     "lnot"
 
 %type <int>                      qualifiers 
 %type <AstRelationIdentifier *>  rel_id
@@ -182,11 +186,14 @@
 
 %left DOT COLON
 %right AS
-%left BW_OR
+%left L_OR
+%left L_AND
+%left BW_OR 
+%left BW_XOR
 %left BW_AND
 %left PLUS MINUS
 %left STAR SLASH PERCENT
-%left BW_NOT
+%left BW_NOT L_NOT
 %left NEG 
 %left CARET
 
@@ -311,8 +318,20 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::BOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
+   | arg BW_XOR arg {
+       $$ = new AstBinaryFunctor(BinaryOp::BXOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
    | arg BW_AND arg {
        $$ = new AstBinaryFunctor(BinaryOp::BAND, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg L_OR arg {
+       $$ = new AstBinaryFunctor(BinaryOp::LOR, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+       $$->setSrcLoc(@$);
+     }
+   | arg L_AND arg {
+       $$ = new AstBinaryFunctor(BinaryOp::LAND, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
    | arg PLUS arg {
@@ -357,6 +376,10 @@ arg: STRING {
      }
    |  BW_NOT arg { 
        $$ = new AstUnaryFunctor(AstUnaryFunctor::BNOT, std::unique_ptr<AstArgument>($2));
+       $$->setSrcLoc(@$); 
+     }
+   |  L_NOT arg { 
+       $$ = new AstUnaryFunctor(AstUnaryFunctor::LNOT, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    | LBRACKET RBRACKET  {

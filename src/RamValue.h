@@ -101,6 +101,35 @@ public:
     }
 };
 
+/** logical not */
+class RamNot : public RamValue {
+    std::unique_ptr<RamValue> value;
+public:
+    RamNot(std::unique_ptr<RamValue> value)
+        : RamValue(RN_Not,value->isConstant()), value(std::move(value)) {}
+
+    ~RamNot() { }
+
+    const RamValue& getValue() const {
+        ASSERT(value != NULL && "no null value expected");
+        return *value;
+    }
+
+    void print(std::ostream &os) const {
+        os << "complement(";
+        value->print(os);
+        os << ")";
+    }
+
+    size_t getLevel() const {
+        return value->getLevel();
+    }
+
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return toVector<const RamNode*>(value.get());
+    }
+};
 /** bitwise complement */
 class RamComplement : public RamValue {
     std::unique_ptr<RamValue> value;

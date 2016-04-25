@@ -332,7 +332,8 @@ public:
         // -- numerical --
         ORDINAL, 
         NEGATION,
-        BNOT
+        BNOT,
+        LNOT
 
         // -- symbolic --
     };
@@ -363,6 +364,7 @@ public:
         case ORDINAL: return true;
         case NEGATION: return true;
         case BNOT: return true;
+        case LNOT: return true;
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -373,6 +375,7 @@ public:
         case ORDINAL: return false;
         case NEGATION: return false; 
         case BNOT: return false; 
+        case LNOT: return false; 
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -383,6 +386,7 @@ public:
         case ORDINAL: return false;
         case NEGATION: return true;
         case BNOT: return true;
+        case LNOT: return true;
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -393,6 +397,7 @@ public:
         case ORDINAL: return true;
         case NEGATION: return false;
         case BNOT: return false;
+        case LNOT: return false;
         }
         assert(false && "Unsupported operator encountered!");
         return false;
@@ -431,6 +436,7 @@ public:
         case ORDINAL : return "ord";
         case NEGATION : return "-";
         case BNOT : return "bnot";
+        case LNOT : return "lnot";
         }
         assert(false && "Unknown function!");
         return "?";

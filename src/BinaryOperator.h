@@ -144,15 +144,18 @@ inline bool isSymbolicBinaryRelOp(const BinaryRelOp op) {
  * Binary Operators
  */
 enum class BinaryOp {
-    ADD, // addition
-    SUB, // subtraction
-    MUL, // multiplication
-    DIV, // division
-    EXP, // exponent
-    MOD, // modulus
+    ADD,  // addition
+    SUB,  // subtraction
+    MUL,  // multiplication
+    DIV,  // division
+    EXP,  // exponent
+    MOD,  // modulus
     BAND, // bitwise and
     BOR,  // bitwise or 
-    CAT, // string concatenation
+    BXOR, // bitwise exclusive or 
+    LAND, // logical and
+    LOR,  // logical or 
+    CAT,  // string concatenation
 };
 
 /**
@@ -166,8 +169,11 @@ inline std::string getSymbolForBinaryOp(BinaryOp op) {
     case BinaryOp::DIV : return "/";
     case BinaryOp::EXP : return "^";
     case BinaryOp::MOD : return "%";
-    case BinaryOp::BAND : return " band ";
-    case BinaryOp::BOR : return " bor ";
+    case BinaryOp::BAND : return "band";
+    case BinaryOp::BOR : return "bor";
+    case BinaryOp::BXOR : return "bxor";
+    case BinaryOp::LAND : return "land";
+    case BinaryOp::LOR : return "lor";
     case BinaryOp::CAT : return "cat";
     }
     assert(false && "Unsupported Operator!");
@@ -184,8 +190,11 @@ inline BinaryOp getBinaryOpForSymbol(const std::string &symbol) {
     if (symbol == "/") return BinaryOp::DIV;
     if (symbol == "^") return BinaryOp::EXP;
     if (symbol == "%") return BinaryOp::MOD;
-    if (symbol == "&") return BinaryOp::BAND;
-    if (symbol == "|") return BinaryOp::BOR;
+    if (symbol == "band") return BinaryOp::BAND;
+    if (symbol == "bor") return BinaryOp::BOR;
+    if (symbol == "bxor") return BinaryOp::BXOR;
+    if (symbol == "land") return BinaryOp::LAND;
+    if (symbol == "lor") return BinaryOp::LOR;
     if (symbol == "cat") return BinaryOp::CAT;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
@@ -204,6 +213,9 @@ inline bool isNumericBinaryOp(const BinaryOp op) {
     case BinaryOp::EXP:
     case BinaryOp::BAND:
     case BinaryOp::BOR:
+    case BinaryOp::BXOR:
+    case BinaryOp::LAND:
+    case BinaryOp::LOR:
     case BinaryOp::MOD: return true;
     case BinaryOp::CAT: return false;
     }

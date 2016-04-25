@@ -51,6 +51,7 @@ enum RamNodeType {
     RN_Ord,
     RN_Negation,
     RN_Complement,
+    RN_Not,
     RN_Pack,
 
     // conditions
