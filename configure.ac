@@ -122,7 +122,6 @@ AC_CONFIG_FILES([
     prof/Makefile
     tests/Makefile
     tests/atlocal
-    src/souffle-compile
     src/souffle-config
 ])
 AC_CONFIG_LINKS([include/souffle/CompiledRamOptions.h:src/CompiledRamOptions.h])
