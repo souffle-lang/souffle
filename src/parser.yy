@@ -266,13 +266,16 @@ attributes: IDENT COLON type_id {
             $$->addAttribute(std::unique_ptr<AstAttribute>(a));
             delete $5;
           }
+        | { 
+           $$ = new AstRelation();
+          }
         ;
 
 qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(@2, "output qualifier already set"); $$ = $1 | OUTPUT_RELATION; }
           | qualifiers INPUT_QUALIFIER { if($1 & INPUT_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | INPUT_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
-          | {$$ = 0; }
+          | { $$ = 0; }
           ;
 
 relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
@@ -471,6 +474,10 @@ arg_list: arg {
             $$ = $1;
             $$->addArgument(std::unique_ptr<AstArgument>($3));
           }
+        | 
+        {
+          $$ = new AstAtom();
+        }
         ;
 
 atom: rel_id LPAREN arg_list RPAREN {
@@ -479,7 +486,6 @@ atom: rel_id LPAREN arg_list RPAREN {
           $$->setSrcLoc(@$);
         }
     ;
-
 
 /* Literal */
 literal: arg RELOP arg {

@@ -37,11 +37,15 @@ namespace {
         return toString(join(id.getNames(), "_"));
     }
 
-    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, const TypeEnvironment *typeEnv) {
+    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, const TypeEnvironment *typeEnv, bool isNullary = false) {
+
         if (!rel) {
-            return RamRelationIdentifier(name, arity);
+            if (isNullary)
+              return RamRelationIdentifier(name, 1);
+            else
+              return RamRelationIdentifier(name, arity);
         }
-        assert(arity == rel->getArity());
+
         std::vector<std::string> attributeNames;
         std::vector<std::string> attributeTypeQualifiers;
         for (unsigned int i = 0; i < arity; i++) {
@@ -50,8 +54,12 @@ namespace {
                 attributeTypeQualifiers.push_back(getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
             }
         }
-        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(), rel->isComputed(), rel->isOutput());
-
+        if(isNullary) 
+            return RamRelationIdentifier(name, 1, attributeNames, attributeTypeQualifiers, rel->isInput(), 
+                      isNullary, rel->isComputed(), rel->isOutput());
+        else
+            return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(), 
+                      isNullary, rel->isComputed(), rel->isOutput());
     }
 
 }
@@ -350,17 +358,29 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
         return getRamRelationIdentifier(getRelationName(atom->getName()), atom->getArity(), (program ? getAtomRelation(atom, program) : nullptr), typeEnv);
     };
 
+    // a utility to translate atoms to relations
+    auto getNullaryRelation = [&](const AstAtom* atom) {
+        return getRamRelationIdentifier(getRelationName(atom->getName()), atom->getArity(), (program ? getAtomRelation(atom, program) : nullptr), typeEnv, true);
+    };
+
     // handle facts
     if (clause.isFact()) {
-
         // translate arguments
         std::vector<std::unique_ptr<const RamValue>> values;
-        for(auto &arg : clause.getHead()->getArguments()) {
-            values.push_back(translateValue(*arg));
+
+        if(clause.getHead()->getArguments().empty()) {
+             values.push_back(std::unique_ptr<RamValue>(new RamNull()));
+             return std::unique_ptr<RamStatement>(new RamFact(getNullaryRelation(&head), std::move(values)));
+        }
+        else 
+        {
+            for(auto &arg : clause.getHead()->getArguments()) {
+                values.push_back(translateValue(*arg));
+            }
+            return std::unique_ptr<RamStatement>(new RamFact(getRelation(&head), std::move(values)));
         }
 
         // create a fact statement
-        return std::unique_ptr<RamStatement>(new RamFact(getRelation(&head), std::move(values)));
     }
 
     // the rest should be rules
@@ -474,11 +494,21 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
     // -- create RAM statement --
 
     // begin with projection
-    RamProject* project = new RamProject(getRelation(&head), level) ;
+    RamProject* project = head.getArguments().size() == 0 ? 
+      new RamProject(getNullaryRelation(&head), level) : 
+      new RamProject(getRelation(&head), level);
 
-    for(AstArgument *arg : head.getArguments()) {
-        project->addArg(translateValue(arg, valueIndex));
+    if (head.getArguments().size() == 0) {
+        project->addArg(std::unique_ptr<RamValue>(new RamNull()) );
     }
+    else {
+        for(AstArgument *arg : head.getArguments()) {
+            project->addArg(translateValue(arg, valueIndex));
+        }
+    }
+
+
+    assert(project->getRelation().getArity() != 0);
 
     // build up insertion call
     std::unique_ptr<RamOperation> op(project);       // start with innermost
@@ -538,8 +568,11 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
                 }
             }
 
+            
             // add a scan level
-            op = std::unique_ptr<RamOperation>(new RamScan(getRelation(atom), std::move(op), isExistCheck));
+            op = atom->getArguments().size() == 0 ? 
+                std::unique_ptr<RamOperation>(new RamScan(getNullaryRelation(atom), std::move(op), isExistCheck)) :
+                std::unique_ptr<RamOperation>(new RamScan(getRelation(atom), std::move(op), isExistCheck));
 
             // add constraints
             for(size_t pos=0; pos < atom->argSize(); ++pos) {
@@ -620,9 +653,16 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
             const AstAtom* atom = neg->getAtom();
 
             // create constraint
-            RamNotExists *notExists = new RamNotExists(getRelation(atom));
-            for(const auto& arg : atom->getArguments()) {
-                notExists->addArg(translateValue(*arg, valueIndex));
+            RamNotExists *notExists = atom->getArguments().size() == 0 ?
+              new RamNotExists(getNullaryRelation(atom)) : 
+              new RamNotExists(getRelation(atom));
+
+            if (atom->getArguments().size() == 0) { 
+                notExists->addArg(std::unique_ptr<RamValue>(new RamNull()));
+            }else{
+                for(const auto& arg : atom->getArguments()) {
+                    notExists->addArg(translateValue(*arg, valueIndex));
+                }
             }
 
             // add constraint
@@ -778,11 +818,13 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
         std::unique_ptr<RamStatement> updateRelTable1;
         std::unique_ptr<RamStatement> updateRelTable2;
 
+        bool isNull = rel->getArity() == 0;
+
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
-        rrel[rel]  = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv);
-        temp1[rel] = getRamRelationIdentifier("_temp1_"+relName, rel->getArity(), rel, &typeEnv);
-        temp2[rel] = getRamRelationIdentifier("_temp2_"+relName, rel->getArity(), rel, &typeEnv);
+        rrel[rel]  = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv, isNull);
+        temp1[rel] = getRamRelationIdentifier("_temp1_"+relName, rel->getArity(), rel, &typeEnv, isNull);
+        temp2[rel] = getRamRelationIdentifier("_temp2_"+relName, rel->getArity(), rel, &typeEnv, isNull);
 
 
         /* create update statements for fixpoint (even iteration) */
@@ -1018,8 +1060,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
     /* Initialize all relations */
     for(AstRelation *rel : rels) {
 
+        bool isNull = rel->getArity() == 0;
         // initialize relation
-        RamRelationIdentifier rrel = getRamRelationIdentifier(getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv);
+        RamRelationIdentifier rrel = getRamRelationIdentifier(getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, isNull);
+
         appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(rrel)));
 
         // optional: load inputs
@@ -1028,12 +1072,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp1_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp2_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp1_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, isNull))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_temp2_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, isNull))));
         }
     }
-
-
 
     // --- computation ---
 

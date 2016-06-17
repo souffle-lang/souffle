@@ -93,6 +93,7 @@ public:
 /** Adds a fact to a given relation */
 class RamFact : public RamRelationStatement {
 
+protected:
     typedef std::vector<std::unique_ptr<const RamValue>> value_list;
     value_list values;
 
@@ -121,7 +122,6 @@ public:
     }
 
 };
-
 
 /** Loads data from a file into a relation */
 class RamLoad : public RamRelationStatement {
@@ -489,4 +489,3 @@ public:
 };
 
 } // end of namespace souffle
-

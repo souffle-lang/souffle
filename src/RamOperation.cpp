@@ -80,8 +80,6 @@ namespace {
         }
         return std::unique_ptr<RamValue>(nullptr);
     }
-
-
 }
 
 /** add condition */

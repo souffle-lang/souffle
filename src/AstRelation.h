@@ -123,9 +123,12 @@ public:
     /** Print string representation of the relation to a given output stream */
     virtual void print(std::ostream &os) const {
         os << ".decl " << this->getName() << "(";
-        os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
-        for (size_t i=1; i<attributes.size(); ++i) {
-            os << "," << attributes[i]->getAttributeName() << ":" << attributes[i]->getTypeName();
+        if (attributes.size() > 0) {
+          os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
+
+          for (size_t i=1; i<attributes.size(); ++i) {
+              os << "," << attributes[i]->getAttributeName() << ":" << attributes[i]->getTypeName();
+          }
         }
         os << ") " ;
         if (isInput()) { 

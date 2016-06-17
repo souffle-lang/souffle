@@ -72,9 +72,12 @@ namespace {
                 : env(env), ctxt(ctxt) {}
 
             // -- basics --
-
             RamDomain visitNumber(const RamNumber& num) {
                 return num.getConstant();
+            }
+
+            RamDomain visitNull(const RamNull& null) {
+                return null.getConstant();
             }
 
             RamDomain visitElementAccess(const RamElementAccess& access) {
@@ -190,19 +193,24 @@ namespace {
             }
 
             bool visitNotExists(const RamNotExists& ne) {
-
                 const RamRelation& rel = env.getRelation(ne.getRelation());
 
                 // construct the pattern tuple
                 auto arity = rel.getArity();
                 auto values = ne.getValues();
 
+                bool isNullary = ne.getRelation().isNullary();
+
                 // for total we use the exists test
                 if (ne.isTotal()) {
-
                     RamDomain tuple[arity];
-                    for(size_t i=0;i<arity;i++) {
-                        tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+                    if(arity == 1 && isNullary) {
+                        tuple[0] = rel.getID().getNullValue();
+                    }
+                    else {
+                        for(size_t i=0;i<arity;i++) {
+                            tuple[i]= (values[i]) ? eval(values[i],env,ctxt) : MIN_RAM_DOMAIN;
+                        }
                     }
 
                     return !rel.exists(tuple);
@@ -389,7 +397,6 @@ namespace {
             }
 
             void visitAggregate(const RamAggregate& aggregate) {
-
                 // get the targeted relation
                 const RamRelation& rel = env.getRelation(aggregate.getRelation());
 
@@ -475,15 +482,15 @@ namespace {
             }
 
             void visitProject(const RamProject& project) {
-
                 // check constraints
                 RamCondition* condition = project.getCondition();
                 if (condition && !eval(*condition, env, ctxt)) {
                     return;        // condition violated => skip insert
                 }
 
-                // build new tuple
                 auto arity = project.getRelation().getArity();
+                assert(arity != 0);
+
                 const auto& values = project.getValues();
                 RamDomain tuple[arity];
                 for(size_t i=0;i<arity;i++) {
@@ -491,7 +498,7 @@ namespace {
                 }
 
                 // check filter relation
-                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)){
+                if(project.hasFilter() && env.getRelation(project.getFilter()).exists(tuple)) {
                     return;
                 }
 
@@ -500,7 +507,6 @@ namespace {
             }
 
             // -- safety net --
-
             void visitNode(const RamNode& node) {
                 std::cout << "Unsupported node Type: " << typeid(node).name() << "\n";
                 assert(false && "Unsupported Node Type!");
@@ -645,9 +651,11 @@ namespace {
                 auto arity = fact.getRelation().getArity();
                 RamDomain tuple[arity];
                 auto values = fact.getValues();
+
                 for(size_t i = 0 ; i < arity ; ++i) {
                     tuple[i] = eval(values[i], env);
                 }
+
                 env.getRelation(fact.getRelation()).insert(tuple);
                 return true;
             }
@@ -659,7 +667,6 @@ namespace {
             }
 
             bool visitMerge(const RamMerge& merge) {
-
                 // get involved relation
                 RamRelation& src = env.getRelation(merge.getSourceRelation());
                 RamRelation& trg = env.getRelation(merge.getTargetRelation());
@@ -1383,11 +1390,21 @@ namespace {
             if (condition) {
                 out << "if (" << print(condition) << ") {\n";
             }
+            
 
-            // create projected tuple
-            out << "Tuple<RamDomain," << arity << "> tuple({"
-                    << join(project.getValues(), ",", rec)
-                << "});\n";
+            if (project.getRelation().isNullary()) {
+                out << "Tuple<RamDomain," << arity << "> tuple({"
+                    << project.getRelation().getNullValue()
+                    << "});\n";
+
+            }
+            else {
+                // create projected tuple
+                out << "Tuple<RamDomain," << arity << "> tuple({"
+                        << join(project.getValues(), ",", rec)
+                    << "});\n";
+
+            }
 
             // check filter
             if (project.hasFilter()) {
@@ -1422,7 +1439,6 @@ namespace {
                     out << " else { ++private_num_failed_proofs; }";
                 }
             }
-
 
         }
 
@@ -1527,9 +1543,12 @@ namespace {
         }
 
         // -- values --
-
         void visitNumber(const RamNumber& num, std::ostream& out) {
             out << num.getConstant();
+        }
+
+        void visitNull(const RamNull& null, std::ostream& out) {
+            out << null.getConstant();
         }
 
         void visitElementAccess(const RamElementAccess& access, std::ostream& out) {

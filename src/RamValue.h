@@ -272,6 +272,46 @@ public:
 };
 
 /** Constant value */ 
+class RamNull : public RamValue {
+public:
+    RamNull() : RamValue(RN_Null,true) {}
+
+    RamDomain getConstant() const {
+        return '0';
+    }
+    void print(std::ostream &os) const {
+        os << "null()"; 
+    }
+    size_t getLevel() const {
+        return 0;
+    }
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return std::vector<const RamNode*>();  // no child nodes
+    }
+};
+
+/** Constant value */ 
+/*class RamUnit : public RamValue {
+public:
+    RamUnit() : RamValue(RN_Unit,true) {}
+
+    RamDomain getConstant() const {
+        return '\n';
+    }
+    void print(std::ostream &os) const {
+        os << "()"; 
+    }
+    size_t getLevel() const {
+        return 0;
+    }
+
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return std::vector<const RamNode*>();  // no child nodes
+    }
+};*/
+
+/** Constant value */ 
 class RamAutoIncrement : public RamValue {
 public:
     RamAutoIncrement()

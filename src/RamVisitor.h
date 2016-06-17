@@ -76,6 +76,7 @@ struct RamVisitor : public ram_visitor_tag {
             // values
             FORWARD(ElementAccess);
             FORWARD(Number);
+            FORWARD(Null);
             FORWARD(BinaryOperator);
             FORWARD(AutoIncrement);
             FORWARD(Ord);
@@ -182,6 +183,7 @@ protected:
 
     // -- values --
     LINK(Number, Value)
+    LINK(Null, Value)
     LINK(ElementAccess, Value)
     LINK(BinaryOperator, Value)
     LINK(Ord, Value)
