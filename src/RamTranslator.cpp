@@ -37,11 +37,15 @@ namespace {
         return toString(join(id.getNames(), "_"));
     }
 
-    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, const TypeEnvironment *typeEnv) {
+    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, const TypeEnvironment *typeEnv, bool isNullary = false) {
         if (!rel) {
             return RamRelationIdentifier(name, arity);
         }
-        assert(arity == rel->getArity());
+
+        if(arity == 0 && !isNullary) {
+          std::cout << "not null and 0 arity! name = " << name <<"\n";
+        }
+
         std::vector<std::string> attributeNames;
         std::vector<std::string> attributeTypeQualifiers;
         for (unsigned int i = 0; i < arity; i++) {
@@ -50,7 +54,12 @@ namespace {
                 attributeTypeQualifiers.push_back(getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
             }
         }
-        return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(), rel->isComputed(), rel->isOutput());
+        if(isNullary) 
+            return RamRelationIdentifier(name, 1, attributeNames, attributeTypeQualifiers, rel->isInput(), 
+                      isNullary, rel->isComputed(), rel->isOutput());
+        else
+            return RamRelationIdentifier(name, arity, attributeNames, attributeTypeQualifiers, rel->isInput(), 
+                      isNullary, rel->isComputed(), rel->isOutput());
 
     }
 
@@ -350,11 +359,20 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
         return getRamRelationIdentifier(getRelationName(atom->getName()), atom->getArity(), (program ? getAtomRelation(atom, program) : nullptr), typeEnv);
     };
 
+    // a utility to translate atoms to relations
+    auto getNullaryRelation = [&](const AstAtom* atom) {
+        return getRamRelationIdentifier(getRelationName(atom->getName()), atom->getArity(), (program ? getAtomRelation(atom, program) : nullptr), typeEnv, true);
+    };
+
     // handle facts
     if (clause.isFact()) {
-
         // translate arguments
         std::vector<std::unique_ptr<const RamValue>> values;
+
+        if(clause.getHead()->getArguments().empty()) {
+            return std::unique_ptr<RamStatement>(new RamNFact(getNullaryRelation(&head)));
+        }
+
         for(auto &arg : clause.getHead()->getArguments()) {
             values.push_back(translateValue(*arg));
         }
@@ -474,7 +492,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& cl
     // -- create RAM statement --
 
     // begin with projection
-    RamProject* project = new RamProject(getRelation(&head), level) ;
+    RamProject* project = head.getArguments().size() == 0 ? 
+      new RamProject(getNullaryRelation(&head), level) : 
+      new RamProject(getRelation(&head), level);
 
     for(AstArgument *arg : head.getArguments()) {
         project->addArg(translateValue(arg, valueIndex));
@@ -1019,7 +1039,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
     for(AstRelation *rel : rels) {
 
         // initialize relation
-        RamRelationIdentifier rrel = getRamRelationIdentifier(getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv);
+        RamRelationIdentifier rrel = rel->getArity() == 0 ? 
+                                         getRamRelationIdentifier(getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true) :
+                                         getRamRelationIdentifier(getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv);
+
         appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(rrel)));
 
         // optional: load inputs

@@ -93,6 +93,7 @@ public:
 /** Adds a fact to a given relation */
 class RamFact : public RamRelationStatement {
 
+protected:
     typedef std::vector<std::unique_ptr<const RamValue>> value_list;
     value_list values;
 
@@ -120,6 +121,23 @@ public:
         return res;
     }
 
+};
+
+/** Adds a fact to a given relation */
+class RamNFact : public RamRelationStatement {
+
+public:
+    RamNFact(const RamRelationIdentifier& rel)
+        : RamRelationStatement(RN_NFact, rel) {
+    }
+
+    ~RamNFact() { }
+
+    /** Pretty print statement */
+    virtual void print(std::ostream &os, int tabpos) const {
+        os << times('\t', tabpos);
+        os << "INSERT (" << getRelation().getNullValue() <<  ") INTO " << getRelation().getName();
+    }
 };
 
 
@@ -489,4 +507,3 @@ public:
 };
 
 } // end of namespace souffle
-

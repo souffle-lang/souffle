@@ -481,9 +481,9 @@ void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironmen
     }
 
     // check whether this relation is empty
-    if (relation.clauseSize() == 0 && !relation.isInput()) {
-        report.addWarning("No rules/facts defined for relation " + toString(relation.getName()), relation.getSrcLoc());
-    }
+    //if (relation.clauseSize() == 0 && !relation.isInput()) {
+    //    report.addWarning("No rules/facts defined for relation " + toString(relation.getName()), relation.getSrcLoc());
+    //}
 }
 
 
