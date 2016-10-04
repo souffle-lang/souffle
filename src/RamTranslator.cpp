@@ -853,7 +853,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
     std::unique_ptr<RamParallel> loopSeq1(new RamParallel());
     std::unique_ptr<RamParallel> loopSeq2(new RamParallel());
 
-    // create a utility to check SCC membershio
+    // create a utility to check SCC membership
     auto isInSameSCC = [&](const AstRelation* rel) {
         return std::find(scc.begin(), scc.end(), rel) != scc.end();
     };
