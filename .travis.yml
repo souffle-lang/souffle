@@ -19,6 +19,9 @@ matrix:
 script: 
   - "./.travis/run.sh"
 
+after_failure:
+  - "./.travis/after_failure.sh"
+
 deploy:
   skip_cleanup: true
   provider: releases
