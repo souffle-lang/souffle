@@ -1,0 +1,11 @@
+ ----- Relation Table -----
+   TOT_T  NREC_T   REC_T  COPY_T         TUPLES    ID NAME                     
+
+    .700    .002    .668    .030         397202    R2 IsPtr
+    .582    .000    .442    .140         639327    R4 IsReachable
+    .251    .006    .245    .000          21190    R1 LptrVar
+    .053    .000    .052    .001           5299    R3 Memory
+    .020    .000    .018    .002           2649    R6 CPtrLoad
+    .015    .012    .003    .000           1226    R5 CFormat
+    .004    .000    .004    .000            255    R7 CPtrStore
+

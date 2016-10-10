@@ -49,8 +49,11 @@ public class Tui {
         } else if (c[0].equals("rel")) {
             if (c.length == 2) {
                 relRul(c[1]);
-            } else {
+            } else if (c.length == 1) {
                 rel(c[0]);
+            } else {
+                System.out.println("Invalid parameters to rel command.");
+                help();
             }
         } else if (c[0].equals("rul")) {
             if (c.length > 1) {
@@ -61,6 +64,9 @@ public class Tui {
                     id("0");
                 } else if (c.length == 2) {
                     verRul(c[1]);
+                } else {
+                    System.out.println("Invalid parameters to rul command.");
+                    help();
                 }
             } else {
                 rul(c[0]);
@@ -73,11 +79,14 @@ public class Tui {
             } else if (c.length == 4 && c[1].equals("ver")
                     && c[2].charAt(0) == 'C') {
                 verGraph(c[2], c[3]);
+            } else {
+                System.out.println("Invalid parameters to graph command.");
+                help();
             }
         } else if (c[0].equals("help")) {
             help();
         } else {
-            System.out.println("unknown command"); 
+            System.out.println("Unknown command. Please select from the following commands:"); 
             help();
         }
     }
@@ -127,24 +136,20 @@ public class Tui {
                 } else {
                     loadMenu();
                 }
-            }
-
-            if (!loaded) {
-                continue;
-            }
-
-            if (c[0].equals("stop") && alive) {
+            } else if (c[0].equals("stop") && alive) {
                 live_reader.stopRead();
                 this.alive = false;
-            } else if (c[0].equals("ser")) {
-                ser();
-            } else if (c[0].equals("unser")) {
-                unser();
             } else if (c[0].equals("save")) {
                 if (c.length == 1) {
                     System.out.println("Enter file name to save.");
                 } else if (c.length == 2) {
                     save(c[1]);
+                }
+            } else if (c[0].equals("sort")) {
+                if (c.length == 2 && Integer.parseInt(c[1]) < 7) {
+                    sort_col = Integer.parseInt(c[1]);
+                } else {
+                    System.out.println("Invalid column, please select a number between 0 and 6.");
                 }
             } else {
                 runCommand(c);
@@ -169,38 +174,6 @@ public class Tui {
     public void quit() {
         if (alive && loaded) {
             live_reader.stopRead();
-        }
-    }
-
-    private void unser() {
-        ProgramRun runser = null;
-        try {
-            FileInputStream fileIn = new FileInputStream("/tmp/employee.ser");
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-            runser = (ProgramRun) in.readObject();
-            in.close();
-            fileIn.close();
-            this.run = runser;
-        } catch (IOException i) {
-            i.printStackTrace();
-            return;
-        } catch (ClassNotFoundException c) {
-            System.out.println("Class not found");
-            return;
-        }
-    }
-
-    private void ser() {
-        try {
-            FileOutputStream fileOut
-            = new FileOutputStream("/tmp/employee.ser");
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(run);
-            out.close();
-            fileOut.close();
-            System.out.printf("Serialized data is saved in /tmp/employee.ser");
-        } catch (IOException i) {
-            i.printStackTrace();
         }
     }
 
@@ -238,9 +211,8 @@ public class Tui {
     }
 
     private void help() {
-        System.out.println("SouffleProf Alpha3 (2 Feb 2015)");
-        System.out.println("Available commands:");
-        System.out.print((String.format("\n  %-30s%-5s %-10s\n", "rel", "-",
+        System.out.println("\nAvailable profiling commands:");
+        System.out.print((String.format("  %-30s%-5s %-10s\n", "rel", "-",
                 "display relation table.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "rel <relation id>",
                 "-", "display all rules of given relation.")));
@@ -252,19 +224,21 @@ public class Tui {
                 "display all rules names and ids.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "rul id <rule id>",
                 "-", "display the rule name for the given rule id.")));
-        System.out.print((String.format("  %-30s%-5s %-10s\n", "sort <col name>",
-                "-", "sorts by given column.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n",
                 "graph <relation id> <type>", "-",
                 "graph the relation by type(tot_t/copy_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n",
                 "graph <rule id> <type>", "-",
-                "graph the rule by type(tot_t/tuples).")));
+                "graph the rule (C rules only)  by type(tot_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n",
                 "graph ver <rule id> <type>", "-",
-                "graph the rule versions by type(tot_t/tuples).")));
+                "graph the rule versions (C rules only) by type(tot_t/tuples).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "top", "-",
                 "display top-level summary of program run.")));
+        System.out.print((String.format("  %-30s%-5s %-10s\n", "help", "-",
+                "print this.")));
+
+        System.out.println("\nInteractive mode only commands:");
         System.out.print((String.format("  %-30s%-5s %-10s\n", "load <filename>",
                 "-", "load the given new log file.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "open", "-",
@@ -275,8 +249,8 @@ public class Tui {
                 "-", "store a log file.")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "stop", "-",
                 "stop running live.")));
-        System.out.print((String.format("  %-30s%-5s %-10s\n", "help", "-",
-                "print this.")));
+        System.out.print((String.format("  %-30s%-5s %-10s\n", "sort <col number>",
+                "-", "sets sorting to be by given column number (0 indexed).")));
         System.out.print((String.format("  %-30s%-5s %-10s\n", "q", "-",
                 "exit program.")));
     }
@@ -317,8 +291,10 @@ public class Tui {
             Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.TUP));
             break;
         case 5:
-            Arrays.sort(rel_table_state,
-                    DataComparator.getComparator(sortDir, DataComparator.NAME));
+            Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
+            Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
         default:
             Arrays.sort(rel_table_state,
@@ -326,11 +302,11 @@ public class Tui {
             break;
         }
 
-        Object[][] table = run.formatTable(rel_table_state, precision);
+        String[][] table = run.formatTable(rel_table_state, precision);
         System.out.print(String.format(" ----- Relation Table -----\n"));
         System.out.print(String.format("%8s%8s%8s%8s%15s%6s%1s%-25s\n\n", 
                 "TOT_T", "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID", "", "NAME"));
-        for (final Object[] row : table) {
+        for (final String[] row : table) {
             String out;
             out = String.format("%8s%8s%8s%8s%15s%6s%1s%-5s\n",
                     (row[0]), (row[1]), (row[2]),
@@ -371,19 +347,21 @@ public class Tui {
             Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.TUP));
             break;
         case 5:
-            Arrays.sort(rul_table_state,
-                    DataComparator.getComparator(sortDir, DataComparator.NAME));
+            Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
+            Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
         default:
             Arrays.sort(rul_table_state,
                     DataComparator.getComparator(sortDir, DataComparator.TIME));
             break;
         }
-        Object[][] table = run.formatTable(rul_table_state, precision);
+        String[][] table = run.formatTable(rul_table_state, precision);
         System.out.print("  ----- Rule Table -----\n");
         System.out.print(String.format("%8s%8s%8s%8s%15s    %-5s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID RELATION"));
-        for (final Object[] row : table) {
+        for (final String[] row : table) {
 
             String out = String.format("%8s%8s%8s%8s%15s%8s %-25s\n",
                     (row[0]), (row[1]), (row[2]),
@@ -393,16 +371,16 @@ public class Tui {
     }
 
     private void id(String col) {
-        Object[][] table = run.formatTable(rul_table_state, precision);
+        String[][] table = run.formatTable(rul_table_state, precision);
         if (col.equals("0")) {
             System.out.print(String.format("%7s%2s%-25s\n\n", "ID", "", "NAME"));
             Arrays.sort(table,
                     DataComparator.getComparator(sortDir, DataComparator.NAME));
-            for (final Object[] row : table) {
+            for (final String[] row : table) {
                 System.out.print(String.format("%7s%2s%-25s\n", row[6], "", row[5]));
             }
         } else {
-            for (final Object[] row : table) {
+            for (final String[] row : table) {
                 if (((String) row[6]).equals(col)) {
                     System.out.print(String.format("%7s%2s%-25s\n", row[6], "", row[5]));
                 }
@@ -434,6 +412,10 @@ public class Tui {
             break;
         case 5:
             Arrays.sort(rul_table_state,
+                    DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
+            Arrays.sort(rul_table_state,
                     DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
         default:
@@ -441,13 +423,13 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TIME));
             break;
         }
-        Object[][] rul_table = run.formatTable(rul_table_state, precision);
-        Object[][] rel_table = run.formatTable(rel_table_state, precision);
+        String[][] rul_table = run.formatTable(rul_table_state, precision);
+        String[][] rel_table = run.formatTable(rel_table_state, precision);
         System.out.print("  ----- Rules of a Relation -----\n");
         System.out.print(String.format("%8s%8s%8s%8s%10s%8s %-25s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID", "NAME"));
         String name = "";
-        for (final Object[] row : rel_table) {
+        for (final String[] row : rel_table) {
             if (((String) row[5]).equals(str) || ((String) row[6]).equals(str)) {
                 System.out.print(String.format("%8s%8s%8s%8s%10s%8s %-25s\n",
                         (row[0]), (row[1]),
@@ -458,7 +440,7 @@ public class Tui {
             }
         }
         System.out.print( " ---------------------------------------------------------\n");
-        for (final Object[] row : rul_table) {
+        for (final String[] row : rul_table) {
             if (((String) row[7]).equals(name)) {
                 System.out.print(String.format("%8s%8s%8s%8s%10s%8s %-25s\n",
                         (row[0]), (row[1]),
@@ -471,7 +453,7 @@ public class Tui {
             src = run.getRelation(name).getLocator();
         }
         System.out.print("\nSrc locator: " + src + "\n\n");
-        for (final Object[] row : rul_table) {
+        for (final String[] row : rul_table) {
             if (((String) row[7]).equals(name)) {
                 System.out.print(
                         (String.format("%7s%2s%-25s\n", row[6], "", row[5])));
@@ -510,6 +492,10 @@ public class Tui {
             break;
         case 5:
             Arrays.sort(ver_table,
+                    DataComparator.getComparator(sortDir, DataComparator.ID));
+            break;
+        case 6:
+            Arrays.sort(ver_table,
                     DataComparator.getComparator(sortDir, DataComparator.NAME));
             break;
         default:
@@ -517,12 +503,12 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TIME));
             break;
         }
-        Object[][] rul_table = run.formatTable(rul_table_state, precision);
+        String[][] rul_table = run.formatTable(rul_table_state, precision);
         System.out.print("  ----- Rule Versions Table -----\n");
         System.out.print(String.format("%8s%8s%8s%8s%10s%6s   %-5s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "VER", "ID RELATION"));
         boolean found = false;
-        for (final Object[] row : rul_table) {
+        for (final String[] row : rul_table) {
             if (((String) row[6]).equals(str)) {
                 System.out.print(String.format("%8s%8s%8s%8s%10s%6s%7s %-25s\n",
                         (row[0]), (row[1]),
@@ -546,7 +532,7 @@ public class Tui {
                 System.out.print("\nSrc locator-: " + rul_table[0][10] + "\n\n");
             }
         }
-        for (final Object[] row : rul_table) {
+        for (final String[] row : rul_table) {
             if (((String) row[6]).equals(str)) {
                 System.out.print(
                         (String.format("%7s%2s%-25s\n", row[6], "", row[5])));
@@ -555,9 +541,9 @@ public class Tui {
     }
 
     private void iterRel(String c, String col) {
-        Object[][] table = run.formatTable(rel_table_state, -1);
+        String[][] table = run.formatTable(rel_table_state, -1);
         List<Iteration> iter;
-        for (final Object[] row : table) {
+        for (final String[] row : table) {
             if (((String) row[6]).equals(c) || ((String) row[5]).equals(c)) {
                 System.out.print(
                         (String.format("%4s%2s%-25s\n\n", row[6], "", row[5])));
@@ -594,9 +580,9 @@ public class Tui {
     }
 
     private void iterRul(String c, String col) {
-        Object[][] table = run.formatTable(rul_table_state, precision);
+        String[][] table = run.formatTable(rul_table_state, precision);
         List<Iteration> iter;
-        for (Object[] row : table) {
+        for (String[] row : table) {
             if (((String) row[6]).equals(c)) {
                 System.out.print(
                         (String.format("%6s%2s%-25s\n\n", row[6], "", row[5])));
@@ -694,7 +680,7 @@ public class Tui {
             char[] chars = new char[len];
             Arrays.fill(chars, '*');
             String bar = new String(chars);
-            System.out.print((String.format("%4d %6s | %s\n", i++, (time), bar)));
+            System.out.print((String.format("%4d %10.8f | %s\n", i++, (time), bar)));
         }
     }
 

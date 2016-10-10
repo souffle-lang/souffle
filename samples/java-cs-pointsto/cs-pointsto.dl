@@ -1,0 +1,1524 @@
+//
+// Copyright (c) 2013-16, Oracle and/or its affiliates.
+//
+// The Universal Permissive License (UPL), Version 1.0
+// 
+// Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
+// associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
+// Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+// Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
+// 
+// (a) the Software, and
+// (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
+// Work” to which the Software is contributed by such licensors),
+// 
+// without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
+// distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+// Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
+// 
+// This license is subject to the following condition:
+// The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+// IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Modeled after the context-insensitive spec in the DOOP framework (http://doop.program-analysis.org/)
+
+// Copyright (C) 2008-2009  Martin Bravenboer
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+/*****************************************************************
+
+ Rules computing the 2O+1H context-sensitive points-to relation 
+
+******************************************************************/
+
+//
+// - Native CallGraph construction enabled
+// - ReflectiveCallGraph construction enabled
+// 
+
+//
+// ArrayIndexPointsTo
+//
+
+
+.decl ArrayIndexPointsTo(hctx:Context,heap:HeapAllocationRef,basectx:Context,baseheap:HeapAllocationRef)
+
+ArrayIndexPointsTo(hctx,heap,basehctx,baseheap) :- 
+   StoreHeapArrayIndex(basehctx,baseheap,ctx,from),
+   VarPointsTo(hctx,heap,ctx,from),
+   HeapAllocationType(heap,heaptype),
+   HeapAllocationType(baseheap,baseheaptype),
+   ComponentType(baseheaptype,componenttype),
+   AssignCompatible(componenttype,heaptype).
+   
+   
+
+#ifndef DISABLE_REFLECTION
+
+.decl ReflectiveDeclaredMethodPointsTo(cheap:HeapAllocationRef,pheap:HeapAllocationRef,ctx:Context,lhs:VarRef)
+
+ReflectiveDeclaredMethodPointsTo(cheap,pheap,[obj1,obj2],lhs):-
+   javalangClassgetDeclaredMethod(lhs,class,param),
+   VarPointsTo(_,cheap,[obj1,obj2],class),
+   VarPointsTo(_,pheap,[obj1,obj2],param).
+
+.decl ReflectiveGetMethodPointsTo(cheap:HeapAllocationRef,pheap:HeapAllocationRef,ctx:Context,lhs:VarRef)
+
+ReflectiveGetMethodPointsTo(cheap,pheap,[obj1,obj2],lhs):-
+   javalangClassgetMethod(lhs,class,param),
+   VarPointsTo(_,cheap,[obj1,obj2],class),
+   VarPointsTo(_,pheap,[obj1,obj2],param).
+
+#endif
+
+
+
+
+
+
+//
+// Assign
+//
+
+.decl Assign(toctx:Context,to:VarRef,fromctx:Context,from:VarRef)
+
+//
+// type checking
+//
+.decl BaseVarType(variable:VarRef, type:Type)
+BaseVarType(var, type) :- 
+  VarType(var, type), 
+  BaseVar(var).
+
+.decl BaseTypes(type:Type)
+BaseTypes(x) :- 
+  Superclass(x, _), 
+  BaseVarType(_, x).
+                    
+BaseTypes(x) :- 
+  Superclass(_, x), 
+  BaseVarType(_, x).
+
+.decl IsBaseTypeCompatible(subclass:Type, superclass:Type)
+IsBaseTypeCompatible(sub, super) :- 
+  Superclass(sub, super).
+
+IsBaseTypeCompatible(t, t) :- 
+  BaseTypes(t).
+
+.decl BaseTypeComparable(subclass:Type, superclass:Type)
+BaseTypeComparable(type1, type2) :- 
+  IsBaseTypeCompatible(type1, type2).
+
+BaseTypeComparable(type1, type2) :- 
+  IsBaseTypeCompatible(type2, type1).
+
+
+
+//
+// Substituting hP relations
+//
+
+
+
+.decl BaseVar(baseVariable:VarRef)
+BaseVar(var) :- LoadInstanceFieldIndex(var, _, _,_).
+BaseVar(var) :- StoreInstanceFieldIndex(_, var, _, _).
+
+
+
+.decl BaseVarPointsTo(hctx:Context,heapAllocation:HeapAllocationRef,ctx:Context,variable:VarRef)
+BaseVarPointsTo(hctx,heap,ctx,base) :- 
+  BaseVar(base),
+  VarPointsTo(hctx,heap,ctx,base).
+
+.decl LoadInstanceVarPointsTo(hctx:Context,heapAllocation:HeapAllocationRef,ctx:Context,variable:VarRef)
+LoadInstanceVarPointsTo(hctx,heap,ctx,base)  :-  
+  BaseVarPointsTo(hctx,heap,ctx,base),      
+  LoadInstanceFieldIndex(base, _, _, _).
+
+.decl StoreInstanceVarPointsTo(hctx:Context,heapAllocation:HeapAllocationRef,ctx:Context,variable:VarRef)
+StoreInstanceVarPointsTo(hctx,heap,ctx,base) :-  
+  BaseVarPointsTo(hctx,heap,ctx,base),     
+  StoreInstanceFieldIndex(_,base, _, _).
+
+
+.decl Alias(ctx1:Context,v1:VarRef, ctx2:Context,v2:VarRef)
+Alias(ctx1,v1,ctx2,v2) :-
+  StoreInstanceVarPointsTo(hctx,h,ctx2,v2),                           
+  LoadInstanceVarPointsTo(hctx,h,ctx1,v1),          
+  BaseVarType(v1, t1),                 
+  BaseVarType(v2, t2),
+  BaseTypeComparable(t1,t2).
+  .plan 1: (2,1,3,4,5)
+
+Assign(toCtx,varAssignedTo,storeCtx,storedVar) :-                          
+  Alias(toCtx,iLoadVar, storeCtx,iStoreVar),
+  StoreInstanceFieldIndex(storedVar, iStoreVar, field, _),          
+  LoadInstanceFieldIndex(iLoadVar, field, varAssignedTo, _).
+
+
+
+
+
+
+//
+// Assignments that need type checking
+//
+
+.decl TypedAssign(type:Type,toCtx:Context,to:VarRef,fromCtx:Context,from:VarRef) 
+
+TypedAssign(type,ctx,to,ctx,from) :- 
+   AssignCast(type,from,to,inmethod),
+   VarRef(to),
+   VarRef(from),
+   ReachableContext(ctx,inmethod).
+
+#ifndef DISABLE_REFLECTION
+TypedAssign(type,callerCtx,local,calleeCtx,return) :- 
+   ReturnVar(return,callee),
+   ReflectiveCallGraphEdge(callerCtx,invocation,calleeCtx,callee),
+   ReflectiveAssignReturnValue(invocation,local),
+   VarType(local,type).
+#endif
+
+
+//
+// AssignContextInsensitiveHeapAllocation
+//
+
+.decl AssignContextInsensitiveHeapAllocation(heap:HeapAllocationRef,to:VarRef,inmethod:MethodSignatureRef) 
+
+AssignContextInsensitiveHeapAllocation(mergeHeap,var,inmethod) :- 
+   AssignHeapAllocation(heap,var,inmethod),
+   VarRef(var),
+   InstructionRef(heap),
+   HeapAllocationMerge(heap,mergeHeap),
+   VarType(var, vt),
+   HeapAllocationType(mergeHeap, ht),
+   AssignCompatible(vt, ht).
+
+AssignContextInsensitiveHeapAllocation(heap,var,inmethod) :- 
+   AssignHeapAllocation(heap,var,inmethod),
+   VarRef(var),
+   InstructionRef(heap),
+   HeapAllocationContextInsensitive(heap).
+
+//
+// AssignNormalHeapAllocation
+//
+
+.decl AssignNormalHeapAllocation(heap:HeapAllocationRef,var:VarRef,inmethod:MethodSignatureRef) 
+
+AssignNormalHeapAllocation(heap,var,inmethod) :- 
+   AssignHeapAllocation(heap,var,inmethod),
+   InstructionRef(heap),
+   VarRef(var),
+   !HeapAllocationSpecial(heap),
+   HeapAllocationType(heap, ht),
+   VarType(var, vt),
+   AssignCompatible(vt, ht).
+
+//
+// AssignContextInsensitiveHeapAllocationSkolemOpt
+//
+
+.decl AssignContextInsensitiveHeapAllocationSkolemOpt(heap:HeapAllocationRef,ctx:Context,var:VarRef) 
+
+AssignContextInsensitiveHeapAllocationSkolemOpt(heap,ctx,var) :- 
+   AssignContextInsensitiveHeapAllocation(heap,var,inmethod),
+   ReachableContext(ctx,inmethod).
+
+
+//
+// AssignNormalHeapAllocationSkolemOpt
+//
+
+/* Generates context for heap allocation sites*/
+
+.decl AssignNormalHeapAllocationSkolemOpt(heap:HeapAllocationRef,ctx:Context,var:VarRef) 
+
+AssignNormalHeapAllocationSkolemOpt(heap,ctx,var) :- 
+   AssignNormalHeapAllocation(heap,var,inmethod),
+   ReachableContext(ctx,inmethod).
+
+
+//
+// CallGraphEdge Projection without contexts
+//
+
+.decl CallGraphEdgeNoContext(invocation:CallGraphEdgeSourceRef,method:MethodSignatureRef)
+
+  CallGraphEdgeNoContext(invocation,method) :-  CallGraphEdge(_,invocation,_,method).
+
+
+//
+// CallGraphEdge
+//
+
+/*Uses the caller context for static calls. Therefore, if we have nested static
+  calls, the same context will be resuded for each static call.*/
+
+CallGraphEdge(callerCtx,invocation,callerCtx,tomethod) :- 
+   StaticMethodInvocationSkolemOpt(callerCtx,invocation,tomethod).
+
+
+/* Generates context for method invocations. The context would be the 
+  heap object (obj2) that the base of caller method pointsto
+  and the heap object (heap) that the base of current invocation points to.
+*/
+
+CallGraphEdge(callerCtx,invocation,[obj2,heap],tomethod) :- 
+   MergeBasis(callerCtx,invocation,[_,obj2],heap),
+   HeapAllocationType(heap,heaptype), 
+   VirtualMethodInvocationSimpleName(invocation,simplename),
+   VirtualMethodInvocationDescriptor(invocation,descriptor),
+   MethodLookup(simplename,descriptor,heaptype,tomethod),
+   ThisVar(tomethod,this),
+   VarRef(this). 
+
+CallGraphEdge(callerCtx,invocation,[obj2,heap],tomethod) :- 
+   MergeBasis(callerCtx,invocation,[_,obj2],heap),
+   SpecialMethodInvocationSignature(invocation,signature),
+   InstructionRef(invocation),
+   MethodDeclaration(signature,tomethod),
+   ThisVar(tomethod,this),
+   VarRef(this). 
+
+
+
+
+
+.decl CallToMethodWithNoBody(ctx:Context,callsite:CallGraphEdgeSourceRef) 
+
+CallToMethodWithNoBody(ctx,callsite) :- 
+   CallGraphEdge(ctx,callsite,_,method),
+   HasNoMethodBody(method).
+
+
+//
+// ExternalContextForMethod
+//
+
+.decl ExternalContextForMethod(type:Type,method:MethodSignatureRef,ctx:Context) 
+
+#ifdef OPENWORLD_PER_CONTEXT
+.decl ExternalHeapAllocationForContext(m: MethodSignatureRef, h: HeapAllocationRef)
+ExternalHeapAllocationForContext(method, cat(cat("<eTO>|", method),"|"))  :-
+  PublicEntry(type, method).
+
+// The type for the external heap objects is defined.
+HeapAllocationType( cat(cat("<eTO>|", method), "|"), type) :-
+    PublicEntry(type, method).
+
+ExternalContextForMethod(type,method,[externalHeap,externalHeap]) :- 
+   PublicEntry(type,method),
+   ExternalHeapAllocationForContext(method, externalHeap),
+   InstructionRef(externalHeap),
+   HeapAllocationType(externalHeap,type).
+#else
+ExternalContextForMethod(type,method,[externalHeap,externalHeap]) :- 
+   PublicEntry(type,method),
+   ExternalHeapAllocation(externalHeap),
+   InstructionRef(externalHeap),
+   HeapAllocationType(externalHeap,type).
+#endif
+
+//
+// InitializedClass
+//
+
+.decl InitializedClass(classOrInterface:Type) 
+
+InitializedClass(superclass) :- 
+   InitializedClass(classOrInterface),
+   DirectSuperclass(classOrInterface,superclass).
+
+InitializedClass(class) :- 
+   Reachable(inmethod),
+   AssignHeapAllocation(heap, var, inmethod),
+   VarRef(var),
+   HeapAllocationType(heap,class),
+   InstructionRef(heap).
+
+InitializedClass(class) :- 
+   Reachable(inmethod),
+   StaticMethodInvocationIn(invocation,inmethod),
+   StaticMethodInvocationSignature(invocation,signature),
+   DeclaringClassMethod(signature,class).
+
+InitializedClass(classOrInterface) :- 
+   StoreStaticField(var,signature,inmethod),
+   Reachable(inmethod),
+   VarRef(var),
+   FieldDeclaringClass(signature,classOrInterface).
+
+InitializedClass(classOrInterface) :- 
+   StorePrimStaticField(signature,inmethod),
+   Reachable(inmethod),
+   FieldDeclaringClass(signature,classOrInterface).
+
+InitializedClass(classOrInterface) :- 
+   LoadStaticField(signature,var,inmethod),
+   Reachable(inmethod),
+   VarRef(var),
+   FieldDeclaringClass(signature,classOrInterface).
+
+InitializedClass(classOrInterface) :- 
+   LoadPrimStaticField(signature,inmethod),
+   Reachable(inmethod),
+   FieldDeclaringClass(signature,classOrInterface).
+
+#ifndef DISABLE_REFLECTION
+InitializedClass(type) :- 
+   ReflectiveAssignClassConstant(_,_,type).
+#endif
+
+//
+// InstanceFieldPointsTo
+//
+
+
+
+.decl InstanceFieldPointsTo(hctx:Context,heap:HeapAllocationRef,sigHctxHeap:SigCtxHeap)  
+
+InstanceFieldPointsTo(hctx,heap,sigBHctxBHeap) :- 
+   StoreHeapInstanceField(sigBHctxBHeap,ctx,from),
+   VarPointsTo(hctx,heap,ctx,from).
+
+
+
+//
+// LoadHeapArrayIndex
+//
+
+
+.decl LoadHeapArrayIndex(ctx:Context,to:VarRef,basectx:Context,baseheap:HeapAllocationRef) overridable
+
+LoadHeapArrayIndex(ctx,to,basehctx,baseheap) :- 
+   ReachableLoadArrayIndexBase(base),
+   LoadArrayIndex(base,to,_),
+   VarRef(to),
+   VarPointsTo(basehctx,baseheap,ctx,base).
+
+#ifndef DISABLE_REFLECTION
+LoadHeapArrayIndex(calleeCtx,to,basehctx,baseheap) :- 
+   ReflectiveLoadArrayIndex(calleeCtx,to,callerCtx,base),
+   VarRef(to),
+   VarPointsTo(basehctx,baseheap,callerCtx,base).
+#endif
+
+//
+// LoadHeapInstanceField
+//
+
+.decl LoadHeapInstanceField(ctx:Context,to:VarRef,sigBHctxBheap:SigCtxHeap) overridable
+
+LoadHeapInstanceField(ctx,to,[sig,basehctx,baseheap]) :- 
+   ReachableLoadInstanceFieldBase(base),
+   LoadInstanceField(base,sig,to,_),
+   VarPointsTo(basehctx,baseheap,ctx,base).
+ 
+
+//
+// LoadInstanceField
+//
+
+.decl LoadInstanceField(base:VarRef,field:FieldSignatureRef,to:VarRef,inmethod:MethodSignatureRef) 
+
+LoadInstanceField(base,field,to,inmethod) :- 
+   LoadInstanceFieldIndex(base,index,to,inmethod),
+   VarRef(to),
+   VarRef(base),
+   VarType(base,type),
+   FieldIndexSignature(field,index,type).
+
+//
+// MainThread
+//
+
+.decl MainThread(ctx:Context,heap:HeapAllocationRef) 
+
+MainThread([normHeap,heap],alloc) :- 
+   MyMainThread(heap,alloc),
+   NormalHeapValue(normHeap).
+
+//
+// MainThreadGroup
+//
+
+.decl MainThreadGroup(ctx:Context,heap:HeapAllocationRef) 
+
+MainThreadGroup([normHeap,heap],alloc) :- 
+   MyMainThreadGroup(heap,alloc),
+   NormalHeapValue(normHeap).
+
+//
+// MergeBasis
+//
+
+.decl MergeBasis(callerCtx:Context,invocation:MethodInvocationRef,hctx:Context,heap:HeapAllocationRef) 
+
+MergeBasis(ctx,invocation,hctx,heap) :- 
+   OptVirtualMethodInvocationBase(invocation,base),
+   VarPointsTo(hctx,heap,ctx,base).
+
+MergeBasis(ctx,invocation,hctx,heap) :- 
+   OptSpecialMethodInvocationBase(invocation,base),
+   VarPointsTo(hctx,heap,ctx,base).
+
+
+
+//
+// MyMainThread
+//
+
+.decl MyMainThread(heap:HeapAllocationRef,alloc:HeapAllocationRef) 
+
+MyMainThread("<<jvm-startup>>","<<main-thread>>").
+
+//
+// MyMainThreadGroup
+//
+
+.decl MyMainThreadGroup(heap:HeapAllocationRef,alloc:HeapAllocationRef) 
+
+MyMainThreadGroup("<<jvm-startup>>","<<main-thread-group>>").
+
+//
+// MyMergeBasis
+//
+
+.decl MyMergeBasis(hctx:Context,heap:HeapAllocationRef) 
+
+MyMergeBasis(hctx,heap) :- 
+   MergeBasis(_,_,hctx,heap).
+
+//
+// MySystemThreadGroup
+//
+
+.decl MySystemThreadGroup(heap:HeapAllocationRef,alloc:HeapAllocationRef) 
+
+MySystemThreadGroup("<<jvm-startup>>","<<system-thread-group>>").
+
+#ifndef DISABLE_NATIVE_MODELLING
+//
+// NativeCallGraphEdge
+//
+
+.decl NativeCallGraphEdge(callerCtx:Context,nativeMethod:MethodSignatureRef,calleeCtx:Context,method:MethodSignatureRef) 
+
+NativeCallGraphEdge(callerCtx,"<java.lang.Thread.start0()V>",[obj2,heap],run) :- 
+   MethodSignatureRef("<java.lang.Thread.start0()V>"),
+   ThisVar("<java.lang.Thread.start0()V>",startThis),
+   VarPointsTo([_,obj2],heap,callerCtx,startThis),
+   SimpleNameRef("run"),
+   MethodDescriptorRef("()V"),
+   HeapAllocationType(heap,heaptype),
+   MethodLookup("run","()V",heaptype,run),
+   ThisVar(run,_).
+#endif
+
+//
+// NormalHeapValue
+//
+
+.decl NormalHeapValue(x:CallGraphEdgeSourceRef) 
+
+NormalHeapValue("<<normal-heap>>").
+
+//
+// OptAssignLocal
+//
+
+.decl OptAssignLocal(to:VarRef,from:VarRef) 
+
+OptAssignLocal(to,from) :- 
+   Reachable(inmethod),
+   AssignLocal(from,to,inmethod),
+   VarRef(from),
+   VarRef(to),
+   VarType(from, ft),
+   VarType(to, tt),
+   AssignCompatible(tt, ft).
+
+
+//
+// OptInterproceduralAssign
+//
+
+.decl OptInterproceduralAssign(to:VarRef,toCtx:Context,fromCtx:Context,from:VarRef) overridable 
+
+/* Binds the actual and formal parameters of a method invocation. The context
+   of the actual parameter is the caller context and the context of the formal
+   parametr is the callee context.*/
+
+OptInterproceduralAssign(formal,calleeCtx,callerCtx,actual) :- 
+   CallGraphEdge(callerCtx,invocation,calleeCtx,method),
+   FormalParam(index,method,formal),
+   ActualParam(index,invocation,actual),
+   VarRef(formal),
+   VarRef(actual).
+
+OptInterproceduralAssign(local,callerCtx,calleeCtx,return) :- 
+   ReturnVar(return,method),
+   CallGraphEdge(callerCtx,invocation,calleeCtx,method),
+   AssignReturnValue(invocation,local),
+   VarRef(local),
+   VarRef(return).
+
+#ifndef DISABLE_REFLECTION
+OptInterproceduralAssign(formal,calleeCtx,callerCtx,actual) :- 
+   ReflectiveCallGraphEdge(callerCtx,invocation,calleeCtx,callee),
+   VarargsActualParam(actual,index,invocation),
+   FormalParam(index,callee,formal),
+   VarRef(formal),
+   VarRef(actual).
+#endif
+
+//
+// OptLoadStaticField
+//
+
+.decl OptLoadStaticField(ctx:Context,to:VarRef,signature:FieldSignatureRef) 
+
+OptLoadStaticField(ctx,to,sig) :- 
+   LoadStaticField(sig,to,inmethod),
+   VarRef(to),
+   ReachableContext(ctx,inmethod).
+
+//
+// OptSpecialMethodInvocationBase
+//
+
+.decl OptSpecialMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) 
+
+OptSpecialMethodInvocationBase(invocation,base) :- 
+   Reachable(inmethod),
+   SpecialMethodInvocationIn(invocation,inmethod),
+   SpecialMethodInvocationBase(invocation,base),
+   VarRef(base).
+
+//
+// OptVirtualMethodInvocationBase
+//
+
+.decl OptVirtualMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) 
+
+OptVirtualMethodInvocationBase(invocation,base) :- 
+   Reachable(inmethod),
+   VirtualMethodInvocationIn(invocation,inmethod),
+   VirtualMethodInvocationBase(invocation,base),
+   VarRef(base).
+
+//
+// OptimizeMerge
+//
+
+.decl OptimizeMerge(hctx:Context,heap:HeapAllocationRef,calleeCtx:Context) 
+
+OptimizeMerge([obj1,obj2],heap,[obj2,heap]) :- 
+   MyMergeBasis([obj1,obj2],heap),
+   InstructionRef(obj1),
+   InstructionRef(obj2).
+
+//
+// Reachable
+//
+
+.decl Reachable(method:MethodSignatureRef) 
+
+Reachable(method) :- 
+   ReachableContext(_,method).
+
+//
+// ReachableContext
+//
+
+.decl ReachableContext(ctx:Context,clinit:MethodSignatureRef) 
+
+ReachableContext(ctx,method) :- 
+   CallGraphEdge(_,_,ctx,method).
+
+#ifndef DISABLE_NATIVE_MODELLING
+ReachableContext(calleeCtx,method) :- 
+   NativeCallGraphEdge(_,_,calleeCtx,method).
+#endif
+
+#ifndef DISABLE_REFLECTION
+ReachableContext(calleeCtx,callee) :- 
+   ReflectiveCallGraphEdge(_,_,calleeCtx,callee).
+#endif
+
+ReachableContext([obj2,heap],"<java.lang.ThreadGroup.<init>()V>") :- 
+   MethodSignatureRef("<java.lang.ThreadGroup.<init>()V>"),
+   ThisVar("<java.lang.ThreadGroup.<init>()V>",this),
+   VarRef(this),
+   SystemThreadGroup([_,obj2],heap).
+
+ReachableContext([obj2,heap],"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>") :- 
+   MethodSignatureRef("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>"),
+   ThisVar("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",this),
+   VarRef(this),
+   FormalParam(0,"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",groupParam),
+   VarRef(groupParam),
+   MainThreadGroup([_,obj2],heap).
+//   SystemThreadGroup(groupCtx,group).
+
+ReachableContext([obj2,heap],"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>") :- 
+   ThisVar("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",this),
+   VarRef(this),
+   FormalParam(0,"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",groupParam),
+   VarRef(groupParam),
+   MainThread([_,obj2],heap).
+//   MainThreadGroup(groupCtx,group).
+
+ReachableContext(ctx,method) :- 
+   ExternalContextForMethod(_,method,ctx).
+
+ReachableContext(["<<jvm-startup>>","<<jvm-startup>>"],method) :- 
+   ImplicitReachable(method).
+
+ReachableContext(["<<class-initialization>>","<<class-initialization>>"],clinit) :- 
+   InitializedClass(class),
+   ClassInitializer(class,clinit).
+//   InstructionRef(clinitheap).
+
+//
+// ReachableCurrentThreadInvocation
+//
+
+.decl ReachableCurrentThreadInvocation(callerCtx:Context,local:VarRef) 
+
+ReachableCurrentThreadInvocation(callerCtx,local) :- 
+   ReachableContext(callerCtx,inmethod),
+   MethodSignatureRef("<java.lang.Thread.currentThread()Ljava/lang/Thread;>"),
+   StaticMethodInvocation(invocation,"<java.lang.Thread.currentThread()Ljava/lang/Thread;>",inmethod),
+   AssignReturnValue(invocation,local),
+   VarRef(local).
+
+//
+// ReachableLoadArrayIndexBase
+//
+
+.decl ReachableLoadArrayIndexBase(base:VarRef) 
+
+ReachableLoadArrayIndexBase(base) :- 
+   LoadArrayIndex(base,to,inmethod),
+   VarRef(to),
+   Reachable(inmethod).
+
+//
+// ReachableLoadInstanceFieldBase
+//
+
+.decl ReachableLoadInstanceFieldBase(base:VarRef) 
+
+ReachableLoadInstanceFieldBase(base) :- 
+   LoadInstanceField(base,_,_,inmethod),
+   Reachable(inmethod).
+
+//
+// ReachableStoreArrayIndexBase
+//
+
+.decl ReachableStoreArrayIndexBase(base:VarRef) 
+
+ReachableStoreArrayIndexBase(base) :- 
+   StoreArrayIndex(from,base,inmethod),
+   VarRef(from),
+   Reachable(inmethod).
+
+//
+// ReachableStoreInstanceFieldBase
+//
+
+.decl ReachableStoreInstanceFieldBase(base:VarRef) 
+
+ReachableStoreInstanceFieldBase(base) :- 
+   StoreInstanceField(_,base,_,inmethod),
+   Reachable(inmethod).
+
+//
+// ReachableStoreStaticFieldFrom
+//
+
+.decl ReachableStoreStaticFieldFrom(from:VarRef) 
+
+ReachableStoreStaticFieldFrom(from) :- 
+   StoreStaticField(from,_,inmethod),
+   VarRef(from),
+   Reachable(inmethod).
+
+#ifndef DISABLE_REFLECTION
+//
+// ReflectiveActualParams
+//
+
+
+//
+// ReflectiveAssignClassConstant
+//
+
+.decl ReflectiveAssignClassConstant(ctx:Context,invocation:MethodInvocationRef,type:Type) 
+
+ReflectiveAssignClassConstant(ctx,invocation,type) :- 
+   javalangClassforName(invocation,inmethod),
+   ReachableContext(ctx,inmethod),
+   javalangClassforNameActualParam(invocation,param),
+   VarPointsTo(_,constant,ctx,param),
+   ClassNameStringConstantType(constant,type).
+
+
+//
+// ReflectiveCallGraphEdge
+//
+
+.decl ReflectiveCallGraphEdge(callerCtx:Context,caller:MethodInvocationRef,calleeCtx:Context,callee:MethodSignatureRef) 
+
+ReflectiveCallGraphEdge(callerCtx,caller,callerCtx,callee) :- 
+   ReflectiveStaticMethodInvocation(callerCtx,caller,callee).
+
+ReflectiveCallGraphEdge(callerCtx,caller,callerCtx,callee) :- 
+   ReflectiveBaseVar(caller,base),
+   VarPointsTo(_,heap,callerCtx,base),
+   ReflectiveSpecialMethodInvocation(callerCtx,caller,callee),
+   ThisVar(callee,this),
+   VarRef(this),
+   AssignCompatible(x,y),
+   HeapAllocationType(heap,y),
+   VarType(this,x).
+
+ReflectiveCallGraphEdge(callerCtx,caller,callerCtx,tomethod) :- 
+   ReflectiveVirtualMethodInvocation(signature,callerCtx,caller),
+   MethodSignatureSimpleName(signature,simplename),
+   MethodSignatureDescriptor(signature,descriptor),
+   MethodSignatureType(signature,type),
+   ReflectiveBaseVar(caller,base),
+   VarPointsTo(_,heap,callerCtx,base),
+   HeapAllocationType(heap,heaptype),
+   AssignCompatible(type,heaptype),
+   MethodLookup(simplename,descriptor,heaptype,tomethod),
+   ThisVar(tomethod,this),
+   VarRef(this).
+
+
+//
+// ReflectiveLoadArrayIndex
+//
+
+.decl ReflectiveLoadArrayIndex(calleeCtx:Context,to:VarRef,callerCtx:Context,base:VarRef) 
+
+ReflectiveLoadArrayIndex(calleeCtx,formal,callerCtx,actual) :- 
+   ReflectiveCallGraphEdge(callerCtx,invocation,calleeCtx,callee),
+   FormalParam(_,callee,formal),
+   ReflectiveActualParams(invocation,actual),
+   VarRef(formal),
+   VarRef(actual),
+   !VarargsActualParam(_,_,invocation).
+
+//
+// ReflectiveMethodInvocation
+//
+
+.decl ReflectiveMethodInvocation(ctx:Context,caller:MethodInvocationRef,signature:MethodSignatureRef) 
+
+ReflectiveMethodInvocation(ctx,instruction,signature) :- 
+   javalangreflectMethodinvoke(instruction,from),
+   VarPointsTo(_,method,ctx,from),
+   ReifiedMethod(signature,method).
+
+//
+// ReflectiveSpecialMethodInvocation
+//
+
+.decl ReflectiveSpecialMethodInvocation(ctx:Context,caller:MethodInvocationRef,signature:MethodSignatureRef) 
+
+ReflectiveSpecialMethodInvocation(ctx,caller,signature) :- 
+   ReflectiveMethodInvocation(ctx,caller,signature),
+   ModifierRef("private"),
+   MethodModifier("private",signature),
+   ModifierRef("static"),
+   !MethodModifier("static",signature).
+
+//
+// ReflectiveStaticMethodInvocation
+//
+
+.decl ReflectiveStaticMethodInvocation(ctx:Context,caller:MethodInvocationRef,signature:MethodSignatureRef) 
+
+ReflectiveStaticMethodInvocation(ctx,caller,signature) :- 
+   ReflectiveMethodInvocation(ctx,caller,signature),
+   ModifierRef("static"),
+   MethodModifier("static",signature).
+
+//
+// ReflectiveVirtualMethodInvocation
+//
+
+.decl ReflectiveVirtualMethodInvocation(signature:MethodSignatureRef,ctx:Context,caller:MethodInvocationRef) 
+
+ReflectiveVirtualMethodInvocation(signature,ctx,caller) :- 
+   ReflectiveMethodInvocation(ctx,caller,signature),
+   ModifierRef("private"),
+   ModifierRef("static"),
+   !MethodModifier("private",signature),
+   !MethodModifier("static",signature).
+
+
+
+#endif
+
+//
+// RunningThread
+//
+
+.decl RunningThread(hctx:Context,heap:HeapAllocationRef) 
+
+RunningThread(hctx,heap) :- 
+   MainThread(hctx,heap).
+
+RunningThread(hctx,heap) :- 
+   MethodSignatureRef("<java.lang.Thread.start0()V>"),
+   ThisVar("<java.lang.Thread.start0()V>",startThis),
+   VarPointsTo(hctx,heap,_,startThis),
+   SimpleNameRef("run"),
+   MethodDescriptorRef("()V"),
+   HeapAllocationType(heap,heaptype),
+   MethodLookup("run","()V",heaptype,run),
+   ThisVar(run,runThis),
+   VarRef(runThis).
+
+RunningThread([norm,obj2],heapObject) :- 
+   NormalHeapValue(norm),
+   MethodSignatureRef("<java.lang.Thread.start()V>"),
+   ExternalContextForMethod("java.lang.Thread","<java.lang.Thread.start()V>",[_,obj2]),
+   ExternalHeapAllocation(heapObject),
+   HeapAllocationType(heapObject,"java.lang.Thread"),
+   InstructionRef(heapObject).
+
+//
+// SimpleNameStringConstant
+//
+
+.decl SimpleNameStringConstant(heap:HeapAllocationRef) 
+
+SimpleNameStringConstant(heap) :- 
+   StringConstant(heap),
+   InstructionRef(heap),
+   MethodSignatureSimpleName(_,heap).
+ //  SimpleNameRef(simpleName).
+
+//
+// SimpleNameStringConstantSimpleName
+//
+
+.decl SimpleNameStringConstantSimpleName(heap:HeapAllocationRef,simpleName:SimpleNameRef) 
+
+SimpleNameStringConstantSimpleName(heap,heap) :- 
+   StringConstant(heap),
+   InstructionRef(heap),
+   MethodSignatureSimpleName(_,heap).
+//   SimpleNameRef(simpleName).
+
+
+
+//
+// StaticFieldPointsTo
+//
+
+.decl StaticFieldPointsTo(hctx:Context,heap:HeapAllocationRef,sig:FieldSignatureRef)  
+
+StaticFieldPointsTo(hctx,heap,signature) :- 
+   ReachableStoreStaticFieldFrom(from),
+   StoreStaticField(from,signature,_),
+   VarRef(from),   
+   VarPointsTo(hctx,heap,_,from).
+
+//
+// StaticMethodInvocationSkolemOpt
+//
+
+.decl StaticMethodInvocationSkolemOpt(callerCtx:Context,invocation:CallGraphEdgeSourceRef,tomethod:MethodSignatureRef) 
+
+StaticMethodInvocationSkolemOpt(callerCtx,invocation,signature) :- 
+   ReachableContext(callerCtx,inmethod),
+   StaticMethodInvocation(invocation,signature,inmethod).
+   //MethodDeclaration(signature,tomethod).
+
+
+
+
+//
+// StoreHeapArrayIndex
+//
+
+.decl StoreHeapArrayIndex(basectx:Context,baseheap:HeapAllocationRef,ctx:Context,from:VarRef) overridable
+
+ StoreHeapArrayIndex(basehctx,baseheap,ctx,from) :- 
+    ReachableStoreArrayIndexBase(base),
+    StoreArrayIndex(from,base,_),
+    VarRef(from),
+    VarPointsTo(basehctx,baseheap,ctx,base).
+
+
+
+//
+// StoreHeapInstanceField
+//
+
+.decl StoreHeapInstanceField(sigBHctxBHeap:SigCtxHeap,ctx:Context,from:VarRef) 
+
+StoreHeapInstanceField([signature,basehctx,baseheap],ctx,from) :- 
+   ReachableStoreInstanceFieldBase(base),
+   StoreInstanceField(from,base,signature,_),
+   VarPointsTo(basehctx,baseheap,ctx,base).
+
+//
+// StoreInstanceField
+//
+
+.decl StoreInstanceField(from:VarRef,base:VarRef,index:FieldSignatureRef,inmethod:MethodSignatureRef) 
+
+StoreInstanceField(from,base,field,inmethod) :- 
+   StoreInstanceFieldIndex(from,base,index,inmethod),
+   VarRef(from),
+   VarType(base,type),
+   VarRef(base),
+   FieldIndexSignature(field,index,type).
+
+
+
+//
+// SystemThreadGroup
+//
+
+.decl SystemThreadGroup(ctx:Context,heap:HeapAllocationRef) 
+
+SystemThreadGroup([normHeap,heap],alloc) :- 
+   MySystemThreadGroup(heap,alloc),
+   NormalHeapValue(normHeap).
+
+
+//
+// TypeUnsafeVarPointsToUnknownHeap
+//
+
+.decl TypeUnsafeVarPointsToUnknownHeap(hctx:Context,heapObject:HeapAllocationRef,ctx:Context,localVariable:VarRef) 
+
+TypeUnsafeVarPointsToUnknownHeap([norm,obj2],heapObject,[obj1,obj2],localVariable) :- 
+   NormalHeapValue(norm),
+   CallToMethodWithNoBody([obj1,obj2],callsite),
+   AssignReturnValue(callsite,localVariable),
+   VarRef(localVariable),
+   UnknownReturnedHeapAllocation(callsite,heapObject),
+   InstructionRef(heapObject),
+   !SpecialReturnHeap(heapObject).
+
+TypeUnsafeVarPointsToUnknownHeap([obj1,obj2],heapObject,[obj1,obj2],localVariable) :- 
+   CallToMethodWithNoBody([obj1,obj2],callsite),
+   AssignReturnValue(callsite,localVariable),
+   VarRef(localVariable),
+   SpecialReturnHeap(heapObject),
+   InstructionRef(heapObject),
+   UnknownReturnedHeapAllocation(callsite,heapObject).
+
+
+
+//
+// VarPointsTo Projection No Context
+//
+
+
+
+.decl VarPointsToNoContext(heap:HeapAllocationRef,var:VarRef)  
+
+VarPointsToNoContext(heap,var) :-
+   VarPointsTo(_,heap,_,var).
+
+//
+// VarPointsTo
+//
+
+ 
+
+#ifndef  ADAPTIVE_CONTEXT_SENSITIVITY
+
+VarPointsTo([norm,obj2],heap,[obj1,obj2],var) :- 
+   NormalHeapValue(norm),
+   AssignNormalHeapAllocationSkolemOpt(heap,[obj1,obj2],var).
+
+#endif 
+
+
+
+
+
+/* Turns off context for heap objects which are chosen to be
+   analyzed context-insesitively. */
+   
+
+VarPointsTo([v,v],heap,ctx,var) :- 
+   ImmutableHeapValue(v),
+   AssignContextInsensitiveHeapAllocationSkolemOpt(heap,ctx,var).
+
+
+VarPointsTo(hctx,heap,toCtx,to) :- 
+   TypedAssign(type,toCtx,to,fromCtx,from),
+   VarPointsTo(hctx,heap,fromCtx,from),
+   AssignCompatible(type,heaptype),
+   HeapAllocationType(heap,heaptype),
+   InstructionRef(heap).
+
+
+VarPointsTo(hctx,heap,ctx,to) :- 
+   OptAssignLocal(to,from),
+   VarPointsTo(hctx,heap,ctx,from).
+
+VarPointsTo(hctx,heap,ctx,to) :- 
+   LoadHeapInstanceField(ctx,to,sigHctxHeap),
+   InstanceFieldPointsTo(hctx,heap,sigHctxHeap),
+   VarType(to, vt),
+   HeapAllocationType(heap, ht),
+   AssignCompatible(vt, ht).
+
+VarPointsTo(hctx,heap,ctx,to) :- 
+   OptLoadStaticField(ctx,to,sig),
+   StaticFieldPointsTo(hctx,heap,sig),
+   VarType(to, vt),
+   HeapAllocationType(heap, ht),
+   AssignCompatible(vt, ht).
+
+
+VarPointsTo(hctx,heap,ctx,to) :- 
+   LoadHeapArrayIndex(ctx,to,basehctx,baseheap),
+   ArrayIndexPointsTo(hctx,heap,basehctx,baseheap),
+   VarType(to,type),
+   HeapAllocationType(heap,heaptype),
+   InstructionRef(heap),
+   AssignCompatible(type,heaptype).
+
+
+//VarPointsTo(hctx,heap,ctx,to) :- 
+//   LoadHeapArrayIndex(ctx,to,basehctx,baseheap),
+//   ArrayIndexPointsTo(hctx,heap,basehctx,baseheap),
+//   !CastReturnVarLoadArray(_,ctx,to,basehctx,baseheap),
+//   VarType(to,type),
+//   HeapAllocationType(heap,heaptype),
+//   InstructionRef(heap),
+//   AssignCompatible(type,heaptype).
+//
+//VarPointsTo(hctx,heap,ctx,to) :- 
+//   LoadHeapArrayIndex(ctx,to,basehctx,baseheap),
+//   ArrayIndexPointsTo(hctx,heap,basehctx,baseheap),
+//   CastReturnVarLoadArray(type,ctx,to,basehctx,baseheap),
+//   HeapAllocationType(heap,heaptype),
+//   InstructionRef(heap),
+//   AssignCompatible(type,heaptype).
+
+
+/* Creates contexts for the formal parameters  
+   and the return variables of the methods. */
+
+VarPointsTo(hctx,heap,toCtx,to) :- 
+   OptInterproceduralAssign(to,toCtx,fromCtx,from),
+   VarPointsTo(hctx,heap,fromCtx,from),
+   VarType(to, vt),
+   HeapAllocationType(heap, ht),
+   AssignCompatible(vt, ht).
+//   .plan 1 : (2,1)
+
+
+
+/* This rule computes pointsto set and generates context for this variables of all
+ * invocation sites of virtual methods (Merge constructor Doop)*/
+
+
+.decl ContextGroup(ctx:Context,groupCtx:Context) 
+
+ContextGroup(ctx,ctx) :-
+   ThisVarPointsTo(_,_,ctx,_).
+
+VarPointsTo(hctx,heap,calleeCtx,this) :-
+   ThisVarPointsTo(hctx,heap,calleeCtx,this).
+
+.decl ThisVarPointsTo(hctx:Context,heap:HeapAllocationRef,ctx:Context,var:VarRef) overridable
+
+ThisVarPointsTo(hctx,heap,calleeCtx,this) :- 
+   OptimizeMerge(hctx,heap,calleeCtx),
+   MergeBasis(_,invocation,hctx,heap),
+   HeapAllocationType(heap,heaptype),
+   VirtualMethodInvocationSimpleName(invocation,simplename),
+   VirtualMethodInvocationDescriptor(invocation,descriptor),
+   MethodLookup(simplename,descriptor,heaptype,tomethod),
+   ThisVar(tomethod,this),
+   VarRef(this).
+
+
+
+/* This rule computes pointsto and generates context for this variables of all
+ * invocation sites of special methods (Merge constructor Doop)*/
+
+
+ThisVarPointsTo(hctx,heap,calleeCtx,this) :- 
+   OptimizeMerge(hctx,heap,calleeCtx),
+   MergeBasis(_,invocation,hctx,heap),
+   SpecialMethodInvocationSignature(invocation,signature),
+   MethodDeclaration(signature,tomethod),
+   ThisVar(tomethod,this),
+   VarRef(this),
+   VarType(this, vt),
+   HeapAllocationType(heap, ht),
+   AssignCompatible(vt, ht).
+
+
+.decl ModeledThisVarPointsTo(hctx:Context,heap:HeapAllocationRef,ctx:Context,var:VarRef) 
+
+
+VarPointsTo(hctx,heap,calleeCtx,this) :-
+   ModeledThisVarPointsTo(hctx,heap,calleeCtx,this).
+
+
+ContextGroup(ctx,ctx) :-
+   ModeledThisVarPointsTo(_,_,ctx,_).
+
+
+#ifndef DISABLE_REFLECTION
+
+
+ModeledThisVarPointsTo(hctx,heap,callerCtx,this) :- 
+   ReflectiveBaseVar(caller,base),
+   VarPointsTo(hctx,heap,callerCtx,base),
+   ReflectiveSpecialMethodInvocation(callerCtx,caller,callee),
+   ThisVar(callee,this),
+   AssignCompatible(x,y),
+   VarType(this,y),
+   HeapAllocationType(heap,x).
+
+ModeledThisVarPointsTo(hctx,heap,callerCtx,this) :- 
+   ReflectiveBaseVar(caller,base),
+   VarPointsTo(hctx,heap,callerCtx,base),
+   ReflectiveVirtualMethodInvocation(signature,callerCtx,caller),
+   HeapAllocationType(heap,heaptype),
+   MethodSignatureType(signature,type),
+   AssignCompatible(type,heaptype),
+   MethodSignatureSimpleName(signature,simplename),
+   MethodSignatureDescriptor(signature,descriptor),
+   MethodLookup(simplename,descriptor,heaptype,tomethod),
+   ThisVar(tomethod,this).
+
+ModeledThisVarPointsTo([imm,imm],heap,ctx,return) :- 
+   ImmutableHeapValue(imm),
+   ReflectiveAssignClassConstant(ctx,invocation,type),
+   ReifiedClass(type,heap),
+   AssignReturnValue(invocation,return),
+   VarRef(return).
+
+ModeledThisVarPointsTo([norm,obj2],heap,[obj1,obj2],to) :-
+   NormalHeapValue(norm), 
+   ReflectiveDeclaredMethodPointsTo(class,name,[obj1,obj2],to), 
+   SimpleNameStringConstantSimpleName(name,simpleName),
+   MethodSignatureSimpleName(signature,simpleName),
+   MethodSignatureType(signature,type),
+   ReifiedClass(type,class),
+   ReifiedMethod(signature,heap).
+   
+
+ModeledThisVarPointsTo([norm,obj2],heap,[obj1,obj2],to) :-  
+   NormalHeapValue(norm), 
+   ReflectiveGetMethodPointsTo(class,name,[obj1,obj2],to), 
+   SimpleNameStringConstantSimpleName(name,simpleName),
+   ReifiedClass(type,class),
+   MethodSignatureType(signature,type),
+   MethodSignatureSimpleName(signature,simpleName),
+   MethodModifier("public",signature),
+   ReifiedMethod(signature,heap).
+
+#endif
+
+ModeledThisVarPointsTo([obj1,obj2],heap,[obj2,heap],runThis) :- 
+   MethodSignatureRef("<java.lang.Thread.start0()V>"),
+   ThisVar("<java.lang.Thread.start0()V>",startThis),
+   VarPointsTo([obj1,obj2],heap,_,startThis),
+   SimpleNameRef("run"),
+   MethodDescriptorRef("()V"),
+   HeapAllocationType(heap,heaptype),
+   MethodLookup("run","()V",heaptype,run),
+   ThisVar(run,runThis),
+   VarRef(runThis).
+
+
+ModeledThisVarPointsTo(hctx,heap,callerCtx,local) :- 
+   ReachableCurrentThreadInvocation(callerCtx,local),
+   RunningThread(hctx,heap).
+
+ModeledThisVarPointsTo([obj1,obj2],heap,[obj2,heap],this) :- 
+   MethodSignatureRef("<java.lang.ThreadGroup.<init>()V>"),
+   ThisVar("<java.lang.ThreadGroup.<init>()V>",this),
+   VarRef(this),
+   SystemThreadGroup([obj1,obj2],heap).
+
+ModeledThisVarPointsTo([obj1,obj2],heap,[obj2,heap],this) :- 
+   MethodSignatureRef("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>"),
+   ThisVar("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",this),
+   VarRef(this),
+   FormalParam(0,"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",groupParam),
+   VarRef(groupParam),
+   MainThreadGroup([obj1,obj2],heap).
+//   SystemThreadGroup(groupCtx,group).
+
+ModeledThisVarPointsTo(groupCtx,group,[obj2,heap],groupParam) :- 
+   MethodSignatureRef("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>"),
+   ThisVar("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",_),
+   FormalParam(0,"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",groupParam),
+   MainThreadGroup([_,obj2],heap),
+   SystemThreadGroup(groupCtx,group).
+
+ModeledThisVarPointsTo([obj1,obj2],heap,[obj2,heap],this) :- 
+   ThisVar("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",this),
+   FormalParam(0,"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",_),
+   MainThread([obj1,obj2],heap),
+   HeapAllocationType(heap, ht),
+   VarType(this, vt),
+   AssignCompatible(vt, ht).
+//   MainThreadGroup(groupCtx,group).
+
+ModeledThisVarPointsTo(groupCtx,group,[obj2,heap],groupParam) :- 
+   ThisVar("<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",_),
+   FormalParam(0,"<java.lang.ThreadGroup.<init>(Ljava/lang/ThreadGroup;Ljava/lang/String;)V>",groupParam),
+   MainThread([_,obj2],heap),
+   MainThreadGroup(groupCtx,group),
+   HeapAllocationType(heap, ht),
+   VarType(groupParam, vt),
+   AssignCompatible(vt, ht).
+
+ModeledThisVarPointsTo([norm,obj2],heapObject,[obj1,obj2],formalParam) :- 
+   NormalHeapValue(norm),
+   ExternalContextForMethod(_,method,[obj1,obj2]),
+   FormalParam(_,method,formalParam),
+   VarRef(formalParam),
+   ExternalHeapAllocation(heapObject),
+   VarType(formalParam,type),
+   HeapAllocationType(heapObject,type),
+   InstructionRef(heapObject).
+
+ModeledThisVarPointsTo([norm,obj2],heapObject,[obj1,obj2],selfVariable) :- 
+   NormalHeapValue(norm),
+   ExternalContextForMethod(type,method,[obj1,obj2]),
+   ThisVar(method,selfVariable),
+   VarRef(selfVariable),
+   ExternalHeapAllocation(heapObject),
+   HeapAllocationType(heapObject,type),
+   InstructionRef(heapObject).
+
+
+
+ModeledThisVarPointsTo(hctx,heapObject,ctx,localVariable) :- 
+   TypeUnsafeVarPointsToUnknownHeap(hctx,heapObject,ctx,localVariable),
+   VarType(localVariable,type),
+   HeapAllocationType(heapObject,heapType),
+   AssignCompatible(type,heapType).
+
+
+//
+// VirtualMethodInvocationSimpleName
+//
+
+.decl VirtualMethodInvocationSimpleName(invocation:MethodInvocationRef,simplename:SimpleNameRef) 
+
+VirtualMethodInvocationSimpleName(invocation,simplename) :- 
+   VirtualMethodInvocationSignature(invocation,signature),
+   MethodSignatureSimpleName(signature,simplename).
+
+
+
+//
+// InstructionRef
+//
+ InstructionRef("<<external-callsite>>").
+ MethodInvocationRef("<<external-callsite>>").
+
+/*InstructionRef( cat ( cat ("<reflective Class.newInstance ",type),">")) :- 
+   isNotEmptyJavalangClassnewInstance(_),
+   Type(type),
+   ClassType(type).
+
+
+InstructionRef( tmp_0) :- 
+   isNotEmptyJavalangReflectConstructor(_),
+   Type(type),
+   ClassType(type),
+   HeapAllocationRef( tmp_0),
+    tmp_0 =  cat ( cat ("<reflective Constructor.newInstance ",type),">").
+
+InstructionRef( tmp_0) :- 
+   SimpleNameRef("<init>"),
+   MethodSignatureSimpleName(signature,"<init>"),
+   MethodSignatureRef(signature),
+   HeapAllocationRef( tmp_0),
+   Type("java.lang.reflect.Constructor"),
+    tmp_0 =  cat ( cat ("<reified constructor ",signature),">").
+
+InstructionRef(tmp_0) :- 
+   MethodSignatureSimpleName(signature,simplename),
+   HeapAllocationRef( tmp_0),
+   Type("java.lang.reflect.Method"),
+   simplename != "<init>",
+   simplename != "<clinit>",
+    tmp_0 =  cat ( cat ("<reified method ",signature),">").
+
+InstructionRef(tmp_0) :- 
+   FieldSignatureRef(x),
+   HeapAllocationRef( tmp_0),
+   Type("java.lang.reflect.Field"),
+    tmp_0 =  cat ( cat ("<reified field ",x),">").*/
+
+
+#ifndef NO_TAINT_OVERRIDE_METHODS
+// Overridable methods on tainted objects return tainted objects
+.decl CallToMethodOfExternalInterface(ctx:Context, callsite:MethodInvocationRef, tomethod:MethodSignatureRef)
+
+CallToMethodOfExternalInterface(ctx, callsite, tomethod) :-
+  ExternalHeapAllocation(heap),
+  VarPointsTo(_, heap, ctx, base),
+  OptVirtualMethodInvocationBase(callsite, base),
+  HeapAllocationType(heap, heaptype),
+  InterfaceType(heaptype),
+  VirtualMethodInvocationSignature(callsite, tomethod).
+ .plan 1:(3,2,1,4,5,6)
+
+
+.decl VarPointsToExternalHeapObjectForType(ctx:Context, var:VarRef, type:Type) 
+
+VarPointsToExternalHeapObjectForType(ctx, var, type) :-
+  CallToMethodOfExternalInterface(ctx, callsite, tomethod),
+  ReturnVar(retVar, tomethod),
+  VarRef(retVar),
+  VarType(retVar, type),
+  AssignReturnValue(callsite, var),
+  VarRef(var).
+
+.decl PotentialCallToExternalOverridableMethod(heaptype:Type, callerCtx:Context, callsite:MethodInvocationRef)
+
+PotentialCallToExternalOverridableMethod(heaptype, callerCtx, callsite) :-
+  ExternalHeapAllocation(heap),
+  VarPointsTo(_, heap, callerCtx, base),
+  OptVirtualMethodInvocationBase(callsite, base),
+  HeapAllocationType(heap, heaptype).
+  .plan 1:(3,2,1,4)
+
+
+.decl CallToExternalOverridableMethod(callerCtx:Context, callsite:MethodInvocationRef, tomethod:MethodSignatureRef)
+
+CallToExternalOverridableMethod(callerCtx, callsite, tomethod) :-
+  PotentialCallToExternalOverridableMethod(heaptype, callerCtx, callsite),
+  VirtualMethodInvocationSimpleName(callsite, simplename),
+  VirtualMethodInvocationDescriptor(callsite, descriptor),
+  MethodLookup(simplename, descriptor, heaptype, tomethod),
+  OverridableMethod(heaptype, tomethod).
+
+VarPointsToExternalHeapObjectForType(ctx, var, type) :-
+  CallToExternalOverridableMethod(ctx, callsite, tomethod),
+  ReturnVar(retVar, tomethod),
+  VarRef(retVar),
+  VarType(retVar, type),
+  AssignReturnValue(callsite, var),
+  VarRef(var).
+
+
+/* Adds a tuple (heap, var) when heap is ExternalHeapAllocation 
+   and the type of heap matches the type of var. 
+*/
+
+VarPointsTo([norm,o2], heap, [o1,o2], var) :-
+  NormalHeapValue(norm),
+  VarPointsToExternalHeapObjectForType([o1,o2], var, type),
+  ExternalHeapAllocation(heap),
+  InstructionRef(heap),
+  HeapAllocationType(heap, type).
+
+/* Adds a tuple (heap, var) to VarPointsTo even if the types 
+  of heap and var do not match,... but there is an assign-cast 
+  and the type of heap matches the cast type
+*/
+
+VarPointsTo([norm,o2], heap, [o1,o2], var) :-
+  NormalHeapValue(norm),
+  VarPointsToExternalHeapObjectForType([o1,o2], var, type),
+  AssignCast(castType, var, var1, _),
+  VarRef(var1),
+  AssignCompatible(type, castType),
+  ExternalHeapAllocation(heap),
+  InstructionRef(heap),
+  HeapAllocationType(heap, castType).
+
+#endif
+
+//
+// HeapAllocationMerge
+//
+
+.decl HeapAllocationMerge(heap:HeapAllocationRef,mergeHeap:HeapAllocationRef) 
+
+#ifdef DISTINGUISH_CLASS_CONSTANTS
+HeapAllocationMerge(heap,"<<string-constant>>") :- 
+   StringConstant(heap),
+   !ClassNameStringConstant(heap),
+   !SimpleNameStringConstant(heap),
+   InstructionRef(heap).
+#else
+HeapAllocationMerge(heap,"<<string-constant>>") :- 
+   StringConstant(heap),
+   InstructionRef(heap).
+#endif
+
+
+
+
+
+
+
+
+//
+// VarPointsTo
+//
+
+.decl VarPointsTo(hctx:Context,heap:HeapAllocationRef,ctx:Context,var:VarRef)
+
+//
+// CallGraphEdge
+//
+
+.decl CallGraphEdge(callerCtx:Context,invocation:CallGraphEdgeSourceRef,calleeCtx:Context,method:MethodSignatureRef) overridable
+
+.decl CallGraphInvocations(invocation:CallGraphEdgeSourceRef)
+
+
+CallGraphInvocations(invocation) :-
+   CallGraphEdge(_,invocation,_,_).

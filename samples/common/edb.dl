@@ -1,0 +1,532 @@
+//
+// Copyright (c) 2013-16, Oracle and/or its affiliates.
+//
+// The Universal Permissive License (UPL), Version 1.0
+// 
+// Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
+// associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
+// Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+// Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
+// 
+// (a) the Software, and
+// (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
+// Work” to which the Software is contributed by such licensors),
+// 
+// without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
+// distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+// Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
+// 
+// This license is subject to the following condition:
+// The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+// IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Modeled after the specs in the DOOP framework (http://doop.program-analysis.org/)
+
+// Copyright (C) 2008-2009  Martin Bravenboer
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+/*****************************************************************
+
+ Input relations describing a Java input program.
+
+******************************************************************/
+
+
+//
+// ActualParam
+//
+
+.decl ActualParam(index:number,invocation:MethodInvocationRef,var:VarRef) input 
+
+//
+// ArrayType
+//
+
+.decl ArrayType(x:ArrayType) input 
+
+//
+// AssignCast
+//
+
+.decl AssignCast(type:Type,from:VarRef,to:VarRef,inmethod:MethodSignatureRef) input 
+
+
+//
+// AssignLocal
+//
+
+.decl AssignLocal(from:VarRef,to:VarRef,inmethod:MethodSignatureRef) input 
+
+//
+// AssignReturnValue
+//
+
+.decl AssignReturnValue(invocation:MethodInvocationRef,to:VarRef) input 
+
+//
+// BasicBlockRef
+//
+
+.decl BasicBlockRef(basicBlock:BasicBlockRef) input 
+
+//
+// BasicBlockEntry
+//
+
+.decl BasicBlockEntry(basicBlock:BasicBlockRef) input 
+
+//
+// BasicBlockIn
+//
+
+.decl BasicBlockIn(basicBlock:BasicBlockRef,method:MethodSignatureRef) input 
+
+
+//
+// BasicBlockExit
+//
+
+.decl BasicBlockExit(basicBlock:BasicBlockRef) input
+
+//
+// BasicBlockSuccessor
+//
+
+.decl BasicBlockSuccessor(b1:BasicBlockRef, b2:BasicBlockRef) input 
+
+//
+// BasicBlockLastInvocationIndex
+//
+
+.decl BasicBlockLastInvocationIndex(b1:BasicBlockRef, n:number) input 
+
+//
+// InvocationBasicBlock
+//
+.decl InvocationBasicBlock(c:MethodInvocationRef, b:BasicBlockRef, i:number) input
+
+//
+// SuccessorInvocationIndex
+//
+.decl SuccessorInvocationIndex(i:number, j: number) input
+
+
+//
+// ClassConstant
+//
+
+.decl ClassConstant(x:ClassConstant) input 
+
+//
+// ClassModifier
+//
+
+.decl ClassModifier(modifier:ModifierRef,type:Type) input 
+
+//
+// ClassType
+//
+
+.decl ClassType(x:ClassType) input 
+
+//
+// ComponentType
+//
+
+.decl ComponentType(arrayType:ArrayType,componentType:Type) input 
+
+/* Each instance field of given type is assigned an index, unique number among 
+ * other fields of the same type. The field can be then identified by its index 
+ * instead of its name. */
+.decl DirectFieldIndexSignature(type:Type,index:number,field:FieldSignatureRef) input 
+
+//
+// DirectSuperclass
+//
+
+.decl DirectSuperclass(ref:Type,super:Type) input 
+
+//
+// DirectSuperinterface
+//
+
+.decl DirectSuperinterface(class:Type,interface:Type) input 
+
+//
+// ExternalHeapAllocation
+//
+
+// If OPENWORLD_PER_METHOD is set then a finer set of external heap objects 
+//   are generated for each public entry method. As it is defined for each
+//   public entry method, it is a computed relation and not part of the EDB.
+//  
+
+#ifdef OPENWORLD_PER_METHOD
+.decl ExternalHeapAllocation(heap:HeapAllocationRef)
+#else
+.decl ExternalHeapAllocation(heap:HeapAllocationRef) input 
+#endif
+
+//
+// FieldModifier
+//
+
+.decl FieldModifier(modifier:ModifierRef,field:FieldSignatureRef) input 
+
+//
+// FieldSignature
+//
+
+.decl FieldSignature(ref:FieldSignatureRef,declaringClass:Type,simplename:SimpleNameRef,type:Type) input 
+
+//
+// FieldSignatureRef
+//
+
+.decl FieldSignatureRef(x:String) input
+
+//
+// FormalParam
+//
+
+.decl FormalParam(index:number,method:MethodSignatureRef,var:VarRef) input 
+
+//
+// HeapAllocationRefDebugInfo
+//
+
+.decl HeapAllocationRefDebugInfo(file:File,line:number,heap:HeapAllocationRef) input 
+
+
+
+//
+// InstructionIndex
+//
+
+.decl InstructionIndex(instruction:InstructionRef,index:number) input 
+
+//
+// LoadArrayIndex
+//
+
+.decl LoadArrayIndex(base:VarRef,to:VarRef,inmethod:MethodSignatureRef) input 
+
+//
+// LoadInstanceFieldIndex
+//
+
+.decl LoadInstanceFieldIndex(base:VarRef,index:number,to:VarRef,inmethod:MethodSignatureRef) input 
+
+//
+// LoadPrimStaticField
+//
+
+.decl LoadPrimStaticField(sig:FieldSignatureRef,inmethod:MethodSignatureRef) input 
+
+//
+// LoadStaticField
+//
+
+.decl LoadStaticField(sig:FieldSignatureRef,to:VarRef,inmethod:MethodSignatureRef) input 
+
+//
+// LoadStaticFieldDebugInfo
+//
+
+.decl LoadStaticFieldDebugInfo(file:File,line:number,field:FieldSignatureRef,to:VarRef) input 
+
+//
+// MethodDeclaration
+//
+
+.decl MethodDeclaration(signature:MethodSignatureRef,ref:MethodSignatureRef) input 
+
+//
+// MethodModifier
+//
+
+.decl MethodModifier(mod:ModifierRef,method:MethodSignatureRef) input 
+
+//
+// MethodSignatureDescriptor
+//
+
+.decl MethodSignatureDescriptor(signature:MethodSignatureRef,descriptor:MethodDescriptorRef) input 
+
+//
+// MethodSignatureSimpleName
+//
+
+.decl MethodSignatureSimpleName(signature:MethodSignatureRef,simplename:SimpleNameRef) input 
+
+//
+// MethodSignatureType
+//
+
+.decl MethodSignatureType(signature:MethodSignatureRef,type:Type) input 
+
+
+//
+// NestedClass
+//
+
+.decl NestedClass(enclosingClass:Type,nestedClass:Type) input 
+
+//
+// ReifiedClass
+//
+
+.decl ReifiedClass(type:Type,heap:ClassConstant) input 
+
+//
+// ReturnVar
+//
+
+.decl ReturnVar(var:VarRef,method:MethodSignatureRef) input 
+
+//
+// SimpleNameRef
+//
+
+.decl SimpleNameRef(x:SimpleNameRef) input 
+
+//
+// SpecialMethodInvocationBase
+//
+
+.decl SpecialMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) input 
+
+//
+// SpecialMethodInvocationIn
+//
+
+.decl SpecialMethodInvocationIn(invocation:MethodInvocationRef,inmethod:MethodSignatureRef) input 
+
+//
+// SpecialMethodInvocationSignature
+//
+
+.decl SpecialMethodInvocationSignature(invocation:MethodInvocationRef,signature:MethodSignatureRef) input 
+
+//
+// StaticMethodInvocation
+//
+
+.decl StaticMethodInvocation(invocation:MethodInvocationRef,signature:MethodSignatureRef,inmethod:MethodSignatureRef) input 
+
+//
+// StaticMethodInvocationIn
+//
+
+.decl StaticMethodInvocationIn(invocation:MethodInvocationRef,inmethod:MethodSignatureRef) input 
+
+//
+// StaticMethodInvocationSignature
+//
+
+.decl StaticMethodInvocationSignature(invocation:MethodInvocationRef,signature:MethodSignatureRef) input 
+
+//
+// StoreArrayIndex
+//
+
+.decl StoreArrayIndex(from:VarRef,base:VarRef,inmethod:MethodSignatureRef) input 
+
+//
+// StoreInstanceFieldIndex
+//
+
+.decl StoreInstanceFieldIndex(from:VarRef,base:VarRef,index:number,inmethod:MethodSignatureRef) input 
+
+//
+// StorePrimStaticField
+//
+
+.decl StorePrimStaticField(signature:FieldSignatureRef,inmethod:MethodSignatureRef) input 
+
+//
+// StoreStaticField
+//
+
+.decl StoreStaticField(from:VarRef,signature:FieldSignatureRef,inmethod:MethodSignatureRef) input 
+
+//
+// StoreStaticFieldDebugInfo
+//
+
+.decl StoreStaticFieldDebugInfo(file:File,line:number,from:VarRef,field:FieldSignatureRef) input 
+
+//
+// StringConstant
+//
+
+.decl StringConstant(x:StringConstant) input 
+
+//
+// ThisVar
+//
+
+.decl ThisVar(method:MethodSignatureRef,var:VarRef) input 
+
+//
+// UnknownReturnedHeapAllocation
+//
+
+.decl UnknownReturnedHeapAllocation(callsite:MethodInvocationRef,heap:HeapAllocationRef) input 
+
+//
+// VarType
+//
+
+.decl VarType(ref:VarRef,type:Type) input 
+
+//
+// VarDeclaringMethod
+//
+
+.decl VarDeclaringMethod(var:VarRef, method:MethodSignatureRef) input
+
+//
+// VarargsActualParam
+//
+
+.decl VarargsActualParam(var:VarRef,index:number,invocation:MethodInvocationRef) input 
+
+//
+// VirtualMethodInvocationBase
+//
+
+.decl VirtualMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) input 
+
+//
+// VirtualMethodInvocationIn
+//
+
+.decl VirtualMethodInvocationIn(invocation:MethodInvocationRef,inmethod:MethodSignatureRef) input 
+
+//
+// VirtualMethodInvocationSignature
+//
+
+.decl VirtualMethodInvocationSignature(invocation:MethodInvocationRef,signature:MethodSignatureRef) input 
+
+//
+// InterfaceType
+//
+
+.decl InterfaceType(x:InterfaceType) input 
+
+//
+// MethodDescriptorRef
+//
+
+.decl MethodDescriptorRef(x:MethodDescriptorRef) input 
+
+//
+// MethodInvocationRef
+//
+
+.decl MethodInvocationRef(x:MethodInvocationRef) input 
+
+//
+// MethodSignatureRef
+//
+
+.decl MethodSignatureRef(x:MethodSignatureRef) input 
+.decl MethodSignatureRefDebugInfo(file:File,line:number,x:MethodSignatureRef) input
+
+//
+// ModifierRef
+//
+
+.decl ModifierRef(x:ModifierRef) input 
+
+//
+// NullType
+//
+
+.decl NullType(x:NullType) input 
+
+//
+// PrimitiveType
+//
+
+.decl PrimitiveType(t:PrimitiveType) input 
+
+.decl VarRef(v: VarRef) input
+.decl VarRefDebugInfo(file:File,line:number,v:VarRef) input
+
+
+//
+// local variables inside a method
+//
+
+//.decl MethodVarRef(method:MethodSignatureRef,var:VarRef) input
+
+
+
+
+  //
+  // HeapAllocationType
+  //
+  
+.decl HeapAllocationType(heap:HeapAllocationRef,type:Type) input
+  
+  
+  //
+  // AssignHeapAllocation
+  //
+  
+  
+.decl AssignHeapAllocation(heap:HeapAllocationRef,to:VarRef,inmethod:MethodSignatureRef) input
+
+
+
+#ifdef ADAPTIVE_CONTEXT_SENSITIVITY 
+
+
+.decl ObjectNotToRefine(heap:HeapAllocationRef) input
+
+   
+.decl Object3HContext(heap:HeapAllocationRef) input
+
+
+.decl Object2HContext(heap:HeapAllocationRef) input
+
+
+.decl InvocationNotToRefine(invocation:MethodInvocationRef) input
+
+
+#endif 
+    
+   
+#ifdef FLOW_SENSITIVE
+.decl BasicBlockSuccessorVarNotNull(bb1:BasicBlockRef, bb2:BasicBlockRef, var: VarRef) input 
+.decl BasicBlockSuccessorVarNull(bb1:BasicBlockRef, bb2:BasicBlockRef, var: VarRef) input 
+#endif
+

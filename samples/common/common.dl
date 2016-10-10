@@ -1,0 +1,891 @@
+//
+// Copyright (c) 2013-16, Oracle and/or its affiliates.
+//
+// The Universal Permissive License (UPL), Version 1.0
+// 
+// Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
+// associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
+// Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+// Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
+// 
+// (a) the Software, and
+// (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
+// Work” to which the Software is contributed by such licensors),
+// 
+// without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
+// distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+// Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
+// 
+// This license is subject to the following condition:
+// The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+// IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Modeled after the specs in the DOOP framework (http://doop.program-analysis.org/)
+
+// Copyright (C) 2008-2009  Martin Bravenboer
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+/*****************************************************************
+
+ This is the collection of common definitions for analysing Java programs.
+
+******************************************************************/
+
+
+
+//
+// InstructionRef
+//
+
+.decl InstructionRef(x:InstructionRef) overridable
+
+InstructionRef(x) :- 
+   MethodInvocationRef(x).
+
+InstructionRef(x) :- 
+   HeapAllocationRef(x).
+
+InstructionRef("<<string-constant>>").
+
+InstructionRef("<<string-buffer>>").
+
+InstructionRef("<<string-builder>>").
+
+InstructionRef("<<initial-context>>").
+
+InstructionRef("<<jvm-startup>>").
+
+InstructionRef("<<class-initialization>>").
+
+InstructionRef("<<immutable>>").
+
+InstructionRef("<<insensitive-method-context>>").
+
+InstructionRef("<<normal-heap>>").
+
+InstructionRef("<<system-thread-group>>").
+
+InstructionRef("<<main-thread-group>>").
+
+InstructionRef("<<main-thread>>").
+
+//
+// ClassCunstructor
+//
+
+.decl ClassConstructor(method:MethodSignatureRef, type:Type) 
+
+ClassConstructor(method, type) :-
+  MethodLookup(_, _, type, method),
+  match(".*\.<init>.*", method).
+
+
+//
+// Unsubclassable
+//
+
+.decl Unsubclassable(type:Type)    
+Unsubclassable(type) :-
+  Type(type),
+  type = "java.lang.ClassLoader".
+
+Unsubclassable(type) :-
+  Type(type),
+  type = "java.lang.SecurityManager".
+
+
+//
+// Subclassable
+//
+
+.decl Subclassable(type:Type)    
+Subclassable(type) :-
+  ClassModifier("public", type),
+  ! ClassModifier("final", type),
+  ClassConstructor(method, type),
+  MethodModifier("public", method),
+  ! Unsubclassable(type).
+
+Subclassable(type) :-
+  ClassModifier("public", type),
+  ! ClassModifier("final", type),
+  ClassConstructor(method, type),
+  MethodModifier("protected", method),
+  ! Unsubclassable(type).
+
+
+//
+// Overridable methods
+//
+
+.decl OverridableMethod(type:Type, method:MethodSignatureRef)    
+OverridableMethod(type, method) :-
+  MethodLookup(_, _, type, method),
+  !MethodModifier("static", method),
+  !MethodModifier("final", method),
+  MethodModifier("public", method),
+  Subclassable(type).
+
+OverridableMethod(type, method) :-
+  MethodLookup(_, _, type, method),
+  !MethodModifier("static", method),
+  !MethodModifier("final", method),
+  MethodModifier("protected", method),
+  Subclassable(type).
+
+//
+// DirectSubclass
+//
+
+.decl DirectSubclass(a:Type,c:Type) 
+
+DirectSubclass(a,c) :- 
+   DirectSuperclass(a,c).
+
+//
+// Subclass
+//
+
+.decl Subclass(c:Type,a:Type) 
+
+Subclass(c,a) :- 
+   DirectSubclass(a,c).
+
+Subclass(c,a) :- 
+   Subclass(b,a),
+   DirectSubclass(b,c).
+
+//
+// Superclass
+//
+
+.decl Superclass(c:Type,a:Type) 
+
+Superclass(c,a) :- 
+   Subclass(a,c).
+
+//
+// Superinterface
+//
+
+.decl Superinterface(k:Type,c:Type) 
+
+Superinterface(k,c) :- 
+   DirectSuperinterface(c,k).
+
+Superinterface(k,c) :- 
+   DirectSuperinterface(c,j),
+   Superinterface(k,j).
+
+Superinterface(k,c) :- 
+   DirectSuperclass(c,super),
+   Superinterface(k,super).
+
+
+//
+// CheckCast
+//
+
+.decl CheckCast(s:Type,t:Type)
+
+CheckCast(s,s) :- 
+   Type(s).
+
+CheckCast(s,s) :- 
+   ClassType(s).
+
+CheckCast(s,t) :- 
+   Subclass(t,s).
+
+CheckCast(s,t) :- 
+   ClassType(s),
+   Superinterface(t,s).
+
+CheckCast(s,"java.lang.Object") :- 
+   InterfaceType(s),
+   Type("java.lang.Object").
+
+CheckCast(s,s) :- 
+   InterfaceType(s).
+
+CheckCast(s,t) :- 
+   InterfaceType(s),
+   Superinterface(t,s).
+
+CheckCast(s,"java.lang.Object") :- 
+   ArrayType(s),
+   Type("java.lang.Object").
+
+CheckCast(s,t) :- 
+   ArrayType(s),
+   ArrayType(t),
+   ComponentType(s,sc),
+   ComponentType(t,sc),
+   PrimitiveType(sc).
+
+CheckCast(s,t) :- 
+   ComponentType(s,sc),
+   ComponentType(t,tc),
+   ReferenceType(sc),
+   ReferenceType(tc),
+   CheckCast(sc,tc).
+
+CheckCast(s,"java.lang.Cloneable") :- 
+   ArrayType(s),
+   InterfaceType("java.lang.Cloneable"),
+   Type("java.lang.Cloneable").
+
+CheckCast(s,"java.io.Serializable") :- 
+   ArrayType(s),
+   InterfaceType("java.io.Serializable"),
+   Type("java.io.Serializable").
+
+
+//
+// AssignCompatible
+//
+
+.decl AssignCompatible(target:Type,source:Type) 
+
+AssignCompatible(target,source) :- 
+   CheckCast(source,target).
+
+
+
+//
+// Type
+//
+
+.decl Type(x:Type) 
+
+Type(t) :- 
+   ReferenceType(t).
+
+Type(t) :- 
+   HeapAllocationType(_,t).
+
+Type(t) :- 
+   MethodSignatureType(_,t).
+
+Type(t) :- 
+   ComponentType(_,t).
+
+Type(t) :- 
+   PrimitiveType(t).
+
+Type(t) :- 
+   VarType(_,t).
+
+Type(t) :- 
+   NullType(t).
+
+Type("java.lang.String").
+
+Type("java.lang.StringBuffer").
+
+Type("java.lang.ThreadGroup").
+
+Type("java.lang.StringBuilder").
+
+Type("java.lang.Thread").
+
+//
+// PublicEntry
+//
+
+.decl PublicEntry(type:Type,method:MethodSignatureRef) 
+  
+// public method of a public class 
+PublicEntry(class,method) :- 
+   ModifierRef("public"),
+   MethodModifier("public",method),
+   !IsSecureMethod(method),
+   TypeHasMethod(class,method),
+   ClassModifier("public",class).
+
+// public method of a protected nested class, the enclosing class is not final
+PublicEntry(nestedClass,method) :- 
+   MethodModifier("public",method),
+   !IsSecureMethod(method),
+   TypeHasMethod(nestedClass,method),
+   NestedClass(enclosingClass,nestedClass),
+   ClassModifier("protected",nestedClass),
+   !ClassModifier("final",enclosingClass).
+  
+  // protected method of a non-final public class 
+PublicEntry(class,method) :- 
+   MethodModifier("protected",method),
+   !IsSecureMethod(method),
+   TypeHasMethod(class,method),
+   ClassModifier("public",class),
+   !ClassModifier("final",class).
+
+// protected method of a non-final protected nested class, the enclosing class is not final
+PublicEntry(nestedClass,method) :- 
+   MethodModifier("protected",method),
+   !IsSecureMethod(method),
+   TypeHasMethod(nestedClass,method),
+   NestedClass(enclosingClass,nestedClass),
+   ClassModifier("protected",nestedClass),
+   !ClassModifier("final",nestedClass),
+   !ClassModifier("final",enclosingClass).
+
+
+//
+// HeapAllocationType
+//
+
+//.decl HeapAllocationType(heap:HeapAllocationRef,type:Type) input 
+
+HeapAllocationType("<<string-constant>>","java.lang.String").
+
+HeapAllocationType("<<string-buffer>>","java.lang.StringBuffer").
+
+HeapAllocationType("<<string-builder>>","java.lang.StringBuilder").
+
+HeapAllocationType("<<initial-context>>","java.lang.String").
+
+HeapAllocationType("<<jvm-startup>>","java.lang.String").
+
+HeapAllocationType("<<class-initialization>>","java.lang.String").
+
+HeapAllocationType("<<immutable>>","java.lang.String").
+
+HeapAllocationType("<<insensitive-method-context>>","java.lang.String").
+
+HeapAllocationType("<<normal-heap>>","java.lang.String").
+
+HeapAllocationType("<<jvm-startup>>","java.lang.String").
+
+HeapAllocationType("<<system-thread-group>>","java.lang.ThreadGroup").
+
+HeapAllocationType("<<jvm-startup>>","java.lang.String").
+
+HeapAllocationType("<<main-thread-group>>","java.lang.ThreadGroup").
+
+HeapAllocationType("<<jvm-startup>>","java.lang.String").
+
+HeapAllocationType("<<main-thread>>","java.lang.Thread").
+
+
+#ifndef DISABLE_REFLECTION
+
+.decl isNotEmptyJavalangClassnewInstance(x:symbol)
+isNotEmptyJavalangClassnewInstance("true") :- javalangClassnewInstance(_,_,_).
+
+.decl isNotEmptyJavalangReflectConstructor(x:symbol)
+isNotEmptyJavalangReflectConstructor("true") :- javalangreflectConstructornewInstance(_,_,_).
+
+
+HeapAllocationType( cat ( cat ("<reflective Class.newInstance ",type),">"),type) :- 
+   isNotEmptyJavalangClassnewInstance(_),
+   ClassType(type),
+   HeapAllocationRef( tmp_0),
+   Type(type),
+    tmp_0 =  cat ( cat ("<reflective Class.newInstance ",type),">").
+
+HeapAllocationType( cat ( cat ("<reflective Constructor.newInstance ",type),">"),type) :- 
+   isNotEmptyJavalangReflectConstructor(_),
+   ClassType(type),
+   HeapAllocationRef( tmp_0),
+   Type(type),
+    tmp_0 =  cat ( cat ("<reflective Constructor.newInstance ",type),">").
+
+HeapAllocationType( cat ( cat ("<reified constructor ",signature),">"),"java.lang.reflect.Constructor") :- 
+   SimpleNameRef("<init>"),
+   MethodSignatureRef(signature),
+   MethodSignatureSimpleName(signature,"<init>"),
+   Type("java.lang.reflect.Constructor").
+
+HeapAllocationType( cat ( cat ("<reified method ",signature),">"),"java.lang.reflect.Method") :- 
+   MethodSignatureSimpleName(signature,simplename),
+   Type("java.lang.reflect.Method"),
+   simplename != "<init>",
+   simplename != "<clinit>".
+
+HeapAllocationType( cat ( cat ("<reified field ",x),">"),"java.lang.reflect.Field") :- 
+   FieldSignatureRef(x),
+   Type("java.lang.reflect.Field").
+
+//
+// javalangClassforName
+//
+
+.decl javalangClassforName(invocation:MethodInvocationRef,inmethod:MethodSignatureRef) 
+
+javalangClassforName(invocation,inmethod) :- 
+   MethodSignatureRef("<java.lang.Class.forName(Ljava/lang/String;)Ljava/lang/Class;>"),
+   StaticMethodInvocation(invocation,"<java.lang.Class.forName(Ljava/lang/String;)Ljava/lang/Class;>",inmethod).
+
+javalangClassforName(invocation,inmethod) :- 
+   MethodSignatureRef("<java.lang.Class.forName(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;>"),
+   StaticMethodInvocation(invocation,"<java.lang.Class.forName(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;>",inmethod).
+
+//
+// javalangClassforNameActualParam
+//
+
+.decl javalangClassforNameActualParam(invocation:MethodInvocationRef,param:VarRef) 
+
+javalangClassforNameActualParam(invocation,param) :- 
+   ActualParam(0,invocation,param),
+   javalangClassforName(invocation,_).
+
+//
+// javalangClassgetDeclaredMethod
+//
+
+.decl javalangClassgetDeclaredMethod(to:VarRef,from:VarRef,nameParam:VarRef) 
+
+javalangClassgetDeclaredMethod(to,from,nameParam) :- 
+   MethodSignatureRef("<java.lang.Class.getDeclaredMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;>"),
+   InstanceMethodInvocationSignature(invocation,"<java.lang.Class.getDeclaredMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;>"),
+   AssignReturnValue(invocation,to),
+   InstanceMethodInvocationBase(invocation,from),
+   VarRef(to),
+   VarRef(from),
+   ActualParam(0,invocation,nameParam).
+
+//
+// javalangClassgetMethod
+//
+
+.decl javalangClassgetMethod(to:VarRef,from:VarRef,nameParam:VarRef) 
+
+javalangClassgetMethod(to,from,nameParam) :- 
+   MethodSignatureRef("<java.lang.Class.getMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;>"),
+   InstanceMethodInvocationSignature(invocation,"<java.lang.Class.getMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;>"),
+   AssignReturnValue(invocation,to),
+   InstanceMethodInvocationBase(invocation,from),
+   VarRef(to),
+   ActualParam(0,invocation,nameParam).
+
+//
+// javalangClassnewInstance
+//
+
+.decl javalangClassnewInstance(invocation:MethodInvocationRef,to:VarRef,from:VarRef) 
+
+javalangClassnewInstance(invocation,to,from) :- 
+   MethodSignatureRef("<java.lang.Class.newInstance()Ljava/lang/Object;>"),
+   InstanceMethodInvocationSignature(invocation,"<java.lang.Class.newInstance()Ljava/lang/Object;>"),
+   AssignReturnValue(invocation,to),
+   InstanceMethodInvocationBase(invocation,from),
+   VarRef(to).
+
+
+//
+// javalangreflectConstructornewInstance
+//
+
+.decl javalangreflectConstructornewInstance(invocation:MethodInvocationRef,to:VarRef,from:VarRef) 
+
+javalangreflectConstructornewInstance(invocation,to,base) :- 
+   VarRef(to),
+   MethodSignatureRef("<java.lang.reflect.Constructor.newInstance([Ljava/lang/Object;)Ljava/lang/Object;>"),
+   InstanceMethodInvocationSignature(invocation,"<java.lang.reflect.Constructor.newInstance([Ljava/lang/Object;)Ljava/lang/Object;>"),
+   InstanceMethodInvocationBase(invocation,base),
+   AssignReturnValue(invocation,to).
+
+
+//
+// javalangreflectMethodinvoke
+//
+
+.decl javalangreflectMethodinvoke(invocation:MethodInvocationRef,from:VarRef) 
+
+javalangreflectMethodinvoke(invocation,base) :- 
+   VarRef(from),
+   MethodSignatureRef("<java.lang.reflect.Method.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;>"),
+   InstanceMethodInvocationSignature(invocation,"<java.lang.reflect.Method.invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;>"),
+   InstanceMethodInvocationBase(invocation,base).
+
+#endif   
+
+
+//
+// InstanceMethodInvocationBase
+//
+
+.decl InstanceMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) 
+
+InstanceMethodInvocationBase(invocation,base) :- 
+   VirtualMethodInvocationBase(invocation,base),
+   VarRef(base).
+
+InstanceMethodInvocationBase(invocation,base) :- 
+   SpecialMethodInvocationBase(invocation,base),
+   VarRef(base).
+
+//
+// InstanceMethodInvocationSignature
+//
+
+.decl InstanceMethodInvocationSignature(invocation:MethodInvocationRef,method:MethodSignatureRef) 
+
+InstanceMethodInvocationSignature(invocation,method) :- 
+   VirtualMethodInvocationSignature(invocation,method).
+
+InstanceMethodInvocationSignature(invocation,method) :- 
+   SpecialMethodInvocationSignature(invocation,method).
+
+
+//
+// InstructionMethod
+//
+
+.decl InstructionMethod(instruction:InstructionRef,inmethod:MethodSignatureRef) 
+
+InstructionMethod(invocation,inmethod) :- 
+   SpecialMethodInvocationIn(invocation,inmethod).
+
+InstructionMethod(invocation,inmethod) :- 
+   VirtualMethodInvocationIn(invocation,inmethod).
+
+InstructionMethod(invocation,inmethod) :- 
+   StaticMethodInvocationIn(invocation,inmethod).
+
+
+//
+// EntryBasicBlock
+//
+
+.decl EntryBasicBlock(method:MethodSignatureRef,basicBlock:BasicBlockRef) 
+
+EntryBasicBlock(method,basicBlock) :- 
+   BasicBlockIn(basicBlock,method),
+   BasicBlockEntry(basicBlock).
+
+//
+// ExitBasicBlock
+//
+
+.decl ExitBasicBlock(basicBlock:BasicBlockRef, method:MethodSignatureRef) 
+
+ExitBasicBlock(basicBlock, method) :- 
+  BasicBlockIn(basicBlock, method), 
+  BasicBlockExit(basicBlock).
+
+//
+// FieldIndexSignature
+//
+
+.decl FieldIndexSignature(field:FieldSignatureRef,index:number,type:Type) 
+
+FieldIndexSignature(field,index,type) :- 
+   DirectFieldIndexSignature(type,index,field).
+
+FieldIndexSignature(field,index,subclass) :- 
+   DirectFieldIndexSignature(superclass,index,field),
+   Superclass(subclass,superclass).
+
+//
+// HasNoMethodBody
+//
+
+.decl HasNoMethodBody(method:MethodSignatureRef) 
+
+HasNoMethodBody(method) :- 
+   MethodSignatureRef(method),
+   !EntryBasicBlock(method, _).
+
+HasNoMethodBody(method) :- 
+   MethodSignatureRef(method),
+   MethodModifier("native",method).
+
+
+/* List of special methods that are always reachable. 
+ * These methods are usually invoked by Java runtime behind the scenes. */ 
+.decl ImplicitReachable(sig:MethodSignatureRef) 
+
+ImplicitReachable("<java.lang.System.initializeSystemClass()V>") :- 
+   MethodSignatureRef("<java.lang.System.initializeSystemClass()V>").
+
+ImplicitReachable("<java.lang.Thread.exit()V>") :- 
+   MethodSignatureRef("<java.lang.Thread.exit()V>").
+
+ImplicitReachable("<java.lang.ThreadGroup.uncaughtException(Ljava/lang/Thread;Ljava/lang/Throwable;)V>") :- 
+   MethodSignatureRef("<java.lang.ThreadGroup.uncaughtException(Ljava/lang/Thread;Ljava/lang/Throwable;)V>").
+
+ImplicitReachable("<java.lang.ClassLoader.<init>()V>") :- 
+   MethodSignatureRef("<java.lang.ClassLoader.<init>()V>").
+
+ImplicitReachable("<java.lang.ClassLoader.loadClassInternal(Ljava/lang/String;)Ljava/lang/Class;>") :- 
+   MethodSignatureRef("<java.lang.ClassLoader.loadClassInternal(Ljava/lang/String;)Ljava/lang/Class;>").
+
+ImplicitReachable("<java.lang.ClassLoader.checkPackageAccess(Ljava/lang/Class;Ljava/security/ProtectionDomain;)V>") :- 
+   MethodSignatureRef("<java.lang.ClassLoader.checkPackageAccess(Ljava/lang/Class;Ljava/security/ProtectionDomain;)V>").
+
+ImplicitReachable("<java.lang.ClassLoader.addClass(Ljava/lang/Class;)V>") :- 
+   MethodSignatureRef("<java.lang.ClassLoader.addClass(Ljava/lang/Class;)V>").
+
+ImplicitReachable("<java.lang.ClassLoader.findNative(Ljava/lang/ClassLoader;Ljava/lang/String;)J>") :- 
+   MethodSignatureRef("<java.lang.ClassLoader.findNative(Ljava/lang/ClassLoader;Ljava/lang/String;)J>").
+
+ImplicitReachable("<java.security.PrivilegedActionException.<init>(Ljava/lang/Exception;)V>") :- 
+   MethodSignatureRef("<java.security.PrivilegedActionException.<init>(Ljava/lang/Exception;)V>").
+
+
+//
+// MethodImplemented
+//
+
+.decl MethodImplemented(simplename:SimpleNameRef,descriptor:MethodDescriptorRef,type:Type,method:MethodSignatureRef) 
+
+MethodImplemented(simplename,descriptor,type,method) :- 
+   MethodSignatureType(signature,type),
+   MethodSignatureSimpleName(signature,simplename),
+   MethodSignatureDescriptor(signature,descriptor),
+   MethodDeclaration(signature,method),
+   ModifierRef("abstract"),
+   !MethodModifier("abstract",method).
+
+//
+// MethodLookup
+//
+
+.decl MethodLookup(simplename:SimpleNameRef,descriptor:MethodDescriptorRef,type:Type,method:MethodSignatureRef) 
+
+MethodLookup(simplename,descriptor,type,method) :- 
+   MethodImplemented(simplename,descriptor,type,method).
+
+MethodLookup(simplename,descriptor,type,method) :- 
+   DirectSuperclass(type,supertype),
+   MethodLookup(simplename,descriptor,supertype,method),
+   !MethodImplemented(simplename,descriptor,type,_).
+
+MethodLookup(simplename,descriptor,arraytype,method) :- 
+   ArrayType(arraytype),
+   Type("java.lang.Object"),
+   MethodImplemented(simplename,descriptor,"java.lang.Object",method).
+
+
+//
+// ReferenceType
+//
+
+.decl ReferenceType(t:ReferenceType) 
+
+ReferenceType(t) :- 
+   ClassType(t).
+
+ReferenceType(t) :- 
+   ArrayType(t).
+
+ReferenceType(t) :- 
+   InterfaceType(t).
+
+
+//
+// TypeHasMethod
+//
+
+.decl TypeHasMethod(type:Type,method:MethodSignatureRef) 
+
+TypeHasMethod(type,method) :- 
+   MethodSignatureType(method,type).
+
+
+//
+// InvocationBase
+//
+
+.decl InvocationBase(i:MethodInvocationRef, b:VarRef)
+
+InvocationBase(i,b) :- SpecialMethodInvocationBase(i,b).
+InvocationBase(i,b) :- VirtualMethodInvocationBase(i,b).
+
+//
+// VirtualMethodInvocationDescriptor
+//
+
+.decl VirtualMethodInvocationDescriptor(invocation:MethodInvocationRef,descriptor:MethodDescriptorRef) 
+
+VirtualMethodInvocationDescriptor(invocation,descriptor) :- 
+   VirtualMethodInvocationSignature(invocation,signature),
+   MethodSignatureDescriptor(signature,descriptor).
+
+
+
+//
+// HeapAllocationRef
+//
+
+.decl HeapAllocationRef(x:String) 
+
+HeapAllocationRef(x) :- 
+   HeapAllocationType(x,_).
+
+HeapAllocationRef(x) :- 
+   AssignHeapAllocation(x,_,_).
+
+HeapAllocationRef(x) :- 
+   ExternalHeapAllocation(x).
+
+HeapAllocationRef(x) :- 
+   UnknownReturnedHeapAllocation(_,x).
+
+HeapAllocationRef(x) :- 
+   HeapAllocationRefDebugInfo(_,_,x).
+
+
+HeapAllocationRef(x) :- 
+   ClassConstant(x).
+
+HeapAllocationRef(x) :- 
+   StringConstant(x).
+
+HeapAllocationRef("<<string-constant>>").
+
+HeapAllocationRef("<<string-buffer>>").
+
+HeapAllocationRef("<<string-builder>>").
+
+HeapAllocationRef("<<initial-context>>").
+
+HeapAllocationRef("<<jvm-startup>>").
+
+HeapAllocationRef("<<class-initialization>>").
+
+HeapAllocationRef("<<immutable>>").
+
+HeapAllocationRef("<<insensitive-method-context>>").
+
+HeapAllocationRef("<<normal-heap>>").
+
+HeapAllocationRef("<<system-thread-group>>").
+
+HeapAllocationRef("<<main-thread-group>>").
+
+HeapAllocationRef("<<main-thread>>").
+
+#ifndef DISABLE_REFLECTION
+
+
+HeapAllocationRef(x) :- 
+   ReifiedConstructor(_,x).
+
+HeapAllocationRef(x) :- 
+   ReifiedMethod(_,x).
+
+HeapAllocationRef(x) :- 
+   ReflectiveHeapAllocation(_,x).
+
+HeapAllocationRef( cat ( cat ("<reflective Class.newInstance ",type),">")) :- 
+   isNotEmptyJavalangClassnewInstance(_),
+   ClassType(type),
+   Type(type).
+
+
+HeapAllocationRef( cat ( cat ("<reflective Constructor.newInstance ",type),">")) :- 
+   isNotEmptyJavalangReflectConstructor(_),
+   ClassType(type),
+   Type(type).
+
+HeapAllocationRef( cat ( cat ("<reified constructor ",signature),">")) :- 
+   SimpleNameRef("<init>"),
+   MethodSignatureRef(signature),
+   MethodSignatureSimpleName(signature,"<init>"),
+   Type("java.lang.reflect.Constructor").
+
+HeapAllocationRef( cat ( cat ("<reified method ",signature),">")) :- 
+   MethodSignatureSimpleName(signature,simplename),
+   Type("java.lang.reflect.Method"),
+   simplename != "<init>",
+   simplename != "<clinit>".
+
+HeapAllocationRef( cat ( cat ("<reified field ",x),">")) :- 
+   FieldSignatureRef(x),
+   Type("java.lang.reflect.Field").
+
+
+//
+// ReflectiveHeapAllocation
+//
+
+.decl ReflectiveHeapAllocation(type:Type,heap:HeapAllocationRef) 
+
+ReflectiveHeapAllocation(type, cat ( cat ("<reflective Class.newInstance ",type),">")) :- 
+   isNotEmptyJavalangClassnewInstance(_),
+   ClassType(type),
+   Type(type).
+
+ReflectiveHeapAllocation(type, cat ( cat ("<reflective Constructor.newInstance ",type),">")) :- 
+   isNotEmptyJavalangReflectConstructor(_),
+   ClassType(type),
+   Type(type).
+
+#endif
+
+//
+// ReifiedConstructor
+//
+
+.decl ReifiedConstructor(constructor:MethodSignatureRef,heap:HeapAllocationRef) 
+
+ReifiedConstructor(signature, cat ( cat ("<reified constructor ",signature),">")) :- 
+   SimpleNameRef("<init>"),
+   MethodSignatureSimpleName(signature,"<init>"),
+   HeapAllocationRef( tmp_0),
+   Type("java.lang.reflect.Constructor"),
+    tmp_0 =  cat ( cat ("<reified constructor ",signature),">").
+
+//
+// ReifiedMethod
+//
+
+.decl ReifiedMethod(method:MethodSignatureRef,heap:HeapAllocationRef) 
+
+ReifiedMethod(signature, cat ( cat ("<reified method ",signature),">")) :- 
+   MethodSignatureSimpleName(signature,simplename),
+   HeapAllocationRef( tmp_0),
+   Type("java.lang.reflect.Method"),
+   simplename != "<init>",
+   simplename != "<clinit>",
+    tmp_0 =  cat ( cat ("<reified method ",signature),">").
+
+
+// ---------------------------------------------------------
+// Helper relations - these relations are 
+//    - not mutually recursive withe any other relations
+//    - simple transformations of the input (edb) facts or of 
+//      other simple helper relations
+
+
+/* ClassInitializer is a static method that gets executed when the class type is first accessed.
+ * JMV specification says the name of this meethod will be <clinit>.
+ * <clinit> method's return type must void by the JVM spec. */ 
+.decl ClassInitializer(type:Type,method:MethodSignatureRef) 
+ClassInitializer(type,method) :- 
+   SimpleNameRef("<clinit>"),
+   MethodDescriptorRef("()V"),
+   MethodImplemented("<clinit>","()V",type,method).
+
+/* Futher relations that belong to this category: MethodImplemented, ImplicitReachable */
+
+

@@ -1,0 +1,11 @@
+  ----- Rule Versions Table -----
+   TOT_T  NREC_T   REC_T  COPY_T    TUPLES   VER   ID RELATION
+
+    .124    .000    .123    .001      7575         C1.1 LptrVar                  
+ ---------------------------------------------------------
+    .124    .000    .123    .001      7575     0   C1.1 LptrVar                  
+
+Src locator: ../../tests/evaluation/hmmer/hmmer.dl [30:1-30:43]
+
+   C1.1  LptrVar(v) :-     DirectFlow(v,w),    LptrVar(w).
+

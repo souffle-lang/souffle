@@ -24,7 +24,7 @@ then
   # clang.
   if [ $CXX == g++ ]
   then
-    TESTSUITEFLAGS=-j3 make package
+    TESTSUITEFLAGS="-j3 1466-1468" make package
     # compute md5 for package &
     # copy files to deploy directory
     for f in packaging/*.deb
@@ -39,7 +39,7 @@ then
     ls deploy/*
   else
     make
-    TESTSUITEFLAGS=-j3 make check
+    TESTSUITEFLAGS="-j3 1466-1468" make check
   fi
 fi
 
@@ -49,7 +49,7 @@ fi
 
 if [ $TRAVIS_OS_NAME == osx ]
 then
-  TESTSUITEFLAGS=-j3 make package
+  TESTSUITEFLAGS="-j3 1466-1468" make package
   # compute md5 for package &
   # copy files to deploy directory
   for f in *.pkg

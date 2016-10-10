@@ -1,0 +1,23 @@
+Unknown command. For more information try the "help" command.
+
+Available profiling commands:
+  rel                           -     display relation table.
+  rel <relation id>             -     display all rules of given relation.
+  rul                           -     display rule table
+  rul <rule id>                 -     display all version of given rule.
+  rul id                        -     display all rules names and ids.
+  rul id <rule id>              -     display the rule name for the given rule id.
+  graph <relation id> <type>    -     graph the relation by type(tot_t/copy_t/tuples).
+  graph <rule id> <type>        -     graph the rule (C rules only)  by type(tot_t/tuples).
+  graph ver <rule id> <type>    -     graph the rule versions (C rules only) by type(tot_t/tuples).
+  top                           -     display top-level summary of program run.
+  help                          -     print this.
+
+Interactive mode only commands:
+  load <filename>               -     load the given new log file.
+  open                          -     list stored program run log files.
+  open <filename>               -     open the given stored log file.
+  save <filename>               -     store a log file.
+  stop                          -     stop running live.
+  sort <col number>             -     sets sorting to be by given column number (0 indexed).
+  q                             -     exit program.

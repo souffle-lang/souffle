@@ -1,0 +1,17 @@
+  ----- Rules of a Relation -----
+   TOT_T  NREC_T   REC_T  COPY_T    TUPLES      ID NAME                     
+
+    .000    .000    .000    .000         3      R1 rel                      
+ ---------------------------------------------------------
+    .000    .000    .000    .000         0    C1.1 rel                      
+    .000    .000    .000    .000         1    N1.1 rel                      
+    .000    .000    .000    .000         1    N1.2 rel                      
+    .000    .000    .000    .000         1    N1.3 rel                      
+
+Src locator: ../../../tests/profile/lrg_attr_id/lrg_attr_id.dl [28:1-28:120]
+
+   C1.1  rel(thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting,m) :-     rel(thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting,_),    rel(m,_),    thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting < m.
+   N1.1  rel(0,1).                
+   N1.2  rel(0,2).                
+   N1.3  rel(1,2).                
+

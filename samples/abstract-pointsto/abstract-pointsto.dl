@@ -1,0 +1,317 @@
+//
+// Copyright (c) 2013-16, Oracle and/or its affiliates.
+//
+// The Universal Permissive License (UPL), Version 1.0
+// 
+// Subject to the condition set forth below, permission is hereby granted to any person obtaining a copy of this software,
+// associated documentation and/or data (collectively the "Software"), free of charge and under any and all copyright rights in the 
+// Software, and any and all patent rights owned or freely licensable by each licensor hereunder covering either (i) the unmodified 
+// Software as contributed to or provided by such licensor, or (ii) the Larger Works (as defined below), to deal in both
+// 
+// (a) the Software, and
+// (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if one is included with the Software (each a “Larger
+// Work” to which the Software is contributed by such licensors),
+// 
+// without restriction, including without limitation the rights to copy, create derivative works of, display, perform, and 
+// distribute the Software and make, use, sell, offer for sale, import, export, have made, and have sold the Software and the 
+// Larger Work(s), and to sublicense the foregoing rights on either these or other terms.
+// 
+// This license is subject to the following condition:
+// The above copyright notice and either this complete permission notice or at a minimum a reference to the UPL must be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+// IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Modeled after the points-to specs in the DOOP framework (http://doop.program-analysis.org/)
+
+// Copyright (C) 2008-2009  Martin Bravenboer
+//
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+/*****************************************************************
+
+  Common definitions related to a points-to analysis.
+
+******************************************************************/
+
+//
+// Contant strings which are used as context
+//
+
+
+.decl HardcodedContext(heap:HeapAllocationRef)
+
+HardcodedContext("<<string-constant>>").
+
+HardcodedContext("<<string-buffer>>").
+
+HardcodedContext("<<string-builder>>").
+
+HardcodedContext("<<initial-context>>").
+
+HardcodedContext("<<jvm-startup>>").
+
+HardcodedContext("<<class-initialization>>").
+
+HardcodedContext("<<immutable>>").
+
+HardcodedContext("<<insensitive-method-context>>").
+
+HardcodedContext("<<normal-heap>>").
+
+HardcodedContext("<<system-thread-group>>").
+
+HardcodedContext("<<main-thread-group>>").
+
+HardcodedContext("<<main-thread>>").
+
+HardcodedContext(heap):-
+   ExternalHeapAllocation(heap).
+
+
+//
+// ClassNameStringConstant
+//
+
+.decl ClassNameStringConstant(heap:HeapAllocationRef) 
+
+ClassNameStringConstant(heap) :- 
+   StringConstant(heap),
+   InstructionRef(heap),
+   ReferenceType(heap),
+   Type(heap).
+
+//
+// ClassNameStringConstantType
+//
+
+.decl ClassNameStringConstantType(heap:HeapAllocationRef,type:Type) 
+
+ClassNameStringConstantType(heap,heap) :- 
+   StringConstant(heap),
+   InstructionRef(heap),
+   ReferenceType(heap),
+   Type(heap).
+
+//
+// DeclaringClassMethod
+//
+
+.decl DeclaringClassMethod(method:MethodSignatureRef,type:Type) 
+
+DeclaringClassMethod(method,type) :- 
+   MethodDeclaration(signature,method),
+   MethodSignatureType(signature,type).
+
+
+//
+// FieldDeclaringClass
+//
+
+.decl FieldDeclaringClass(signature:FieldSignatureRef,type:Type) 
+
+FieldDeclaringClass(signature,declaringClass) :- 
+   FieldSignature(signature,declaringClass,_,_).
+
+
+//
+// HeapAllocationContextInsensitive
+//
+
+.decl HeapAllocationContextInsensitive(heap:HeapAllocationRef) 
+
+#ifdef DISTINGUISH_CLASS_CONSTANTS
+HeapAllocationContextInsensitive(heap) :- 
+   ClassNameStringConstant(heap),
+   InstructionRef(heap).
+
+HeapAllocationContextInsensitive(heap) :- 
+   SimpleNameStringConstant(heap),
+   InstructionRef(heap).
+
+HeapAllocationContextInsensitive(heap) :- 
+   ClassConstant(heap),
+   InstructionRef(heap).
+#endif
+
+#ifdef DISTINGUISH_ALL_STRING_CONSTANTS
+HeapAllocationContextInsensitive(heap) :-
+   StringConstant(heap).
+#endif
+
+HeapAllocationContextInsensitive(heap) :- 
+   HeapAllocationType(heap,type),
+   InstructionRef(heap),
+   ArrayType(type),
+   ComponentType(type,componentType),
+   PrimitiveType(componentType).
+
+#ifdef CONTEXT_INSENSITIVE_JAVA_MATH
+HeapAllocationContextInsensitive(heap) :- 
+   HeapAllocationType(heap,"java.math.BigInteger"),
+   InstructionRef(heap).
+
+HeapAllocationContextInsensitive(heap) :- 
+   HeapAllocationType(heap,"java.math.MutableBigInteger"),
+   InstructionRef(heap).
+
+HeapAllocationContextInsensitive(heap) :- 
+   HeapAllocationType(heap,"java.math.SignedMutableBigInteger"),
+   InstructionRef(heap).
+
+HeapAllocationContextInsensitive(heap) :- 
+   HeapAllocationType(heap,"java.math.BigDecimal"),
+   InstructionRef(heap).
+#endif
+
+
+
+#ifdef ENABLE_HEAP_REPRESENTATIVE
+HeapAllocationMerge(heap,mergeHeap) :- 
+   HeapRepresentative(heap,mergeHeap).
+#endif
+
+
+
+//
+// HeapAllocationSpecial
+//
+
+.decl HeapAllocationSpecial(heap:HeapAllocationRef) 
+
+HeapAllocationSpecial(heap) :- 
+   HeapAllocationContextInsensitive(heap).
+
+
+HeapAllocationSpecial(heap) :- 
+   HeapAllocationMerge(heap,_).
+
+HeapAllocationSpecial("<null>") :- 
+   InstructionRef("<null>"),
+   HeapAllocationRef("<null>").
+
+#ifdef ENABLE_HEAP_REPRESENTATIVE
+ 
+
+//
+// HeapRepresentative
+//
+
+.decl HeapRepresentative(heap:HeapAllocationRef,mergeHeap:HeapAllocationRef) 
+
+HeapRepresentative(heap,representativeHeap) :- 
+    HeapAllocationType(heap, type), 
+    InstructionRef(heap),
+    TypeHeapRepresentative(type, representativeHeap). 
+#endif
+
+//
+// ImmutableHeapValue
+//
+
+.decl ImmutableHeapValue(immHeap:HeapAllocationRef) 
+
+ImmutableHeapValue("<<immutable>>").
+
+
+#ifndef DISABLE_REFLECTION
+//
+// ReflectiveActualParams
+//
+
+.decl ReflectiveActualParams(caller:MethodInvocationRef,actualParams:VarRef) 
+
+ReflectiveActualParams(invocation,argsParam) :- 
+   javalangreflectMethodinvoke(invocation,_),
+   ActualParam(1,invocation,argsParam),
+   VarRef(argsParam).
+
+
+//
+// ReflectiveAssignReturnValue
+//
+
+.decl ReflectiveAssignReturnValue(caller:MethodInvocationRef,base:VarRef) 
+
+ReflectiveAssignReturnValue(invocation,var) :- 
+   javalangreflectMethodinvoke(invocation,_),
+   AssignReturnValue(invocation,var),
+   VarRef(var).
+
+//
+// ReflectiveBaseVar
+//
+
+.decl ReflectiveBaseVar(caller:MethodInvocationRef,base:VarRef) 
+
+ReflectiveBaseVar(invocation,base) :- 
+   javalangreflectMethodinvoke(invocation,_),
+   ActualParam(0,invocation,base),
+   VarRef(base).
+
+
+#endif
+
+
+//
+// SpecialReturnHeap
+//
+
+.decl SpecialReturnHeap(heap:HeapAllocationRef) 
+
+SpecialReturnHeap("java.lang.ClassLoader.findLoadedClass(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class") :- 
+   InstructionRef("java.lang.ClassLoader.findLoadedClass(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class"),
+   HeapAllocationRef("java.lang.ClassLoader.findLoadedClass(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class").
+
+SpecialReturnHeap("java.lang.ClassLoader.findBootstrapClassOrNull(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class") :- 
+   InstructionRef("java.lang.ClassLoader.findBootstrapClassOrNull(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class"),
+   HeapAllocationRef("java.lang.ClassLoader.findBootstrapClassOrNull(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findBootstrapClass(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class").
+
+
+
+#ifdef ENABLE_HEAP_REPRESENTATIVE
+//
+// TypeToHeap
+//
+
+.decl TypeToHeap(heaptype:Type,heap:HeapAllocationRef)
+
+TypeToHeap(heaptype, heap) :- 
+   HeapAllocationType(heap,heaptype),
+   Type("java.lang.Throwable"),
+   AssignCompatible("java.lang.Throwable",heaptype),
+   !ExternalHeapAllocation(heap).
+//
+// TypeHeapRepresentative
+//
+
+.decl TypeHeapRepresentative(type:Type, heap:HeapAllocationRef)
+
+TypeHeapRepresentative(type, representativeHeap) :- 
+   TypeToHeap(type, representativeHeap), 
+   ord(representativeHeap) = min ord(Y) : { TypeToHeap(type,Y) }.
+#endif
+
+

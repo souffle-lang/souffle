@@ -1,5 +1,5 @@
-#!/bin/sh -e
-aclocal
+#! /bin/sh -e
+aclocal -I m4
 autoheader
 automake --gnu --add-missing
 autoconf

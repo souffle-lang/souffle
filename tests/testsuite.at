@@ -1,5 +1,5 @@
 # Souffle - A Datalog Compiler
-# Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2013, 2015, 2016 Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at:
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
@@ -23,9 +23,22 @@ dnl Check whether the contents of two files are identical
 dnl $1 -- first file
 dnl $2 -- second file
 m4_define([SAME_FILES],[
+ FILE_EXISTS(["$1"])
+ FILE_EXISTS(["$2"])
+ AT_CHECK([diff "$1" "$2"],[],[],[])
+])
+
+dnl Check whether two files have the same number of lines 
+dnl $1 -- first file
+dnl $2 -- second file
+m4_define([SAME_LINE_COUNT],[
  FILE_EXISTS([$1])
  FILE_EXISTS([$2])
- AT_CHECK([diff "$1" "$2"],[],[],[])
+ m4_define([COUNT_F1],["F1.count"])
+ m4_define([COUNT_F2],["F2.count"])
+ cat "$1" | wc -l > COUNT_F1
+ cat "$2" | wc -l > COUNT_F2
+ AT_CHECK([diff COUNT_F1 COUNT_F2],[],[],[])
 ])
 
 dnl Group test for all flag configurations
@@ -73,7 +86,51 @@ m4_define([TEST_EVAL],[
  SAME_FILES([num.generated],[num.expected])
 ])
 
-dnl Execute a negative test case for a given flag configuration
+dnl Define all possible souffle-profile commands for testing
+m4_define([PROFILE_COMMANDS],[dnl
+["rel"],dnl
+["rel R1"],dnl
+["rul"],dnl
+["rul C1.1"],dnl
+["rul id N1.1"],dnl
+["sort"],dnl
+["graph R1 copy_t"],dnl
+["graph C1.1 tot_t"],dnl
+["graph ver C1.1 tuples"],dnl
+["top"],dnl
+["help"]dnl
+])
+
+dnl Execute a test case with profiling, and check the profile generated is as expected
+dnl $1 -- test case
+dnl $2 -- category
+dnl $3 -- command
+m4_define([TEST_PROFILE_COMMAND],[
+ m4_define([TESTNAME],[$1])
+ m4_define([CATEGORY],[$2])
+ m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
+ m4_define([LOG_FILE],[$1-profile.log])
+ m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
+ m4_define([FACTS],[TESTDIR/facts])
+ m4_define([EXPECTED_OUTPUT],["TESTDIR/out/$3.out"])
+ AT_CHECK(["$SOUFFLE" -D. -p LOG_FILE -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+ FILE_EXISTS([LOG_FILE])
+ AT_CHECK(["$SOUFFLE_PROFILE" -f LOG_FILE -c $3 1>TESTNAME.prof.out 2>TESTNAME.prof.err], [0])
+ SAME_LINE_COUNT([TESTNAME.prof.out],[EXPECTED_OUTPUT])
+])
+
+dnl Execute a set of tests on the profiler
+dnl $1 -- test case
+dnl $2 -- category
+m4_define([PROFILE_TEST],[
+ m4_foreach([COMMAND],[PROFILE_COMMANDS],[
+  AT_SETUP([$1 souffle-profile -c COMMAND])
+  TEST_PROFILE_COMMAND([$1],[$2],[COMMAND])
+  AT_CLEANUP([])
+ ])
+])
+
+dnl Execute a negative test case for a given flag configuration 
 dnl $1 -- test case
 dnl $2 -- category
 m4_define([TEST_EVAL_ERROR],[
@@ -184,3 +241,7 @@ m4_include([evaluation.at])
 dnl Interface
 AT_BANNER([Interface])
 m4_include([interface.at])
+
+dnl Profile
+AT_BANNER([Profile])
+m4_include([profile.at])

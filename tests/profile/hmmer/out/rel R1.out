@@ -1,0 +1,21 @@
+  ----- Rules of a Relation -----
+   TOT_T  NREC_T   REC_T  COPY_T    TUPLES      ID NAME                     
+
+    .251    .006    .245    .000     21190      R1 LptrVar                  
+ ---------------------------------------------------------
+    .124    .000    .123    .001      7575    C1.1 LptrVar                  
+    .122    .000    .122    .000      2689    C1.2 LptrVar                  
+    .005    .005    .000    .000      9270    N1.3 LptrVar                  
+    .000    .000    .000    .000      1337    N1.4 LptrVar                  
+    .000    .000    .000    .000       274    N1.1 LptrVar                  
+    .000    .000    .000    .000        45    N1.2 LptrVar                  
+
+Src locator: ../../tests/evaluation/hmmer/hmmer.dl [18:1-18:22]
+
+   C1.1  LptrVar(v) :-     DirectFlow(v,w),    LptrVar(w).
+   C1.2  LptrVar(v) :-     DirectFlow(w,v),    LptrVar(w).
+   N1.3  LptrVar(v) :-     Load(_,v).
+   N1.4  LptrVar(v) :-     Store(_,v).
+   N1.1  LptrVar(v) :-     StackAlloc(v,_).
+   N1.2  LptrVar(v) :-     HeapAlloc(v,_).
+

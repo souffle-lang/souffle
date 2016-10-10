@@ -46,6 +46,9 @@ class RamExecutorConfig {
     /** The directory to store output files to */
     std::string outputDir;
 
+    /** The file to store an output SQL3 DB to (empty string means do not output to sqldb)*/
+    std::string outputDatabaseName;
+
     /** The number of threads to be used for the computation (0 = parallel system default) */
     size_t num_threads;
 
@@ -63,7 +66,7 @@ class RamExecutorConfig {
 
 public:
 
-    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), num_threads(1), logging(false), debug(false) {}
+    RamExecutorConfig() : sourceFileName("-unknown-"), factFileDir("./"), outputDir("./"), outputDatabaseName(""), num_threads(1), logging(false), debug(false) {}
 
     // -- getters and setters --
 
@@ -89,6 +92,10 @@ public:
 
     const std::string& getOutputDir() const {
         return outputDir;
+    }
+
+    const std::string& getOutputDatabaseName() const {
+        return outputDatabaseName;
     }
 
     void setNumThreads(size_t num) {

@@ -60,7 +60,12 @@ protected:
     /**
      * profile filename 
      */
-    std::string profile_name; 
+    std::string profile_name;
+
+    /**
+     * The name of the sqlite database file to write to.
+     */
+    std::string dbFilename;
 
     /** 
      * number of threads
@@ -73,19 +78,22 @@ protected:
     bool debug;
 
 public:
+    // all argument constructor
     CmdOptions(const char *s,
                const char *id,
                const char *od,
                bool pe,
                const char *pfn,
+               const char *dbf,
                size_t nj,
                bool de)
         : src(s),
           input_dir(id),
           output_dir(od), 
           profiling(pe),
-          profile_name(pfn), 
-          num_jobs(nj), 
+          profile_name(pfn),
+          dbFilename(dbf),
+          num_jobs(nj),
           debug(de) {}
 
     /**
@@ -112,6 +120,11 @@ public:
      * get filename of profile 
      */ 
     const std::string &getProfileName() { return profile_name; }
+
+    /**
+     * get filename of the output database (or empty string if no database is being used)
+     */
+    const std::string &getOutputDatabaseName() { return dbFilename; }
 
     /** 
      * get number of jobs  
@@ -145,6 +158,7 @@ public:
             { "facts", true, nullptr, 'F' },
             { "output", true, nullptr, 'D' },
             { "profile", true, nullptr, 'p' },
+            { "output-db", true, nullptr, 'o' },
 #ifdef _OPENMP
             { "jobs", true, nullptr, 'j' },
 #endif
@@ -182,6 +196,13 @@ public:
                         exit(1);
                     }
                     profile_name = optarg;
+                    break;
+                case 'o':
+                    if (existFile(optarg)) {
+                        printf("Database file %s already exists!\n", optarg);
+                        ok = false;
+                    }
+                    dbFilename = optarg;
                     break;
 #ifdef _OPENMP
                 case 'j': 
@@ -239,6 +260,7 @@ private:
         std::cerr << "                                    (suppress output with \"\")\n";
         std::cerr << "    -F <DIR>, --facts=<DIR>      -- Specify directory for fact files\n";
         std::cerr << "                                    (default: " << input_dir << ")\n";
+        std::cerr << "    -o <file>, --output-db <file> -- output relations to database\n";
         if (profiling) {
             std::cerr << "    -p <file>, --profile=<file>  -- Specify filename for profiling\n";
             std::cerr << "                                    (default: " << profile_name << ")\n";

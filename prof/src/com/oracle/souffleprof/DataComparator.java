@@ -40,6 +40,12 @@ public enum DataComparator implements Comparator<Object[]> {
         	String bStr = (String)b[5];
         	return Integer.valueOf(aStr.compareTo(bStr));
         }},
+    ID {
+        public int compare(Object[] a, Object[] b) {
+        	String aStr = (String)a[6];
+        	String bStr = (String)b[6];
+        	return Integer.valueOf(aStr.compareTo(bStr));
+        }},
     PER {
         public int compare(Object[] a, Object[] b) {
         	return Double.compare((Double)b[8], (Double)a[8]);

@@ -2015,7 +2015,6 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     });
     os << "}\n";  // end of loadAll() method
 
-
     // issue dump methods
 	auto dumpRelation = [&](const std::string& name, const SymbolMask& mask, size_t arity) {
 		auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
@@ -2057,6 +2056,12 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 	});
 	os << "}\n";  // end of dumpOutputs() method
 
+    // issue dumpDB() method
+    os << "public:\n";
+    os << "void dumpDB(std::string filename, bool outputRelationsOnly) {\n";
+    os << "writeRelationsToSqlite(filename, this, outputRelationsOnly);\n";
+    os << "}\n"; // end of dumpDB() method
+
     os << "public:\n";
     os << "const SymbolTable &getSymbolTable() const {\n";
     os << "return symTable;\n";
@@ -2095,6 +2100,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
        os << "false,\n";
        os << "R\"()\",\n";
     }
+    os << "R\"(" << getConfig().getOutputDatabaseName() << ")\",\n";
     os << getConfig().getNumThreads() << ",\n";
     os << ((getConfig().isDebug())?"R\"(true)\"":"R\"(false)\"");
     os << ");\n";
@@ -2115,6 +2121,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
     os << "if (!opt.getOutputFileDir().empty()) obj.printAll(opt.getOutputFileDir());\n";
+    os << "if (!opt.getOutputDatabaseName().empty()) obj.dumpDB(opt.getOutputDatabaseName(), " << !getConfig().isDebug() << ");\n";
 
     os << "return 0;\n";
     os << "}\n";

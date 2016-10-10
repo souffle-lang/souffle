@@ -1,4 +1,5 @@
 SOUFFLE=@abs_top_builddir@/src/souffle
+SOUFFLE_PROFILE=@abs_top_builddir@/prof/souffle-profile
 TESTS=@abs_top_srcdir@/tests
 SOUFFLE_INC=@abs_top_builddir@/include
 CXX=@CXX@
