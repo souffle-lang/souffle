@@ -19,7 +19,7 @@
 set -e
 set -u
 
-TEST_ROOT="tests/testsuite.dir/"
+TEST_ROOT=`readlink -f $(dirname $0)/../tests/testsuite.dir/`
 RELEVANT_EXTENSIONS=".out .err .log"
 MAXIMUM_LINES="200"
 
@@ -33,7 +33,7 @@ pretty_print () {
 
 # Find the test case that we will be displaying
 CANDIDATE=`ls $TEST_ROOT | head -1`
-pretty_print "Displaying contents of failed test-case no. $CANDIDATE"
+pretty_print "Displaying contents of failed test-case no. $CANDIDATE from $TEST_ROOT"
 echo
 
 # Show the contents of its directory
