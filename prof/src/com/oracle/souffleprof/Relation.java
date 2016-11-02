@@ -38,71 +38,14 @@ public class Relation implements Serializable {
         this.id = id;
     }
 
-    /**
-     * @param data
-     *            = [x-rul; rel_name; version; loc; rul_name; val] 
-     *            [x-rel; rel_name; loc; val]
-     */
-    public void addIteration(String[] data) {
-
-        Iteration iter;
-        if (ready || iterations.isEmpty()) {
-            iter = new Iteration();
-            iterations.add(iter);
-            ready = false;
-        } else {
-            iter = iterations.get(iterations.size() - 1);
-        }
-
-        if (data[0].contains("rule")) {
-            String temp = createRecID(data[4]);
-            iter.addRule(data, temp);
-
-        } else if (data[0].charAt(0) == 't' && data[0].contains("relation")) {
-            iter.setRuntime(Double.parseDouble(data[3]));
-            iter.setLocator(data[2]);
-            this.locator = (String) data[2];
-        } else if (data[0].charAt(0) == 'n' && data[0].contains("relation")) {
-            iter.setNum_tuples(Long.parseLong(data[3]));
-        } else if (data[0].charAt(0) == 'c' && data[0].contains("relation")) {
-            iter.setCopy_time(Double.parseDouble(data[3]));
-            ready = true;
-        }
-
-    }
-
-    /*
-     * Adds non-recursive rule to this relation.
-     */
-    public void addRule(String[] data) {
-        Rule rul;
-        if (!ruleMap.containsKey(data[3])) {
-            rul = new Rule(data[3], createID());
-            ruleMap.put(data[3], rul);
-        } else {
-            rul = ruleMap.get(data[3]);
-        }
-
-        if (data[0].charAt(0) == 't') {
-            // int len = data.length;
-            rul.setRuntime(Double.parseDouble(data[4]));
-            rul.setLocator(data[2]);
-        } else if (data[0].charAt(0) == 'n') {
-            assert rul != null;
-            rul.setNum_tuples(Long.parseLong(data[4]) - prev_num_tuples);
-            this.prev_num_tuples = Long.parseLong(data[4]);
-        }
-
-    }
-
-    private String createID() {
+    public String createID() {
         this.rul_id++;
         return "N" + this.id.substring(1) + "." + rul_id;
     }
 
-    private String createRecID(String name) {
+    public String createRecID(String name) {
         for (Iteration iter : iterations) {
-            for (RuleRecursive rul : iter.getRul_rec().values()) {
+            for (Rule rul : iter.getRul_rec().values()) {
                 if (rul.getName().equals(name)) {
                     return rul.getId();
                 }
@@ -146,7 +89,7 @@ public class Relation implements Serializable {
             result += rul.getNum_tuples();
         }
         for (Iteration iter : iterations) {
-            for (RuleRecursive rul : iter.getRul_rec().values()) {
+            for (Rule rul : iter.getRul_rec().values()) {
                 result += rul.getNum_tuples();
             }
         }
@@ -160,7 +103,7 @@ public class Relation implements Serializable {
     public Long getTotNumRec_tuples() {
         Long result = 0L;
         for (Iteration iter : iterations) {
-            for (RuleRecursive rul : iter.getRul_rec().values()) {
+            for (Rule rul : iter.getRul_rec().values()) {
                 result += rul.getNum_tuples();
             }
         }
@@ -200,10 +143,10 @@ public class Relation implements Serializable {
         return this.ruleMap;
     }
 
-    public List<RuleRecursive> getRuleRecList() {
-        List<RuleRecursive> temp = new ArrayList<RuleRecursive>();
+    public List<Rule> getRuleRecList() {
+        List<Rule> temp = new ArrayList<Rule>();
         for (Iteration iter : iterations) {
-            for (RuleRecursive rul : iter.getRul_rec().values()) {
+            for (Rule rul : iter.getRul_rec().values()) {
                 temp.add(rul);
             }
         }
@@ -226,4 +169,19 @@ public class Relation implements Serializable {
         this.locator = locator;
     }
 
+	public boolean isReady() {
+		return ready;
+	}
+
+	public void setReady(boolean ready) {
+		this.ready = ready;
+	}
+
+	public long getPrev_num_tuples() {
+		return prev_num_tuples;
+	}
+
+	public void setPrev_num_tuples(long prev_num_tuples) {
+		this.prev_num_tuples = prev_num_tuples;
+	}
 }
