@@ -63,6 +63,7 @@ public class Cli {
         boolean alive = false;
 
         int i=0;
+        if(args.length == 0) error();
 
         while (i < args.length && args[i].startsWith("-")) {
             String arg = args[i++]; 

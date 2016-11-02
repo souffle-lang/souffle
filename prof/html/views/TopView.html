@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script>
+        $(document).ready(function() {
+            $("#Runtime").append(window.db.overview.Runtime);
+            $("#TotTime").append(window.db.overview.TotTime);
+            $("#TotCopyTime").append(window.db.overview.TotCopyTime);
+            $("#TotNumTuples").append(window.db.overview.TotNumTuples);
+            $("#TotNumRecTuples").append(window.db.overview.TotNumRecTuples);
+
+            $("#LogFileName").append(window.db.properties.LogFileName);
+        });
+    </script>
+</head>
+<body>
+<div>
+    <h1>Overview</h1>
+    <ul>
+        <li id="Runtime">Total Runtime: </li>
+        <li id="TotTime">Total Time: </li>
+        <li id="TotCopyTime">Total Copy Time: </li>
+        <li id="TotNumTuples">Total Number of Tuples: </li>
+        <li id="TotNumRecTuples">Total Number of Recursive Tupples: </li>
+    </ul>
+    <h1>Properties</h1>
+    <ul>
+        <li id="LogFileName">Profile Log File: </li>
+    </ul>
+</div>
+</body>
+</html>

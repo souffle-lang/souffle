@@ -5,15 +5,12 @@
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 DIR = @abs_top_srcdir@/prof
-dist_bin_SCRIPTS = souffle-profile souffleprof.jar
+dist_bin_SCRIPTS = souffle-profile build/libs/souffleprof.jar
 JSRC = $(wildcard src/com/oracle/souffleprof/*.java)
 
 souffleprof.jar: $(JSRC)
-	$(JAVAC) -encoding UTF-8 -d ./ -sourcepath $(DIR)/src $(DIR)/src/com/oracle/souffleprof/SouffleProf.java
-	$(JAR) cvfm souffleprof.jar $(srcdir)/MANIFEST.MF com/
+	$(DIR)/gradlew --project-dir=$(DIR) -PbuildDir=@abs_top_builddir@/prof/build
 
-
-EXTRA_DIST = $(JSRC) ./MANIFEST.MF
 
 clean::
-	rm -rf com souffleprof.jar
+	$(DIR)/gradlew clean --project-dir=$(DIR) -PbuildDir=@abs_top_builddir@/prof/build

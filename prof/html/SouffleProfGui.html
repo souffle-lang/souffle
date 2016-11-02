@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SouffleProfGui</title>
+    <link rel="stylesheet" type="text/css" href="css/demos.css" />
+    <link rel="stylesheet" type="text/css"
+          href="http://fonts.googleapis.com/css?family=Open+Sans:300,600,400" />
+
+    <link rel="stylesheet" type="text/css" href="css/jsgrid.css" />
+    <link rel="stylesheet" type="text/css" href="css/theme.css" />
+    <!--<link rel="stylesheet" type="text/css" href="css/jquery-ui.css" />-->
+
+    <script src="http://code.jquery.com/jquery-3.1.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="js/db.js"></script>
+
+    <script src="js/jsgrid.core.js"></script>
+    <script src="js/jsgrid.load-indicator.js"></script>
+    <script src="js/jsgrid.load-strategies.js"></script>
+    <script src="js/jsgrid.sort-strategies.js"></script>
+    <script src="js/jsgrid.field.js"></script>
+    <script src="js/fields/jsgrid.field.text.js"></script>
+    <script src="js/fields/jsgrid.field.number.js"></script>
+    <script src="js/fields/jsgrid.field.select.js"></script>
+    <script src="js/fields/jsgrid.field.checkbox.js"></script>
+    <script src="js/fields/jsgrid.field.control.js"></script>
+    <script src="js/fields/jsgrid.field.textarea.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $("#top").click(function() {
+                $("#view").load("views/TopView.html");
+            });
+            $("#rel").click(function() {
+                $("#view").load("views/RelView.html");
+            });
+        });
+    </script>
+
+    <style>
+        .tab {
+            background-color: #e7e7e7; /* Gray */
+            border: none;
+            color: black;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<button id="top" class="tab" type="button">Top</button>
+<button id="rel" class="tab" type="button">Relation</button>
+<div id="view"></div>
+</body>
+</html>
