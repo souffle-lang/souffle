@@ -10,10 +10,16 @@
 # script that compiles a generated C++ program and executes it
 #
 HEADER_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-if [ -f $HEADER_DIR/souffleprof.jar ]
+JAR=$HEADER_DIR/souffleprof.jar
+if [ ! -f $JAR ]
 then
-   java -jar $HEADER_DIR/souffleprof.jar "$@"
-else 
+   JAR=$HEADER_DIR/build/libs/souffleprof.jar
+fi
+
+if [ -f $JAR ]
+then
+   java -jar $JAR "$@"
+else
    echo "error: souffleprof.jar file is not installed in directory $HEADER_DIR" 1>&2
    exit 1
 fi
