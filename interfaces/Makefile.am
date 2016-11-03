@@ -34,13 +34,8 @@ jni_sources = \
   jni/src/Program.cpp \
   jni/src/SConst.cpp
 
-# C++ source files
-cpp_sources  = $(jni_sources)\
-  src/AstBuilder.cpp \
-  src/Interfaces.cpp
-
 # Heades generated from the Java class files
-cpp_headers = $(patsubst jni/src/%.cpp, $(builddir)/jni/include/Jni_%.h, $(cpp_sources))
+cpp_headers = $(patsubst jni/src/%.cpp, $(builddir)/jni/include/Jni_%.h, $(jni_sources))
 
 BUILT_SOURCES = $(cpp_headers)
 
@@ -55,7 +50,9 @@ $(cpp_headers): jni/include/Jni_%.h : jni/src/%.cpp $(souffle_jar)
 
 # libsoufflejni.a library
 lib_LTLIBRARIES = libsoufflejni.la
-libsoufflejni_la_SOURCES = $(cpp_sources) \
+libsoufflejni_la_SOURCES = $(jni_sources) \
+  src/AstBuilder.cpp	\
+  src/Interfaces.cpp	\
   include/AstBuilder.h \
   include/Executor.h \
   include/InterfaceResult.h \
@@ -65,10 +62,10 @@ libsoufflejni_la_SOURCES = $(cpp_sources) \
   jni/include/handle.h
 
 libsoufflejni_la_CXXFLAGS = $(JNIFLAGS) \
-  -Iinclude -Ijni/include -Ijni/include/generated \
-	-I@abs_top_srcdir@ -I@abs_top_srcdir@/src -I@abs_top_srcdir@/include
+  -I@srcdir@/include -I@builddir@/jni/include -I@srcdir@/jni/include \
+	-I@top_srcdir@ -I@top_srcdir@/src -I@top_srcdir@/include
 
-libsoufflejni_la_LIBADD = @abs_top_srcdir@/src/libsouffle.la
+libsoufflejni_la_LIBADD = @top_builddir@/src/libsouffle.la
 
 # Cleanup
 CLEANFILES = $(souffle_jar) $(BUILT_SOURCES)

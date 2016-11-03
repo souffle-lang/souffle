@@ -17,7 +17,8 @@ AC_CANONICAL_HOST   # host_cpu, host_vendor, and host_os
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_MAINTAINER_MODE
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIRS([m4])
 
 AC_ARG_ENABLE([java],
 [  --enable-java    Turn on java interface],
@@ -32,11 +33,11 @@ AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
 if test "$BUILD_TYPE" == "Debug" ; then
-    # set up debug mode
-    CXXFLAGS="$CXXFLAGS -O0 -g3"
+  # set up debug mode
+  CXXFLAGS="$CXXFLAGS -O0 -g3"
 else
-    # default is release mode
-    CXXFLAGS="$CXXFLAGS -O3"
+  # default is release mode
+  CXXFLAGS="$CXXFLAGS -O3"
 fi
 
 AC_ISC_POSIX
@@ -178,13 +179,13 @@ AS_VAR_APPEND(CXXFLAGS, [" $OPENMP_CFLAGS "])
 
 AC_CONFIG_TESTDIR([tests])
 AC_CONFIG_FILES([
-    Makefile
-    src/Makefile
-    src/wavelib/Makefile
-    interfaces/Makefile
-    prof/Makefile
-    tests/Makefile
-    tests/atlocal
+  Makefile
+  src/Makefile
+  src/wavelib/Makefile
+  interfaces/Makefile
+  prof/Makefile
+  tests/Makefile
+  tests/atlocal
 ])
 AC_CONFIG_LINKS([include/souffle/CompiledRamOptions.h:src/CompiledRamOptions.h])
 AC_CONFIG_LINKS([include/souffle/CompiledRamRelation.h:src/CompiledRamRelation.h])
@@ -234,7 +235,7 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([dup2 fchdir getcwd getpagesize gettimeofday isascii memset mkdir munmap pow regcomp rmdir setenv socket strcasecmp strchr strdup strerror strrchr strstr strtol strtoull])
 
 AC_OUTPUT(
-    [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
-    [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
+  [ src/souffle-compile src/souffle-config interfaces/souffle-compilelib debian/changelog ],
+  [ chmod +x src/souffle-compile src/souffle-config interfaces/souffle-compilelib ]
 )
 

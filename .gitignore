@@ -22,6 +22,7 @@ test-driver
 prof/build
 prof/com
 prof/souffleprof.jar
+interfaces/souffle-compilelib
 warn.log
 packaging/*
 
