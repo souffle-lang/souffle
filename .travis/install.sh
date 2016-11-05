@@ -13,7 +13,7 @@ set -x
 if [ $TRAVIS_OS_NAME == linux ]
 then
     # sudo apt-get -qq update # commenting out because i assume the apt-repository on travis is up to date
-    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex openjdk-7-jdk libboost-all-dev lsb-release libtool
+    sudo apt-get -y install debhelper devscripts build-essential g++ automake autoconf bison flex gradle openjdk-7-jdk libboost-all-dev lsb-release libtool
 fi
 
 ############
@@ -24,6 +24,6 @@ fi
 if [ $TRAVIS_OS_NAME == osx ]
 then
    brew update
-   brew install md5sha1sum bison libtool
+   brew install md5sha1sum bison libtool gradle
    brew link bison --force
 fi
