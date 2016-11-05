@@ -9,7 +9,7 @@ nodist_bin_SCRIPTS = build/libs/souffleprof.jar
 JSRC = $(wildcard src/com/oracle/souffleprof/*.java)
 EXTRA_DIST = $(souffleprof_src) 
 
-souffleprof.jar: $(JSRC)
+build/libs/souffleprof.jar: $(JSRC)
 	$(DIR)/gradlew --project-dir=$(DIR) -PbuildDir=@abs_top_builddir@/prof/build
 
 clean-local:
