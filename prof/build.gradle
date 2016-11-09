@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-   compile 'com.google.code.gson:gson:2.7'
+   testCompile 'com.google.code.gson:gson:2.2.+'
 }
 
 sourceCompatibility = 1.7
