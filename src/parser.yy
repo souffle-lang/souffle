@@ -41,6 +41,7 @@
     #include "AstArgument.h"
     #include "AstNode.h"
     #include "BinaryOperator.h"
+    #include "UnaryOperator.h"
     #include "AstParserUtils.h"
     
     #include "AstSrcLocation.h"
@@ -365,7 +366,7 @@ arg: STRING {
        $$->setSrcLoc(@$);
      }
    | ORD LPAREN arg RPAREN {
-       $$ = new AstUnaryFunctor(AstUnaryFunctor::ORDINAL, std::unique_ptr<AstArgument>($3));
+       $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
    |  arg AS IDENT { 
@@ -373,15 +374,15 @@ arg: STRING {
        $$->setSrcLoc(@$);
      }
    |  MINUS arg %prec NEG { 
-       $$ = new AstUnaryFunctor(AstUnaryFunctor::NEGATION, std::unique_ptr<AstArgument>($2));
+       $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    |  BW_NOT arg { 
-       $$ = new AstUnaryFunctor(AstUnaryFunctor::BNOT, std::unique_ptr<AstArgument>($2));
+       $$ = new AstUnaryFunctor(UnaryOp::BNOT, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    |  L_NOT arg { 
-       $$ = new AstUnaryFunctor(AstUnaryFunctor::LNOT, std::unique_ptr<AstArgument>($2));
+       $$ = new AstUnaryFunctor(UnaryOp::LNOT, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
    | LBRACKET RBRACKET  {

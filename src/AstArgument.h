@@ -26,6 +26,7 @@
 #include "AstNode.h"
 #include "AstType.h"
 #include "BinaryOperator.h"
+#include "UnaryOperator.h"
 
 #include "TypeSystem.h"
 
@@ -300,33 +301,18 @@ class AstFunctor : public AstArgument {
 
 /**
  * @class UnaryFunctor
- * @brief Subclass of Argument that represents a unary function application
+ * @brief Subclass of Argument that represents a unary function
  */
 class AstUnaryFunctor : public AstFunctor {
-public:
-
-    /**
-     * An enumeration of supported functions.
-     */
-    enum Function {
-        // -- numerical --
-        ORDINAL, 
-        NEGATION,
-        BNOT,
-        LNOT
-
-        // -- symbolic --
-    };
-
 protected:
 
-    Function fun;
+    UnaryOp fun;
 
     std::unique_ptr<AstArgument> operand;
 
 public:
 
-    AstUnaryFunctor(Function fun, std::unique_ptr<AstArgument> o)
+    AstUnaryFunctor(UnaryOp fun, std::unique_ptr<AstArgument> o)
         : fun(fun), operand(std::move(o)) {}
 
     virtual ~AstUnaryFunctor() { }
@@ -335,57 +321,29 @@ public:
         return operand.get();
     }
 
-    Function getFunction() const {
+    UnaryOp getFunction() const {
         return fun;
     }
 
     bool isNumerical() const {
-        switch (fun) {
-        case ORDINAL: return true;
-        case NEGATION: return true;
-        case BNOT: return true;
-        case LNOT: return true;
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return isNumericUnaryOp(fun);
     }
 
     bool isSymbolic() const {
-        switch (fun) {
-        case ORDINAL: return false;
-        case NEGATION: return false; 
-        case BNOT: return false; 
-        case LNOT: return false; 
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return isSymbolicUnaryOp(fun);
     }
 
     bool acceptsNumbers() const {
-        switch (fun) {
-        case ORDINAL: return false;
-        case NEGATION: return true;
-        case BNOT: return true;
-        case LNOT: return true;
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return unaryOpAcceptsNumbers(fun);
     }
 
     bool acceptsSymbols() const {
-        switch (fun) {
-        case ORDINAL: return true;
-        case NEGATION: return false;
-        case BNOT: return false;
-        case LNOT: return false;
-        }
-        assert(false && "Unsupported operator encountered!");
-        return false;
+        return unaryOpAcceptsSymbols(fun);
     }
 
     /** Print argument to the given output stream */
     virtual void print(std::ostream &os) const {
-        os << getSymbolFor(fun);
+        os << getSymbolForUnaryOp(fun);
         os << "(";
         operand->print(os);
         os << ")";
@@ -393,7 +351,7 @@ public:
 
     /** Creates a clone if this AST sub-structure */
     virtual AstUnaryFunctor* clone() const {
-        AstUnaryFunctor* res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
+        auto res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
         res->setSrcLoc(getSrcLoc());
         return res;
     }
@@ -408,18 +366,6 @@ public:
         auto res = AstArgument::getChildNodes();
         res.push_back(operand.get());
         return res;
-    }
-
-    /** Obtains a printable name for the given function */
-    static const char* getSymbolFor(Function fun) {
-        switch(fun) {
-        case ORDINAL : return "ord";
-        case NEGATION : return "-";
-        case BNOT : return "bnot";
-        case LNOT : return "lnot";
-        }
-        assert(false && "Unknown function!");
-        return "?";
     }
 
 protected:
@@ -473,20 +419,20 @@ public:
 
     /** Print argument to the given output stream */
     virtual void print(std::ostream &os) const {
-        if (isNumerical()) { 
+        if (isNumericBinaryOp(fun)) {
             os << "(";
             lhs->print(os);
             os << getSymbolForBinaryOp(fun);
-            rhs->print(os); 
+            rhs->print(os);
             os << ")";
         } else {
             os << getSymbolForBinaryOp(fun);
             os << "(";
             lhs->print(os);
-            os << ","; 
-            rhs->print(os); 
+            os << ",";
+            rhs->print(os);
             os << ")";
-        } 
+        }
     }
 
     /** Creates a clone if this AST sub-structure */

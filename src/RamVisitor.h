@@ -78,10 +78,7 @@ struct RamVisitor : public ram_visitor_tag {
             FORWARD(Number);
             FORWARD(BinaryOperator);
             FORWARD(AutoIncrement);
-            FORWARD(Ord);
-            FORWARD(Negation);
-            FORWARD(Complement);
-            FORWARD(Not);
+            FORWARD(UnaryOperator);
             FORWARD(Pack);
 
             // conditions
@@ -184,10 +181,7 @@ protected:
     LINK(Number, Value)
     LINK(ElementAccess, Value)
     LINK(BinaryOperator, Value)
-    LINK(Ord, Value)
-    LINK(Negation, Value)
-    LINK(Complement, Value)
-    LINK(Not, Value)
+    LINK(UnaryOperator, Value)
     LINK(AutoIncrement, Value)
     LINK(Pack, Value)
 

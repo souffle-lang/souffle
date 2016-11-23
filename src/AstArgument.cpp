@@ -44,6 +44,7 @@ void AstAggregator::print(std::ostream& os) const {
     case min: os << "min"; break;
     case max: os << "max"; break;
     case count: os << "count"; break;
+    default: break;
     }
 
     if (expr) {
