@@ -27,6 +27,7 @@
 #include "RamRecords.h"
 #include "RamNode.h"
 #include "SymbolTable.h"
+#include "UnaryOperator.h"
 #include "BinaryOperator.h"
 
 namespace souffle {
@@ -50,114 +51,33 @@ public:
         return cnst;
     }
 
-}; 
-
-/** convert a symbolic value to an ordinal value (there is a total order among all symbols) */
-class RamOrd : public RamValue {
-    std::unique_ptr<RamValue> symbol;
-public:
-    RamOrd(std::unique_ptr<RamValue> symbol)
-        : RamValue(RN_Ord,symbol->isConstant()), symbol(std::move(symbol)) {}
-
-    ~RamOrd() { }
-
-    const RamValue& getSymbol() const {
-        return *symbol;
-    }
-
-    void print(std::ostream &os) const {
-        os << "ord(";
-        symbol->print(os);
-        os << ")";
-    }
-
-    size_t getLevel() const {
-        return symbol->getLevel();
-    }
-
-    /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
-        return toVector<const RamNode*>(symbol.get());
-    }
 };
 
-/** logical not */
-class RamNot : public RamValue {
+class RamUnaryOperator : public RamValue {
+private:
+    UnaryOp op;
     std::unique_ptr<RamValue> value;
+
 public:
-    RamNot(std::unique_ptr<RamValue> value)
-        : RamValue(RN_Not,value->isConstant()), value(std::move(value)) {}
 
-    ~RamNot() { }
+    RamUnaryOperator(UnaryOp op, std::unique_ptr<RamValue> v)
+        : RamValue(RN_UnaryOperator, v->isConstant()), op(op), value(std::move(v)) {}
 
-    const RamValue& getValue() const {
-        ASSERT(value != NULL && "no null value expected");
-        return *value;
-    }
+    virtual ~RamUnaryOperator() { }
 
-    void print(std::ostream &os) const {
-        os << "complement(";
+    virtual void print(std::ostream &os) const {
+        os << getSymbolForUnaryOp(op);
+        os << "(";
         value->print(os);
         os << ")";
     }
 
-    size_t getLevel() const {
-        return value->getLevel();
+    const RamValue* getValue() const {
+        return value.get();
     }
 
-    /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
-        return toVector<const RamNode*>(value.get());
-    }
-};
-/** bitwise complement */
-class RamComplement : public RamValue {
-    std::unique_ptr<RamValue> value;
-public:
-    RamComplement(std::unique_ptr<RamValue> value)
-        : RamValue(RN_Complement,value->isConstant()), value(std::move(value)) {}
-
-    ~RamComplement() { }
-
-    const RamValue& getValue() const {
-        ASSERT(value != NULL && "no null value expected");
-        return *value;
-    }
-
-    void print(std::ostream &os) const {
-        os << "complement(";
-        value->print(os);
-        os << ")";
-    }
-
-    size_t getLevel() const {
-        return value->getLevel();
-    }
-
-    /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
-        return toVector<const RamNode*>(value.get());
-    }
-};
-
-/** negate a value arithmetically */
-class RamNegation : public RamValue {
-    std::unique_ptr<RamValue> value;
-public:
-    RamNegation(std::unique_ptr<RamValue> value)
-        : RamValue(RN_Negation,value->isConstant()), value(std::move(value)) {}
-
-    ~RamNegation() { }
-
-    const RamValue& getValue() const {
-        ASSERT(value != NULL && "no null value expected");
-        return *value;
-    }
-
-    void print(std::ostream &os) const {
-        os << "neg(";
-        value->print(os);
-        os << ")";
+    UnaryOp getOperator() const {
+        return op;
     }
 
     size_t getLevel() const {
@@ -221,25 +141,25 @@ public:
     }
 };
 
-/** Class to retrieve an element from the tuple environment */ 
+/** Class to retrieve an element from the tuple environment */
 class RamElementAccess : public RamValue {
     size_t level;
     size_t element;
-    std::string name; 
+    std::string name;
 public:
     RamElementAccess(size_t l, size_t e, const std::string &n="")
         : RamValue(RN_ElementAccess, false), level(l), element(e), name(n) {}
 
     void print(std::ostream &os) const {
-        if (name == "") { 
+        if (name == "") {
            os << "env(t" << level << ", i" << element << ")";
         } else {
            os << "t" << level << "." << name;
-        } 
+        }
     }
 
     size_t getLevel() const {
-        return level; 
+        return level;
     }
     size_t getElement() const {
         return element;
@@ -250,7 +170,7 @@ public:
     }
 };
 
-/** Constant value */ 
+/** Constant value */
 class RamNumber : public RamValue {
     RamDomain constant;
 public:
@@ -260,7 +180,7 @@ public:
         return constant;
     }
     void print(std::ostream &os) const {
-        os << "number(" << constant << ")"; 
+        os << "number(" << constant << ")";
     }
     size_t getLevel() const {
         return 0;
@@ -271,14 +191,14 @@ public:
     }
 };
 
-/** Constant value */ 
+/** Constant value */
 class RamAutoIncrement : public RamValue {
 public:
     RamAutoIncrement()
         : RamValue(RN_AutoIncrement,false) {}
 
     void print(std::ostream &os) const {
-        os << "autoinc()"; 
+        os << "autoinc()";
     }
 
     size_t getLevel() const {
