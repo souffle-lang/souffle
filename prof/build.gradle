@@ -1,0 +1,33 @@
+// Copyright (c) 2016 by the Souffle Team. 
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txtapply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+   testCompile 'com.google.code.gson:gson:2.2.+'
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+jar {
+    from sourceSets.main.output
+    from configurations.runtime.collect {
+        if (it.isDirectory()) return it
+        return zipTree(it).matching {
+            exclude 'META-INF/**'
+        }
+    }
+    baseName = 'souffleprof' 
+    manifest {
+        attributes 'Main-Class': 'com.oracle.souffleprof.SouffleProf'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.1'
+}

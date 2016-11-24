@@ -6,15 +6,18 @@ package com.oracle.souffleprof;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+
+import com.google.gson.Gson;
 
 /**
  * @author ramod
  *
  */
 public class Tui {
-
-    private ProgramRun run;
+	
+	private OutputProcessor out;
     private boolean loaded;
     private String f_name;
     private Reader live_reader;
@@ -26,8 +29,9 @@ public class Tui {
     private int sortDir = 1;
 
     public Tui(String f_name, boolean live) {
-        this.run = new ProgramRun();
-        Reader reader = new Reader(f_name, this.run, false, live);
+    	out = new OutputProcessor();
+        ProgramRun run = out.getProgramRun();
+        Reader reader = new Reader(f_name, run, false, live);
         reader.readFile();
         if (live) {
             this.live_reader = reader;
@@ -35,8 +39,8 @@ public class Tui {
         this.loaded = reader.isLoaded();
         this.f_name = f_name;
         this.alive = live;
-        rul_table_state = run.getRulTable();
-        rel_table_state = run.getRelTable();
+        rul_table_state = out.getRulTable();
+        rel_table_state = out.getRelTable();
     }
 
     public void runCommand(String[] c) {
@@ -91,6 +95,76 @@ public class Tui {
         }
     }
 
+    public void runGui() {
+    	
+    	Gson gson = new Gson();
+    	
+    	// Output overview
+    	ProgramRun run = out.getProgramRun();
+    	HashMap<String, String> overview = new HashMap<>();
+    	overview.put("Runtime", run.getRuntime());
+    	overview.put("TotTime", run.formatTime(run.getTotTime()));
+    	overview.put("TotCopyTime", run.formatTime(run.getTotCopyTime()));
+    	overview.put("TotNumTuples", run.formatNum(precision, run.getTotNumTuples()));
+    	overview.put("TotNumRecTuples", run.formatNum(precision, run.getTotNumRecTuples()));
+    	
+    	String overviewJson = gson.toJson(overview);
+    	File file = new File("/home/dennis/WebstormProjects/SouffleProfGui/json/overview.json");
+    	try {
+    		FileWriter fw = new FileWriter(file);
+    		BufferedWriter bw = new BufferedWriter(fw);
+    		bw.write(overviewJson);
+    		bw.close();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	// Output properties
+    	HashMap<String, String> properties = new HashMap<>();
+    	properties.put("LogFileName", f_name);
+    	
+    	String propertiesJson = gson.toJson(properties);
+    	file = new File("/home/dennis/WebstormProjects/SouffleProfGui/json/properties.json");
+    	try {
+    		FileWriter fw = new FileWriter(file);
+    		BufferedWriter bw = new BufferedWriter(fw);
+    		bw.write(propertiesJson);
+    		bw.close();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	// Output rel_table_state
+    	Arrays.sort(rel_table_state, DataComparator.getComparator(sortDir, DataComparator.TIME));
+    	String[][] rel = out.formatTable(rel_table_state, precision);
+    	String relJson = gson.toJson(rel);
+    	file = new File("/home/dennis/WebstormProjects/SouffleProfGui/json/rel.json");
+    	try {
+    		FileWriter fw = new FileWriter(file);
+    		BufferedWriter bw = new BufferedWriter(fw);
+    		bw.write(relJson);
+    		bw.close();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	// Output rul_table_state
+    	Arrays.sort(rul_table_state, DataComparator.getComparator(sortDir, DataComparator.TIME));
+    	String[][] rul = out.formatTable(rul_table_state, precision);
+    	String rulJson = gson.toJson(rul);
+    	file = new File("/home/dennis/WebstormProjects/SouffleProfGui/json/rul.json");
+    	try {
+    		FileWriter fw = new FileWriter(file);
+    		BufferedWriter bw = new BufferedWriter(fw);
+    		bw.write(rulJson);
+    		bw.close();
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	quit();
+    }
+    
     public void runProf() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -177,9 +251,44 @@ public class Tui {
         }
     }
 
+    /*private void unser() {
+        ProgramRun runser = null;
+        try {
+            FileInputStream fileIn = new FileInputStream("/tmp/employee.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            runser = (ProgramRun) in.readObject();
+            in.close();
+            fileIn.close();
+            ProgramRun run = out.getProgramRun();
+            run = runser;
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        } catch (ClassNotFoundException c) {
+            System.out.println("Class not found");
+            return;
+        }
+    }
+
+    private void ser() {
+        try {
+            FileOutputStream fileOut
+            = new FileOutputStream("/tmp/employee.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            ProgramRun programRun = this.out.getProgramRun();
+            out.writeObject(programRun);
+            out.close();
+            fileOut.close();
+            System.out.printf("Serialized data is saved in /tmp/employee.ser");
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+    }*/
+
     private void save(String save_name) {
         if (loaded) {
-            Reader saver = new Reader(this.f_name, this.run, false, false);
+        	ProgramRun run = out.getProgramRun();
+            Reader saver = new Reader(this.f_name, run, false, false);
             saver.save(save_name);
             System.out.println("Save success.");
         } else {
@@ -197,7 +306,8 @@ public class Tui {
         loader.readFile();
         if (loader.isLoaded()) {
             System.out.println("Load success");
-            this.run = new_run;
+            ProgramRun run = out.getProgramRun();
+            run = new_run;
             this.loaded = true;
             this.f_name = f_name;
             if (alive) {
@@ -256,6 +366,7 @@ public class Tui {
     }
 
     private void top() {
+    	ProgramRun run = out.getProgramRun();
         System.out.println("\n Total runtime: " + run.getRuntime());
         System.out.println("\n Total number of new tuples: " + run.formatNum(precision, run.getTotNumTuples()));
     }
@@ -302,7 +413,7 @@ public class Tui {
             break;
         }
 
-        String[][] table = run.formatTable(rel_table_state, precision);
+        String[][] table = out.formatTable(rel_table_state, precision);
         System.out.print(String.format(" ----- Relation Table -----\n"));
         System.out.print(String.format("%8s%8s%8s%8s%15s%6s%1s%-25s\n\n", 
                 "TOT_T", "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID", "", "NAME"));
@@ -357,7 +468,8 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TIME));
             break;
         }
-        String[][] table = run.formatTable(rul_table_state, precision);
+        
+        String[][] table = out.formatTable(rul_table_state, precision);
         System.out.print("  ----- Rule Table -----\n");
         System.out.print(String.format("%8s%8s%8s%8s%15s    %-5s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID RELATION"));
@@ -371,7 +483,7 @@ public class Tui {
     }
 
     private void id(String col) {
-        String[][] table = run.formatTable(rul_table_state, precision);
+        String[][] table = out.formatTable(rul_table_state, precision);
         if (col.equals("0")) {
             System.out.print(String.format("%7s%2s%-25s\n\n", "ID", "", "NAME"));
             Arrays.sort(table,
@@ -423,8 +535,8 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TIME));
             break;
         }
-        String[][] rul_table = run.formatTable(rul_table_state, precision);
-        String[][] rel_table = run.formatTable(rel_table_state, precision);
+        String[][] rul_table = out.formatTable(rul_table_state, precision);
+        String[][] rel_table = out.formatTable(rel_table_state, precision);
         System.out.print("  ----- Rules of a Relation -----\n");
         System.out.print(String.format("%8s%8s%8s%8s%10s%8s %-25s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "ID", "NAME"));
@@ -449,6 +561,7 @@ public class Tui {
             }
         }
         String src = "";
+        ProgramRun run = out.getProgramRun();
         if (run.getRelation(name) != null) {
             src = run.getRelation(name).getLocator();
         }
@@ -468,7 +581,7 @@ public class Tui {
         }
         String[] part = str.split("\\.", 2);
         String strRel = "R" + part[0].substring(1);
-        Object[][] ver_table = run.getVersions(strRel, str);
+        Object[][] ver_table = out.getVersions(strRel, str);
         switch (sort_col) {
         case 0:
             Arrays.sort(ver_table,
@@ -503,7 +616,7 @@ public class Tui {
                     DataComparator.getComparator(sortDir, DataComparator.TIME));
             break;
         }
-        String[][] rul_table = run.formatTable(rul_table_state, precision);
+        String[][] rul_table = out.formatTable(rul_table_state, precision);
         System.out.print("  ----- Rule Versions Table -----\n");
         System.out.print(String.format("%8s%8s%8s%8s%10s%6s   %-5s\n\n", "TOT_T",
                 "NREC_T", "REC_T", "COPY_T", "TUPLES", "VER", "ID RELATION"));
@@ -520,8 +633,8 @@ public class Tui {
         System.out.print(" ---------------------------------------------------------\n");
         for (final Object[] row : ver_table) {
             System.out.print(String.format("%8s%8s%8s%8s%10s%6s%7s %-25s\n",
-                    run.formatTime(row[0]), run.formatTime(row[1]), run.formatTime(row[2]),
-                    run.formatTime(row[3]), row[4], row[8], row[6],
+                    out.formatTime(row[0]), out.formatTime(row[1]), out.formatTime(row[2]),
+                    out.formatTime(row[3]), row[4], row[8], row[6],
                     row[7]));
 
         }
@@ -541,13 +654,13 @@ public class Tui {
     }
 
     private void iterRel(String c, String col) {
-        String[][] table = run.formatTable(rel_table_state, -1);
+        String[][] table = out.formatTable(rel_table_state, -1);
         List<Iteration> iter;
         for (final String[] row : table) {
             if (((String) row[6]).equals(c) || ((String) row[5]).equals(c)) {
                 System.out.print(
                         (String.format("%4s%2s%-25s\n\n", row[6], "", row[5])));
-
+                ProgramRun run = out.getProgramRun();
                 iter = run.getRelation_map().get((String) row[5])
                         .getIterations();
                 List<Object> list = new ArrayList<Object>();
@@ -580,13 +693,13 @@ public class Tui {
     }
 
     private void iterRul(String c, String col) {
-        String[][] table = run.formatTable(rul_table_state, precision);
+        String[][] table = out.formatTable(rul_table_state, precision);
         List<Iteration> iter;
         for (String[] row : table) {
             if (((String) row[6]).equals(c)) {
                 System.out.print(
                         (String.format("%6s%2s%-25s\n\n", row[6], "", row[5])));
-
+                ProgramRun run = out.getProgramRun();
                 iter = run.getRelation_map().get((String) row[7])
                         .getIterations();
                 List<Object> list = new ArrayList<Object>();
@@ -594,7 +707,7 @@ public class Tui {
                     for (Iteration i : iter) {
                         Boolean add = false;
                         Double tot_time = 0.0;
-                        for (RuleRecursive rul : i.getRul_rec().values()) {
+                        for (Rule rul : i.getRul_rec().values()) {
                             if (rul.getId().equals(c)) {
                                 tot_time += rul.getRuntime();
                                 add = true;
@@ -611,7 +724,7 @@ public class Tui {
                     for (Iteration i : iter) {
                         Boolean add = false;
                         Long tot_num = 0L;
-                        for (RuleRecursive rul : i.getRul_rec().values()) {
+                        for (Rule rul : i.getRul_rec().values()) {
                             if (rul.getId().equals(c)) {
                                 tot_num += rul.getNum_tuples();
                                 add = true;
@@ -637,7 +750,7 @@ public class Tui {
         }
         String[] part = c.split("\\.", 2);
         String strRel = "R" + part[0].substring(1);
-        Object[][] ver_table = run.getVersions(strRel, c);
+        Object[][] ver_table = out.getVersions(strRel, c);
         System.out.print((String.format("%6s%2s%-25s\n\n", ver_table[0][6], "",
                 ver_table[0][5])));
         List<Object> list = new ArrayList<Object>();
@@ -703,7 +816,7 @@ public class Tui {
             Arrays.fill(chars, '*');
             String bar = new String(chars);
             System.out.print(
-                    (String.format("%4d %8s | %s\n", i++, run.formatNum(precision, num), bar)));
+                    (String.format("%4d %8s | %s\n", i++, out.formatNum(precision, num), bar)));
         }      
     }
 }

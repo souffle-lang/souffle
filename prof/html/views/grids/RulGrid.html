@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<h1>Rules of Relation</h1>
+<div id="jsGrid_Rul"></div>
+
+<script>
+    $(function() {
+
+        $("#jsGrid_Rul").jsGrid({
+            height: "auto",
+            width: "100%",
+            filtering: false,
+            editing: false,
+            inserting: false,
+            sorting: true,
+            paging: false,
+            autoload: true,
+            controller: {
+                loadData: function(filter) {
+                    return $.grep(db.rul, function(rul) {
+                        return (!filter.TOT_T || rul.TOT_T == filter.TOT_T)
+                            && (!filter.NREC_T || rul.NREC_T == filter.NREC_T)
+                            && (!filter.REC_T || rul.REC_T == filter.REC_T)
+                            && (!filter.COPY_T || rul.COPY_T == filter.COPY_T)
+                            && (!filter.TUPLES || rul.TUPLES == filter.TUPLES)
+                            && (!filter.RUL_NAME || rul.RUL_NAME.indexOf(filter.RUL_NAME) > -1)
+                            && (!filter.ID || rul.ID.indexOf(filter.ID) > -1)
+                            && (!filter.REL_NAME || rul.REL_NAME.indexOf(filter.REL_NAME) > -1)
+                            && (!filter.VER || rul.VER == filter.VER)
+                            && (!filter.PERFOR || rul.PERFOR.indexOf(filter.PERFOR) > -1)
+                            && (!filter.SRC || rul.SRC.indexOf(filter.SRC) > -1);
+                    });
+                }
+            },
+            fields: [
+                {name: "TOT_T", type: "number"},
+                {name: "NREC_T", type: "number"},
+                {name: "REC_T", type: "number"},
+                {name: "COPY_T", type: "number"},
+                {name: "TUPLES", type: "number"},
+                {name: "RUL_NAME", type: "text", width: "200"},
+                {name: "ID", type: "text"},
+                {name: "REL_NAME", type: "text"},
+                {name: "VER", type: "number"},
+                {name: "PERFOR", type: "text"},
+                {name: "SRC", type: "text", width: "200"},
+                {type: "control"}
+            ],
+            onRefreshed: function(e) {
+                var $headerRow = $("#jsGrid_Rul .jsgrid-header-row");
+                var $headerCells = $headerRow.find("th");
+                var fields = e.grid.option("fields");
+
+                $.each(fields, function(index, field) {
+                    $headerCells.eq(index).data("JSField", field);
+                });
+
+                $headerRow.sortable({
+                    axis: "x",
+                    placeholder: "header-cell-placeholder",
+                    start: function(e, ui) {
+                        ui.placeholder.width(ui.helper.width());
+                    },
+                    update: function(e, ui) {
+                        var fields = $.map($headerRow.find("th"), function(cell) {
+                            return $(cell).data("JSField");
+                        });
+                        $("#jsGrid_Rul").jsGrid("option", "fields", fields);
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -3,17 +3,14 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-dist_bin_SCRIPTS = souffle-profile
-nodist_bin_SCRIPTS = souffleprof.jar
+DIR = @abs_top_srcdir@/prof
+dist_bin_SCRIPTS = souffle-profile 
+nodist_bin_SCRIPTS = build/libs/souffleprof.jar
+JSRC = $(wildcard src/com/oracle/souffleprof/*.java)
+EXTRA_DIST = $(souffleprof_src) 
 
-souffleprof_src = $(wildcard $(srcdir)/src/com/oracle/souffleprof/*.java)
-manifest = $(srcdir)/MANIFEST.MF
-
-souffleprof.jar: $(souffleprof_src)
-	$(JAVAC) -encoding UTF-8 -d ./ -sourcepath $(srcdir)/src $(srcdir)/src/com/oracle/souffleprof/SouffleProf.java
-	$(JAR) cvfm souffleprof.jar $(manifest) com/
-
-EXTRA_DIST = $(souffleprof_src) $(manifest)
+build/libs/souffleprof.jar: $(JSRC)
+	gradle jar --project-dir=$(DIR) -PbuildDir=@abs_top_builddir@/prof/build
 
 clean-local:
-	rm -rf com/ souffleprof.jar
+	gradle clean --project-dir=$(DIR) -PbuildDir=@abs_top_builddir@/prof/build

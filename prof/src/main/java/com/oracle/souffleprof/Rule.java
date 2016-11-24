@@ -18,10 +18,20 @@ public class Rule implements Serializable {
     protected long num_tuples = 0;
     protected String id;
     protected String locator = "";
+    
+    private boolean isRecursive = false;
+    private int version;
 
     public Rule(String name, String id) {
         this.name = name;
         this.id = id;
+    }
+    
+    public Rule(String name, int version, String id)  {
+        this.name = name;
+        this.id = id;
+        this.isRecursive = true;
+        this.version = version;
     }
 
     public String getId() {
@@ -65,10 +75,32 @@ public class Rule implements Serializable {
 
     }
 
-    @Override
+    public boolean isRecursive() {
+		return isRecursive;
+	}
+
+	public void setRecursive(boolean isRecursive) {
+		this.isRecursive = isRecursive;
+	}
+
+	public int getVersion() {
+		return version;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
+	}
+
+	@Override
     public String toString() {
         StringBuilder result = new StringBuilder();
-        result.append("{" + name + ":");
+        
+        if (isRecursive) {
+			result.append("{" + name + "," + version + ":");
+        } else {
+        	result.append("{" + name + ":");
+        }
+        
         result.append("[" + runtime + "," + num_tuples + "]");
         result.append("}");
         return result.toString();

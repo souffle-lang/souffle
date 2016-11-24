@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script>
+        $(document).ready(function() {
+
+            $("#relGrid").load("views/grids/RelGrid.html");
+            $("#rulGrid").load("views/grids/RulGrid.html");
+        });
+    </script>
+
+    <style>
+
+        .jsgrid-header-row .header-cell-placeholder {
+            background: #008CBA; /* #E3F1FF */
+        }
+
+    </style>
+</head>
+<body>
+<div id="relGrid"></div>
+<div id="rulGrid"></div>
+</body>
+</html>

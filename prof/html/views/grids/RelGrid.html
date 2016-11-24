@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <style>
+
+        .config-panel {
+            padding: 10px;
+            margin: 10px 0;
+            background: #fcfcfc;
+            border: 1px solid #e9e9e9;
+            display: inline-block;
+        }
+
+        .config-panel label {
+            margin-right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<h1>Relations</h1>
+<div class="config-panel">
+    <label><input id="filtering" type="checkbox"> Filtering</label>
+</div>
+<div id="jsGrid_Rel"></div>
+
+<script>
+    $(function() {
+
+        $("#jsGrid_Rel").jsGrid({
+            height: "auto",
+            width: "100%",
+            filtering: false,
+            editing: false,
+            inserting: false,
+            sorting: true,
+            paging: true,
+            autoload: true,
+            pageSize: 15,
+            pageButtonCount: 5,
+            controller: db,
+            fields: [
+                {
+                    headerTemplate: function() {
+                        return $("<button>").attr("type", "button")
+                                .text("reset")
+                                .on("click", function () {
+                                    reset();
+                                });
+                    },
+                    itemTemplate: function(_, item) {
+                        return $("<input>").attr("type", "radio")
+                                .attr("name", "rel")
+                                .on("change", function () {
+                                    if($(this).is(":checked"))
+                                        searchRules(item);
+                                });
+                    },
+                    align: "center",
+                    width: 50,
+                    sorting: false
+                },
+                {name: "TOT_T", type: "number"},
+                {name: "NREC_T", type: "number"},
+                {name: "REC_T", type: "number"},
+                {name: "COPY_T", type: "number"},
+                {name: "TUPLES", type: "number"},
+                {name: "REL_NAME", type: "text"},
+                {name: "ID", type: "text"},
+                {name: "SRC", type: "text", width: "200"},
+                {name: "PERFOR", type: "text"},
+                {type: "control", modeSwitchButton: false}
+            ],
+
+            onRefreshed: function(e) {
+                var $headerRow = $("#jsGrid_Rel .jsgrid-header-row");
+                var $headerCells = $headerRow.find("th");
+                var fields = e.grid.option("fields");
+
+                $.each(fields, function(index, field) {
+                    $headerCells.eq(index).data("JSField", field);
+                });
+
+                $headerRow.sortable({
+                    axis: "x",
+                    placeholder: "header-cell-placeholder",
+                    start: function(e, ui) {
+                        ui.placeholder.width(ui.helper.width());
+                    },
+                    update: function(e, ui) {
+                        var fields = $.map($headerRow.find("th"), function(cell) {
+                            return $(cell).data("JSField");
+                        });
+                        $("#jsGrid_Rel").jsGrid("option", "fields", fields);
+                    }
+                });
+            }
+        });
+
+        $(".config-panel input[type=checkbox]").on("click", function() {
+            var $cb = $(this);
+            $("#jsGrid_Rel").jsGrid("option", $cb.attr("id"), $cb.is(":checked"));
+        });
+
+        /*var selectedItems = [];
+        var selectItem = function(item) {
+            selectedItems.push(item);
+        };
+        var unselectItem = function(item) {
+            selectedItems = $.grep(selectedItems, function(i) {
+                return i !== item;
+            });
+        };*/
+
+        var searchRules = function(selectedItem) {
+            $("#jsGrid_Rul").jsGrid("search", {REL_NAME: selectedItem.REL_NAME});
+        };
+
+        var reset = function() {
+            $(":radio").prop("checked", false);
+            $("#jsGrid_Rul").jsGrid("search");
+        };
+    });
+</script>
+</body>
+</html>
