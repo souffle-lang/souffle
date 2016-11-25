@@ -740,10 +740,16 @@ inline time_point now() {
     return std::chrono::high_resolution_clock::now();
 }
 
-// a shortcut for obtaining the time difference
+// a shortcut for obtaining the time difference in milliseconds
 inline long duration_in_ms(const time_point& start, const time_point& end) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
+
+// a shortcut for obtaining the time difference in nanoseconds
+inline long duration_in_ns(const time_point& start, const time_point& end) {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
+}
+
 // -------------------------------------------------------------------------------
 //                               File Utils
 // -------------------------------------------------------------------------------

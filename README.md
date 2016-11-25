@@ -139,10 +139,3 @@ lists all the test cases, with their associated number. To run an individual tes
 testsuite <case_nr>
 ```
 can be used.
-
-
-
-
-
-
-
