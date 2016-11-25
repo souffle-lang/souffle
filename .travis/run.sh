@@ -5,6 +5,9 @@
 set -e
 set -x
 
+echo -n "Version: "
+git describe --tags --abbrev=0 --always
+
 # create configure files
 ./bootstrap
 

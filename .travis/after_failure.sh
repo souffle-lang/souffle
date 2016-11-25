@@ -16,9 +16,6 @@
 # allowing us to debug the problem.                                       #
 #=========================================================================#
 
-set -e
-set -u
-
 pwd
 ls
 
@@ -26,6 +23,7 @@ for FI in */; do
     echo $FI
     ls $FI
 done
+
 
 TEST_ROOT=`find . -type d -name "testsuite.dir" | head -1`
 RELEVANT_EXTENSIONS=".out .err .log"
@@ -38,6 +36,14 @@ pretty_print () {
     echo -n $1 | tr '[:print:]' '-'
     echo $(tput sgr0)
 }
+
+# print some helpful stats
+pretty_print "Showing git info"
+git tag
+git remote -v
+git describe --tags --abbrev=0 --always
+git describe --all --abbrev=0 --always
+git describe --tags --abbrev=0
 
 # Find the test case that we will be displaying
 CANDIDATE=`ls $TEST_ROOT | head -1`
