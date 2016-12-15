@@ -57,14 +57,11 @@ namespace {
     		return RamRelationIdentifier(name, arity, istemp);
     	}
 
-        // TODO: see issue 226
         // avoid name conflicts for nested relations
-        /*
         if (rel->hasComponent()) {
             name.insert(0, rel->getComponent()->getComponentType().getName() + "_");
             name.insert(0, "1_");
         }
-        */
 
     	assert(arity == rel->getArity());
         std::vector<std::string> attributeNames;
