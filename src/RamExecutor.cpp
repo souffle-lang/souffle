@@ -1875,7 +1875,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         const std::string &name = getRelationName(rel);
 
         // ensure that the type of the new knowledge is the same as that of the delta knowledge
-        tempType = (rel.isTemp() && std::regex_match(name, std::regex("rel_[0-9]+_0_delta_"))) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
+        tempType = (rel.isTemp() && std::regex_match(name, std::regex("^rel_[0-9]+_0_delta_.*"))) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
         const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel.getArity(), indices[rel]);
 
         // defining table
