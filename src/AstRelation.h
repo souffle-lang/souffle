@@ -230,9 +230,10 @@ protected:
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstRelation*>(&node));
         const AstRelation& other = static_cast<const AstRelation&>(node);
-        return name == name &&
+        return name == other.name &&
                 equal_targets(attributes, other.attributes) &&
-                equal_targets(clauses, other.clauses);
+                equal_targets(clauses, other.clauses) &&
+                component == other.component;
     }
 
 };
