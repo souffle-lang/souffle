@@ -444,13 +444,15 @@ private:
         std::string id;
         for (auto ch : std::to_string(identifiers.size() + 1) + '_' + name) {
             // alphanumeric characters are allowed
-            if (isalnum(ch))
+            if (isalnum(ch)) {
                 id += ch;
+            }
             // all other characters are replaced by an underscore, except when
             // the previous character was an underscore as double underscores
             // in identifiers are reserved by the standard
-            else if (id.size() != 0 && id.back() != '_')
-                id += ch;
+            else if (id.size() == 0 || id.back() != '_') {
+                id += '_';
+            }
 
         }
         // most compilers have a limit of 2048 characters (if they have a limit at all) for
