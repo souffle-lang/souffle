@@ -30,7 +30,6 @@ namespace souffle {
 
 namespace {
 
-
     SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment &typeEnv) {
         auto arity = rel.getArity();
         SymbolMask res(arity);
