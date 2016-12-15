@@ -408,7 +408,9 @@ private:
  * A singleton which provides a mapping from strings to unique valid CPP identifiers.
  */
 class CPPIdentifierMap {
+
 public:
+
     /**
      * Obtains the singleton instance.
      */
@@ -426,8 +428,9 @@ public:
 
     ~CPPIdentifierMap() {}
 
-    private:
-    
+private:
+
+
     CPPIdentifierMap() {}
 
     static CPPIdentifierMap* instance;
@@ -436,26 +439,29 @@ public:
      * Instance method for getIdentifier above.
      */
     const std::string identifier(const std::string& name) {
-        // Check to see if an identifier for the given name
-        // has already been created.
         auto it = identifiers.find(name);
         if (it != identifiers.end()) return it->second;
-        // If not, create a new identifier, prefixed by its
-        // index in the map to ensure uniqueness, and suffixed
-        // by the original name.
-        std::string id = std::to_string(identifiers.size() + 1) + '_' + name;
-        // Replace all '?' characters in the name with an '_',
-        // as this is the only illegal character we need to
-        // worry about.
-        std::replace(id.begin(), id.end(), '?', '_');
-        // Insert the name and its new identifier into out map.
+        std::string id;
+        for (auto ch : std::to_string(identifiers.size() + 1) + '_' + name) {
+            // alphanumeric characters are allowed
+            if (isalnum(ch))
+                id += ch;
+            // all other characters are replaced by an underscore, except when
+            // the previous character was an underscore as double underscores
+            // in identifiers are reserved by the standard
+            else if (id.size() != 0 && id.back() != '_')
+                id += ch;
+
+        }
+        // most compilers have a limit of 2048 characters (if they have a limit at all) for
+        // identifiers; we use half of that for safety
+        id = id.substr(0, 1024);
         identifiers.insert(
             std::make_pair(
                 name,
                 id
             )
         );
-        // And return the identifier.
         return id;
     }
 
