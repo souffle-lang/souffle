@@ -408,49 +408,68 @@ private:
  * A singleton which provides a mapping from strings to unique valid CPP identifiers.
  */
 class CPPIdentifierMap {
+
 public:
+
     /**
      * Obtains the singleton instance.
      */
-    static CPPIdentifierMap& getInstance();
+    static CPPIdentifierMap& getInstance() {
+        if (instance == NULL) instance = new CPPIdentifierMap();
+        return *instance;
+    }
 
     /**
      * Given a string, returns its corresponding unique valid identifier;
      */
-    static std::string getIdentifier(std::string);
+    static std::string getIdentifier(const std::string& name) {
+        return getInstance().identifier(name);
+    }
 
     ~CPPIdentifierMap() {}
 
-    private:
-    
-    /**
-     * Given a string, returns its corresponding unique valid identifier.
-     */
-    std::string identifier(std::string);
+private:
 
-    /*
-     * Removes invalid substrings, adds trailing digits if the resulting identifier is in use.
-     */
-    std::string uniqueIdentifier(std::string name);
-
-    /*
-     * True if the given character is valid to use in an identifier.
-     */
-    bool isValidChar(char c);
 
     CPPIdentifierMap() {}
+
     static CPPIdentifierMap* instance;
 
-    //A map from names to identifiers.
-    std::unordered_map<std::string, std::string> name_id_map;
+    /**
+     * Instance method for getIdentifier above.
+     */
+    const std::string identifier(const std::string& name) {
+        auto it = identifiers.find(name);
+        if (it != identifiers.end()) return it->second;
+        std::string id;
+        for (auto ch : std::to_string(identifiers.size() + 1) + '_' + name) {
+            // alphanumeric characters are allowed
+            if (isalnum(ch)) {
+                id += ch;
+            }
+            // all other characters are replaced by an underscore, except when
+            // the previous character was an underscore as double underscores
+            // in identifiers are reserved by the standard
+            else if (id.size() == 0 || id.back() != '_') {
+                id += '_';
+            }
 
-    //Contains the identifiers currently in use.
-    std::unordered_set<std::string> used_ids;
-    
-    // Permissible identifier lengths.
-    static const size_t id_len = 28;
-    static const size_t suffix_len = 5;
-    static const size_t prefix_len = id_len - suffix_len;
+        }
+        // most compilers have a limit of 2048 characters (if they have a limit at all) for
+        // identifiers; we use half of that for safety
+        id = id.substr(0, 1024);
+        identifiers.insert(
+            std::make_pair(
+                name,
+                id
+            )
+        );
+        return id;
+    }
+
+    // The map of identifiers.
+    std::map<const std::string, const std::string> identifiers;
+
 };
 
 

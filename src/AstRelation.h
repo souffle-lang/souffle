@@ -49,6 +49,9 @@
 
 namespace souffle {
 
+// Forward declaration, to link relations backwards to their components.
+class AstComponent;
+
 /*!
  * @class Relation
  * @brief Intermediate representation of a datalog relation
@@ -74,11 +77,25 @@ protected:
       */ 
     std::vector<std::unique_ptr<AstClause>> clauses;
 
+    /** Backward reference to the relations's component (if any),
+      * used primarily to avoid name conflict issues.
+      */
+    AstComponent* component;
+
 public:
 
-    AstRelation() : qualifier(0) { }
+    AstRelation() : qualifier(0), component(nullptr) { }
 
     ~AstRelation()  { }
+
+    /** Check if this relation is part of component. */
+    const bool hasComponent() const { return !(component == nullptr); }
+
+    /** Get component for relation. */
+    const AstComponent* getComponent() const { return component; }
+
+    /** Set component for relation. */
+    void setComponent(AstComponent* component) { this->component = component; }
 
     /** Return the name of the relation */
     const AstRelationIdentifier& getName() const { return name; }
@@ -161,6 +178,7 @@ public:
         for(const auto& cur : attributes) res->attributes.push_back(std::unique_ptr<AstAttribute>(cur->clone()));
         for(const auto& cur : clauses)    res->clauses.push_back(std::unique_ptr<AstClause>(cur->clone()));
         res->qualifier = qualifier;
+        res->setComponent(component);
         return res;
     }
 
@@ -212,9 +230,10 @@ protected:
     virtual bool equal(const AstNode& node) const {
         assert(dynamic_cast<const AstRelation*>(&node));
         const AstRelation& other = static_cast<const AstRelation&>(node);
-        return name == name &&
+        return name == other.name &&
                 equal_targets(attributes, other.attributes) &&
-                equal_targets(clauses, other.clauses);
+                equal_targets(clauses, other.clauses) &&
+                component == other.component;
     }
 
 };

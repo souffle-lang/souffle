@@ -30,7 +30,6 @@ namespace souffle {
 
 namespace {
 
-
     SymbolMask getSymbolMask(const AstRelation& rel, const TypeEnvironment &typeEnv) {
         auto arity = rel.getArity();
         SymbolMask res(arity);
@@ -47,12 +46,23 @@ namespace {
         return toString(join(id.getNames(), "_"));
     }
 
-    RamRelationIdentifier getRamRelationIdentifier(const std::string& name, unsigned arity, const AstRelation *rel, 
+    RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity, const AstRelation *rel,
                                                    const TypeEnvironment *typeEnv, const bool istemp = false) {
+        // avoid name conflicts for temporary identifiers
+        if (istemp) {
+            name.insert(0, "0_");
+        }
 
     	if (!rel) {
     		return RamRelationIdentifier(name, arity, istemp);
     	}
+
+        // avoid name conflicts for nested relations
+        if (rel->hasComponent()) {
+            name.insert(0, rel->getComponent()->getComponentType().getName() + "_");
+            name.insert(0, "1_");
+        }
+
     	assert(arity == rel->getArity());
         std::vector<std::string> attributeNames;
         std::vector<std::string> attributeTypeQualifiers;
@@ -68,7 +78,6 @@ namespace {
                                      rel->isOutput(), rel->isData(), istemp);
 
     }
-
 }
 
 std::string RamTranslator::translateRelationName(const AstRelationIdentifier& id) {
@@ -779,8 +788,11 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(const st
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
         rrel[rel]  = getRamRelationIdentifier(relName, rel->getArity(), rel, &typeEnv);
-        relDelta[rel] = getRamRelationIdentifier("_0delta_"+relName, rel->getArity(), rel, &typeEnv, true);
-        relNew[rel] = getRamRelationIdentifier("_0new_"+relName, rel->getArity(), rel, &typeEnv, true);
+
+        // Prefix their names with '0', so that it is impossible for them
+        // to conflict with valid datalog identifiers.
+        relDelta[rel] = getRamRelationIdentifier("delta_"+relName, rel->getArity(), rel, &typeEnv, true);
+        relNew[rel] = getRamRelationIdentifier("new_"+relName, rel->getArity(), rel, &typeEnv, true);
 
 
         /* create update statements for fixpoint (even iteration) */
@@ -963,8 +975,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_0delta_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
-            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("_0new_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
+            // Prefix their names with '0', so that it is impossible for them
+            // to conflict with valid datalog identifiers.
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("delta_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(getRamRelationIdentifier("new_"+getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv, true))));
         }
     }
 

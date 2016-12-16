@@ -4,3 +4,9 @@ testsuite
 testsuite.dir
 package.m4
 testsuite.log
+*/*/*
+!*/*/facts
+!*/*/*.dl
+!*/*/*.out
+!*/*/*.err
+!*/*/*.csv

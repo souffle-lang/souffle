@@ -52,7 +52,22 @@ namespace souffle {
 		return flag;
 	}
 
+    // See the CPPIdentifierMap, (it is a singleton class).
+    CPPIdentifierMap* CPPIdentifierMap::instance = 0;
+
+    // Static wrapper to get relation names without going directly though the CPPIdentifierMap.
+    static const std::string getRelationName(const RamRelationIdentifier& rel) {
+        return "rel_" + CPPIdentifierMap::getIdentifier(rel.getName());
+    }
+
+    // Static wrapper to get op context names without going directly though the CPPIdentifierMap.
+    static const std::string getOpContextName(const RamRelationIdentifier& rel) {
+        return getRelationName(rel) + "_op_ctxt";
+    }
+
 namespace {
+
+
 
     class EvalContext {
 
@@ -1032,7 +1047,7 @@ namespace {
             });
             if (!input_relations.empty()) {
                 out << "if (" << join(input_relations, "&&", [&](std::ostream& out, const RamRelationIdentifier& rel){
-                    out << "!" << this->getRelationName(rel) << "->" << "empty()";
+                    out << "!" << getRelationName(rel) << "->" << "empty()";
                 }) << ") ";
             }
 
@@ -1182,7 +1197,7 @@ namespace {
 
         void visitSwap(const RamSwap& swap, std::ostream& out) {
 
-            const std::string tempKnowledge = "rel__0temp";
+            const std::string tempKnowledge = "rel_0_temp";
             const std::string& deltaKnowledge  = getRelationName(swap.getFirstRelation());
             const std::string& newKnowledge = getRelationName(swap.getSecondRelation());
 
@@ -1714,13 +1729,6 @@ namespace {
             return print(*node);
         }
 
-        std::string getRelationName(const RamRelationIdentifier& rel) const {
-            return "rel_" + CPPIdentifierMap::getIdentifier(rel.getName());
-        }
-
-        std::string getOpContextName(const RamRelationIdentifier& rel) const {
-            return getRelationName(rel) + "_op_ctxt";
-        }
     };
 
 
@@ -1730,62 +1738,6 @@ namespace {
     }
 
 
-}
-
-CPPIdentifierMap* CPPIdentifierMap::instance = 0;
-
-CPPIdentifierMap& CPPIdentifierMap::getInstance() {
-    if (instance == NULL) {
-        instance = new CPPIdentifierMap();
-    }
-    return *instance;
-}
-
-std::string CPPIdentifierMap::getIdentifier(std::string rel_name) {
-    return getInstance().identifier(rel_name);
-}
-
-std::string CPPIdentifierMap::identifier(std::string rel_name) {
-    if (name_id_map.count(rel_name)) {
-        return name_id_map.find(rel_name)->second;
-    }
-    
-    std::string unique_id = uniqueIdentifier(rel_name);
-    name_id_map.insert(std::make_pair(rel_name, unique_id));
-    return unique_id;
-}
-
-std::string CPPIdentifierMap::uniqueIdentifier(std::string name) {
-
-    // Remove digits, invalid characters.
-    std::string new_id;
-    bool start_digits = true;
-    for (size_t i = 0; i < name.size(); ++i) {
-        if (start_digits && !isdigit(name[i])) {
-            start_digits = false;
-        }
-        if (!start_digits && isValidChar(name[i])) {
-            new_id.push_back(name[i]);
-        }
-    }
-
-    // Truncate the string if too long.
-    if (new_id.length() > prefix_len) new_id = new_id.substr(0, prefix_len);
-    else if (new_id.length() == 0) new_id = "identifier";
-    
-    // Make the identifier unique.
-    if (used_ids.count(new_id)) {
-        size_t n = 0;
-        for (; used_ids.count(new_id + std::to_string(n)); ++n);
-        new_id = new_id + std::to_string(n);
-    }
-
-    used_ids.insert(new_id);
-    return new_id;
-}
-
-bool CPPIdentifierMap::isValidChar(char c) {
-    return isalnum(c) || c == '_';
 }
 
 std::string RamCompiler::resolveFileName() const {
@@ -1920,18 +1872,18 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
         const auto& rel = create.getRelation();
         int arity = rel.getArity();
         const std::string &raw_name = rel.getName();
-        const std::string &name = CPPIdentifierMap::getIdentifier(raw_name);
+        const std::string &name = getRelationName(rel);
 
         // ensure that the type of the new knowledge is the same as that of the delta knowledge
-        tempType = (rel.isTemp() && name.find("_0delta_") == 0) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
+        tempType = (rel.isTemp() && std::regex_match(name, std::regex("^rel_[0-9]+_0_delta_.*"))) ? getRelationType(rel.getArity(), indices[rel]) : tempType;
         const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel.getArity(), indices[rel]);
 
         // defining table
         os << "// -- Table: " << raw_name << "\n";
-        os << type << "*" << " rel_" << name << ";\n";
+        os << type << "* " << name << ";\n";
         if (initCons.size() > 0) initCons += ",\n";
-        initCons += "rel_" + name + "(new " + type + "())";
-        deleteForNew += "delete rel_" + name + ";\n";
+        initCons +=  name + "(new " + type + "())";
+        deleteForNew += "delete " + name + ";\n";
         if ((rel.isInput() || rel.isComputed() || getConfig().isDebug()) && !rel.isTemp()) {
            os << "souffle::RelationWrapper<";
            os << relCtr++ << ",";
@@ -1960,7 +1912,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
            tupleType += "}";
            tupleName += "}";
 
-           initCons += ",\nwrapper_" + name + "(" + "*" + "rel_" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
+           initCons += ",\nwrapper_" + name + "(" + "*" + name + ",symTable,\"" + raw_name + "\"," + tupleType + "," + tupleName + ")";
            registerRel += "addRelation(\"" + raw_name + "\",&wrapper_" + name + "," + std::to_string(rel.isInput()) + "," + std::to_string(rel.isOutput()) + ");\n";
         }
     });
@@ -2036,7 +1988,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     visitDepthFirst(stmt, [&](const RamStatement& node) {
         if (auto store = dynamic_cast<const RamStore*>(&node)) {
             auto name = store->getRelation().getName();
-            auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
+            auto relName = getRelationName(store->getRelation());
 
             // pick target
             std::string fname = "dirname + \"/" + store->getFileName() + "\"";
@@ -2060,7 +2012,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
             if (toConsole) os << "std::cout << \"===============\\n\";\n";
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
-            auto relName = "rel_" + CPPIdentifierMap::getIdentifier(print->getRelation().getName());
+            auto relName = getRelationName(print->getRelation());
             os << "{ auto lease = getOutputLock().acquire(); \n";
             os << "std::cout << R\"(" << print->getLabel() << ")\" <<  " << relName << "->" << "size() << \"\\n\";\n";
             os << "}";
@@ -2073,7 +2025,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
     os << "void loadAll(std::string dirname=\"" << getConfig().getOutputDir() << "\") {\n";
     visitDepthFirst(stmt, [&](const RamLoad& load) {
         // get some table details
-        os << "rel_" <<  CPPIdentifierMap::getIdentifier(load.getRelation().getName());
+        os <<  getRelationName(load.getRelation());
         os << "->" << "loadCSV(dirname + \"/";
         os << load.getFileName() << "\"";
         os << ", symTable";
@@ -2086,7 +2038,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 
     // issue dump methods
 	auto dumpRelation = [&](const std::string& name, const SymbolMask& mask, size_t arity) {
-		auto relName = "rel_" + CPPIdentifierMap::getIdentifier(name);
+		auto relName = name;
 
 		os << "out << \"---------------\\n" << name << "\\n===============\\n\";\n";
 
@@ -2107,7 +2059,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 	os << "public:\n";
 	os << "void dumpInputs(std::ostream& out = std::cout) {\n";
 	visitDepthFirst(stmt, [&](const RamLoad& load) {
-		auto& name = load.getRelation().getName();
+		auto& name = getRelationName(load.getRelation());
 		auto& mask = load.getRelation().getSymbolMask();
 		size_t arity = load.getRelation().getArity();
 		dumpRelation(name,mask,arity);
@@ -2118,7 +2070,7 @@ std::string RamCompiler::generateCode(const SymbolTable& symTable, const RamStat
 	os << "public:\n";
 	os << "void dumpOutputs(std::ostream& out = std::cout) {\n";
 	visitDepthFirst(stmt, [&](const RamStore& store) {
-		auto& name = store.getRelation().getName();
+		auto& name = getRelationName(store.getRelation());
 		auto& mask = store.getRelation().getSymbolMask();
 		size_t arity = store.getRelation().getArity();
 		dumpRelation(name,mask,arity);

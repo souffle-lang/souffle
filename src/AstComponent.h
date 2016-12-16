@@ -262,6 +262,7 @@ public:
     }
 
     void addRelation(std::unique_ptr<AstRelation> r) {
+        r.get()->setComponent(this);
         relations.push_back(std::move(r));
     }
 
