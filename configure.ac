@@ -249,12 +249,11 @@ DIST_PACKAGING([debian ubuntu],[DEBIAN_PACKAGE],[DEBUILD],[debuild])
 DIST_PACKAGING([osx],[OSX_PACKAGE],[PKGBUILD],[pkgbuild])
 DIST_PACKAGING([bsd],[BSD_PACKAGE],[PKGBUILD],[pkgbuild])
 
-dnl Enable pthread library
-AC_CHECK_LIB(pthread, pthread_create,,
-          [AC_MSG_ERROR([required library pthread missing])])
-AC_CHECK_HEADER(sqlite3.h,,[AC_MSG_ERROR([required library sqlite3 missing])])
-AC_CHECK_LIB(sqlite3, sqlite3_open,,
-          [AC_MSG_ERROR([required library sqlite3 missing])])
+dnl Require Sqlite3 library
+AX_LIB_SQLITE3(3.0.0)
+
+dnl Require PTHREAD library
+AX_PTHREAD
 
 dnl Enables OpenMP in the souffle compiler and interpreter
 AC_OPENMP
