@@ -349,7 +349,7 @@ void TopologicallySortedSCCGraph::findLookaheadSCCs(int scc, std::vector<int>& l
     // for each of the successor sccs of the input scc
     for (auto scc_i : sccGraph->getSuccessorSCCs(scc)) {
         // if the breadth limit is exceeded, return
-        if (breadth >= BREADTH) return;
+        if (breadth >= BREADTH_LIMIT) return;
         // otherwise, if the successor is unvisited and has no unvisited predecessors
         if (sccGraph->getColor(scc_i) == WHITE
             && !sccGraph->hasPredecessorOfColor(scc_i, WHITE)) {
@@ -358,7 +358,7 @@ void TopologicallySortedSCCGraph::findLookaheadSCCs(int scc, std::vector<int>& l
             // assign it a temporary marking
             sccGraph->setColor(scc_i, GRAY);
             // if the current depth is less than the depth limit
-            if (depth < DEPTH)
+            if (depth < DEPTH_LIMIT)
                 // run the algorithm recursively on the successor, incrementing the current depth
                 findLookaheadSCCs(scc_i, lookaheadSCCs, depth + 1);
             // and increment the current breadth
@@ -430,7 +430,11 @@ void TopologicallySortedSCCGraph::naiveTopologicalOrdering() {
     orderedSCCs = lookaheadSCCs;
 }
 
+unsigned int TopologicallySortedSCCGraph::BREADTH_LIMIT = 2;
+unsigned int TopologicallySortedSCCGraph::DEPTH_LIMIT = 2;
+
 void TopologicallySortedSCCGraph::run(const AstTranslationUnit& translationUnit) {
+
     // obtain the scc graph
     sccGraph = translationUnit.getAnalysis<SCCGraph>();
     // clear the list of ordered sccs

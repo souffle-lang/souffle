@@ -29,6 +29,7 @@
 #include "AstAnalysis.h"
 #include "AstTranslationUnit.h"
 #include "GraphUtils.h"
+#include "Environment.h"
 
 namespace souffle {
 
@@ -249,13 +250,11 @@ private:
 
 public:
 
-    // TODO
-    /** Breadth limit for algorithm, set by command line arguments. */
-    static const unsigned int BREADTH = 2;
+    /** Breadth limit for algorithm. */
+    static unsigned int BREADTH_LIMIT;
 
-    // TODO
-    /** Depth limit for algorithm, set by command line arguments. */
-    static const unsigned int DEPTH = 2;
+    /** Depth limit for algorithm. */
+    static unsigned int DEPTH_LIMIT;
 
     static constexpr const char *name = "topological-scc-graph";
 
