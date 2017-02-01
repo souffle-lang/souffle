@@ -46,6 +46,7 @@
 #include "SymbolTable.h"
 #include "ParserDriver.h"
 #include "ComponentModel.h"
+#include "Environment.h"
 
 #include "RamTranslator.h"
 #include "RamExecutor.h"
@@ -53,61 +54,11 @@
 
 namespace souffle {
 
-/**
- *  Show help page.
- */
-void helpPage(bool error, int argc, char**argv)
-{
-    if (error) {
-        for(int i=0;i<argc;i++) {
-            std::cerr << argv[i] << " ";
-        }
-        std::cerr << "\nError parsing command-line arguments\n";
-    }
-    std::cerr << "=======================================================================================================\n";
-    std::cerr << "souffle -- Oracle Labs' datalog engine.\n";
-    std::cerr << "Usage: souffle [OPTION] FILE.\n";
-    std::cerr << "-------------------------------------------------------------------------------------------------------\n";
-    std::cerr << "Options:\n";
-    std::cerr << "    -F<DIR>, --fact-dir=<DIR>      Specify directory for fact files\n";
-    std::cerr << "    -I<DIR>, --include-dir=<DIR>   Specify directory for include files\n";
-    std::cerr << "    -D<DIR>, --output-dir=<DIR>    Specify directory for output relations\n";
-    std::cerr << "                                      (if <DIR> is -, output is written to stdout)\n";
-    std::cerr << "\n";
-    std::cerr << "    -j<N>, --jobs=<N>              Run interpreter/compiler in parallel using N threads, N=auto for system default\n";
-    std::cerr << "\n";
-    std::cerr << "    -c, --compile                  Compile datalog (translating to C++)\n";
-    std::cerr << "    --auto-schedule                Switch on automated clause scheduling for compiler\n";
-    std::cerr << "    -g <FILE>                      Only generate sources of compilable analysis and write it to <FILE>\n";
-    std::cerr << "    -w                             Disable warnings\n";
-    std::cerr << "    -o <FILE>, --dl-program=<FILE> Write executable program to <FILE> (without executing it)\n";
-    std::cerr << "\n";
-    std::cerr << "    -p<FILE>, --profile=<FILE>     Enable profiling and write profile data to <FILE>\n";
-    std::cerr << "    -d, --debug                    Enable debug mode\n";
-    std::cerr << "    -b<FILE>, --bddbddb=<FILE>     Convert intput into bddbddb file format\n";
-    std::cerr << "\n";
-    std::cerr << "    --debug-report=<FILE>          Write debugging output to HTML report\n";
-    std::cerr << "\n";
-    std::cerr << "    -v, --verbose                  Verbose output\n";
-    std::cerr << "-------------------------------------------------------------------------------------------------------\n";
-    std::cerr << "Version: " << PACKAGE_VERSION << "\n";
-    std::cerr << "-------------------------------------------------------------------------------------------------------\n";
-    std::cerr << "Copyright (c) 2013, 2015, Oracle and/or its affiliates.\n";
-    std::cerr << "All rights reserved.\n";
-    std::cerr << "=======================================================================================================\n";
-    exit(1);
-}
-
-/**
- *  print error message and exit
- */
-void fail(const std::string &str)
-{
+void fail(const std::string& str) {
+    // print error message
     std::cerr << str << "\n";
     exit(1);
 }
-
-
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>> &transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
@@ -120,171 +71,143 @@ int main(int argc, char **argv)
     /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
 
-    std::string debugReportFile; /* filename to output debug report */
-    std::string outputDir = "."; /* output directory for resulting csv files */
-    std::string includeOpt;      /* include options for c-preprocessor */
-    std::string profile;         /* filename of profile log */
+    Environment env = Environment(
+        argc,
+        argv,
+        []() {
+            std::stringstream header;
+            header << "=======================================================================================================" << std::endl;
+            header << "souffle -- A datalog engine." << std::endl;
+            header << "Usage: souffle [OPTION] FILE." << std::endl;
+            header << "-------------------------------------------------------------------------------------------------------" << std::endl;
+            header << "Options:" << std::endl;
+            return header.str();
+        }(),
+        []() {
+            std::stringstream footer;
+            footer << "-------------------------------------------------------------------------------------------------------" << std::endl;
+            footer << "Version: " << PACKAGE_VERSION << "" << std::endl;
+            footer << "-------------------------------------------------------------------------------------------------------" << std::endl;
+            footer << "Copyright (c) 2013, 2015, Oracle and/or its affiliates." << std::endl;
+            footer << "All rights reserved." << std::endl;
+            footer << "=======================================================================================================" << std::endl;
+            return footer.str();
+        }(),
+        /* new command line options, the environment will be filled with the arguments passed to them, or the empty string if they take none */
+        []() {
+            Option opts[] = {
 
-    std::string outputFileName = "";
-    std::string factFileDir = ".";
+                /* each option is { long option, short option, argument name, default value, description } */
+                {"fact-dir",        'F', "DIR",     ".",    "Specify directory for fact files."},
+                {"include-dir",     'I', "DIR",     ".",    "Specify directory for include files."},
+                {"output-dir",      'D', "DIR",     ".",    "Specify directory for output relations (if <DIR> is -, output is written to stdout)."},
+                {"jobs",            'j', "N",       "1",    "Run interpreter/compiler in parallel using N threads, N=auto for system default."},
+                {"compile",         'c', "",        "",     "Compile datalog (translating to C++)."},
+                // if the short option is non-alphabetical, it is ommitted from the help text
+                {"auto-schedule",     1,  "",       "",     "Switch on automated clause scheduling for compiler."},
+                {"generate",        'g', "FILE",    "",     "Only generate sources of compilable analysis and write it to <FILE>."},
+                {"no-warn",         'w', "",        "",     "Disable warnings."},
+                {"dl-program",      'o', "FILE",    "",     "Write executable program to <FILE> (without executing it)."},
+                {"profile",         'p', "FILE",    "",     "Enable profiling and write profile data to <FILE>."},
+                {"debug",           'd', "",        "",     "Enable debug mode."},
+                {"bddbddb",         'b', "FILE",    "",     "Convert input into bddbddb file format."},
+                // if the short option is non-alphabetical, it is ommitted from the help text
+                {"debug-report",      2, "FILE",    "",     "Write debugging output to HTML report."},
+                {"verbose",         'v', "",        "",     "Verbose output."},
+                {"help",            'h', "",        "",     "Display this help message."},
 
-    std::string outputHeaderFileName = "";
+                // options for the topological ordering of strongly connected components, see TopologicallySortedSCCGraph class in PrecedenceGraph.cpp
+                {"breadth-limit",   3,   "N",       "",     "Specify the breadth limit used for the topological ordering of strongly connected components."},
+                {"depth-limit",     4,   "N",       "",     "Specify the depth limit used for the topological ordering of strongly connected components."},
+                {"lookahead",       5,   "N",       "",     "Specify the lookahead used for the topological ordering of strongly connected components."}
 
-    bool nowarn  = false;        /* flag for disabled warnings */
-    bool verbose  = false;        /* flag for verbose output */
-    bool compile = false;         /* flag for enabling compilation */
-    bool tune = false;            /* flag for enabling / disabling the rule scheduler */
-    bool logging = false;         /* flag for profiling */
-    bool debug = false;           /* flag for enabling debug mode */
-    bool generateHeader = false;  /* flag for enabling code generation mode */
+            };
+            return std::vector<Option>(std::begin(opts), std::end(opts));
+        }()
+    );
 
-    std::string bddbddbOutputFile = "";  /* the file to write the bdbbdbbd converted input spec to */
+    // ------ command line arguments -------------
 
-    enum {optAutoSchedule=1,
-          optDebugReportFile=2};
+    /* for the help option, if given simply print the help text then exit */
+    if (env.has("help")) {
+        env.printOptions(std::cerr);
+        return 1;
+   }
 
-    // long options
-    option longOptions[] = {
-        { "fact-dir", true, nullptr, 'F' },
-        { "include-dir", true, nullptr, 'I' },
-        { "output-dir", true, nullptr, 'D' },
-        //
-        { "jobs", true, nullptr, 'j' },
-        //
-        { "compile", false, nullptr, 'c' },
-        { "nowarn", false, nullptr, 'w' },
-        { "auto-schedule", false, nullptr, optAutoSchedule },
-        { "dl-program", true, nullptr, 'o' },
-        //
-        { "debug-report", true, nullptr, optDebugReportFile },
-        //
-        { "profile", true, nullptr, 'p' },
-        //
-		{ "bddbddb", true, nullptr, 'b' },
-		//
-		{ "debug", false, nullptr, 'd' },
-        //
-        { "verbose", false, nullptr, 'v' },
-        // the terminal option -- needs to be null
-        { nullptr, false, nullptr, 0 }
-    };
+   /* turn on compilation of executables */
+   if (env.has("dl-program"))
+        env.set("compile");
 
-    static unsigned num_threads = 1;	  /* the number of threads to use for execution, 0 system-choice, 1 sequential */
-    int c;     /* command-line arguments processing */
-    while ((c = getopt_long(argc, argv, "cj:D:F:I:p:b:o:g:hvwd", longOptions, nullptr)) != EOF) {
-        switch(c) {
-                /* Print debug / profiling information */
-            case 'v':
-                verbose = true;
-                break;
+    /* for the jobs option, to determine the number of threads used */
+    static unsigned num_threads = 1; /* the number of threads to use for execution, 0 system-choice, 1 sequential */
+    if (env.has("jobs")) {
+        if (env.has("jobs", "auto")) {
+            num_threads = 0;
+        } else if (isNumber(env.get("jobs").c_str())) {
+            num_threads = atoi(env.get("jobs").c_str());
+            if (num_threads == 0) {
+               fail("Number of jobs in the -j/--jobs options must be greater than zero!");
 
-                /* Enable compiler flag */
-            case 'c':
-                compile = true;
-                break;
-            case 'w':
-                nowarn = true;
-                break;
-                /* Set number of jobs */
-            case 'j':
-                if (std::string(optarg) == "auto") {
-                   num_threads = 0;
-                } else if(isNumber(optarg)) {
-                   num_threads = atoi(optarg);
-                   if(num_threads == 0) {
-                       fail("Number of jobs in the -j/--jobs options must be greater than zero!");
-                   }
-                } else fail("Wrong parameter "+std::string(optarg)+" for option -j/--jobs!");
-                break;
-
-                /* Output file name of generated executable program */
-            case 'o':
-                outputFileName = optarg;
-                compile = true;
-                break;
-
-                /* Generator mode and output file name */
-            case 'g':
-            	outputHeaderFileName = optarg;
-            	generateHeader = true;
-            	break;
-
-                /* Fact directories */
-            case 'F':
-                // Add conditional check:
-                // if (factFileDir != NULL) {
-                //   fail("Fact directory option can only be specified once (-F%s -F%s)!\n", factFileDir, optarg);
-                // } else if (!existDir(optarg)) {
-                //   fail("Fact directory %s does not exists!\n", optarg);
-                //}
-                factFileDir = optarg;
-                break;
-
-                /* Output directory for resulting .csv files */
-            case 'D':
-                outputDir = optarg;
-                if (strcmp(optarg, "-") && !existDir(optarg)) {
-                    fail("error: ouput directory " + std::string(optarg) + " does not exists");
-                }
-                break;
-
-                /* Include directory for Datalog specifications */
-            case 'I':
-                if (!existDir(optarg)) {
-                    fail("error: include directory " + std::string(optarg) + " does not exists");
-                }
-                if(includeOpt == "") {
-                    includeOpt = "-I" + std::string(optarg);
-                } else {
-                    includeOpt = includeOpt + " -I" + std::string(optarg);
-                }
-                break;
-
-                /* File-name for profile log */
-            case 'p':
-                logging = true;
-                profile = optarg;
-                break;
-
-                /* File-name for bddbddb conversion */
-            case 'b':
-                bddbddbOutputFile = optarg;
-                break;
-
-                /* Enable debug mode */
-            case 'd':
-                debug = true;
-                break;
-
-                /* Enable auto scheduler */
-            case optAutoSchedule:
-                tune = true;
-                compile = true;
-                break;
-
-                /* Enable generation of debug output report */
-            case optDebugReportFile:
-                debugReportFile = optarg;
-                break;
-
-                /* Show help page */
-            case 'h':
-                helpPage(false,argc,argv);
-                break;
-
-            case '?':
-                helpPage(true,argc,argv);
-                break;
-
-            default:
-                ASSERT("Default label in getopt switch");
+            }
+        } else {
+            fail("Wrong parameter " + env.get("jobs") + " for option -j/--jobs!");
         }
     }
 
-    if (tune && outputFileName == "") {
-       fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
-    }
+    /* if an output directory is given, check it exists */
+    if (env.has("output-dir") && !env.has("output-dir", "-") && !existDir(env.get("output-dir")))
+        fail("error: output directory " + env.get("output-dir") + " does not exists");
 
+    /* turn on compilation if auto-scheduling is enabled */
+    if (env.has("auto-schedule") && !env.has("compile"))
+        env.set("compile");
+
+    /* ensure that if auto-scheduling is enabled an output file is given */
+    if (env.has("auto-schedule") && !env.has("dl-program"))
+       fail("error: no executable is specified for auto-scheduling (option -o <FILE>)");
+
+    /* set the breadth and depth limits for the topological ordering of strongly connected components */
+    if (env.has("breadth-limit")) {
+        int limit = std::stoi(env.get("breadth-limit"));
+        if (limit <= 0)
+            fail("error: breadth limit must be 1 or more");
+        TopologicallySortedSCCGraph::BREADTH_LIMIT = limit;
+     }
+     if (env.has("depth-limit")) {
+        int limit = std::stoi(env.get("depth-limit"));
+        if (limit <= 0)
+            fail("error: depth limit must be 1 or more");
+        TopologicallySortedSCCGraph::DEPTH_LIMIT = limit;
+     }
+     if (env.has("lookahead")) {
+        if (env.has("breadth-limit") || env.has("depth-limit"))
+            fail("error: only one of either lookahead or depth-limit and breadth-limit may be specified");
+        int lookahead = std::stoi(env.get("lookahead"));
+        if (lookahead <= 0)
+            fail("error: lookahead must be 1 or more");
+        TopologicallySortedSCCGraph::LOOKAHEAD = lookahead;
+     }
+
+
+    /* collect all input directories for the c pre-processor */
+    if (env.has("include-dir")) {
+        std::string currentInclude = "";
+        std::string allIncludes = "";
+        env.set("include-dir");
+        for (const char& ch : env.get("include-dir")) {
+            if (ch == ' ') {
+                if (!existDir(currentInclude)) {
+                    fail("error: include directory " + currentInclude + " does not exists");
+                } else {
+                    allIncludes += " -I ";
+                    allIncludes += currentInclude;
+                }
+            } else {
+                currentInclude += ch;
+            }
+        }
+        env.set("include-dir", allIncludes);
+    }
 
     /* collect all input files for the C pre-processor */
     std::string filenames = "";
@@ -300,8 +223,10 @@ int main(int argc, char **argv)
             }
         }
     } else {
-        helpPage(true,argc,argv);
+        env.error();
     }
+
+    // ------ start souffle -------------
 
     std::string programName = which(argv[0]);
     if (programName.empty())
@@ -313,7 +238,7 @@ int main(int argc, char **argv)
     if (!isExecutable(cmd))
         fail("error: failed to locate souffle preprocessor");
 
-    cmd  += " " + includeOpt + " " + filenames;
+    cmd  += " " + env.get("include-dir") + " " + filenames;
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -322,7 +247,7 @@ int main(int argc, char **argv)
     // ------- parse program -------------
 
     // parse file
-    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, nowarn);
+    std::unique_ptr<AstTranslationUnit> translationUnit = ParserDriver::parseTranslationUnit("<stdin>", in, env.has("no-warn"));
 
     // close input pipe
     int preprocessor_status = pclose(in);
@@ -332,7 +257,7 @@ int main(int argc, char **argv)
     }
 
     /* Report run-time of the parser if verbose flag is set */
-    if (verbose) {
+    if (env.has("verbose")) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::cout << "Parse Time: " << std::chrono::duration<double>(parser_end-parser_start).count()<< "sec\n";
     }
@@ -349,20 +274,20 @@ int main(int argc, char **argv)
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstSemanticChecker()));
-    if (bddbddbOutputFile.empty()) {
+    if (env.get("bddbddb").empty()) {
     	transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-    if (!debug) {
+    if (!env.has("debug")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
     }
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
-    if (tune) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(factFileDir, verbose, !debugReportFile.empty())));
+    if (env.has("auto-schedule")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer(env.get("fact-dir"), env.has("verbose"), !env.get("debug-report").empty())));
     }
-    if (!debugReportFile.empty()) {
+    if (!env.get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(parser_end-parser_start).count()) + "s)";
         DebugReporter::generateDebugReport(*translationUnit, "Parsing", "After Parsing " + runtimeStr);
@@ -385,20 +310,20 @@ int main(int argc, char **argv)
     // ------- (optional) conversions -------------
 
     // conduct the bddbddb file export
-    if (!bddbddbOutputFile.empty()) {
+    if (!env.get("bddbddb").empty()) {
     	try {
-			if (bddbddbOutputFile == "-") {
+			if (env.get("bddbddb") == "-") {
 				// use STD-OUT
 				toBddbddb(std::cout,*translationUnit);
 			} else {
 				// create an output file
-				std::ofstream out(bddbddbOutputFile.c_str());
+				std::ofstream out(env.get("bddbddb").c_str());
 				toBddbddb(out,*translationUnit);
 			}
     	} catch(const UnsupportedConstructException& uce) {
     		std::cout << "Failed to convert input specification into bddbddb syntax:\n";
     		std::cout << "Reason: " << uce.what();
-    		return 1;
+            return 1;
     	}
     	return 0;
     }
@@ -408,9 +333,9 @@ int main(int argc, char **argv)
     auto ram_start = std::chrono::high_resolution_clock::now();
 
     /* translate AST to RAM */
-    std::unique_ptr<RamStatement> ramProg = RamTranslator(logging).translateProgram(*translationUnit);
+    std::unique_ptr<RamStatement> ramProg = RamTranslator(env.has("profile")).translateProgram(*translationUnit);
 
-    if (!debugReportFile.empty()) {
+    if (!env.get("debug-report").empty()) {
         if (ramProg) {
             auto ram_end = std::chrono::high_resolution_clock::now();
             std::string runtimeStr = "(" + std::to_string(std::chrono::duration<double>(ram_end-ram_start).count()) + "s)";
@@ -420,26 +345,27 @@ int main(int argc, char **argv)
         }
 
         if (!translationUnit->getDebugReport().empty()) {
-            std::ofstream debugReportStream(debugReportFile);
+            std::ofstream debugReportStream(env.get("debug-report"));
             debugReportStream << translationUnit->getDebugReport();
         }
     }
 
     /* run RAM program */
-    if (!ramProg) return 0;
+    if (!ramProg)
+        return 0;
 
     // pick executor
 
     std::unique_ptr<RamExecutor> executor;
-    if (generateHeader || compile) {
+    if (env.has("generate") || env.has("compile")) {
         // configure compiler
-        executor = std::unique_ptr<RamExecutor>(new RamCompiler(outputFileName));
-        if (verbose) {
+        executor = std::unique_ptr<RamExecutor>(new RamCompiler(env.get("dl-program")));
+        if (env.has("verbose")) {
            executor -> setReportTarget(std::cout);
         }
     } else {
         // configure interpreter
-        if (tune) {
+        if (env.has("auto-schedule")) {
             executor = std::unique_ptr<RamExecutor>(new RamGuidedInterpreter());
         } else {
             executor = std::unique_ptr<RamExecutor>(new RamInterpreter());
@@ -449,12 +375,12 @@ int main(int argc, char **argv)
     // configure executor
     auto& config = executor->getConfig();
     config.setSourceFileName(filenames);
-    config.setFactFileDir(factFileDir);
-    config.setOutputDir(outputDir);
+    config.setFactFileDir(env.get("fact-dir"));
+    config.setOutputDir(env.get("output-dir"));
     config.setNumThreads(num_threads);
-    config.setLogging(logging);
-    config.setProfileName(profile);
-    config.setDebug(debug);
+    config.setLogging(env.has("profile"));
+    config.setProfileName(env.get("profile"));
+    config.setDebug(env.has("debug"));
 
     /* Locate souffle-compile script */
     std::string compileCmd = ::findTool("souffle-compile", programName, ".");
@@ -466,13 +392,13 @@ int main(int argc, char **argv)
     config.setCompileScript(compileCmd + " ");
 
     // check if this is code generation only
-    if (generateHeader) {
+    if (env.has("generate")) {
 
     	// just generate, no compile, no execute
-		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, outputHeaderFileName);
+		static_cast<const RamCompiler*>(executor.get())->generateCode(translationUnit->getSymbolTable(), *ramProg, env.get("generate"));
 
     	// check if this is a compile only
-    } else if (compile && outputFileName != "") {
+    } else if (env.has("compile") && env.has("dl-program")) {
         // just compile, no execute
         static_cast<const RamCompiler*>(executor.get())->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
@@ -481,7 +407,7 @@ int main(int argc, char **argv)
     }
 
     /* Report overall run-time in verbose mode */
-    if (verbose) {
+    if (env.has("verbose")) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end-souffle_start).count() << "sec\n";
     }

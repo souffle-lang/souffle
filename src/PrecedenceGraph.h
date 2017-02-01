@@ -29,6 +29,7 @@
 #include "AstAnalysis.h"
 #include "AstTranslationUnit.h"
 #include "GraphUtils.h"
+#include "Environment.h"
 
 namespace souffle {
 
@@ -210,22 +211,16 @@ private:
     /** The strongly connected component (SCC) graph. */
     SCCGraph *sccGraph;
 
-    /** The final topological ordering over the SCCs. */
+    /** The final topological ordering of the SCCs. */
     std::vector<int> orderedSCCs;
 
-    /** Marker type for to compute topological ordering. */
+    /** Marker type to compute topological ordering. */
     enum Colour {
         WHITE   = 0xFFFFFF,
         GRAY    = 0x7f7f7f,
         BLACK   = 0x000000,
         RED     = 0xFF0000
     };
-
-    /** Reverse DFS for computing topological order of SCC graph */
-    void reverseDFS(int su);
-
-    /** Run reverse DFS to compute the topsort of the SCC graph. */
-    void runReverseDFS();
 
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
@@ -235,27 +230,31 @@ private:
     set using the ordered SCCs. */
     void bestCostTopologicalOrdering(std::vector<int>& lookaheadSCCs) const;
 
-    /** Recursive component of Khan's algorithm, gets the nodes for the current round. */
-    void findLookaheadSCCs(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
+    /** Recursive component for the backwards algorithm computing the topological ordering of the SCCs. */
+    void backwardAlgorithmRecursive(int su, std::vector<int>& lookaheadSCCs);
 
-    /** Algorithm to compute the topological ordering, uses a breadth and depth lookahead. */
-    void obtainTopologicalOrdering(int scc);
+    /** Backwards algorithm for computing the topological order of SCCs, based on reverse DFS. */
+    void backwardAlgorithm();
 
-    /** Run algorithm to compute the topological ordering of the SCC graph. */
-    void generateTopologicalOrdering();
+    /** Traverse the graph and construct the set of lookahead SCCs for the forwards algorithm. */
+    void findForwardLookahead(int scc, std::vector<int>& lookaheadSCCs, unsigned int depth);
 
-    /** Naive algorithm to compute best cost topological ordering. Guaranteed to be optimal however runtime is factorial. */
-    void naiveTopologicalOrdering();
+    /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
+    void forwardAlgorithmRecursive(int scc);
+
+    /* Forwardss algorithm for computing the topological order of SCCs, based on Khan's algorithm. */
+    void forwardAlgorithm();
 
 public:
 
-    // TODO
-    /** Breadth limit for algorithm, set by command line arguments. */
-    static const unsigned int BREADTH = 2;
+    /** Breadth limit for algorithm, used for the forwards algorithm. */
+    static unsigned int BREADTH_LIMIT;
 
-    // TODO
-    /** Depth limit for algorithm, set by command line arguments. */
-    static const unsigned int DEPTH = 2;
+    /** Depth limit for algorithm, used for the forwards algorithm. */
+    static unsigned int DEPTH_LIMIT;
+
+    /** Lookahead limit for algorithm, used for the backwards algorithm. */
+    static unsigned int LOOKAHEAD;
 
     static constexpr const char *name = "topological-scc-graph";
 

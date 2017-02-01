@@ -1,7 +1,22 @@
-Error: positive integer constant must be in range [0, 2147483647] in file number_constants.dl at line 6
+Error: int not in range in file number_constants.dl at line 12
 R(2147483648). // error: out of range
 --^-----------------------------------
-Error: positive integer constant must be in range [0, 2147483647] in file number_constants.dl at line 10
-R(-2147483648). // error: out of range
+Error: int not in range in file number_constants.dl at line 17
+R(-2147483649). // error: out of range
 ---^-----------------------------------
-2 errors generated, evaluation aborted
+Error: int not in range in file number_constants.dl at line 18
+R(- 2147483649). // error: out of range
+----^-----------------------------------
+Error: int not in range in file number_constants.dl at line 29
+R(2147483647-2147483648). // error: out of range
+-------------^-----------------------------------
+Error: int not in range in file number_constants.dl at line 30
+R(2147483647- 2147483648). // error: out of range
+--------------^-----------------------------------
+Error: int not in range in file number_constants.dl at line 31
+R(2147483647 -2147483648). // error: out of range
+--------------^-----------------------------------
+Error: int not in range in file number_constants.dl at line 32
+R(2147483647 - 2147483648). // error: out of range
+---------------^-----------------------------------
+7 errors generated, evaluation aborted

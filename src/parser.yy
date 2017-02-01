@@ -85,10 +85,7 @@
 %token END 0                     "end of file"
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
-%token <int> NUMBER              "number"
-/* TODO: implement correct support for negative numbers
-%token <int> NEGATIVE_NUMBER     "negative number"
-*/
+%token <long long> NUMBER        "number"
 %token <std::string> RELOP       "relational operator"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
 %token INPUT_QUALIFIER           "relation qualifier input"
@@ -171,8 +168,7 @@
 
 %printer { yyoutput << $$; } <*>;
 
-%left DOT COLON
-%right AS
+%precedence AS
 %left L_OR
 %left L_AND
 %left BW_OR 
@@ -180,8 +176,8 @@
 %left BW_AND
 %left PLUS MINUS
 %left STAR SLASH PERCENT
-%left BW_NOT L_NOT
-%left NEG 
+%precedence BW_NOT L_NOT
+%precedence NEG
 %left CARET
 
 %%
@@ -197,7 +193,7 @@ unit: unit type { $$ = $1; driver.addType($2); }
     | unit rule { $$ = $1; for(const auto& cur : $2) driver.addClause(cur); }
     | unit component { $$ = $1; driver.addComponent($2); }
     | unit comp_init { $$ = $1; driver.addInstantiation($2); }
-    | {
+    | %empty {
       }
     ;
 
@@ -275,7 +271,7 @@ non_empty_attributes : IDENT COLON type_id {
         ;
 
 attributes: non_empty_attributes { $$ = $1; }
-        | { 
+        | %empty {
            $$ = new AstRelation();
           }
         ;
@@ -285,7 +281,7 @@ qualifiers: qualifiers OUTPUT_QUALIFIER { if($1 & OUTPUT_RELATION) driver.error(
           | qualifiers DATA_QUALIFIER { if($1 & DATA_RELATION) driver.error(@2, "input qualifier already set"); $$ = $1 | DATA_RELATION; }
           | qualifiers PRINTSIZE_QUALIFIER { if($1 & PRINTSIZE_RELATION) driver.error(@2, "printsize qualifier already set"); $$ = $1 | PRINTSIZE_RELATION; }
           | qualifiers OVERRIDABLE_QUALIFIER { if($1 & OVERRIDABLE_RELATION) driver.error(@2, "overridable qualifier already set"); $$ = $1 | OVERRIDABLE_RELATION; }
-          | { $$ = 0; }
+          | %empty { $$ = 0; }
           ;
 
 relation: DECL IDENT LPAREN attributes RPAREN qualifiers {
@@ -315,14 +311,11 @@ arg: STRING {
      }
    | NUMBER {
        $$ = new AstNumberConstant($1);
+       // TODO: integer constant should be in range [-2^31, 2^31-1] (i.e. [-2147483648, 2147483647])
+       if ($1 > 2147483647)
+          driver.error(@1, "int not in range");
        $$->setSrcLoc(@$);
      }
-   /* TODO: implement correct support for negative numbers
-   | NEGATIVE_NUMBER {
-       $$ = new AstNumberConstant($1);
-       $$->setSrcLoc(@$);
-    }
-   */
    | LPAREN arg RPAREN {
        $$ = $2;
      }
@@ -354,12 +347,6 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::SUB, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   /* TODO: implement correct support for negative numbers
-   | arg NEGATIVE_NUMBER {
-       $$ = new AstBinaryFunctor(BinaryOp::SUB, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>(new AstNumberConstant(-1*$2)));
-       $$->setSrcLoc(@$);
-   }
-   */
    | arg STAR arg {
        $$ = new AstBinaryFunctor(BinaryOp::MUL, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
@@ -376,17 +363,6 @@ arg: STRING {
        $$ = new AstBinaryFunctor(BinaryOp::EXP, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   /* TODO: implement correct support for negative numbers
-   | NEGATIVE_NUMBER CARET arg {
-       $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>(
-            new AstBinaryFunctor(BinaryOp::EXP, std::unique_ptr<AstArgument>(
-                new AstNumberConstant(-1*$1)),
-                std::unique_ptr<AstArgument>($3)
-            )
-       ));
-       $$->setSrcLoc(@$);
-    }
-   */
    | CAT LPAREN arg COMMA arg RPAREN {
        $$ = new AstBinaryFunctor(BinaryOp::CAT, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
        $$->setSrcLoc(@$);
@@ -399,7 +375,7 @@ arg: STRING {
        $$ = new AstTypeCast(std::unique_ptr<AstArgument>($1), $3); 
        $$->setSrcLoc(@$);
      }
-   |  MINUS arg %prec NEG { 
+   |  MINUS arg %prec NEG {
        $$ = new AstUnaryFunctor(UnaryOp::NEG, std::unique_ptr<AstArgument>($2));
        $$->setSrcLoc(@$); 
      }
@@ -533,7 +509,7 @@ non_empty_arg_list :
         ;
 
 arg_list: non_empty_arg_list { $$ = $1; }
-        | {
+        | %empty {
           $$ = new AstAtom();
         }
         ;
@@ -697,7 +673,7 @@ type_param_list:
       }
     ;
     
-type_params: {
+type_params: %empty {
       }
     | LT type_param_list GT {
         $$ = $2;
@@ -737,7 +713,7 @@ component_body:
     | component_body comp_override { $$ = $1; $$->addOverride($2); }
     | component_body component     { $$ = $1; $$->addComponent(std::unique_ptr<AstComponent>($2)); }
     | component_body comp_init     { $$ = $1; $$->addInstantiation(std::unique_ptr<AstComponentInit>($2)); }
-    | {
+    | %empty {
         $$ = new AstComponent();
     }
     
