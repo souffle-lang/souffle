@@ -43,7 +43,7 @@ error() {
 CXX=@CXX@
 CXXFLAGS="@CXXFLAGS@"
 LDFLAGS="@LDFLAGS@"
-LIBS="@LIBS@"
+LIBS="@LIBS@ @SQLITE3_LDFLAGS@"
 OMP_FLAG="@OPENMP_CFLAGS@"
 
 # set by command flags
