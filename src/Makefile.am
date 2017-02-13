@@ -135,24 +135,24 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
                         CompiledSouffle.h       \
-				        SouffleInterface.h      \
-				        ParallelUtils.h         \
-				        RamTypes.h              \
-				        BTree.h                 \
-				        Trie.h                  \
-				        Table.h                 \
-				        Util.h                  \
-				        IterUtils.h             \
-				        SymbolTable.h           \
-				        RamLogger.h             \
-				        SqliteRelationWriter.h  \
-                        IODirectives.h
-				        IOSystem.h              \
-				        ReadStream.h            \
-				        ReadStreamCSV.h         \
-				        SymbolMask.h            \
-				        ReadStreamSQLite.h      \
-				        WriteStream.h           \
+                        SouffleInterface.h      \
+                        ParallelUtils.h         \
+                        RamTypes.h              \
+                        BTree.h                 \
+                        Trie.h                  \
+                        Table.h                 \
+                        Util.h                  \
+                        IterUtils.h             \
+                        SymbolTable.h           \
+                        RamLogger.h             \
+                        SqliteRelationWriter.h  \
+                        IODirectives.h          \
+                        IOSystem.h              \
+                        ReadStream.h            \
+                        ReadStreamCSV.h         \
+                        SymbolMask.h            \
+                        ReadStreamSQLite.h      \
+                        WriteStream.h           \
                         WriteStreamCSV.h        \
                         WriteStreamSQLite.h
 
