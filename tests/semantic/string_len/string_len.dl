@@ -3,6 +3,7 @@ A("hello").
 A("yell").
 A("me").
 
-.decl B(x:number, y:symbol) output
+.decl B(x:number, y:symbol) 
+.output B()
 B(strlen(x),x) :- A(x).
 

@@ -53,7 +53,7 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
         case UnaryOp::ORD:
             return "ord";
         case UnaryOp::STRLEN:
-            return "len";
+            return "strlen";
         case UnaryOp::NEG:
             return "-";
         case UnaryOp::BNOT:
@@ -100,7 +100,7 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
  */
 inline UnaryOp getUnaryOpForSymbol(const std::string& symbol) {
     if (symbol == "ord") return UnaryOp::ORD;
-    if (symbol == "len") return UnaryOp::STRLEN;
+    if (symbol == "strlen") return UnaryOp::STRLEN;
     if (symbol == "-") return UnaryOp::NEG;
     if (symbol == "bnot") return UnaryOp::BNOT;
     if (symbol == "lnot") return UnaryOp::LNOT;
