@@ -101,7 +101,7 @@
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of two strings"
 %token ORD                       "ordinal number of a string"
-%token LEN                       "length of a string"
+%token STRLEN                    "length of a string"
 %token MIN                       "min aggregator"
 %token MAX                       "max aggregator"
 %token COUNT                     "count aggregator"
@@ -496,8 +496,8 @@ arg: STRING {
        $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
-   | LEN LPAREN arg RPAREN {
-       $$ = new AstUnaryFunctor(UnaryOp::LEN, std::unique_ptr<AstArgument>($3));
+   | STRLEN LPAREN arg RPAREN {
+       $$ = new AstUnaryFunctor(UnaryOp::STRLEN, std::unique_ptr<AstArgument>($3));
        $$->setSrcLoc(@$);
      }
    | arg AS IDENT {

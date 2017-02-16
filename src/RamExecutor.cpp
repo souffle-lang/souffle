@@ -167,7 +167,7 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                     return !visit(op.getValue());
                 case UnaryOp::ORD:
                     return visit(op.getValue());
-                case UnaryOp::LEN:
+                case UnaryOp::STRLEN:
                     return strlen(env.getSymbolTable().resolve(visit(op.getValue())));
                 case UnaryOp::SIN:
                     return sin(visit(op.getValue()));
@@ -1782,7 +1782,7 @@ public:
             case UnaryOp::ORD:
                 out << print(op.getValue());
                 break;
-            case UnaryOp::LEN:
+            case UnaryOp::STRLEN:
                 out << "strlen(symTable.resolve((size_t)" << print(op.getValue()) << "))";
                 break;
             case UnaryOp::NEG:

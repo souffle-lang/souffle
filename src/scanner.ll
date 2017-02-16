@@ -95,7 +95,7 @@
 "match"                               { return yy::parser::make_TMATCH(yylloc); }
 "cat"                                 { return yy::parser::make_CAT(yylloc); }
 "ord"                                 { return yy::parser::make_ORD(yylloc); }
-"len"                                 { return yy::parser::make_LEN(yylloc); }
+"strlen"                              { return yy::parser::make_STRLEN(yylloc); }
 "contains"                            { return yy::parser::make_TCONTAINS(yylloc); }
 "output"                              { return yy::parser::make_OUTPUT_QUALIFIER(yylloc); }
 "input"                               { return yy::parser::make_INPUT_QUALIFIER(yylloc); }

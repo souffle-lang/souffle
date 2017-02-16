@@ -4,5 +4,5 @@ A("yell").
 A("me").
 
 .decl B(x:number, y:symbol) output
-B(len(x),x) :- A(x).
+B(strlen(x),x) :- A(x).
 
