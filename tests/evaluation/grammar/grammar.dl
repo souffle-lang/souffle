@@ -8,10 +8,12 @@
 // A –> Aa
 // It was tested with the output string ababa.
 
-.type Node 
+.type Node
 
-.decl t (node1:Node, node2:Node, node3:Node) output
-.decl a (node1:Node, node2:Node) output
+.decl t (node1:Node, node2:Node, node3:Node)
+.output t ()
+.decl a (node1:Node, node2:Node)
+.output a ()
 
 t("1","a","2").
 t("2","b","3").

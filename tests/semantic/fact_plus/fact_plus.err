@@ -1,10 +1,10 @@
-Error: Binary function in fact in file fact_plus.dl at line 9
+Error: Binary function in fact in file fact_plus.dl at line 10
 F(1+a,"AA").
 --^----------
-Error: Non-numerical operand for numeric function in file fact_plus.dl at line 9
+Error: Non-numerical operand for numeric function in file fact_plus.dl at line 10
 F(1+a,"AA").
 ----^--------
-Warning: Variable a only occurs once in file fact_plus.dl at line 9
+Warning: Variable a only occurs once in file fact_plus.dl at line 10
 F(1+a,"AA").
 ----^--------
 2 errors generated, evaluation aborted

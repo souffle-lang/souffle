@@ -11,9 +11,10 @@ n(5).
 
 .type pair = [ first : N, second : N ]
 
-.decl p ( p : pair ) 
+.decl p ( p : pair )
 p([x,x]) :- n(x).
 
-.decl r ( x : N, y : N ) output
+.decl r ( x : N, y : N )
+.output r ()
 r(x,y) :- p([x,y]).
 

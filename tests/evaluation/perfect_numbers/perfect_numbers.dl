@@ -14,5 +14,6 @@ lim(100).
 e_factor(x, fc) :- gen(fc), gen(x), x % fc = 0, x!=fc.
 
 //x is equal to the sum of its factors excluding itself
-.decl perfect(x : number) output
+.decl perfect(x : number)
+.output perfect()
 perfect(x) :- gen(x), x = sum inv : e_factor(x, inv).

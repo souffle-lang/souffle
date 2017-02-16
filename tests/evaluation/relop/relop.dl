@@ -7,12 +7,18 @@
 
 .type Node
 
-.decl a  (node1:Node) output
-.decl b  (node1:Node) output
-.decl c  (node1:Node, node2:Node) output
-.decl projection  (node1:Node) output
-.decl cartesian   (node1:Node, node2:Node) output
-.decl inner_join  (node1:Node) output
+.decl a  (node1:Node)
+.output a  ()
+.decl b  (node1:Node)
+.output b  ()
+.decl c  (node1:Node, node2:Node)
+.output c  ()
+.decl projection  (node1:Node)
+.output projection  ()
+.decl cartesian   (node1:Node, node2:Node)
+.output cartesian   ()
+.decl inner_join  (node1:Node)
+.output inner_join  ()
 
 a("a1").
 a("a2").

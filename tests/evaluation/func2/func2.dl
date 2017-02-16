@@ -1,9 +1,10 @@
-.type String 
+.type String
 
-.decl f(v:String, f:String) 
+.decl f(v:String, f:String)
 .decl arg (v:String, i:number, a:String)
-.decl args (a:String, b:String, c:number) 
-.decl eq  (a:String, b:String) output
+.decl args (a:String, b:String, c:number)
+.decl eq  (a:String, b:String)
+.output eq  ()
 
 f("x", "g").
 f("y", "f").

@@ -9,8 +9,10 @@
 .decl X(i:number)
 .decl Y(i:number)
 
-.decl P(j:number, k:number) output
-.decl Q(j:number, k:number) output
+.decl P(j:number, k:number)
+.output P()
+.decl Q(j:number, k:number)
+.output Q()
 
 A(0).
 B(1).

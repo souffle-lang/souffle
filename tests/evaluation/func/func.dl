@@ -1,10 +1,11 @@
 .type String
 
-.decl f(v:String, f:String) 
-.decl succ (v:String, f:String) 
+.decl f(v:String, f:String)
+.decl succ (v:String, f:String)
 .decl arg (v:String, i:String, a:String)
-.decl args (a:String, b:String, c:String) 
-.decl eq  (a:String, b:String) output
+.decl args (a:String, b:String, c:String)
+.decl eq  (a:String, b:String)
+.output eq  ()
 
 
 succ("1", "2").

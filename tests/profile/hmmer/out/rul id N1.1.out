@@ -1,4 +1,4 @@
-     ID  NAME                     
+     ID  NAME
 
    N1.1  LptrVar(v) :-     StackAlloc(v,_).
 

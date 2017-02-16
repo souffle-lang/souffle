@@ -91,6 +91,18 @@ void ParserDriver::addRelation(AstRelation* r) {
         translationUnit->getErrorReport().addDiagnostic(err);
     } else {
         translationUnit->getProgram()->addRelation(std::unique_ptr<AstRelation>(r));
+        if (r->isInput()) {
+            translationUnit->getErrorReport().addWarning(
+                    "Deprecated input qualifier was used in relation " + toString(name), r->getSrcLoc());
+        }
+        if (r->isOutput()) {
+            translationUnit->getErrorReport().addWarning(
+                    "Deprecated output qualifier was used in relation " + toString(name), r->getSrcLoc());
+        }
+        if (r->isPrintSize()) {
+            translationUnit->getErrorReport().addWarning(
+                    "Deprecated printsize qualifier was used in relation " + toString(name), r->getSrcLoc());
+        }
     }
 }
 

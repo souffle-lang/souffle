@@ -14,15 +14,17 @@ Edge("1","4",-6).
 Edge("4","2",-1).
 
 //
-// Reachable 
+// Reachable
 //
 
-.decl Reachable   (n:Node, m:Node, i:number) output
+.decl Reachable   (n:Node, m:Node, i:number)
+.output Reachable   ()
 
 Reachable(x,y,r)  :- r=w, Edge(x,y,w).
 Reachable(x,y,d+w)  :- Edge(x,z,w), Reachable(z,y,d).
 
 
-.decl ShortestDuplicates(n:Node, m:Node, i:number) output
+.decl ShortestDuplicates(n:Node, m:Node, i:number)
+.output ShortestDuplicates()
 
 ShortestDuplicates(x,y,a) :- Reachable(x,y,a), Reachable(x,y,b), a<b.

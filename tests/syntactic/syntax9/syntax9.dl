@@ -1,7 +1,8 @@
 .type N
 
 .decl Reachable   (a:N x b:N)
-.decl Same        (a:N, b:N)  output
+.decl Same        (a:N, b:N)
+.output Same        ()
 .decl Edge        (a:N, b:N)
 
 Reachable(x,y)  :- Edge(x,y).

@@ -1,8 +1,9 @@
 .type Integer
 
-.decl plus_mod (x:Integer, y:Integer, r:Integer) 
-.decl succ (a:Integer, b:Integer) 
-.decl f(x:Integer, y:Integer) output
+.decl plus_mod (x:Integer, y:Integer, r:Integer)
+.decl succ (a:Integer, b:Integer)
+.decl f(x:Integer, y:Integer)
+.output f()
 
 f("0", "0").
 f("1", "1").

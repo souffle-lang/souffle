@@ -1,10 +1,14 @@
 .type Integer
 
-.decl succ(a:Integer, b:Integer)  
-.decl equal(x:Integer, y:Integer, r:Integer)  output
-.decl minimum(x:Integer, y:Integer, r:Integer)  output
-.decl maximum(x:Integer, y:Integer, r:Integer)  output
-.decl Is_min_max_eq(r:Integer) output
+.decl succ(a:Integer, b:Integer)
+.decl equal(x:Integer, y:Integer, r:Integer)
+.output equal()
+.decl minimum(x:Integer, y:Integer, r:Integer)
+.output minimum()
+.decl maximum(x:Integer, y:Integer, r:Integer)
+.output maximum()
+.decl Is_min_max_eq(r:Integer)
+.output Is_min_max_eq()
 
 equal("0", "0", "0").
 equal(m, n, r) :- succ(pm, m), succ(pn, n), equal(pm, pn, r).

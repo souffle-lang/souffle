@@ -4,11 +4,12 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-// Check semantics of binary relations 
+// Check semantics of binary relations
 
 .decl A (n:number)
 .decl B (a:number, b:number)
-.decl C (a:number, b:number) output
+.decl C (a:number, b:number)
+.output C ()
 
 // create a list from 0 to 1000
 A(0).

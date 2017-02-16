@@ -1,9 +1,12 @@
 
 .type Node
-.decl flight      (node1:Node, node2:Node, node3:Node) 
-.decl QAflies   (node1:Node, node2:Node) output
-.decl VAflies   (node1:Node, node2:Node) output
-.decl QAonly   (node1:Node, node2:Node) output
+.decl flight      (node1:Node, node2:Node, node3:Node)
+.decl QAflies   (node1:Node, node2:Node)
+.output QAflies   ()
+.decl VAflies   (node1:Node, node2:Node)
+.output VAflies   ()
+.decl QAonly   (node1:Node, node2:Node)
+.output QAonly   ()
 
 QAflies(X,Y) :- flight("QA",X,Y).
 QAflies(X,Y) :- flight("QA",X,Z), QAflies(Z,Y).

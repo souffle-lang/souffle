@@ -1,7 +1,7 @@
-Error: Binary function in fact in file fact_cat.dl at line 6
+Error: Binary function in fact in file fact_cat.dl at line 7
 F(cat("x","y"),"AA").
 --^-------------------
-Error: Non-symbol use for string function in file fact_cat.dl at line 6
+Error: Non-symbol use for string function in file fact_cat.dl at line 7
 F(cat("x","y"),"AA").
 --^-------------------
 2 errors generated, evaluation aborted

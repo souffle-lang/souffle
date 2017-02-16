@@ -5,7 +5,8 @@
 
 
 .decl a(x:P)
-.decl b(x:N,y:N) output
+.decl b(x:N,y:N)
+.output b()
 
 a([1,2]).
 a([2,3]).

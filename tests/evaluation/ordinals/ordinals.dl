@@ -11,7 +11,8 @@ n("Lisa").
 n("Maggie").
 
 
-.decl r ( x : number ) output
+.decl r ( x : number )
+.output r ()
 
 r(1) :- n(x), n(y), ord(x) < ord(y).
 r(2) :- n(x), n(y), ord(x) > ord(y).

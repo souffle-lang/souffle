@@ -19,8 +19,10 @@
 .init d = Derived<Impl>
 .init a = A<Impl>
 
-.decl DerivedOut(x: number) output
-.decl AOut(x: number) output
+.decl DerivedOut(x: number)
+.output DerivedOut()
+.decl AOut(x: number)
+.output AOut()
 
 DerivedOut(x) :- d.Deriv(x).
 AOut(x) :- a.Base(x).

@@ -42,8 +42,8 @@ protected:
     typedef std::vector<Chain> ChainOrderMap;
     typedef std::set<SearchColumns> SearchSet;
 
-    SearchSet searches;  // set of search patterns on table
-    OrderCollection orders;  // collection of lexicographical orders
+    SearchSet searches;          // set of search patterns on table
+    OrderCollection orders;      // collection of lexicographical orders
     ChainOrderMap chainToOrder;  // maps order index to set of searches covered by chain
 
     RamMaxMatching matching;  // matching problem for finding minimal number of orders

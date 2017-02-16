@@ -8,29 +8,30 @@
 // Compute Ackermann function
 //
 
-// attribute types 
+// attribute types
 .type Integer
 
-// declarations 
-.decl succ (a:Integer, b:Integer) 
+// declarations
+.decl succ (a:Integer, b:Integer)
 .decl greaterThanZ(a:Integer)
-.decl ack(a:Integer, b:Integer, c:Integer) output
+.decl ack(a:Integer, b:Integer, c:Integer)
+.output ack()
 
-// IDB 
-ack("0", N, Ans) :-  
+// IDB
+ack("0", N, Ans) :-
     succ(N, Ans).
 
-ack(M, "0", Ans) :- 
-    greaterThanZ(M), 
-    succ(X, M), 
+ack(M, "0", Ans) :-
+    greaterThanZ(M),
+    succ(X, M),
     ack(X, "1", Ans).
 
-ack(M, N, Ans) :- 
-    greaterThanZ(M), 
-    greaterThanZ(N), 
-    succ(X, M), 
-    succ(Y, N), 
-    ack(M, Y, Ans2), 
+ack(M, N, Ans) :-
+    greaterThanZ(M),
+    greaterThanZ(N),
+    succ(X, M),
+    succ(Y, N),
+    ack(M, Y, Ans2),
     ack(X, Ans2, Ans).
 
 // EDB

@@ -6,5 +6,6 @@ bites("struppi", "josef").
 bites("struppi", "maria").
 bites("alfi", "karl").
 
-.decl bad(x:Dog) output
-bad(Dog) :- bites(Dog, _Anybody). 
+.decl bad(x:Dog)
+.output bad()
+bad(Dog) :- bites(Dog, _Anybody).

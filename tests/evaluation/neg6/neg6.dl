@@ -10,8 +10,10 @@ a(2,1,1).
 a(3,1,1).
 a(4,2,3).
 
-.decl b ( a : N ) output
+.decl b ( a : N )
+.output b ()
 b(x) :- a(x,_,_), !a(_,x,_).
 
-.decl c ( a : N ) output
+.decl c ( a : N )
+.output c ()
 c(x) :- a(x,_,_), !a(x,_,x).

@@ -4,32 +4,37 @@
 
 .type D
 
-.decl star    (x:D) output
-.decl orbits  (x:D,y:D) output
-.decl planet  (x:D) output
-.decl intermediate (x:D,y:D) output
-.decl satellite (x:D,y:D) output
+.decl star    (x:D)
+.output star    ()
+.decl orbits  (x:D,y:D)
+.output orbits  ()
+.decl planet  (x:D)
+.output planet  ()
+.decl intermediate (x:D,y:D)
+.output intermediate ()
+.decl satellite (x:D,y:D)
+.output satellite ()
 
 star("sun").
 orbits("earth", "sun").
 orbits("moon", "earth").
 
-orbits(X,Y) :-  
-  orbits(X,Z),  
+orbits(X,Y) :-
+  orbits(X,Z),
   orbits(Z,Y).
 
-satellite(X,Y) :-       
-  orbits(X,Y),          
-  !intermediate(X,Y),   
+satellite(X,Y) :-
+  orbits(X,Y),
+  !intermediate(X,Y),
   !star(Y).
 
-planet(X) :-          
-  orbits(X,Y),        
-  star(Y),            
+planet(X) :-
+  orbits(X,Y),
+  star(Y),
   !intermediate(X,Y).
 
-intermediate(X,Y) :- 
-  orbits(X,Z),       
+intermediate(X,Y) :-
+  orbits(X,Z),
   orbits(Z,Y).
 
 

@@ -1,8 +1,10 @@
 .type Integer
 
-.decl succ (a:Integer, b:Integer) 
-.decl equal(x:Integer, y:Integer, r:Integer)  output
-.decl isEqual(r:Integer) output
+.decl succ (a:Integer, b:Integer)
+.decl equal(x:Integer, y:Integer, r:Integer)
+.output equal()
+.decl isEqual(r:Integer)
+.output isEqual()
 
 equal("0", "0", "1").
 equal(m, n, r) :- succ(pm, m) , succ(pn, n), equal(pm, pn, r).

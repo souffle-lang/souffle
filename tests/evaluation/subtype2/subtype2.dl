@@ -3,7 +3,7 @@
 .type B = C
 .type C = D
 .type D = E
-.type E 
+.type E
 
 .type BA = CA
 .type BB = CB
@@ -11,7 +11,8 @@
 .type CA
 .type CB
 
-.decl R_A(a:A) output
+.decl R_A(a:A)
+.output R_A()
 R_A("A").
 
 .decl R_B(b:B)
@@ -115,7 +116,7 @@ R_BA(x) :- R_CA(x).
 R_CB("CB").
 R_BB(x) :- R_CB(x).
 
-.decl R_A_A(x:A,y:A) 
+.decl R_A_A(x:A,y:A)
 R_A_A(x,y) :- R_BA(x), R_BB(y).
 
 

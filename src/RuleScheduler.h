@@ -41,10 +41,10 @@ typedef int Var;
 class Argument {
     /** The type of argument */
     enum Kind {
-        Variable,  // < Named variables, require to expose and ID
-        Constant,  // < constants, no ID
+        Variable,    // < Named variables, require to expose and ID
+        Constant,    // < constants, no ID
         UnnamedVar,  // < underscore, no ID
-        Other  // < others, no ID
+        Other        // < others, no ID
     };
 
     /** The kind of argument represented */

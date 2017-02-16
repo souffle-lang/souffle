@@ -1,9 +1,9 @@
   ----- Rule Versions Table -----
    TOT_T  NREC_T   REC_T  COPY_T    TUPLES   VER   ID RELATION
 
-    .188    .000    .184    .005      7575         C1.1 LptrVar                  
+    .188    .000    .184    .005      7575         C1.1 LptrVar
  ---------------------------------------------------------
-    .188    .000    .184    .005      7575     0   C1.1 LptrVar                  
+    .188    .000    .184    .005      7575     0   C1.1 LptrVar
 
 Src locator: hmmer.dl [30:1-30:43]
 

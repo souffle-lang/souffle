@@ -90,7 +90,8 @@ Equal.edge("5","V").
 
 
 // some output
-.decl result ( x : symbol ) output
+.decl result ( x : symbol )
+.output result ()
 result("Star Wars IV-VI happend!") :- SocialNet.reachable("han","leia").
 result("Luke isn't a good buddy!") :- !SocialNet.reachable("leia","han").
 

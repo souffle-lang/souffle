@@ -11,10 +11,12 @@
 
 // Symbols
 
-.decl SymbolA(x:symbol, y:symbol) output
+.decl SymbolA(x:symbol, y:symbol)
+.output SymbolA()
 .decl SymbolB(x:symbol, y:symbol)
 .decl SymbolC(x:symbol, y:symbol)
-.decl SymbolD(x:symbol, y:symbol) input
+.decl SymbolD(x:symbol, y:symbol)
+.input SymbolD()
 
 // Symbol B
 
@@ -103,10 +105,12 @@ SymbolA(x, z) :- SymbolB(x, y), SymbolD(y, z). /// no
 
 // Numbers
 
-.decl NumberA(x:number, y:number) output
+.decl NumberA(x:number, y:number)
+.output NumberA()
 .decl NumberB(x:number, y:number)
 .decl NumberC(x:number, y:number)
-.decl NumberD(x:number, y:number) input
+.decl NumberD(x:number, y:number)
+.input NumberD()
 
 // Number B
 

@@ -4,8 +4,8 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-/* Conversion of non-deterministic FSA to deterministic FSA. 
- * Complex souffle example that demonstrates: components, 
+/* Conversion of non-deterministic FSA to deterministic FSA.
+ * Complex souffle example that demonstrates: components,
  * aggregates, and string concatenation. */
 
 /* The inputs: alphabet, set of states and transition relation */
@@ -14,9 +14,12 @@
 .number_type N
 .type Letter
 
-.decl state(n : N) input
-.decl alphabet(x : Letter) input
-.decl tr(s1 : N, s2 : N, x : Letter) input
+.decl state(n : N)
+.input state()
+.decl alphabet(x : Letter)
+.input alphabet()
+.decl tr(s1 : N, s2 : N, x : Letter)
+.input tr()
 
 // --------------------------------------------------------
 // --------------------------------------------------------
@@ -46,11 +49,11 @@
 
 
 	member_at([h, t], idx, member) :-
-		element(h), sublist(t), element(member), 
+		element(h), sublist(t), element(member),
 		member_at(t, idx, member).
 
-	member_at([h, t], idx, member) :- 
-		element(h), sublist(t), element(member), 
+	member_at([h, t], idx, member) :-
+		element(h), sublist(t), element(member),
 		size(max_size), idx <= max_size,
 		h = member, len([h, t], idx).
 }
@@ -79,8 +82,8 @@
 	accepts(w) :- Word.sublist(w), start_state(s), accepts_from_state(w, s).
 
 	accepts_from_state(nil, s) :- final(s).
-	accepts_from_state([h, t], s) :- 
-		alphabet(h), state(s), Word.sublist(t), 
+	accepts_from_state([h, t], s) :-
+		alphabet(h), state(s), Word.sublist(t),
 		tr(s, q, h), accepts_from_state(t, q).
 }
 
@@ -116,10 +119,10 @@ Fsa.final(s) :- Nfsa.final(fin), FsaState.member_at(s, fin, 1).
 Fsa.alphabet(c) :- alphabet(c).
 Fsa.max_acceptance_size(5).
 
-// the result of the conversion is this relation that 
+// the result of the conversion is this relation that
 // defines the transitions of the resulting FSA
-Fsa.tr(s, q, a) :-  
-	FsaState.vector(s), FsaState.vector(q), Nfsa.alphabet(a), 
+Fsa.tr(s, q, a) :-
+	FsaState.vector(s), FsaState.vector(q), Nfsa.alphabet(a),
 	!not_fsa_tr(s, q, a), // negation of negation helps us to get rid of quantification (for all)
 	Nfsa.tr(x, y, a),		// this is so that there is at least one transition between the two states
 	FsaState.member_at(s, x, 1), FsaState.member_at(q, y, 1). // this is so that s,q (the states) are not empty sets
@@ -132,24 +135,24 @@ has_x(S, y, a) :- FsaState.member_at(S, x, 1), Nfsa.tr(x,y,a).
 
 // it is not fsa transition if have some x from S and tr(x,y,a) for such y that is not member of Q
 // i.e. Q is missing some target states
-not_fsa_tr(s, q, a) :- 
+not_fsa_tr(s, q, a) :-
 	FsaState.vector(s), FsaState.vector(q), Nfsa.alphabet(a),
 	Nfsa.tr(x, y, a), FsaState.member_at(s, x, 1), !FsaState.member_at(q, y, 1).
 
 // it is not fsa transition if for y from Q there is no x from S such that tr(x,y,a):
 // i.e. Q has got some more states than it should
-not_fsa_tr(s, q, a) :- 
+not_fsa_tr(s, q, a) :-
 	FsaState.vector(s), FsaState.vector(q), Nfsa.alphabet(a),
-	FsaState.member_at(q, y, 1), !has_x(s, y, a). 
+	FsaState.member_at(q, y, 1), !has_x(s, y, a).
 
 
 // -------------------------------------------------------
 // -------------------------------------------------------
 // Debug output: accepted word of length <= 5 and deterministric transition relation
 
-// note: the numbering of recursive structures may differ when we 
-// run the program in parallel, so relations that output recursive structures 
-// cannot be used for testing purposes. For that reason, we convert the states 
+// note: the numbering of recursive structures may differ when we
+// run the program in parallel, so relations that output recursive structures
+// cannot be used for testing purposes. For that reason, we convert the states
 // into strings, e.g. "01011" and words too.
 
 .type String
@@ -162,12 +165,15 @@ fsa_state_to_str([1,t], cat("1", str)) :- FsaState.sublist(t), fsa_state_to_str(
 word_to_str(nil, " ").
 word_to_str([h,t], cat(h, str)) :- Fsa.alphabet(h), Fsa.Word.sublist(t), word_to_str(t, str).
 
-.decl fsa_accepted(w: String) output
+.decl fsa_accepted(w: String)
+.output fsa_accepted()
 fsa_accepted(w) :- Fsa.accepts(list), word_to_str(list, w).
 
-.decl nfsa_accepted(w: String) output
+.decl nfsa_accepted(w: String)
+.output nfsa_accepted()
 nfsa_accepted(w) :- Nfsa.accepts(list), word_to_str(list, w).
 
-.decl fsa_tr(s: String, q: String, c: Letter) output
+.decl fsa_tr(s: String, q: String, c: Letter)
+.output fsa_tr()
 fsa_tr(s_str, q_str, c) :- Fsa.tr(s, q, c), fsa_state_to_str(s, s_str), fsa_state_to_str(q, q_str).
 

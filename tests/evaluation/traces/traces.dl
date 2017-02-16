@@ -127,7 +127,7 @@ call("m5","e").
 
 
 // -- list of all procedures --
-.decl proc(p:procedure) 
+.decl proc(p:procedure)
 proc(p) :- p_start(p,_).
 
 
@@ -140,22 +140,22 @@ p2i(p,j) :- p2i(p,i), flow(i,j).
 
 
 // -- call graph --
-.decl call_graph(src:procedure,trg:procedure) 
+.decl call_graph(src:procedure,trg:procedure)
 call_graph(s,t) :- p2i(s,i), call(i,t).
 
 
 // -- list of recursive procedures --
-.decl rec_proc_reachable(a:procedure,b:procedure) 
+.decl rec_proc_reachable(a:procedure,b:procedure)
 rec_proc_reachable(a,b) :- call_graph(a,b).
 rec_proc_reachable(a,c) :- rec_proc_reachable(a,b), call_graph(b,c).
 
-.decl rec_proc(p:procedure) 
+.decl rec_proc(p:procedure)
 rec_proc(p) :- rec_proc_reachable(p,p).
 
 
 
 // -- call graph spanning tree --
-.decl call_graph_st(src:procedure,trg:procedure) 
+.decl call_graph_st(src:procedure,trg:procedure)
 
 // with choice:
 //call_graph_st("main",x) :- call_graph("main",x).
@@ -169,34 +169,34 @@ call_graph_st("g","f").
 call_graph_st("e","o").
 
 // also collect the back-edges not used in the spanning tree
-.decl call_graph_rec_back_edge(src:procedure,trg:procedure) 
+.decl call_graph_rec_back_edge(src:procedure,trg:procedure)
 call_graph_rec_back_edge(s,t) :- rec_proc(s), rec_proc(t), call_graph(s,t), !call_graph_st(s,t).
 
 
 
 // -- build up all rechable call contexts --
-.decl ctxt(id:number, parent:number, p:procedure) 
+.decl ctxt(id:number, parent:number, p:procedure)
 
-.decl ctxt_last(id:number,p:procedure) 
+.decl ctxt_last(id:number,p:procedure)
 ctxt_last(id,p) :- ctxt(id,_,p).
 
 .decl ctxt_parent_closure(id:number,parent:number)
 ctxt_parent_closure(id,id) :- ctxt(id,_,_).
 ctxt_parent_closure(id,gp) :- ctxt(id,p,_), ctxt_parent_closure(p,gp).
 
-.decl ctxt_contains(id:number,p:procedure) 
+.decl ctxt_contains(id:number,p:procedure)
 ctxt_contains(id,proc) :- ctxt_parent_closure(id,p), ctxt(p,_,proc).
 
 ctxt(0,0,"main").
 ctxt($+1,parent,t) :- ctxt(parent,_,s), call_graph_st(s,t).
 
 
-.decl ctxts(c:number) 
+.decl ctxts(c:number)
 ctxts(c) :- ctxt(c,_,_).
 
 
 // context connections formed by recursive calls
-.decl rec_ctxt_link(from:number,to:number) 
+.decl rec_ctxt_link(from:number,to:number)
 rec_ctxt_link(f,t) :- rec_proc(proc), ctxt(t,_,proc), ctxt_contains(f,proc), f!=t.
 
 
@@ -205,13 +205,13 @@ rec_ctxt_link(f,t) :- rec_proc(proc), ctxt(t,_,proc), ctxt_contains(f,proc), f!=
 
 
 // list of all program points
-.decl pp(ip:instruction,cp:number) 
+.decl pp(ip:instruction,cp:number)
 pp(i,c) :- p2i(p,i),ctxt_last(c,p).
 
 
 
 // program point successor relation
-.decl pp_succ(ip:instruction,cp:number,is:instruction,cs:number) 
+.decl pp_succ(ip:instruction,cp:number,is:instruction,cs:number)
 
 // inter-procedure control flow
 pp_succ(ip,cp,is,cp) :- pp(ip,cp), flow(ip,is).
@@ -232,7 +232,7 @@ pp_succ(ip,cp,is,cs) :- call(is,proc), pp(is,cs), p_end(proc,ip), rec_ctxt_link(
 
 // -- collect all instructions before a given program point --
 
-.decl processed_before(pi:instruction,pc:number,i:instruction) 
+.decl processed_before(pi:instruction,pc:number,i:instruction)
 processed_before(pi,pc,i) :- pp_succ(i,_,pi,pc).
 processed_before(pi,pc,i) :- pp_succ(a,b,pi,pc), processed_before(a,b,i).
 
@@ -240,15 +240,19 @@ processed_before(pi,pc,i) :- pp_succ(a,b,pi,pc), processed_before(a,b,i).
 
 // example query: everything before some specific statements
 
-.decl res_m0(i:instruction) output
+.decl res_m0(i:instruction)
+.output res_m0()
 res_m0(i) :- processed_before("m0",_,i).
 
-.decl res_m1(i:instruction) output
+.decl res_m1(i:instruction)
+.output res_m1()
 res_m1(i) :- processed_before("m1",_,i).
 
-.decl res_m2(i:instruction) output
+.decl res_m2(i:instruction)
+.output res_m2()
 res_m2(i) :- processed_before("m2",_,i).
 
-.decl res_e1(i:instruction) output
+.decl res_e1(i:instruction)
+.output res_e1()
 res_e1(i) :- processed_before("e1",_,i).
 

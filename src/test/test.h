@@ -27,9 +27,9 @@ static class TestCase* base = nullptr;
 
 class TestCase {
 private:
-    TestCase* next;  // next test case (linked by constructor)
+    TestCase* next;     // next test case (linked by constructor)
     std::string group;  // group name of test
-    std::string test;  // test name of test
+    std::string test;   // test name of test
     size_t num_checks;  // number of checks
     size_t num_failed;  // number of failed checks
 

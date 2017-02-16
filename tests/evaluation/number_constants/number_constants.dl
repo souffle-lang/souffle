@@ -1,4 +1,5 @@
-.decl R(n:number) output
+.decl R(n:number)
+.output R()
 R(0).
 R(1).
 R(-1).

@@ -1,6 +1,9 @@
-.decl Check(n1:number, n2:number, n3:number, n4:number, n5:number, n6: number) input
-.decl In(n1:number, n2:number, n3:number, n4:number, n5:number, n6: number, in:number) input
-.decl A(l:number, o:number) output
+.decl Check(n1:number, n2:number, n3:number, n4:number, n5:number, n6: number)
+.input Check()
+.decl In(n1:number, n2:number, n3:number, n4:number, n5:number, n6: number, in:number)
+.input In()
+.decl A(l:number, o:number)
+.output A()
 
 A(1,i) :- Check(_, b, c, d, e, f), In(_, b, c, d, e, f, i).
 A(2,i) :- Check(a, _, c, d, e, f), In(a, _, c, d, e, f, i).

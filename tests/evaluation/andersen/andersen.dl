@@ -10,19 +10,24 @@
 .type var
 
 // Take addresses of other variables, i.e., y = &x;
-.decl AddressOf(y:var, x:var) input
+.decl AddressOf(y:var, x:var)
+.input AddressOf()
 
 // Assign Statements, i.e.,  y = x;
-.decl Assign(y:var, x:var) input
+.decl Assign(y:var, x:var)
+.input Assign()
 
-// Load Statements, i.e., y = *x; 
-.decl Load(y:var, x:var) input
+// Load Statements, i.e., y = *x;
+.decl Load(y:var, x:var)
+.input Load()
 
 // Store Statements, i.e., *y = x;
-.decl Store(y:var, x:var) input
+.decl Store(y:var, x:var)
+.input Store()
 
 // PointsTo Relation, i.e., whether y may point to x
-.decl PointsTo(y:var, x:var) output
+.decl PointsTo(y:var, x:var)
+.output PointsTo()
 
 PointsTo(y, x) :-
  AddressOf(y, x).

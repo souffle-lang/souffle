@@ -1,20 +1,25 @@
 // Range
 // Check if a given value is in the specified range, has inclusive and exclusive cases for both the minimum and maximum.
 
-.decl range(minimum:number, maximum:number) input
+.decl range(minimum:number, maximum:number)
+.input range()
 
-.decl inclusive_inclusive(x:number) output
+.decl inclusive_inclusive(x:number)
+.output inclusive_inclusive()
 inclusive_inclusive(x)    :- range(x, _).
 inclusive_inclusive(x+1)  :- inclusive_inclusive(x), x+1 <= y, range(_, y).
 
-.decl inclusive_exclusive(x:number) output
+.decl inclusive_exclusive(x:number)
+.output inclusive_exclusive()
 inclusive_exclusive(x)    :- range(x, _).
 inclusive_exclusive(x+1)  :- inclusive_exclusive(x), x+1 < y, range(_, y).
 
-.decl exclusive_inclusive(x:number) output
+.decl exclusive_inclusive(x:number)
+.output exclusive_inclusive()
 exclusive_inclusive(x+1)  :- range(x, _).
 exclusive_inclusive(x+1)  :- exclusive_inclusive(x), x+1 <= y, range(_, y).
 
-.decl exclusive_exclusive(x:number) output
+.decl exclusive_exclusive(x:number)
+.output exclusive_exclusive()
 exclusive_exclusive(x+1)  :- range(x, _).
 exclusive_exclusive(x+1)  :- exclusive_exclusive(x), x+1 < y, range(_, y).

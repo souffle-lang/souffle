@@ -6,11 +6,16 @@
 
 .type Node
 
-.decl move (node1:Node, node2:Node) output
-.decl odd_move (node1:Node, node2:Node) output
-.decl canMove (node1:Node) output
-.decl possible_winning (node1:Node) output
-.decl winning (node1:Node) output
+.decl move (node1:Node, node2:Node)
+.output move ()
+.decl odd_move (node1:Node, node2:Node)
+.output odd_move ()
+.decl canMove (node1:Node)
+.output canMove ()
+.decl possible_winning (node1:Node)
+.output possible_winning ()
+.decl winning (node1:Node)
+.output winning ()
 
 move("1","2").
 move("2","3").

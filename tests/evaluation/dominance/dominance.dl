@@ -5,10 +5,10 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-// 
+//
 // This code computes the dominance relation of a rooted directed graph
-// given via its edge set. 
-// 
+// given via its edge set.
+//
 // The dominance relation is defined as the least fixed-point of
 // the following equations:
 //   dom(start) := {start}
@@ -22,13 +22,13 @@
 
 
 // Additionally, this code computes the immediate dominators.
-// The immediate dominator of a node n is the unique node that strictly dominates n but 
-// does not strictly dominate any other node that strictly dominates n. Every node, 
+// The immediate dominator of a node n is the unique node that strictly dominates n but
+// does not strictly dominate any other node that strictly dominates n. Every node,
 // except the entry node, has an immediate dominator.
 //
-// Assume that {d1, ... , dk} are the dominators of node u that are ordered by 
-// d1 dom d2 dom d3 ... dk dom u forming an chain. We can equally say that 
-// dom(d1) ⊂ dom(d2) ⊂ dom(d3) ⊂ ... ⊂ dom(dk) ⊂ dom(u) or alternatively we can say that 
+// Assume that {d1, ... , dk} are the dominators of node u that are ordered by
+// d1 dom d2 dom d3 ... dk dom u forming an chain. We can equally say that
+// dom(d1) ⊂ dom(d2) ⊂ dom(d3) ⊂ ... ⊂ dom(dk) ⊂ dom(u) or alternatively we can say that
 //
 // |dom(d1)| < |dom(d2)| < |dom(d3)| < ... < |dom(dk)| < |dom(dk)| < |dom(u)|
 
@@ -57,15 +57,15 @@
 
       //
       // Non-dominance of input graph
-      //  
+      //
       .decl non_dom(s:N,d:N)
-      non_dom(x,y) :- start(x), node(y), x!=y. 
+      non_dom(x,y) :- start(x), node(y), x!=y.
       non_dom(x,y) :- non_dom(z,y), edge(z,x), !start(x), x!=y .
 
 
       //
       // Dominance of input graph
-      // 
+      //
       .decl dom(s:N,d:N)
       dom(x,y) :- node(x), node(y), !non_dom(x,y).
 
@@ -79,14 +79,14 @@
 
 
 .comp ImmediateDominance<N> : Dominance<N>{
-      
+
       //
       // Counts the size strictly dominating set
       //
       .decl s_domsize(n:N,s:number)
       s_domsize(n,0) :- start(n).
       s_domsize(n,s) :- s_dom(n,_), s = count : s_dom(n,_).
-          
+
 
 
       //
@@ -95,9 +95,9 @@
       .decl s_domsizes(n:N,d:N,m:number)
       s_domsizes(n,d,s) :- s_dom(n,d), s_domsize(d,s).
 
-      
+
       //
-      // Max size of strictly dominating nodes. 
+      // Max size of strictly dominating nodes.
       //
       .decl s_max_domsize(n:N,s:number)
        s_max_domsize(n,0) :- start(n).
@@ -112,9 +112,9 @@
 }
 
 //
-// The graph is taken from example 10.30 in 
+// The graph is taken from example 10.30 in
 // "Compilers Principles, Techniques and Tools"
-// by V.Aho et al. 
+// by V.Aho et al.
 //
 
 .init ImmDom = ImmediateDominance<number>
@@ -140,17 +140,19 @@ ImmDom.start(1).
 
 //
 // Output
-// 
+//
 
-.decl dominators(n:number,s:number) output
+.decl dominators(n:number,s:number)
+.output dominators()
 dominators(n,s) :- ImmDom.dom(n,s).
 
 
 //
 // Output
-// 
+//
 
-.decl immediate_dom(n:number,s:number) output
+.decl immediate_dom(n:number,s:number)
+.output immediate_dom()
 immediate_dom(n,s) :- ImmDom.imdom(n,s).
 
 

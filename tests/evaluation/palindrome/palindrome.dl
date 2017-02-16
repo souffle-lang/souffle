@@ -30,7 +30,8 @@ palin_aux(s,x,x) :- str(s,_,_,_), p(x).
 palin_aux(s,x,y) :- str(s,x,_,y).
 palin_aux(s,x,y) :- str(s,x,a,t), palin_aux(s,t,r), str(s,r,a,y).
 
-.decl palindrome(s:number) output
+.decl palindrome(s:number)
+.output palindrome()
 palindrome(s) :- palin_aux(s,0,l), len(s,l).
 
 

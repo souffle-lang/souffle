@@ -4,7 +4,8 @@
 // This test checks that negative numbers and minus signs are handled correctly.
 //
 
-.decl expr(x:number) output
+.decl expr(x:number)
+.output expr()
 
 // First Expression
 

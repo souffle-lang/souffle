@@ -28,8 +28,8 @@ namespace souffle {
 template <typename Node, typename Compare = std::less<Node>>
 class Graph {
     // not a very efficient but simple graph representation
-    std::set<Node, Compare> nodes;  // all the nodes in the graph
-    std::map<Node, std::set<Node, Compare>> forward;  // all edges forward directed
+    std::set<Node, Compare> nodes;                     // all the nodes in the graph
+    std::map<Node, std::set<Node, Compare>> forward;   // all edges forward directed
     std::map<Node, std::set<Node, Compare>> backward;  // all edges backward
 
 public:

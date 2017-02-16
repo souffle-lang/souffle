@@ -1,10 +1,12 @@
 // Compute the factorial function.
 
 // fact(i, n) holds iff i! = n
-.decl fact(i:number, n:number) output
+.decl fact(i:number, n:number)
+.output fact()
 
 // Calculate only up to the lowest value satisfying lim(n)
-.decl lim(n:number) input
+.decl lim(n:number)
+.input lim()
 
 fact(I+1, N*(I+1)) :- fact(I, N), !lim(I).
 

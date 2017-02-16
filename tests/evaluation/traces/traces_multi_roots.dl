@@ -127,7 +127,7 @@ call("m5","e").
 
 
 // -- list of all procedures --
-.decl proc(p:procedure) 
+.decl proc(p:procedure)
 proc(p) :- p_start(p,_).
 
 
@@ -140,21 +140,22 @@ p2i(p,j) :- p2i(p,i), flow(i,j).
 
 
 // -- call graph --
-.decl call_graph(src:procedure,trg:procedure) 
+.decl call_graph(src:procedure,trg:procedure)
 call_graph(s,t) :- p2i(s,i), call(i,t).
 
 
 // -- list of recursive procedures --
-.decl _rec_proc_reachable(a:procedure,b:procedure) 
+.decl _rec_proc_reachable(a:procedure,b:procedure)
 _rec_proc_reachable(a,b) :- call_graph(a,b).
 _rec_proc_reachable(a,c) :- _rec_proc_reachable(a,b), call_graph(b,c).
 
-.decl rec_proc(p:procedure) 
+.decl rec_proc(p:procedure)
 rec_proc(p) :- _rec_proc_reachable(p,p).
 
 
 // compute all the roots of the call graph
-.decl call_graph_root(p:procedure) output
+.decl call_graph_root(p:procedure)
+.output call_graph_root()
 
 //// --- this is a fix since _ are not supported yet in negations
 // call_graph_root(p) :- proc(p), !call_graph(_,p).
@@ -165,7 +166,7 @@ call_graph_root(p) :- proc(p), !called(p).
 
 
 // -- call graph spanning tree --
-.decl call_graph_st(src:procedure,trg:procedure) 
+.decl call_graph_st(src:procedure,trg:procedure)
 
 // with choice:
 //call_graph_st(r,x) :- call_graph_root(r), call_graph(r,x).
@@ -179,33 +180,33 @@ call_graph_st("g","f").
 call_graph_st("e","o").
 
 // also collect the back-edges not used in the spanning tree
-.decl call_graph_rec_back_edge(src:procedure,trg:procedure) 
+.decl call_graph_rec_back_edge(src:procedure,trg:procedure)
 call_graph_rec_back_edge(s,t) :- rec_proc(s), rec_proc(t), call_graph(s,t), !call_graph_st(s,t).
 
 
 // -- build up all rechable call contexts --
-.decl ctxt(root:procedure,id:number, parent:number, p:procedure) 
+.decl ctxt(root:procedure,id:number, parent:number, p:procedure)
 
-.decl ctxt_last(root:procedure,id:number,p:procedure) 
+.decl ctxt_last(root:procedure,id:number,p:procedure)
 ctxt_last(r,id,p) :- ctxt(r,id,_,p).
 
 .decl ctxt_parent_closure(root:procedure,id:number,parent:number)
 ctxt_parent_closure(r,id,id) :- ctxt(r,id,_,_).
 ctxt_parent_closure(r,id,gp) :- ctxt(r,id,p,_), ctxt_parent_closure(r,p,gp).
 
-.decl ctxt_contains(root:procedure,id:number,p:procedure) 
+.decl ctxt_contains(root:procedure,id:number,p:procedure)
 ctxt_contains(r,id,proc) :- ctxt_parent_closure(r,id,p), ctxt(r,p,_,proc).
 
 ctxt(r,0,0,r) :- call_graph_root(r).
 ctxt(r,$+1,parent,t) :- ctxt(r,parent,_,s), call_graph_st(s,t).
 
 
-.decl ctxts(r:procedure,c:number) 
+.decl ctxts(r:procedure,c:number)
 ctxts(r,c) :- ctxt(r,c,_,_).
 
 
 // context connections formed by recursive calls
-.decl rec_ctxt_link(fr:procedure,from:number,tr:procedure,to:number) 
+.decl rec_ctxt_link(fr:procedure,from:number,tr:procedure,to:number)
 rec_ctxt_link(r,f,r,t) :- rec_proc(proc), ctxt(r,t,_,proc), ctxt_contains(r,f,proc), f!=t.
 
 
@@ -214,13 +215,13 @@ rec_ctxt_link(r,f,r,t) :- rec_proc(proc), ctxt(r,t,_,proc), ctxt_contains(r,f,pr
 
 
 // list of all program points
-.decl pp(ip:instruction,root:procedure,cp:number) 
+.decl pp(ip:instruction,root:procedure,cp:number)
 pp(i,r,c) :- p2i(p,i),ctxt_last(r,c,p).
 
 
 
 // program point successor relation
-.decl pp_scc(ip:instruction,rp:procedure,cp:number,is:instruction,rs:procedure,cs:number) 
+.decl pp_scc(ip:instruction,rp:procedure,cp:number,is:instruction,rs:procedure,cs:number)
 
 // inter-procedure control flow
 pp_succ(ip,r,cp,is,r,cp) :- pp(ip,r,cp), flow(ip,is).
@@ -241,7 +242,7 @@ pp_succ(ip,r,cp,is,r,cs) :- call(is,proc), pp(is,r,cs), p_end(proc,ip), rec_ctxt
 
 // -- collect all instructions before a given program point --
 
-.decl processed_before(pi:instruction,pr:procedure,pc:number,i:instruction) 
+.decl processed_before(pi:instruction,pr:procedure,pc:number,i:instruction)
 processed_before(pi,r,pc,i) :- pp_succ(i,r,_,pi,r,pc).
 processed_before(pi,r,pc,i) :- pp_succ(a,r,b,pi,r,pc), processed_before(a,r,b,i).
 
@@ -249,16 +250,20 @@ processed_before(pi,r,pc,i) :- pp_succ(a,r,b,pi,r,pc), processed_before(a,r,b,i)
 
 // example query: everything before some specific statements
 
-.decl res_m0(i:instruction) output
+.decl res_m0(i:instruction)
+.output res_m0()
 res_m0(i) :- processed_before("m0",_,_,i).
 
-.decl res_m1(i:instruction) output
+.decl res_m1(i:instruction)
+.output res_m1()
 res_m1(i) :- processed_before("m1",_,_,i).
 
-.decl res_m2(i:instruction) output
+.decl res_m2(i:instruction)
+.output res_m2()
 res_m2(i) :- processed_before("m2",_,_,i).
 
-.decl res_e1(i:instruction) output
+.decl res_e1(i:instruction)
+.output res_e1()
 res_e1(i) :- processed_before("e1",_,_,i).
 
 

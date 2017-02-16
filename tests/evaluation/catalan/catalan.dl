@@ -1,7 +1,8 @@
 // Generate the Catalan numbers
 
 // Generated catalan numbers will never exceed lim(n).
-.decl lim(n : number) input
+.decl lim(n : number)
+.input lim()
 
 .decl naturals(n : number)
 naturals(0).
@@ -13,7 +14,8 @@ choose(n, n, 1) :- naturals(n).
 choose(n, (n - k), v) :- choose(n, k, v).
 choose(n+1, k+1, v1 + v2) :- choose(n, k, v1), choose(n, k+1, v2).
 
-.decl catalan(n : number, v: number) output
+.decl catalan(n : number, v: number)
+.output catalan()
 catalan(n, v) :- choose(2*n, n, c), naturals(v), v=c/(n+1).
 
 

@@ -1,8 +1,9 @@
-.type Integer 
+.type Integer
 
-.decl plus_mod (x:Integer, y:Integer, r:Integer) 
-.decl succ (a:Integer, b:Integer) 
-.decl mul(x:Integer, y:Integer, r:Integer) output 
+.decl plus_mod (x:Integer, y:Integer, r:Integer)
+.decl succ (a:Integer, b:Integer)
+.decl mul(x:Integer, y:Integer, r:Integer)
+.output mul()
 
 mul("0", "0", "0").
 mul(n, sm, r) :- succ(m, sm) , mul(m, n, mr), plus_mod(n, mr, r) .

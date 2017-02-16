@@ -1,6 +1,6 @@
 Warning: Record types in output relations are not printed verbatim: attribute ?ap has record type AccessPath in file records6.dl at line 8
-.decl AccessPathShouldBeRebased2(?ap:AccessPath, ?from:Var, ?to:Var) output 
--------------------------------------^---------------------------------------
-Warning: Variable ?lastFld only occurs once in file records6.dl at line 11
+.decl AccessPathShouldBeRebased2(?ap:AccessPath, ?from:Var, ?to:Var)
+-------------------------------------^-------------------------------
+Warning: Variable ?lastFld only occurs once in file records6.dl at line 12
    AccessPathShouldBeRebased2([ ?from, [ [ ?rest, ?nextFld ], ?lastFld ] ], ?from, ?to),
 --------------------------------------------------------------^--------------------------

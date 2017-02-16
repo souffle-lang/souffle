@@ -6,7 +6,8 @@
 // assert(z = y = z)
 
 .decl loop(i:number, x:number, y:number, z:number)
-.decl R() output
+.decl R()
+.output R()
 
 loop(0, 0, 0, 0).
 

@@ -1,10 +1,10 @@
-Error: Referencing undefined component TThatDoesNotExist in file comp_nonexistent_type.dl at line 20
+Error: Referencing undefined component TThatDoesNotExist in file comp_nonexistent_type.dl at line 21
     .init cg = TThatDoesNotExist
 ----^----------------------------
-Error: Undefined relation cg.CallGraphEdge in file comp_nonexistent_type.dl at line 23
-        cg.CallGraphEdge(x, y), 
---------^------------------------
-Error: Undefined relation cg.CallGraphEdge in file comp_nonexistent_type.dl at line 24
+Error: Undefined relation cg.CallGraphEdge in file comp_nonexistent_type.dl at line 25
+        cg.CallGraphEdge(x, y),
+--------^-----------------------
+Error: Undefined relation cg.CallGraphEdge in file comp_nonexistent_type.dl at line 26
         cg.CallGraphEdge(y, x).
 --------^-----------------------
 3 errors generated, evaluation aborted

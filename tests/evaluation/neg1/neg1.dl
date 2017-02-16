@@ -1,8 +1,11 @@
-.type set 
+.type set
 
-.decl X(node1:set, node2:set) output
-.decl Y(node1:set, node2:set) output
-.decl Z(node1:set, node2:set) output
+.decl X(node1:set, node2:set)
+.output X()
+.decl Y(node1:set, node2:set)
+.output Y()
+.decl Z(node1:set, node2:set)
+.output Z()
 
 Y(a,b) :- X(a,b).
 Y(a,c) :- X(a,b), Y(b,c).

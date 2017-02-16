@@ -8,11 +8,12 @@
 
 .type String
 
-.decl stringTable (t:String) 
-.decl substringTable (t:String) 
-.decl outputData  (substr:String, str:String) output
+.decl stringTable (t:String)
+.decl substringTable (t:String)
+.decl outputData  (substr:String, str:String)
+.output outputData  ()
 
-outputData(x,y) :- substringTable(x), stringTable(y), contains(x,y). 
+outputData(x,y) :- substringTable(x), stringTable(y), contains(x,y).
 
 stringTable("aaaa").
 stringTable("abba").

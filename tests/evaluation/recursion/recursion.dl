@@ -4,7 +4,8 @@
 
 .type Node
 
-.decl p  (node1:Node) output
+.decl p  (node1:Node)
+.output p  ()
 
 p("0").
 p("1").

@@ -4,7 +4,8 @@
 // defines the interface and some basic properties
 .comp Closure {
     .decl edge(a:node,b:node)
-    .decl link(a:node,b:node) output
+    .decl link(a:node,b:node)
+.output link()
 
     link(X,Y) :- edge(X,Y).
 }

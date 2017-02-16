@@ -5,7 +5,8 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.decl rel(reallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting: number, n2: number) printsize
+.decl rel(reallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting: number, n2: number)
+.printsize rel
 
 rel(0, 1).
 rel(0, 2).
@@ -15,4 +16,4 @@ rel(thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsN
   rel(thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting, _ ),
   rel(m, _),
   thisIsAnotherreallyLongAttributeNameWhichCanBecomeUnreadbleVeryQuicklyButIsNeededForTesting < m.
-   
+

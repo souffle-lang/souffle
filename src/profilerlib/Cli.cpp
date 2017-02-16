@@ -9,7 +9,7 @@
 #include "Cli.hpp"
 
 void Cli::error() {
-    std::cout << "souffle-profiler -v | -h | <log-file> [ -c <command> | -j | -l ]\n";
+    std::cout << "souffle-profile -v | -h | <log-file> [ -c <command> | -j | -l ]\n";
     exit(1);
 }
 
@@ -48,7 +48,7 @@ void Cli::parse() {
         }
     } else if (arg.compare("-h") == 0) {
         std::cout << "Souffle Profiler v3.0.1\n";
-        std::cout << "usage: souffle-profiler -v | -h | <log-file> [ -c <command> | -j | -l ]\n"
+        std::cout << "usage: souffle-profile -v | -h | <log-file> [ -c <command> | -j | -l ]\n"
                   << "<log-file>     the selected log file to profile\n"
                   << "-c <command>   run the given command on the log file (run -c \"help\" for a list of "
                      "profiler commands)\n"

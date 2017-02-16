@@ -1,10 +1,10 @@
   ----- Rule Versions Table -----
    TOT_T  NREC_T   REC_T  COPY_T    TUPLES   VER   ID RELATION
 
-       -    .000    .000       -         0         C1.1 rel                      
+       -    .000    .000       -         0         C1.1 rel
  ---------------------------------------------------------
-       -    .000    .000       -         0     0   C1.1 rel                      
-       -    .000    .000       -         0     1   C1.1 rel                      
+       -    .000    .000       -         0     0   C1.1 rel
+       -    .000    .000       -         0     1   C1.1 rel
 
 Src locator: lrg_attr_id.dl [34:1-37:99]
 

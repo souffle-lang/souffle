@@ -109,7 +109,7 @@ public:
         {
             // lock pack operation
             auto leas = pack_lock.acquire();  // lock hold till end of scope
-            (void)leas;  // avoid warning
+            (void)leas;                       // avoid warning
 
             // try lookup
             auto pos = r2i.find(tuple);

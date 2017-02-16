@@ -1,20 +1,28 @@
 // RHS nullaries
-.decl B(x:number) output
+.decl B(x:number)
+.output B()
 B(1).
 
-.decl A() output
+.decl A()
+.output A()
 A() :- B(_).
 
-.decl C() output
+.decl C()
+.output C()
 C() :- B(2).
 
 
 // Empty and defined nullaries from input
-.decl Def() input printsize
-.decl Undef() input printsize
+.decl Def()
+.printsize Def
+.input Def()
+.decl Undef()
+.printsize Undef
+.input Undef()
 
 // A defined nullary relation.
-.decl E() printsize
+.decl E()
+.printsize E
 E().
 
 // LHS nullaries
@@ -22,10 +30,12 @@ E().
 F().
 
 // Empty nullary relation without input
-.decl G() printsize
+.decl G()
+.printsize G
 
 // Nullaries as conditions.
-.decl H(x:number) output
+.decl H(x:number)
+.output H()
 H(1) :- F().
 H(2) :- G().
 H(3) :- G(), F().
@@ -46,28 +56,34 @@ J(30) :- !I2(_).
 .decl K()
 K().
 
-.decl L(x:number) output
+.decl L(x:number)
+.output L()
 L(x+y) :- I(x), K(), J(y).
 
 
 // Recursively defined nullary relations.
-.decl M() printsize
+.decl M()
+.printsize M
 M() :- M().
 
-.decl N() output
+.decl N()
+.output N()
 N().
 N() :- N().
 
-.decl P() printsize
+.decl P()
+.printsize P
 P().
 P() :- Q().
 
-.decl Q() output
+.decl Q()
+.output Q()
 Q() :- P().
 
-.decl R(x:number) output
+.decl R(x:number)
+.output R()
 R(10).
 R(x) :- S(), R(x).	
 
-.decl S() 
+.decl S()
 S() :- R(_).

@@ -1,51 +1,101 @@
-// The Lehigh University Benchmark (LUBM) 
+// The Lehigh University Benchmark (LUBM)
 // http://swat.cse.lehigh.edu/projects/lubm/
 // ported by Anthony Potter
 //
 // Unary relations
-.decl University (a:symbol) output input
-.decl Person (a:symbol) output
-.decl Employee (a:symbol) output
-.decl Faculty (a:symbol) output
-.decl Professor (a:symbol) output
-.decl Course (a:symbol) output input
-.decl AssociateProfessor (a:symbol) input
-.decl AssistantProfessor (a:symbol) input
-.decl Organization (a:symbol) output
-.decl Chair (a:symbol) output
-.decl Work (a:symbol) output
-.decl Lecturer (a:symbol) output input
-.decl Student (a:symbol) output
-.decl GraduateStudent (a:symbol) input
-.decl ResearchAssistant (a:symbol) input
-.decl GraduateCourse (a:symbol) input
-.decl UndergraduateStudent (a:symbol) input
-.decl ResearchGroup (a:symbol) output input
-.decl Publication (a:symbol) output input
-.decl TeachingAssistant (a:symbol) output input
-.decl FullProfessor (a:symbol) input
-.decl Department (a:symbol) input
+.decl University (a:symbol)
+.output University ()
+.input University ()
+.decl Person (a:symbol)
+.output Person ()
+.decl Employee (a:symbol)
+.output Employee ()
+.decl Faculty (a:symbol)
+.output Faculty ()
+.decl Professor (a:symbol)
+.output Professor ()
+.decl Course (a:symbol)
+.output Course ()
+.input Course ()
+.decl AssociateProfessor (a:symbol)
+.input AssociateProfessor ()
+.decl AssistantProfessor (a:symbol)
+.input AssistantProfessor ()
+.decl Organization (a:symbol)
+.output Organization ()
+.decl Chair (a:symbol)
+.output Chair ()
+.decl Work (a:symbol)
+.output Work ()
+.decl Lecturer (a:symbol)
+.output Lecturer ()
+.input Lecturer ()
+.decl Student (a:symbol)
+.output Student ()
+.decl GraduateStudent (a:symbol)
+.input GraduateStudent ()
+.decl ResearchAssistant (a:symbol)
+.input ResearchAssistant ()
+.decl GraduateCourse (a:symbol)
+.input GraduateCourse ()
+.decl UndergraduateStudent (a:symbol)
+.input UndergraduateStudent ()
+.decl ResearchGroup (a:symbol)
+.output ResearchGroup ()
+.input ResearchGroup ()
+.decl Publication (a:symbol)
+.output Publication ()
+.input Publication ()
+.decl TeachingAssistant (a:symbol)
+.output TeachingAssistant ()
+.input TeachingAssistant ()
+.decl FullProfessor (a:symbol)
+.input FullProfessor ()
+.decl Department (a:symbol)
+.input Department ()
 
 // Binary relations
-.decl hasAlumnus (a:symbol, b:symbol) output
-.decl degreeFrom (a:symbol, b:symbol) output
-.decl member (a:symbol, b:symbol) output
-.decl teachingAssistantOf (a:symbol, b:symbol) input
-.decl headOf (a:symbol, b:symbol) input
-.decl teacherOf (a:symbol, b:symbol) input
-.decl publicationAuthor (a:symbol, b:symbol) input
-.decl doctoralDegreeFrom (a:symbol, b:symbol) input
-.decl undergraduateDegreeFrom (a:symbol, b:symbol) input
-.decl mastersDegreeFrom (a:symbol, b:symbol) input
-.decl subOrganizationOf (a:symbol, b:symbol) output input
-.decl takesCourse (a:symbol, b:symbol) input
-.decl worksFor (a:symbol, b:symbol) output input
-.decl memberOf (a:symbol, b:symbol) output input
-.decl advisor (a:symbol, b:symbol) input
-.decl emailAddress (a:symbol, b:symbol) input
-.decl telephone (a:symbol, b:symbol) input
-.decl name (a:symbol, b:symbol) input
-.decl researchInterest (a:symbol, b:symbol) input
+.decl hasAlumnus (a:symbol, b:symbol)
+.output hasAlumnus ()
+.decl degreeFrom (a:symbol, b:symbol)
+.output degreeFrom ()
+.decl member (a:symbol, b:symbol)
+.output member ()
+.decl teachingAssistantOf (a:symbol, b:symbol)
+.input teachingAssistantOf ()
+.decl headOf (a:symbol, b:symbol)
+.input headOf ()
+.decl teacherOf (a:symbol, b:symbol)
+.input teacherOf ()
+.decl publicationAuthor (a:symbol, b:symbol)
+.input publicationAuthor ()
+.decl doctoralDegreeFrom (a:symbol, b:symbol)
+.input doctoralDegreeFrom ()
+.decl undergraduateDegreeFrom (a:symbol, b:symbol)
+.input undergraduateDegreeFrom ()
+.decl mastersDegreeFrom (a:symbol, b:symbol)
+.input mastersDegreeFrom ()
+.decl subOrganizationOf (a:symbol, b:symbol)
+.output subOrganizationOf ()
+.input subOrganizationOf ()
+.decl takesCourse (a:symbol, b:symbol)
+.input takesCourse ()
+.decl worksFor (a:symbol, b:symbol)
+.output worksFor ()
+.input worksFor ()
+.decl memberOf (a:symbol, b:symbol)
+.output memberOf ()
+.input memberOf ()
+.decl advisor (a:symbol, b:symbol)
+.input advisor ()
+.decl emailAddress (a:symbol, b:symbol)
+.input emailAddress ()
+.decl telephone (a:symbol, b:symbol)
+.input telephone ()
+.decl name (a:symbol, b:symbol)
+.input name ()
+.decl researchInterest (a:symbol, b:symbol)
+.input researchInterest ()
 
 // Ontology
 University(Y) :- mastersDegreeFrom(_,Y) .

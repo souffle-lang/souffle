@@ -1,10 +1,12 @@
 .comp A {
-.decl X(a:number,b:number) output 
+.decl X(a:number,b:number)
+.output X()
 X(1,2).
 }
 
 .comp B : A {
-.decl X(a:number,b:number) output 
+.decl X(a:number,b:number)
+.output X()
 X(1,2).
 }
 

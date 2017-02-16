@@ -5,7 +5,8 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 .comp A {
-    .decl edge(x:number, y:number) output
+    .decl edge(x:number, y:number)
+.output edge()
     edge(1,2).
     edge(2,3).
 }
@@ -15,7 +16,8 @@
 }
 
 .comp C:B {
-    .decl path(x:number, y:number) output
+    .decl path(x:number, y:number)
+.output path()
     path(x,y) :- a.edge(x,y).
     path(x,y) :- a.edge(x,z), path(z,y).
 }

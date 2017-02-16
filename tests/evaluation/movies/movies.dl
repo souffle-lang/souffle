@@ -25,14 +25,17 @@ Actors(4,"Julia Thebest").
 
 
 
-.decl MovieActorsText(title:Text, actorname:Text) output
+.decl MovieActorsText(title:Text, actorname:Text)
+.output MovieActorsText()
 
 MovieActorsText(c,d) :- MovieActors(a,b), Movie(a,c,_), Actors(b,d).
 
-.decl JoeBloggsMovies(title:Text) output
+.decl JoeBloggsMovies(title:Text)
+.output JoeBloggsMovies()
 
 JoeBloggsMovies(a) :- MovieActorsText(a, b), match("Joe Bloggs", b).
 
-.decl ActorsRatings(name:Text, rating:Text) output
+.decl ActorsRatings(name:Text, rating:Text)
+.output ActorsRatings()
 
 ActorsRatings(a,rating) :- MovieActorsText(movie,a), Movie(_,movie_b,rating), match(movie, movie_b).

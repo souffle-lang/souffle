@@ -13,8 +13,8 @@
 // However, in Datalog we can only compute set unions as meet operations. If
 // we have intersection, we need to go to its dual problem. We use the following equations
 // for this purpose:
-// 
-//  out[S] = U - d_out[S] 
+//
+//  out[S] = U - d_out[S]
 //
 //  d_out[S] = d_gen[S] \/ (d_in[S] - d_kill[S])
 //
@@ -36,11 +36,11 @@
       //
       // Set of edges
       //
-      .decl edge(src:Node,des:Node) 
+      .decl edge(src:Node,des:Node)
 
 
       //
-      // Start node 
+      // Start node
       //
       .decl start(node:Node)
 
@@ -70,7 +70,7 @@
       //
       .decl gen(node:Node,inf:InfoLattice)
 
-      
+
       //
       // Kill function
       //
@@ -88,9 +88,9 @@
       //
 
       //
-      // Out 
+      // Out
       //
-      .decl out(node:Node,inf:InfoLattice)    
+      .decl out(node:Node,inf:InfoLattice)
 
 }
 
@@ -101,22 +101,22 @@
 
       //
       // input relations are inherited
-      //  
+      //
 
 
       //
-      // output relations 
+      // output relations
       //
 
       //
-      // Out 
-      //  
+      // Out
+      //
 
-      
+
       out(node,inf) :- gen(node,inf).
       out(node,inf) :- start(node),startvalue(inf).
       out(node,inf) :- out(pred,inf), edge(pred,node), !kill(node,inf).
-     
+
 }
 
 
@@ -126,7 +126,7 @@
 
       //
       // input relations are inherited
-      //  
+      //
 
 
       //
@@ -137,95 +137,95 @@
 
       gen_kill_union.start(n) :- start(n).
 
-      gen_kill_union.edge(x,y) :- edge(x,y).  
-      
+      gen_kill_union.edge(x,y) :- edge(x,y).
+
       gen_kill_union.gen(node,inf) :- kill(node,inf), !gen(node,inf).
 
-      gen_kill_union.kill(node,inf) :- gen(node,inf).  
+      gen_kill_union.kill(node,inf) :- gen(node,inf).
 
       gen_kill_union.startvalue(inf) :- startvalue(inf).
 
 
       //
-      // output relations 
-      //
-     
-      //
-      //  out 
+      // output relations
       //
 
-      out(node,inf) :- node(node), universe(inf), !gen_kill_union.out(node,inf).      
+      //
+      //  out
+      //
+
+      out(node,inf) :- node(node), universe(inf), !gen_kill_union.out(node,inf).
 }
 
 
 
 .comp Gen_Kill_Union_Backward<Node,InfoLattice> : Gen_Kill<Node,InfoLattice>, Graph<Node>{
-      
+
       //
       // input relations are inherited
-      //  
-
-      
       //
-      //  in 
+
+
+      //
+      //  in
       //
 
       .init gen_kill_union = Gen_Kill_Union<Node,InfoLattice>
 
-      gen_kill_union.start(node) :- start(node). 
-      
+      gen_kill_union.start(node) :- start(node).
+
       gen_kill_union.edge(src,des) :- edge(des,src).
 
       gen_kill_union.gen(node,inf) :- gen(node,inf).
 
-      gen_kill_union.kill(node,inf) :- kill(node,inf).   
+      gen_kill_union.kill(node,inf) :- kill(node,inf).
 
-      gen_kill_union.startvalue(inf) :- startvalue(inf). 
+      gen_kill_union.startvalue(inf) :- startvalue(inf).
 
-
-      //
-      // output relations 
-      // 
 
       //
-      //  out 
+      // output relations
+      //
+
+      //
+      //  out
       //
 
       out(node,inf) :- gen_kill_union.out(node,inf).
 }
 
 .comp Gen_Kill_Intersection_Backward<Node,InfoLattice> : Gen_Kill<Node,InfoLattice>, Graph<Node>{
-      
+
 
       //
       // input relations
-      //  
+      //
 
-      
+
       .init gen_kill_intersection = Gen_Kill_Intersection<Node,InfoLattice>
 
-      
+
       //
-      //  in 
+      //  in
       //
 
-      gen_kill_intersection.start(node) :- start(node). 
-      
+      gen_kill_intersection.start(node) :- start(node).
+
       gen_kill_intersection.edge(src,des) :- edge(des,src).
 
       gen_kill_intersection.gen(node,inf) :- gen(node,inf).
 
-      gen_kill_intersection.kill(node,inf) :- kill(node,inf). 
+      gen_kill_intersection.kill(node,inf) :- kill(node,inf).
 
-      gen_kill_intersection.startvalue(inf) :- startvalue(inf). 
+      gen_kill_intersection.startvalue(inf) :- startvalue(inf).
 
-
-      //
-      // output relations 
-      //   
 
       //
-      //  out 
+      // output relations
+      //
+
+      //
+      //  out
       //
 
       out(node,inf) :- gen_kill_intersection.out(node,inf).
@@ -234,45 +234,49 @@
 
 
 //
-// Set of Edge 
+// Set of Edge
 //
 
-.decl edge(x:number, y:number) input
+.decl edge(x:number, y:number)
+.input edge()
 
 //
 // Gen sets
-// 
+//
 
-.decl gen(x:number, i:symbol) input
+.decl gen(x:number, i:symbol)
+.input gen()
 
 //
 // Use sets
-// 
+//
 
-.decl use(x:number, i:symbol) input
+.decl use(x:number, i:symbol)
+.input use()
 
 //
 // Kill sets
-// 
+//
 
-.decl kill(x:number, i:symbol) input
+.decl kill(x:number, i:symbol)
+.input kill()
 
 
 
 //
 // Universe  Lattice
 //
- 
+
 .decl universe(inf:symbol)
- 
+
 universe(inf) :- gen(_,inf).
 universe(inf) :- kill(_,inf).
 
 
 //
-// Instantiates data flow analysis  components and tests example 2.5 in 
+// Instantiates data flow analysis  components and tests example 2.5 in
 // "Data Flow Analysis" book authored by P.Khedker et al.
-// 
+//
 
 .init Available_Expressions = Gen_Kill_Intersection<number,symbol>
 
@@ -289,7 +293,7 @@ Available_Expressions.start(1).
 Reaching_Definitions.edge(x,y) :- edge(x,y).
 Reaching_Definitions.gen(x,i) :- gen(x,i).
 Reaching_Definitions.kill(x,i) :- kill(x,i).
-Reaching_Definitions.startvalue(i) :- gen(1,i), !kill(1,i). 
+Reaching_Definitions.startvalue(i) :- gen(1,i), !kill(1,i).
 Reaching_Definitions.start(1).
 
 
@@ -308,15 +312,18 @@ Live_Variables.start(8).
 // Output
 //
 
-.decl available_expressions(n:number, i:symbol) output
+.decl available_expressions(n:number, i:symbol)
+.output available_expressions()
 available_expressions(x,i) :- Available_Expressions.out(x,i).
 
 
-.decl reaching_definitions(n:number, i:symbol) output
+.decl reaching_definitions(n:number, i:symbol)
+.output reaching_definitions()
 reaching_definitions(x,i) :- Reaching_Definitions.out(x,i).
 
 
-.decl live_variables(n:number, i:symbol) output
+.decl live_variables(n:number, i:symbol)
+.output live_variables()
 live_variables(x,i) :- Live_Variables.out(x,i).
 
 

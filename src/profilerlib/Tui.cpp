@@ -100,8 +100,8 @@ void Tui::runProf() {
                 std::cout << "Error loading file.\n";
             }
         }
-        std::string input;
-        input = linereader.getInput();
+        std::string untrimmedInput = linereader.getInput();
+        std::string input = Tools::trimWhitespace(untrimmedInput);
 
         std::cout << std::endl;
         if (input.empty()) {

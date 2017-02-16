@@ -5,7 +5,8 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.decl ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n1: number, n2: number) printsize
+.decl ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n1: number, n2: number)
+.printsize ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames
 
 ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(0, 1).
 ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(0, 2).
@@ -15,4 +16,4 @@ ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n, m) :-
   ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n, _),
   ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(m, _),
    n < m.
-   
+

@@ -25,16 +25,16 @@ namespace souffle {
  */
 enum class BinaryRelOp {
     __UNDEFINED__,  // undefined operator
-    EQ,  // equivalence of two values
-    NE,  // whether two values are different
-    LT,  // less-than
-    LE,  // less-than-or-equal-to
-    GT,  // greater-than
-    GE,  // greater-than-or-equal-to
-    MATCH,  // matching string
-    CONTAINS,  // whether a sub-string is contained in a string
-    NOT_MATCH,  // not matching string
-    NOT_CONTAINS  // whether a sub-string is not contained in a string
+    EQ,             // equivalence of two values
+    NE,             // whether two values are different
+    LT,             // less-than
+    LE,             // less-than-or-equal-to
+    GT,             // greater-than
+    GE,             // greater-than-or-equal-to
+    MATCH,          // matching string
+    CONTAINS,       // whether a sub-string is contained in a string
+    NOT_MATCH,      // not matching string
+    NOT_CONTAINS    // whether a sub-string is not contained in a string
 };
 
 inline BinaryRelOp negate(BinaryRelOp op) {
@@ -153,18 +153,18 @@ inline bool isSymbolicBinaryRelOp(const BinaryRelOp op) {
  */
 enum class BinaryOp {
     __UNDEFINED__,  // undefined operator
-    ADD,  // addition
-    SUB,  // subtraction
-    MUL,  // multiplication
-    DIV,  // division
-    EXP,  // exponent
-    MOD,  // modulus
-    BAND,  // bitwise and
-    BOR,  // bitwise or
-    BXOR,  // bitwise exclusive or
-    LAND,  // logical and
-    LOR,  // logical or
-    CAT,  // string concatenation
+    ADD,            // addition
+    SUB,            // subtraction
+    MUL,            // multiplication
+    DIV,            // division
+    EXP,            // exponent
+    MOD,            // modulus
+    BAND,           // bitwise and
+    BOR,            // bitwise or
+    BXOR,           // bitwise exclusive or
+    LAND,           // logical and
+    LOR,            // logical or
+    CAT,            // string concatenation
 };
 
 /**

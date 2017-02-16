@@ -21,45 +21,60 @@
 .type Node = String
 .type DataFlowFact = String
 
-.decl StartNode(n:Node) input
-.decl ReturnNode(n:Node) input
-.decl Procedure(p:Procedure) input
-.decl Node(n:Node) input
-.decl DataFlowFact(f:DataFlowFact) input
+.decl StartNode(n:Node)
+.input StartNode()
+.decl ReturnNode(n:Node)
+.input ReturnNode()
+.decl Procedure(p:Procedure)
+.input Procedure()
+.decl Node(n:Node)
+.input Node()
+.decl DataFlowFact(f:DataFlowFact)
+.input DataFlowFact()
 
 //EDB relations
 
 //Intraprocedural edge from m to n in procedure p
-.decl e0(p:Procedure, m:Node, n:Node) input
+.decl e0(p:Procedure, m:Node, n:Node)
+.input e0()
 
 //Call-to-return edge between call node m and after-return node n in procedure p
-.decl e1(p:Procedure, m:Node, n:Node) input
+.decl e1(p:Procedure, m:Node, n:Node)
+.input e1()
 
-//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed 
-.decl f_nk(p:Procedure, m:Node, n:Node, nkill:DataFlowFact) input
+//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed
+.decl f_nk(p:Procedure, m:Node, n:Node, nkill:DataFlowFact)
+.input f_nk()
 
 //Data-flow function on edge(m,n) where gen is a fact that is generated
-.decl f_g(p:Procedure, m:Node, n:Node, gen:DataFlowFact) input
+.decl f_g(p:Procedure, m:Node, n:Node, gen:DataFlowFact)
+.input f_g()
 
 //Node m in procedure p calls procedure q
-.decl call_site(p:Procedure, q:Procedure, m:Node) input
+.decl call_site(p:Procedure, q:Procedure, m:Node)
+.input call_site()
 
 //Actual parameter in position i of call site m in procedure p is x
-.decl Actual(p:Procedure, m:Node, i:Integer, x:DataFlowFact) input
+.decl Actual(p:Procedure, m:Node, i:Integer, x:DataFlowFact)
+.input Actual()
 
 //Formal parameter in position i of procedure p is y
-.decl Formal(q:Procedure, i:Integer, y:DataFlowFact) input
+.decl Formal(q:Procedure, i:Integer, y:DataFlowFact)
+.input Formal()
 
 //IDB relations
 
-//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed 
-.decl phi_nk(p:Procedure, n:Node, nkill:DataFlowFact) output
+//Data-flow function on edge(m,n) where nkill is a fact that is NOT killed
+.decl phi_nk(p:Procedure, n:Node, nkill:DataFlowFact)
+.output phi_nk()
 
 //Data-flow function on edge(m,n) where gen is a fact that is generated
-.decl phi_g(p:Procedure, n:Node, gen:DataFlowFact) output
+.decl phi_g(p:Procedure, n:Node, gen:DataFlowFact)
+.output phi_g()
 
 //Data-flow fact x holds at node n of procedure p
-.decl out(p:Procedure, n:Node, x:DataFlowFact) output
+.decl out(p:Procedure, n:Node, x:DataFlowFact)
+.output out()
 
 
 //Initialization: start nodes don't kill anything
@@ -84,11 +99,11 @@ phi_g(p, n, x) :- e0(p, m, n),
 //X is in the gen set of N if N gen X
 phi_g(p, n, x) :- e0(p, m, n),
                   f_g(p, m, n, x).
-				  
-				  				  
+				
+				  				
 //Inter-procedural summaries
 //X is in the nkill set of N if there is a call-to-return edge from M to N,
-//M calls Q, M doesn't kill X and the return node of Q doesn't kill X 
+//M calls Q, M doesn't kill X and the return node of Q doesn't kill X
 phi_nk(p, n, x) :- e1(p, m, n),
                    call_site(p, q, m),
                    phi_nk(p, m, x),
@@ -109,7 +124,7 @@ phi_g(p, n, x) :- e1(p, m, n),
                   call_site(p, q, m),
                   phi_g(q, r, x),
                   ReturnNode(r).
-				  
+				
 
 //Encoding of the OUT relation
 

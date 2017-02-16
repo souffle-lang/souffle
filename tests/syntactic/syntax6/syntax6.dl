@@ -3,6 +3,9 @@
 +
 .type Node
 
-reachable   (node1:Node, node2:Node) input
-same_clique (node1:Node, node2:Node) input
-edge        (node1:Node, node2:Node) input
+reachable (node1:Node, node2:Node)
+.input reachable ()
+same_clique (node1:Node, node2:Node)
+.input same_clique ()
+edge (node1:Node, node2:Node)
+.input edge ()

@@ -1,9 +1,12 @@
 .type Integer
 
-.decl succ (a:Integer, b:Integer) 
-.decl count_second(a:Integer) output
-.decl count_third(a:Integer) output
-.decl count_all(a:Integer) output
+.decl succ (a:Integer, b:Integer)
+.decl count_second(a:Integer)
+.output count_second()
+.decl count_third(a:Integer)
+.output count_third()
+.decl count_all(a:Integer)
+.output count_all()
 
 count_second("3").
 count_second(n) :- succ(pn, n), succ(ppn, pn), count_second(ppn).

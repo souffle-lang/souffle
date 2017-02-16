@@ -1,6 +1,7 @@
 // type/relation
 .symbol_type typerel
-.decl typerel(x : number) output
+.decl typerel(x : number)
+.output typerel()
 typerel(1).
 
 // type/component
@@ -41,7 +42,8 @@ relinst(2).
 .init nestedInst = nested
 typerel(X) :- nestedInst.nesteditem(X).
 
-.decl nesteditem(x:number) output
+.decl nesteditem(x:number)
+.output nesteditem()
 nesteditem(2).
 
 

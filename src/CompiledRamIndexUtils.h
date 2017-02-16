@@ -295,7 +295,7 @@ struct check_arity<arity, F, Rest...> {
 template <unsigned arity, typename... Indices>
 struct check {
     enum {
-        value = unique<Indices...>::value &&  // indices need to be unique
+        value = unique<Indices...>::value &&           // indices need to be unique
                 check_arity<arity, Indices...>::value  // and valid
     };
 };
@@ -948,8 +948,8 @@ template <typename T, typename Index>
 struct direct_index_factory<T, Index, true> {
     // the arity of the tuple type determines the type of index
     typedef typename std::conditional<T::arity <= 2,  // if the arity is <= 2
-            TrieIndex<Index>,  // .. we use the faster Trie index
-            DirectIndex<T, Index>  // .. otherwise we fall back to the B-Tree index
+            TrieIndex<Index>,                         // .. we use the faster Trie index
+            DirectIndex<T, Index>                     // .. otherwise we fall back to the B-Tree index
             >::type type;
     //        typedef DirectIndex<T,Index> type;
 };

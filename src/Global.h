@@ -77,11 +77,11 @@ public:
 
 /* Struct to represent an option given to the main function by command line arguments. */
 struct MainOption {
-    std::string longName; /* The long name for this option, e.g. 'option' for '--option'. */
-    char shortName; /* The short name for this option where a non-character option means none will be
-                       displayed, e.g. 'o' for '-o'. */
-    std::string argument; /* The argument this option, e.g. if longName is 'option', shortName is 'o', and
-                             argument is 'ARG', then we have '-o=ARG' and '--option=ARG'. */
+    std::string longName;  /* The long name for this option, e.g. 'option' for '--option'. */
+    char shortName;        /* The short name for this option where a non-character option means none will be
+                              displayed, e.g. 'o' for '-o'. */
+    std::string argument;  /* The argument this option, e.g. if longName is 'option', shortName is 'o', and
+                              argument is 'ARG', then we have '-o=ARG' and '--option=ARG'. */
     std::string byDefault; /* The default value for this option, used if no this option is not specified as a
                               command line argument. */
     bool takesMany; /* Whether this option takes many arguments, false for 'it takes only one' true for 'it

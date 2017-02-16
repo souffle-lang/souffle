@@ -1,6 +1,7 @@
-.decl A(x:number) input
+.decl A(x:number)
 
 .input A(IO="file",filename="../../syntactic/NameFromInputDec.facts",delimiter="g")
 
-.decl B(x:number) output
+.decl B(x:number)
+.output B()
 B(x) :- A(x).

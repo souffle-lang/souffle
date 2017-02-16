@@ -80,11 +80,12 @@ term(10, "App", 2 ).
 // Step B) Analysis - get the value computed by the term
 
 
-.decl data_var( i:number, v:Value ) 
-.decl data_term( i:number, v:Value ) output
+.decl data_var( i:number, v:Value )
+.decl data_term( i:number, v:Value )
+.output data_term()
 
-.decl ctrl_var( i:number, f:number ) 
-.decl ctrl_term( i:number, f:number ) 
+.decl ctrl_var( i:number, f:number )
+.decl ctrl_term( i:number, f:number )
 
 
 //////////// D - Data Analysis //////////////

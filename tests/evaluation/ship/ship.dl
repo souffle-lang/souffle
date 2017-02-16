@@ -2,10 +2,14 @@
 
 .type Node
 
-.decl ship_to       (node1:Node, node2:Node) output
-.decl customer_city (node1:Node, node2:Node) output
-.decl has_ordered   (node1:Node, node2:Node) output
-.decl product_name  (node1:Node, node2:Node) output
+.decl ship_to       (node1:Node, node2:Node)
+.output ship_to       ()
+.decl customer_city (node1:Node, node2:Node)
+.output customer_city ()
+.decl has_ordered   (node1:Node, node2:Node)
+.output has_ordered   ()
+.decl product_name  (node1:Node, node2:Node)
+.output product_name  ()
 
 ship_to(ProdName, City) :- has_ordered(CustNo, ProdNo), customer_city(CustNo, City), product_name(ProdNo, ProdName).
 

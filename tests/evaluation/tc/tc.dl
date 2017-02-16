@@ -3,10 +3,14 @@
 
 .type Node
 
-.decl tcl  (node1:Node, node2:Node) output
-.decl tcr  (node1:Node, node2:Node) output
-.decl base (node1:Node, node2:Node) output
-.decl tc (node1:Node, node2:Node) output
+.decl tcl  (node1:Node, node2:Node)
+.output tcl  ()
+.decl tcr  (node1:Node, node2:Node)
+.output tcr  ()
+.decl base (node1:Node, node2:Node)
+.output base ()
+.decl tc (node1:Node, node2:Node)
+.output tc ()
 
 // Left-Recursive Transitive Closure
 tcl(X, Y) :- base(X,Y).

@@ -3,10 +3,12 @@
 //
 // Datalog formulation
 
-.type set 
+.type set
 
-.decl p  (node:set) output
-.decl q  (node:set) output
+.decl p  (node:set)
+.output p  ()
+.decl q  (node:set)
+.output q  ()
 
 p("a").
 p("b").

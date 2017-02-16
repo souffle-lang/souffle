@@ -69,9 +69,9 @@ TEST(AstUtils, Const) {
     // check selected sub-terms
     auto head = clause->getHead();
     EXPECT_FALSE(isConst[head->getArgument(0)]);  // X
-    EXPECT_TRUE(isConst[head->getArgument(1)]);  // Y
-    EXPECT_TRUE(isConst[head->getArgument(2)]);  // Z
-    EXPECT_TRUE(isConst[head->getArgument(3)]);  // W
+    EXPECT_TRUE(isConst[head->getArgument(1)]);   // Y
+    EXPECT_TRUE(isConst[head->getArgument(2)]);   // Z
+    EXPECT_TRUE(isConst[head->getArgument(3)]);   // W
 }
 
 TEST(AstUtils, Grounded) {
@@ -111,8 +111,8 @@ TEST(AstUtils, Grounded) {
     auto isGrounded = getGroundedTerms(*clause);
 
     // check selected sub-terms
-    EXPECT_TRUE(isGrounded[head->getArgument(0)]);  // X
-    EXPECT_TRUE(isGrounded[head->getArgument(1)]);  // Y
+    EXPECT_TRUE(isGrounded[head->getArgument(0)]);   // X
+    EXPECT_TRUE(isGrounded[head->getArgument(1)]);   // Y
     EXPECT_FALSE(isGrounded[head->getArgument(2)]);  // Z
 
     // done

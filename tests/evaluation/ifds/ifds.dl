@@ -19,40 +19,62 @@
 .type Node = String
 .type DataFlowFact = String
 
-.decl Node(n:Node) input output
-.decl Procedure(p:Procedure) input output
-.decl DataFlowFact(f:DataFlowFact) input output
+.decl Node(n:Node)
+.output Node()
+.input Node()
+.decl Procedure(p:Procedure)
+.output Procedure()
+.input Procedure()
+.decl DataFlowFact(f:DataFlowFact)
+.output DataFlowFact()
+.input DataFlowFact()
 
 //EDB relations
 
 //Node n is the start node of procedure p
-.decl StartNode(n:Node, p:Procedure) input output
+.decl StartNode(n:Node, p:Procedure)
+.output StartNode()
+.input StartNode()
 
 //Node n is the return node of procedure p
-.decl ReturnNode(n:Node, p:Procedure) input output
+.decl ReturnNode(n:Node, p:Procedure)
+.output ReturnNode()
+.input ReturnNode()
 
 //Node n is a call node in procedure p
-.decl CallNode(n:Node, p:Procedure) input output
+.decl CallNode(n:Node, p:Procedure)
+.output CallNode()
+.input CallNode()
 
 //Map a call node m to its after-return node n
-.decl ReturnSite(m:Node, n:Node) input output
+.decl ReturnSite(m:Node, n:Node)
+.output ReturnSite()
+.input ReturnSite()
 
 //Map a node to its enclosing procedure
-.decl ProcOf(n:Node, p:Procedure) input output
+.decl ProcOf(n:Node, p:Procedure)
+.output ProcOf()
+.input ProcOf()
 
 //Map a call node to its callee
-.decl CalledProc(n:Node, p:Procedure) input output
+.decl CalledProc(n:Node, p:Procedure)
+.output CalledProc()
+.input CalledProc()
 
 //Data-flow functions in the form of ((m, d1) -> (n,d2))
-.decl FlowEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact) input output
+.decl FlowEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact)
+.output FlowEdge()
+.input FlowEdge()
 
 //IDB relations
 
 //Summary data-flow edges in the form of ((m, d1) -> (n, d2))
-.decl SummaryEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact) output
+.decl SummaryEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact)
+.output SummaryEdge()
 
 //PathEdge between two nodes
-.decl PathEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact) output
+.decl PathEdge(m:Node, d1:DataFlowFact, n:Node, d2:DataFlowFact)
+.output PathEdge()
 
 //Initialisation
 PathEdge("s_main", "0", "s_main", "0").
@@ -79,7 +101,7 @@ PathEdge(s, d1, r, d3) :- ProcOf(n, p),
                           ReturnSite(n, r),
                           StartNode(s, p),
                           PathEdge(s, d1, n, d2).
-           
+
 //Case n equals e_p
 SummaryEdge(c, d4, r, d5) :- ReturnNode(n, p),
                              CalledProc(c, p),

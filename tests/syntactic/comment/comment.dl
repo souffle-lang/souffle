@@ -11,7 +11,7 @@
 Path(a,b) :- Edge(a,b). // Comment
 Path(a,c) :- Edge(a,b), Path(b,c). // Comment
 
-Path(a,c) :- Edge(a,b), 
+Path(a,c) :- Edge(a,b),
              Path(b,c).  // Comment
 
 Edge("1","2"). // Comment

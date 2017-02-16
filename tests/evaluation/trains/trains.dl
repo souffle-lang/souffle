@@ -274,6 +274,7 @@ AdjacentStops("Edmondson Park","Leppington","T2 Airport, Inner West & South Line
 Connected(a, b) :- AdjacentStops(a,b,_).
 Connected(a, b) :- Connected(a, c), AdjacentStops(c,b,_).
 
-.decl ReachableStops(a:Stop, b:Stop) output
+.decl ReachableStops(a:Stop, b:Stop)
+.output ReachableStops()
 ReachableStops(a,b) :- Connected(a,b), a="Central".
 

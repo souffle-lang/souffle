@@ -20,7 +20,8 @@
     atanh?:number,
       log?:number,
       exp?:number
-) output
+)
+.output Calculate()
 
 Calculate(
       sin(1),

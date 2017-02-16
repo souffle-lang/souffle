@@ -5,8 +5,10 @@
 
 .type Node
 
-.decl path   (node1:Node, node2:Node) output
-.decl edge   (node1:Node, node2:Node) output
+.decl path   (node1:Node, node2:Node)
+.output path   ()
+.decl edge   (node1:Node, node2:Node)
+.output edge   ()
 
 edge("a","b").
 edge("a","c").

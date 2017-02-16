@@ -174,7 +174,7 @@ private:
     };
 
     union {
-        RootInfo unsynced;  // for sequential operations
+        RootInfo unsynced;         // for sequential operations
         volatile RootInfo synced;  // for synchronized operations
     };
 

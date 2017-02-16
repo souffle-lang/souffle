@@ -245,7 +245,7 @@ class AstRecordType : public AstType {
 public:
     /** The type utilized to model a field */
     struct Field {
-        std::string name;  // < the field name
+        std::string name;        // < the field name
         AstTypeIdentifier type;  // < the field type
 
         bool operator==(const Field& other) const {

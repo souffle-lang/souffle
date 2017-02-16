@@ -19,7 +19,9 @@
 
 .type myrecord = [x:number, y:myrecord]
 
-.decl A(x:myrecord) output
+.decl A(x:myrecord)
+.output A()
 
-.decl B(x:number) output
+.decl B(x:number)
+.output B()
 

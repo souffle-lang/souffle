@@ -105,7 +105,7 @@ TEST(SymbolTable, Inserts) {
     typedef unsigned long long T;
     time_point start, end;
 
-    T n = 0;  // counter
+    T n = 0;         // counter
     T N = 10000000;  // number of symbols to insert
 
     SymbolTable X;
@@ -119,7 +119,7 @@ TEST(SymbolTable, Inserts) {
         X.insert(x);  // insert one at a time
         end = now();
         n += duration_in_ns(start, end);  // record the time
-        A[i] = x;  // also put in the array
+        A[i] = x;                         // also put in the array
     }
 
     if (ECHO_TIME)

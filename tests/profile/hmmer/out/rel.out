@@ -1,5 +1,5 @@
  ----- Relation Table -----
-   TOT_T  NREC_T   REC_T  COPY_T         TUPLES    ID NAME                     
+   TOT_T  NREC_T   REC_T  COPY_T         TUPLES    ID NAME
 
       22    .000      22    .477         639327    R4 IsReachable
     4.68    .004    4.52    .156         397202    R2 IsPtr

@@ -4,9 +4,10 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.decl X(x:number) 
+.decl X(x:number)
 X(1).
-.decl A(x:number) output
+.decl A(x:number)
+.output A()
 
 .comp B  {
     A(x) :- X(x).

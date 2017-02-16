@@ -71,7 +71,8 @@ SocialNet.e(Ned,Edna).
 
 // -- print some results --
 
-.decl result(n:symbol) output
+.decl result(n:symbol)
+.output result()
 result("Map Works") :- StreetMap.r("C","A").
 result("Social Net Works") :- SocialNet.r(Edna,Homer).
 

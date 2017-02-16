@@ -1,22 +1,22 @@
-Warning: Record types in output relations are not printed verbatim: attribute a has record type List in file rel_record.dl at line 6
-.decl X(a:List) output
-----------^------------
-Error: Input relations must not have record types. Attribute a has record type List in file rel_record.dl at line 9
-.decl Y(a:List, b:number, c:List) input
-----------^-----------------------------
-Error: Input relations must not have record types. Attribute c has record type List in file rel_record.dl at line 9
-.decl Y(a:List, b:number, c:List) input
-----------------------------^-----------
-Error: Input relations must not have record types. Attribute a has record type List in file rel_record.dl at line 12
-.decl Z(a:List, b:List) input output
-----------^--------------------------
-Warning: Record types in output relations are not printed verbatim: attribute a has record type List in file rel_record.dl at line 12
-.decl Z(a:List, b:List) input output
-----------^--------------------------
-Error: Input relations must not have record types. Attribute b has record type List in file rel_record.dl at line 12
-.decl Z(a:List, b:List) input output
-------------------^------------------
-Warning: Record types in output relations are not printed verbatim: attribute b has record type List in file rel_record.dl at line 12
-.decl Z(a:List, b:List) input output
-------------------^------------------
+Warning: Record types in output relations are not printed verbatim: attribute a has record type List in file rel_record.dl at line 7
+.decl X(a:List)
+----------^-----
+Error: Input relations must not have record types. Attribute a has record type List in file rel_record.dl at line 11
+.decl Y(a:List, b:number, c:List)
+----------^-----------------------
+Error: Input relations must not have record types. Attribute c has record type List in file rel_record.dl at line 11
+.decl Y(a:List, b:number, c:List)
+----------------------------^-----
+Error: Input relations must not have record types. Attribute a has record type List in file rel_record.dl at line 15
+.decl Z(a:List, b:List)
+----------^-------------
+Warning: Record types in output relations are not printed verbatim: attribute a has record type List in file rel_record.dl at line 15
+.decl Z(a:List, b:List)
+----------^-------------
+Error: Input relations must not have record types. Attribute b has record type List in file rel_record.dl at line 15
+.decl Z(a:List, b:List)
+------------------^-----
+Warning: Record types in output relations are not printed verbatim: attribute b has record type List in file rel_record.dl at line 15
+.decl Z(a:List, b:List)
+------------------^-----
 4 errors generated, evaluation aborted

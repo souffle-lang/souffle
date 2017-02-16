@@ -14,12 +14,13 @@ n(3).
 .decl len ( l : List, n : number )
 
 s(nil).
-s( [n,r] ) :- n(n), s(r), len(r,l), l < 5. 
+s( [n,r] ) :- n(n), s(r), len(r,l), l < 5.
 
 len(nil,0).
 len( [n,r] , x+1 ) :- s([n,r]), len(r,x).
 
 
-.decl fst ( l : number ) output
+.decl fst ( l : number )
+.output fst ()
 fst(x) :- s([x,_]).
 

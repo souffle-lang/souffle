@@ -52,6 +52,8 @@ std::vector<std::string> split(std::string str, std::string split_reg);
 
 std::vector<std::string> splitAtSemiColon(std::string str);
 
+std::string trimWhitespace(std::string str);
+
 inline bool file_exists(const std::string& name) {
     std::ifstream f(name.c_str());
     return f.good();

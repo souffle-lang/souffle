@@ -4,10 +4,12 @@
 // Simulation of elementary cellular automaton to a given number of generations.
 
 // The termination time, the simulation will stop after the given number of generations.
-.decl terminate(time:number) input
+.decl terminate(time:number)
+.input terminate()
 
 // The transition function, giving the value of a cell at time t+1 from the values of that cell and its local environment at time t.
-.decl transition(prev:number, center:number, next:number, value:number) input
+.decl transition(prev:number, center:number, next:number, value:number)
+.input transition()
 
 // The value of the cell to the left of the cell specified by the index at the given time, or the default value if it is out of the array bounds.
 .decl prev(time:number, index:number, value:number)
@@ -20,7 +22,8 @@ next(t, i, NULL) :- !element(i+1, _), cell(t, i, _), default(NULL).
 next(t, i, x) :- cell(t, i+1, x), element(i, _).
 
 // The cells, referenced by a time and their index in the backing array of elements, and having a value that is either 0 or 1.
-.decl cell(time:number, index:number, value:number) output
+.decl cell(time:number, index:number, value:number)
+.output cell()
 
 // The value of a cell at time 0 is the value of its backing element.
 cell(0, i, x) :- element(i, x).
@@ -29,6 +32,7 @@ cell(0, i, x) :- element(i, x).
 cell(t+1, i, x) :- !terminate(t), environment(t, i, l, c, r), transition(l, c, r, x).
 
 // The local environment of a cell, giving the value of the specified cell at time t, as well as that of its nearest neighbours.
-.decl environment(time:number, index:number, prev:number, center:number, next:number) output
+.decl environment(time:number, index:number, prev:number, center:number, next:number)
+.output environment()
 environment(t, i, l, c, r) :-
   prev(t, i, l), cell(t, i, c), next(t, i, r).

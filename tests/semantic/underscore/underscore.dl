@@ -1,5 +1,5 @@
 .type T
-.type R 
+.type R
 
 .decl F (r:R, t:T)
 

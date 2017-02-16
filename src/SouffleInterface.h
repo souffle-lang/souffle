@@ -313,7 +313,7 @@ protected:
     // container needs to be a primitive type such as pointer
     // set to NULL.
     ProgramFactory* link;  // link to next factory
-    std::string name;  // name of factory
+    std::string name;      // name of factory
 
 protected:
     /**

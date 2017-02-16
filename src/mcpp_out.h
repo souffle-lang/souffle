@@ -4,10 +4,10 @@
 
 /* Choices for output destination */
 typedef enum {
-    OUT,                        /* ~= fp_out    */
-    ERR,                        /* ~= fp_err    */
-    DBG,                        /* ~= fp_debug  */
+    OUT, /* ~= fp_out    */
+    ERR, /* ~= fp_err    */
+    DBG, /* ~= fp_debug  */
     NUM_OUTDEST
 } OUTDEST;
 
-#endif  /* _MCPP_OUT_H  */
+#endif /* _MCPP_OUT_H  */

@@ -1,7 +1,9 @@
 .type Node
 
-.decl X(node1:Node, node2:Node) output
-.decl Y(node1:Node, node2:Node) output
+.decl X(node1:Node, node2:Node)
+.output X()
+.decl Y(node1:Node, node2:Node)
+.output Y()
 
 Y(a,b) :- X(a,b).
 Y(a,c) :- Y(a,b), Y(b,c).

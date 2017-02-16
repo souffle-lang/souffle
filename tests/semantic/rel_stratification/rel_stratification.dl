@@ -1,9 +1,12 @@
 
 .type name
 
-.decl a(n:name) output
-.decl b(n:name) output
-.decl c(n:name) output
+.decl a(n:name)
+.output a()
+.decl b(n:name)
+.output b()
+.decl c(n:name)
+.output c()
 
 a("A").
 a("B").

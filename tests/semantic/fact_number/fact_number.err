@@ -1,4 +1,4 @@
-Error: Number constant (type mismatch) in file fact_number.dl at line 7
+Error: Number constant (type mismatch) in file fact_number.dl at line 8
 F(1000,"0002").
 --^-------------
 1 errors generated, evaluation aborted

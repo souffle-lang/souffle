@@ -1,9 +1,13 @@
 .type Node
 
-.decl RSG (node1:Node, node2:Node) output
-.decl FLAT(node1:Node, node2:Node) output
-.decl UP  (node1:Node, node2:Node) output
-.decl DOWN(node1:Node, node2:Node) output
+.decl RSG (node1:Node, node2:Node)
+.output RSG ()
+.decl FLAT(node1:Node, node2:Node)
+.output FLAT()
+.decl UP  (node1:Node, node2:Node)
+.output UP  ()
+.decl DOWN(node1:Node, node2:Node)
+.output DOWN()
 
 RSG(x,y) :- FLAT(x,y).
 RSG(x,y) :- UP(x, a), RSG(b, a), DOWN(b, y).

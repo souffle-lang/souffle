@@ -1,9 +1,9 @@
 Warning: No rules/facts defined for relation A in file comment2.dl at line 22
-.decl A(x:myrecord) output
-^--------------------------
+.decl A(x:myrecord)
+^-------------------
 Warning: Record types in output relations are not printed verbatim: attribute x has record type myrecord in file comment2.dl at line 22
-.decl A(x:myrecord) output
-----------^----------------
-Warning: No rules/facts defined for relation B in file comment2.dl at line 24
-.decl B(x:number) output
-^------------------------
+.decl A(x:myrecord)
+----------^---------
+Warning: No rules/facts defined for relation B in file comment2.dl at line 25
+.decl B(x:number)
+^-----------------

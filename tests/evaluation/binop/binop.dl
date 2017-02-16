@@ -5,28 +5,36 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 //
-// Check semantics of binary relations 
+// Check semantics of binary relations
 //
 
 .number_type n
 
-.decl A (x:n, y:n) output
-.decl B (x:n, y:n) output
-.decl C (x:n, y:n) output
-.decl D (x:n, y:n) output
-.decl E (x:n, y:n) output
-.decl F (x:n, y:n) output
-.decl S (x:n, y:n) output
-.decl N (x:n) output
+.decl A (x:n, y:n)
+.output A ()
+.decl B (x:n, y:n)
+.output B ()
+.decl C (x:n, y:n)
+.output C ()
+.decl D (x:n, y:n)
+.output D ()
+.decl E (x:n, y:n)
+.output E ()
+.decl F (x:n, y:n)
+.output F ()
+.decl S (x:n, y:n)
+.output S ()
+.decl N (x:n)
+.output N ()
 
-N(0). 
-N(1). 
-N(2). 
-N(3). 
-N(4). 
-N(5). 
+N(0).
+N(1).
+N(2).
+N(3).
+N(4).
+N(5).
 
-S(x,y) :- N(x), N(y). 
+S(x,y) :- N(x), N(y).
 
 A(a,c) :- S(a,c), a > c.
 B(a,c) :- S(a,c), a < c.

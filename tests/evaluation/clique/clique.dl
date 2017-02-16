@@ -8,9 +8,12 @@
 
 .type Node
 
-.decl reachable   (node1:Node, node2:Node) output
-.decl same_clique (node1:Node, node2:Node) output
-.decl edge        (node1:Node, node2:Node) output
+.decl reachable   (node1:Node, node2:Node)
+.output reachable   ()
+.decl same_clique (node1:Node, node2:Node)
+.output same_clique ()
+.decl edge        (node1:Node, node2:Node)
+.output edge        ()
 
 reachable(X,Y)   :- edge(X,Y).
 reachable(X,Y)   :- edge(X,Z), reachable(Z,Y).

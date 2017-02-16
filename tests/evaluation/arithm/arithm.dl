@@ -4,14 +4,14 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-// test arithmetic expression in Souffle 
+// test arithmetic expression in Souffle
 
 // define tautology
 .type B
 .decl true(s:B)
 true("true").
 
-// define expressions 
+// define expressions
 .type txt
 .decl e(x:number, t:txt, y:number)
 e(10 * 2, "10*2", 20) :- true(_).
@@ -30,6 +30,7 @@ e(10 ^ 2 , "10^2", 100) :- true(_).
 e(10 % 3, "10%3", 1) :- true(_).
 e(2^4%13 , "2^4%13",3) :- true(_).
 
-// compute whether arithmetic computation failed 
-.decl f(x:number, t:txt, y:number) output
-f(x,t,y) :- e(x,t,y), x != y. 
+// compute whether arithmetic computation failed
+.decl f(x:number, t:txt, y:number)
+.output f()
+f(x,t,y) :- e(x,t,y), x != y.

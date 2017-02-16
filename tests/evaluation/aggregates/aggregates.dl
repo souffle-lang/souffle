@@ -16,7 +16,8 @@ a("B",3).
 a("B",4).
 a("D",4).
 
-.decl res(n:symbol,x:number) output
+.decl res(n:symbol,x:number)
+.output res()
 res("min",Y)  :- Y = min Z : a(_,Z).
 res("minA",Y) :- Y = min Z : a("A",Z).
 res("minB",Y) :- Y = min Z : a("B",Z).
@@ -43,11 +44,14 @@ res("countC",Y) :- Y = count : a("C",_).
 res("countNotA",Y) :- Y = count : { a(X,_), X != "A" }.
 res("countNotB",Y) :- Y = count : { a(X,_), X != "B" }.
 
-.decl res1(n:symbol,x:number) output
+.decl res1(n:symbol,x:number)
+.output res1()
 res1(X,Y) :- a(X,_), Y = min Z : a(X,Z).
 
-.decl res2(n:symbol,x:number,y:number) output
+.decl res2(n:symbol,x:number,y:number)
+.output res2()
 res2(X,Y,W) :- a(X,_), Y = min Z : a(X,Z), W = max Z : a(X,Z).
 
-.decl res3(n:symbol,x:number) output
+.decl res3(n:symbol,x:number)
+.output res3()
 res3(X,Y) :- a(X,_), Y = min Z : a(X,Z), Y = max Z : a(X,Z).

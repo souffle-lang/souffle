@@ -17,7 +17,8 @@ n(3).
 n(4).
 n(5).
 
-.decl p ( a : N , b : N ) output
+.decl p ( a : N , b : N )
+.output p ()
 p(x,y) :- n(x), x = y.
 
 
@@ -27,6 +28,7 @@ a(1,2).
 a(2,2).
 a(3,2).
 
-.decl r ( a : N ) output
+.decl r ( a : N )
+.output r ()
 r(z) :- a(x,y), r = [x,y], s = r, s = [v,w], w=z, z=v.
 

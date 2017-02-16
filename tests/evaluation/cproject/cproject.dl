@@ -7,13 +7,15 @@
 // check whether constants in head of rules work correctly
 .type n
 
-.decl N (x:n) output
-.decl A (x:n, y:n) output
+.decl N (x:n)
+.output N ()
+.decl A (x:n, y:n)
+.output A ()
 
-N("0"). 
-N("1"). 
-N("2"). 
-N("3"). 
+N("0").
+N("1").
+N("2").
+N("3").
 
 A ("0",x) :- N(x).
 A ("3",x) :- N(x).

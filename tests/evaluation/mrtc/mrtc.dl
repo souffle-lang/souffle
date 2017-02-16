@@ -3,12 +3,18 @@
 
 .type Node
 
-.decl p (node1:Node, node2:Node) output
-.decl q (node1:Node, node2:Node) output
-.decl pqs (node1:Node, node2:Node) output
-.decl p1 (node1:Node, node2:Node) output
-.decl q1 (node1:Node, node2:Node) output
-.decl pqs1 (node1:Node, node2:Node) output
+.decl p (node1:Node, node2:Node)
+.output p ()
+.decl q (node1:Node, node2:Node)
+.output q ()
+.decl pqs (node1:Node, node2:Node)
+.output pqs ()
+.decl p1 (node1:Node, node2:Node)
+.output p1 ()
+.decl q1 (node1:Node, node2:Node)
+.output q1 ()
+.decl pqs1 (node1:Node, node2:Node)
+.output pqs1 ()
 
 p("a","b").
 p("c","d").

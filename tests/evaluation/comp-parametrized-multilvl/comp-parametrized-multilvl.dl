@@ -31,7 +31,8 @@
 
 .comp Main<TSelector, TGenerator> {
     .init selector = TSelector<TGenerator>
-    .decl Out(n:number) output
+    .decl Out(n:number)
+.output Out()
     Out(x) :- selector.Selected(x).
 }
 

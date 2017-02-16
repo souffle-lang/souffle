@@ -1,10 +1,15 @@
 .type Node
 
-.decl X (node1:Node) output
-.decl A (node1:Node) output
-.decl B (node1:Node) output
-.decl C (node1:Node) output
-.decl D (node1:Node) output
+.decl X (node1:Node)
+.output X ()
+.decl A (node1:Node)
+.output A ()
+.decl B (node1:Node)
+.output B ()
+.decl C (node1:Node)
+.output C ()
+.decl D (node1:Node)
+.output D ()
 
 X("a").
 X("b").

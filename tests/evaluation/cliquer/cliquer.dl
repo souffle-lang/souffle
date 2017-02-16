@@ -8,10 +8,14 @@
 
 .type Node
 
-.decl reachable (node1:Node, node2:Node) output
-.decl same_clique (node1:Node, node2:Node) output
-.decl edge (node1:Node, node2:Node) output
-.decl leg (node1:Node, node2:Node) output
+.decl reachable (node1:Node, node2:Node)
+.output reachable ()
+.decl same_clique (node1:Node, node2:Node)
+.output same_clique ()
+.decl edge (node1:Node, node2:Node)
+.output edge ()
+.decl leg (node1:Node, node2:Node)
+.output leg ()
 
 leg(X,Z) :- edge(X,Y), edge(Y,Z).
 

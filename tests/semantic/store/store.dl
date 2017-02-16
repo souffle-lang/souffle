@@ -1,5 +1,7 @@
-.decl A(x:number, y:number) input
+.decl A(x:number, y:number)
+.input A()
 
-.decl B(x:number, y:number) output
+.decl B(x:number, y:number)
+.output B()
 .output B(IO=file,filename="B.csv",compress=true)
 B(x,y) :- A(x,y).

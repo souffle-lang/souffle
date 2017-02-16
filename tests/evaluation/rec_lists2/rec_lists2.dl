@@ -6,5 +6,6 @@
 p([1,[2,nil]]).
 p([2,[3,nil]]).
 
-.decl r ( x : number ) output
+.decl r ( x : number )
+.output r ()
 r(a+b) :- p ([a,[b,nil]]).

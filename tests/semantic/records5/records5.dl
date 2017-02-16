@@ -8,7 +8,8 @@ s([1,2]).
 s([2,3]).
 s([3,1]).
 
-.decl res ( s : symbol ) output
+.decl res ( s : symbol )
+.output res ()
 
 res("11") :- s([1,1]).
 res("12") :- s([1,2]).

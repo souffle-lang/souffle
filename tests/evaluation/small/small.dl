@@ -2,10 +2,14 @@
 
 .type Node
 
-.decl mother   (node1:Node, node2:Node) output
-.decl father   (node1:Node, node2:Node) output
-.decl parent   (node1:Node, node2:Node) output
-.decl ancestor (node1:Node, node2:Node) output
+.decl mother   (node1:Node, node2:Node)
+.output mother   ()
+.decl father   (node1:Node, node2:Node)
+.output father   ()
+.decl parent   (node1:Node, node2:Node)
+.output parent   ()
+.decl ancestor (node1:Node, node2:Node)
+.output ancestor ()
 
 parent(X,Y) :- mother(X,Y).
 parent(X,Y) :- father(X,Y).

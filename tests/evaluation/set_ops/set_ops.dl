@@ -23,7 +23,8 @@ c("c").
 d("a").
 
 // the result container
-.decl res(x:value) output
+.decl res(x:value)
+.output res()
 
 // now - which is empty?
 
@@ -40,10 +41,10 @@ res("d is empty") :- !e_d("yes").
 .decl a2b(x:value,y:value)
 .decl a2b_a(x:value)
 .decl a2b_b(x:value)
-.decl a2b_unmapped_a(x:value) 
-.decl a2b_unmapped_b(x:value) 
-.decl a2b_unmapped_a_exist(x:value) 
-.decl a2b_unmapped_b_exist(x:value) 
+.decl a2b_unmapped_a(x:value)
+.decl a2b_unmapped_b(x:value)
+.decl a2b_unmapped_a_exist(x:value)
+.decl a2b_unmapped_b_exist(x:value)
 
 a2b(x,x) :- a(x),b(x).
 
@@ -61,10 +62,10 @@ a2b_unmapped_b_exist("yes") :- a2b_unmapped_b(_).
 .decl a2c(x:value,y:value)
 .decl a2c_a(x:value)
 .decl a2c_c(x:value)
-.decl a2c_unmapped_a(x:value) 
-.decl a2c_unmapped_c(x:value) 
-.decl a2c_unmapped_a_exist(x:value) 
-.decl a2c_unmapped_c_exist(x:value) 
+.decl a2c_unmapped_a(x:value)
+.decl a2c_unmapped_c(x:value)
+.decl a2c_unmapped_a_exist(x:value)
+.decl a2c_unmapped_c_exist(x:value)
 
 a2c(x,x) :- a(x),c(x).
 
@@ -82,10 +83,10 @@ a2c_unmapped_c_exist("yes") :- a2c_unmapped_c(_).
 .decl b2c(x:value,y:value)
 .decl b2c_b(x:value)
 .decl b2c_c(x:value)
-.decl b2c_unmapped_b(x:value) 
-.decl b2c_unmapped_c(x:value) 
-.decl b2c_unmapped_b_exist(x:value) 
-.decl b2c_unmapped_c_exist(x:value) 
+.decl b2c_unmapped_b(x:value)
+.decl b2c_unmapped_c(x:value)
+.decl b2c_unmapped_b_exist(x:value)
+.decl b2c_unmapped_c_exist(x:value)
 
 b2c(x,x) :- b(x),c(x).
 

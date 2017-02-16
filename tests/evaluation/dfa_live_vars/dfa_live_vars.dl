@@ -21,8 +21,10 @@
 
 //// --- result --- ////
 
-.decl live_vars_in(x:Node, v:Var) output
-.decl live_vars_out(x:Node, v:Var) output
+.decl live_vars_in(x:Node, v:Var)
+.output live_vars_in()
+.decl live_vars_out(x:Node, v:Var)
+.output live_vars_out()
 
 //////////////////////////////////////////////////
 
@@ -34,7 +36,7 @@ cf_edge("B","D").
 cf_edge("D","E").
 
 
-// use and def 
+// use and def
 
 def("A", "x1").
 

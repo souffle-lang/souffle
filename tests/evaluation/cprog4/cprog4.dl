@@ -6,13 +6,14 @@
 //assert(z = y = z)
 
 .decl loop(i:number, x:number, y:number, z:number)
-.decl R() output
+.decl R()
+.output R()
 
 loop(0, 0, 0, 0).
 
 loop(1, 200, y, z) :- loop(0, _, y, z).
 loop(2, x, y, 50) :- loop(1, x, y, _).
-loop(3, x, 10, z) :- loop(0, _, _, z), loop(1, x, _, _). 
+loop(3, x, 10, z) :- loop(0, _, _, z), loop(1, x, _, _).
 loop(7, x, y, z)  :- loop(3, x, y, z), x <= z, z <= y.
 
 loop(4, x, y, z)  :- loop(3, x, y, z), x > z.

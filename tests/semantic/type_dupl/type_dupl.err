@@ -1,6 +1,6 @@
 Error: Redefinition of type Type in file type_dupl.dl at line 4
-.type Type 
-^-----------
+.type Type
+^----------
 Previous definition in file type_dupl.dl at line 3
 .type Type
 ^----------

@@ -212,6 +212,20 @@ std::vector<std::string> Tools::splitAtSemiColon(std::string str) {
     return result;
 }
 
+std::string Tools::trimWhitespace(std::string str) {
+    std::string whitespace = " \t";
+    size_t first = str.find_first_not_of(whitespace);
+    if (first != std::string::npos) {
+        str.erase(0, first);
+        size_t last = str.find_last_not_of(whitespace);
+        str.erase(last + 1);
+    } else {
+        str.clear();
+    }
+
+    return str;
+}
+
 std::string Tools::getworkingdir() {
     char cCurrentPath[FILENAME_MAX];
     if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))) {

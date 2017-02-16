@@ -1,15 +1,20 @@
 .type List = [a:number, b:List]
 
-.decl W(a:List, b:number, c:List) printsize
+.decl W(a:List, b:number, c:List)
+.printsize W
 W(nil,1,nil).
 
-.decl X(a:List) output
+.decl X(a:List)
+.output X()
 X(nil).
 
-.decl Y(a:List, b:number, c:List) input
-Y(nil,1,nil). 
+.decl Y(a:List, b:number, c:List)
+.input Y()
+Y(nil,1,nil).
 
-.decl Z(a:List, b:List) input output
+.decl Z(a:List, b:List)
+.output Z()
+.input Z()
 Z(nil,nil).
 
 

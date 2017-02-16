@@ -1,21 +1,21 @@
-//             88                                   88          
-//             ""                                   ""   ,d     
-//                                                       88     
-//   ,adPPYba, 88 8b,dPPYba,  ,adPPYba, 88       88 88 MM88MMM  
-//  a8"     "" 88 88P'   "Y8 a8"     "" 88       88 88   88     
-//  8b         88 88         8b         88       88 88   88     
-//  "8a,   ,aa 88 88         "8a,   ,aa "8a,   ,a88 88   88,    
-//   `"Ybbd8"' 88 88          `"Ybbd8"'  `"YbbdP'Y8 88   "Y888  
-//                                                              
-//                                                                   88  
-//                                                                   88  
-//                                                                   88  
-//  8b,dPPYba,  ,adPPYba,  ,adPPYba,  ,adPPYba,  8b,dPPYba,  ,adPPYb,88  
-//  88P'   "Y8 a8P_____88 a8"     "" a8"     "8a 88P'   "Y8 a8"    `Y88  
-//  88         8PP""""""" 8b         8b       d8 88         8b       88  
-//  88         "8b,   ,aa "8a,   ,aa "8a,   ,a8" 88         "8a,   ,d88  
-//  88          `"Ybbd8"'  `"Ybbd8"'  `"YbbdP"'  88          `"8bbdP"Y8  
-                                                                     
+//             88                                   88
+//             ""                                   ""   ,d
+//                                                       88
+//   ,adPPYba, 88 8b,dPPYba,  ,adPPYba, 88       88 88 MM88MMM
+//  a8"     "" 88 88P'   "Y8 a8"     "" 88       88 88   88
+//  8b         88 88         8b         88       88 88   88
+//  "8a,   ,aa 88 88         "8a,   ,aa "8a,   ,a88 88   88,
+//   `"Ybbd8"' 88 88          `"Ybbd8"'  `"YbbdP'Y8 88   "Y888
+//
+//                                                                   88
+//                                                                   88
+//                                                                   88
+//  8b,dPPYba,  ,adPPYba,  ,adPPYba,  ,adPPYba,  8b,dPPYba,  ,adPPYb,88
+//  88P'   "Y8 a8P_____88 a8"     "" a8"     "8a 88P'   "Y8 a8"    `Y88
+//  88         8PP""""""" 8b         8b       d8 88         8b       88
+//  88         "8b,   ,aa "8a,   ,aa "8a,   ,a8" 88         "8a,   ,d88
+//  88          `"Ybbd8"'  `"Ybbd8"'  `"YbbdP"'  88          `"8bbdP"Y8
+
 // Circuit record
 // Determine the required inputs to satisfy the outputs
 // Different from circuit_sat, which encoded wire state in integers
@@ -35,22 +35,22 @@ in("c").
 
 //helpers to determine ordering in the list
 .decl less(a: Wire, b: Wire)
-less(x, y) :- in(x), in(y), ord(x) < ord(y). 
+less(x, y) :- in(x), in(y), ord(x) < ord(y).
 
 .decl leg(a: Wire, b: Wire)
-leg(x, z) :- less(x,y), less(y,z). 
+leg(x, z) :- less(x,y), less(y,z).
 
 //element x is before el y
 .decl succ(a: Wire, b: Wire)
-succ(x, y) :- less(x, y), !leg(x,y). 
+succ(x, y) :- less(x, y), !leg(x,y).
 
 //el x is first in list
-.decl first(a: Wire) 
-first(a) :- in(a), !less(_,a). 
+.decl first(a: Wire)
+first(a) :- in(a), !less(_,a).
 
 //el x is last
 .decl last(a:Wire)
-last(a) :- in(a), !less(a,_). 
+last(a) :- in(a), !less(a,_).
 
 //boolean states
 .decl bin(a : number)
@@ -60,17 +60,17 @@ bin(1).
 // generate all ordered lists (including list stubs)
 .decl gen_wire_states( wl : Wire_list)
 gen_wire_states([[x, v], nil]) :-
-	first(x), 
+	first(x),
     bin(v).
 
 gen_wire_states( [[y, v], l]) :-
     gen_wire_states(l),
-	succ(x, y), 
+	succ(x, y),
     bin(v),
     l = [[x,xv],tail].
 
 // collect full length ordered lists (i.e. ignore stubs)
-.decl final_gen_wire_states(wl : Wire_list) 
+.decl final_gen_wire_states(wl : Wire_list)
 final_gen_wire_states(l) :-
     gen_wire_states(l),
     l = [[x,xv],tail],
@@ -86,11 +86,15 @@ get_by_key(k, v, tail, conf) :-
 .decl required_out(ws : Wire_state)
 required_out([w, v]) :- required_out_fi(w, v).
 //which wires are required to have certain values
-.decl required_out_fi(w : Wire, v : number) input
+.decl required_out_fi(w : Wire, v : number)
+.input required_out_fi()
 
-.decl circuit_and(result : Wire, op1 : Wire, op2 : Wire) input
-.decl circuit_or(result : Wire, op1 : Wire, op2 : Wire) input
-.decl circuit_not(result : Wire, op1 : Wire) input
+.decl circuit_and(result : Wire, op1 : Wire, op2 : Wire)
+.input circuit_and()
+.decl circuit_or(result : Wire, op1 : Wire, op2 : Wire)
+.input circuit_or()
+.decl circuit_not(result : Wire, op1 : Wire)
+.input circuit_not()
 
 // evaluate the wire's required value from a set of inputs
 .decl evaluate(circuit_state : Wire_list, wire_state : Wire_state)
@@ -115,11 +119,12 @@ satisfy(conf, [var, val]) :-
 	
 // print the required inputs to reach the configuration (turned off atm, as the souffle tester cannot handle the output of records)
 .decl sat_print(var : Wire, val : number, conf : Wire_list)
-sat_print(var, val, conf) :- 
+sat_print(var, val, conf) :-
 	satisfy(conf,_), get_by_key(var, val, _, conf).
 
 // print the count of total circuits configurations mul inputs
-.decl print_states(val : number) output
-print_states(val) :- 
+.decl print_states(val : number)
+.output print_states()
+print_states(val) :-
 	val = count : { sat_print(_, _, _) }.
 	

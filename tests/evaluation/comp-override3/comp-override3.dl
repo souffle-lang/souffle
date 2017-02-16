@@ -5,12 +5,14 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 .comp A {
-    .decl Rel(x:number) overridable output
+    .decl Rel(x:number) overridable
+.output Rel()
     Rel(1).
 }
 
 .comp B {
-    .decl Rel(x:number) output
+    .decl Rel(x:number)
+.output Rel()
     Rel(2).
 }
 

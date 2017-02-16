@@ -2,7 +2,10 @@
 // are reported at correct location
 .type Node
 
-.decl reachable   (node1:Node, node2:Node) input
+.decl reachable   (node1:Node, node2:Node)
+.input reachable   ()
         blah %
-.decl same_clique (node1:Node, node2:Node) input
-.decl edge        (node1:Node, node2:Node) input
+.decl same_clique (node1:Node, node2:Node)
+.input same_clique ()
+.decl edge        (node1:Node, node2:Node)
+.input edge        ()

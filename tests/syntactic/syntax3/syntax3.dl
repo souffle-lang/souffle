@@ -4,11 +4,11 @@
 .type Node
 
 .decl reachable   (node1:Node, node2:Node)
-.decl same_clique (node1:Node, node2:Node) 
-.decl edge        (node1:Node, node2:Node) 
+.decl same_clique (node1:Node, node2:Node)
+.decl edge        (node1:Node, node2:Node)
 
 reachable(X,Y)   :- edge(X,Y).
-reachable(X,Y)   :- edge(X,Z),      
+reachable(X,Y)   :- edge(X,Z),
                     reachable(Z,Y).
 same_clique(X,Y) + reachable(X,Y), reachable(Y,X).
 

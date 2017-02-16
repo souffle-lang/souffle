@@ -9,10 +9,10 @@
 ///////////
 
 .type Type
-.type VarRef 
+.type VarRef
 .type InvocationRef
 .type HeapAllocationRef
-.type FieldSignatureRef 
+.type FieldSignatureRef
 .type MethodSignatureRef
 .type MethodDescriptorRef
 .type Int
@@ -22,26 +22,46 @@
 // EDB //
 /////////
 
-.decl DirectFieldIndexSignature(class:Type, index:FieldSignatureRef, field:FieldSignatureRef) input
-.decl DirectSuperclass(subclass:Type, superclass:Type)  input
-.decl DirectSuperinterface(type:Type, superinterface:Type)  input
-.decl HeapAllocationType(heapAllocation:HeapAllocationRef, allocationType:Type)  input
-.decl ThisVar(method:MethodSignatureRef, thisVariable:VarRef)  input
-.decl ReturnVar(returnVariable:VarRef, method:MethodSignatureRef)  input
-.decl SpecialMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)  input
-.decl SpecialMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef)  input
-.decl StaticMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)  input
-.decl VirtualMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)  input
-.decl VirtualMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef)  input
-.decl VarType(variable:VarRef, type:Type)  input
-.decl FormalParam(index:Int, containingMethod:MethodSignatureRef, variable:VarRef)  input
-.decl ActualParam(index:Int, callsite:InvocationRef, actualVariable:VarRef)  input
-.decl AssignReturnValue(callsite:InvocationRef, variableAssignedTo:VarRef)  input
-.decl AssignCast(castType:Type, variableCast:VarRef, variableAssignedTp:VarRef, containingMethod:MethodSignatureRef) input
-.decl AssignLocal(variableAssigned:VarRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)  input
-.decl AssignHeapAllocation(heapAllocation:HeapAllocationRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)  input
-.decl LoadInstanceFieldIndex(instanceVariable:VarRef, field:FieldSignatureRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)  input
-.decl StoreInstanceFieldIndex(storedVariable:VarRef, instanceVariable:VarRef, field:FieldSignatureRef, containingMethod:MethodSignatureRef)  input
+.decl DirectFieldIndexSignature(class:Type, index:FieldSignatureRef, field:FieldSignatureRef)
+.input DirectFieldIndexSignature()
+.decl DirectSuperclass(subclass:Type, superclass:Type)
+.input DirectSuperclass()
+.decl DirectSuperinterface(type:Type, superinterface:Type)
+.input DirectSuperinterface()
+.decl HeapAllocationType(heapAllocation:HeapAllocationRef, allocationType:Type)
+.input HeapAllocationType()
+.decl ThisVar(method:MethodSignatureRef, thisVariable:VarRef)
+.input ThisVar()
+.decl ReturnVar(returnVariable:VarRef, method:MethodSignatureRef)
+.input ReturnVar()
+.decl SpecialMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)
+.input SpecialMethodInvocationSignature()
+.decl SpecialMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef)
+.input SpecialMethodInvocationBase()
+.decl StaticMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)
+.input StaticMethodInvocationSignature()
+.decl VirtualMethodInvocationSignature(callsite:InvocationRef, calledMethod:MethodSignatureRef)
+.input VirtualMethodInvocationSignature()
+.decl VirtualMethodInvocationBase(callsite:InvocationRef, instanceVariable:VarRef)
+.input VirtualMethodInvocationBase()
+.decl VarType(variable:VarRef, type:Type)
+.input VarType()
+.decl FormalParam(index:Int, containingMethod:MethodSignatureRef, variable:VarRef)
+.input FormalParam()
+.decl ActualParam(index:Int, callsite:InvocationRef, actualVariable:VarRef)
+.input ActualParam()
+.decl AssignReturnValue(callsite:InvocationRef, variableAssignedTo:VarRef)
+.input AssignReturnValue()
+.decl AssignCast(castType:Type, variableCast:VarRef, variableAssignedTp:VarRef, containingMethod:MethodSignatureRef)
+.input AssignCast()
+.decl AssignLocal(variableAssigned:VarRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)
+.input AssignLocal()
+.decl AssignHeapAllocation(heapAllocation:HeapAllocationRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)
+.input AssignHeapAllocation()
+.decl LoadInstanceFieldIndex(instanceVariable:VarRef, field:FieldSignatureRef, variableAssignedTo:VarRef, containingMethod:MethodSignatureRef)
+.input LoadInstanceFieldIndex()
+.decl StoreInstanceFieldIndex(storedVariable:VarRef, instanceVariable:VarRef, field:FieldSignatureRef, containingMethod:MethodSignatureRef)
+.input StoreInstanceFieldIndex()
 
 
 .decl InstanceVar(instanceVariable:VarRef)
@@ -66,89 +86,90 @@ InvocationBase(callsite, var) :- VirtualMethodInvocationBase(callsite, var).
 InvocationBase(callsite, var) :- SpecialMethodInvocationBase(callsite, var).
 
 .decl InstanceVarType(variable:VarRef, type:Type)
-InstanceVarType(var, type) :- 
-  VarType(var, type), 
+InstanceVarType(var, type) :-
+  VarType(var, type),
   InstanceVar(var).
 
 .decl InstanceTypes(type:Type)
-InstanceTypes(x) :- 
-  Supertype(x, _), 
+InstanceTypes(x) :-
+  Supertype(x, _),
   InstanceVarType(_, x).
-                    
-InstanceTypes(x) :- 
-  Supertype(_, x), 
+
+InstanceTypes(x) :-
+  Supertype(_, x),
   InstanceVarType(_, x).
 
 .decl IsInstanceTypeCompatible(subclass:Type, superclass:Type)
-IsInstanceTypeCompatible(sub, super) :- 
+IsInstanceTypeCompatible(sub, super) :-
   Supertype(sub, super).
 
-IsInstanceTypeCompatible(t, t) :- 
+IsInstanceTypeCompatible(t, t) :-
   InstanceTypes(t).
 
 .decl InstanceTypeComparable(subclass:Type, superclass:Type)
-InstanceTypeComparable(type1, type2) :- 
+InstanceTypeComparable(type1, type2) :-
   IsInstanceTypeCompatible(type1, type2).
 
-InstanceTypeComparable(type1, type2) :- 
+InstanceTypeComparable(type1, type2) :-
   IsInstanceTypeCompatible(type2, type1).
 
 .decl ComparableInstanceVar(variable:VarRef, variable2:VarRef)
-ComparableInstanceVar(var1, var2) :- 
- InstanceVarType(var1, type1),  
- InstanceVarType(var2, type2), 
+ComparableInstanceVar(var1, var2) :-
+ InstanceVarType(var1, type1),
+ InstanceVarType(var2, type2),
  InstanceTypeComparable(type1, type2).
 
-.decl Assign(varAssigned:VarRef, varAssignedTo:VarRef) 
+.decl Assign(varAssigned:VarRef, varAssignedTo:VarRef)
 Assign(localVarAssigned, localVarAssignedTo) :- AssignLocal(localVarAssigned, localVarAssignedTo, _).
 Assign(actualParam, formalParam) :- Invocation(callsite, method), FormalParam(index, method, formalParam), ActualParam(index, callsite, actualParam).
 Assign(returnVar, localVar) :- ReturnVar(returnVar, method), Invocation(callsite, method), AssignReturnValue(callsite, localVar).
 Assign(base, this) :- InvocationBase(callsite, base), Invocation(callsite, method), ThisVar(method, this).
 
-.decl VarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef) output
-VarPointsTo(var, heap)  :- 
+.decl VarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef)
+.output VarPointsTo()
+VarPointsTo(var, heap)  :-
   AssignHeapAllocation(heap, var, _).
 
-VarPointsTo(var1, heap) :- 
-  Assign(var2, var1),      
+VarPointsTo(var1, heap) :-
+  Assign(var2, var1),
   VarPointsTo(var2, heap).
 
-VarPointsTo(var1, heap) :-         
-  AssignCast(type, var2, var1, _), 
-  VarPointsTo(var2, heap),         
+VarPointsTo(var1, heap) :-
+  AssignCast(type, var2, var1, _),
+  VarPointsTo(var2, heap),
   HeapAllocationType(heap, type).
 
-VarPointsTo(var1, heap) :-            
-  AssignCast(varType, var2, var1, _), 
-  VarPointsTo(var2, heap),            
-  HeapAllocationType(heap, heapType), 
+VarPointsTo(var1, heap) :-
+  AssignCast(varType, var2, var1, _),
+  VarPointsTo(var2, heap),
+  HeapAllocationType(heap, heapType),
   Supertype(heapType, varType).
 
 .decl InstanceVarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef)
-InstanceVarPointsTo(var1, var2) :- 
+InstanceVarPointsTo(var1, var2) :-
   InstanceVar(var1),
   VarPointsTo(var1, var2).
 
 .decl LoadInstanceVarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef)
-LoadInstanceVarPointsTo(var, heap)  :-  
-  InstanceVarPointsTo(var, heap),      
+LoadInstanceVarPointsTo(var, heap)  :-
+  InstanceVarPointsTo(var, heap),
   LoadInstanceFieldIndex(var, _, _, _).
 
 .decl StoreInstanceVarPointsTo(variable:VarRef, heapAllocation:HeapAllocationRef)
-StoreInstanceVarPointsTo(var, heap) :-  
-  InstanceVarPointsTo(var, heap),     
+StoreInstanceVarPointsTo(var, heap) :-
+  InstanceVarPointsTo(var, heap),
   StoreInstanceFieldIndex(_, var, _, _).
 
 .decl Alias(v1:VarRef, v2:VarRef)
-Alias(v1, v2) :-                            
-  LoadInstanceVarPointsTo(v1, h),          
-  StoreInstanceVarPointsTo(v2, h),         
-  InstanceVarType(v1, t1),                 
-  InstanceVarType(v2, t2),                 
-  InstanceTypeComparable(t1, t2). 
+Alias(v1, v2) :-
+  LoadInstanceVarPointsTo(v1, h),
+  StoreInstanceVarPointsTo(v2, h),
+  InstanceVarType(v1, t1),
+  InstanceVarType(v2, t2),
+  InstanceTypeComparable(t1, t2).
 
-Assign(storedVar, varAssignedTo) :-                          
-  Alias(iLoadVar, iStoreVar),                                 
-  StoreInstanceFieldIndex(storedVar, iStoreVar, field, _),          
+Assign(storedVar, varAssignedTo) :-
+  Alias(iLoadVar, iStoreVar),
+  StoreInstanceFieldIndex(storedVar, iStoreVar, field, _),
   LoadInstanceFieldIndex(iLoadVar, field, varAssignedTo, _).
 

@@ -45,8 +45,8 @@ private:
     typedef std::map<SearchColumns, int> Distance;
 
 private:
-    Matchings match;  // if x not in match assume match[x] == 0 else a value. Needs both edges...
-    Graph graph;  // Only traversed not modified
+    Matchings match;    // if x not in match assume match[x] == 0 else a value. Needs both edges...
+    Graph graph;        // Only traversed not modified
     Distance distance;  // if x not in distance assume distance[x] == inf. distance [0] special
 
 public:

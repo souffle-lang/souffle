@@ -6,9 +6,11 @@
 // Message for % 0 exceptions".
 //
 
-.decl test_modulo( x:number ) output
+.decl test_modulo( x:number )
+.output test_modulo()
 test_modulo(x) :- x = 1, y = 0, x % y = 0, x % 0 = 0.
 
 
-.decl test_divide( x:number ) output
+.decl test_divide( x:number )
+.output test_divide()
 test_divide(x) :- x = 1, y = 0, x / y = 0, x / 0 = 0.

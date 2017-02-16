@@ -1,9 +1,10 @@
 .type Node
 
-.decl link(node1:Node, node2:Node, node3:Node) 
-.decl St_Reachable(node1:Node, node2:Node) 
-.decl Li_Reachable(node1:Node, node2:Node) 
-.decl platform2_reach(node1:Node, node2:Node)  output
+.decl link(node1:Node, node2:Node, node3:Node)
+.decl St_Reachable(node1:Node, node2:Node)
+.decl Li_Reachable(node1:Node, node2:Node)
+.decl platform2_reach(node1:Node, node2:Node)
+.output platform2_reach()
 
 
 St_Reachable(x, y) :- link(_,x,y).

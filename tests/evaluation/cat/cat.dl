@@ -5,15 +5,16 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 //
-// Check semantics of binary relations 
+// Check semantics of binary relations
 //
 
 .type A
 
-.decl Y (a:A, b:A) 
-.decl Z (a:A, b:A, c:A) output
+.decl Y (a:A, b:A)
+.decl Z (a:A, b:A, c:A)
+.output Z ()
 
-Y("a","b"). 
-Y("c","d"). 
+Y("a","b").
+Y("c","d").
 
-Z(a,b, cat(cat(a,b), a)) :- Y(a,b). 
+Z(a,b, cat(cat(a,b), a)) :- Y(a,b).

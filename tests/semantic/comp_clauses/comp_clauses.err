@@ -1,10 +1,10 @@
-Error: Non-symbol use for string function in file comp_clauses.dl at line 10
+Error: Non-symbol use for string function in file comp_clauses.dl at line 12
 q(cat(x,x)) :- q(x).                // this one should
 --^----------------------------------------------------
-Error: Non-symbol operand for string function in file comp_clauses.dl at line 10
+Error: Non-symbol operand for string function in file comp_clauses.dl at line 12
 q(cat(x,x)) :- q(x).                // this one should
 ------^------------------------------------------------
-Error: Non-symbol operand for string function in file comp_clauses.dl at line 10
+Error: Non-symbol operand for string function in file comp_clauses.dl at line 12
 q(cat(x,x)) :- q(x).                // this one should
 --------^----------------------------------------------
 3 errors generated, evaluation aborted

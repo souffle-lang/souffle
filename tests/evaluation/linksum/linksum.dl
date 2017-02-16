@@ -1,16 +1,17 @@
 //
 // Compute the sum of a graph
-// 
+//
 
-.decl Edge      (x:number, y:number, z:number) 
-.decl Linksum      (x:number, y:number, z:number)  output
-.decl A (x:number, y:number, z:number) 
-.decl R (x:number, y:number) 
+.decl Edge      (x:number, y:number, z:number)
+.decl Linksum      (x:number, y:number, z:number)
+.output Linksum      ()
+.decl A (x:number, y:number, z:number)
+.decl R (x:number, y:number)
 
 Linksum(X,Y,N) :- Edge(X,Y,N).
 Linksum(X,Y,R) :- Edge(X,Z,N), Linksum(Z,Y,M), A(M, N, R).
 
-A(X,Y,X+Y) :- R(X,Y). 
+A(X,Y,X+Y) :- R(X,Y).
 
 Edge(1,2,1).
 Edge(1,3,1).

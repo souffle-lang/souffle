@@ -3,19 +3,20 @@
 //// ----- declarations -----
 
 // the search range
-.decl nat(x:number) 
+.decl nat(x:number)
 
 // the primes within the range
-.decl prime(x:number) output
+.decl prime(x:number)
+.output prime()
 
 
 // -- auxiliary relations --
-.decl succ(a:number,b:number) 
-.decl add(a:number,b:number,r:number) 
-.decl mul(a:number,b:number,r:number) 
+.decl succ(a:number,b:number)
+.decl add(a:number,b:number,r:number)
+.decl mul(a:number,b:number,r:number)
 
-.decl range(x:number) 
-.decl prod(x:number) 
+.decl range(x:number)
+.decl prod(x:number)
 
 
 ////////////////////////////////////////////////////

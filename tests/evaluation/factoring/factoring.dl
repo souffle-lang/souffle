@@ -14,5 +14,6 @@ factor(x, fc) :- gen(x), gen(fc), x % fc = 0, fc != 1.
 prod(x) :- gen(x), gen(a), gen(b), b != x, a != x, x = a*b.
 
 //finds the prime factors
-.decl p_factor(x : number, fc : number) output
+.decl p_factor(x : number, fc : number)
+.output p_factor()
 p_factor(x, fc) :- factor(x, fc), !prod(fc).

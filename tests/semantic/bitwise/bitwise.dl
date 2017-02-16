@@ -1,18 +1,22 @@
-.decl A(x:number) 
+.decl A(x:number)
 A(11).
 A(4711).
 A(121233).
 A(1234).
 
-.decl r_band(x:number, y:number, z:number) output
+.decl r_band(x:number, y:number, z:number)
+.output r_band()
 r_band(x band y, x, y) :- A(x), A(y).
 
-.decl r_bxor(x:number, y:number, z:number) output
+.decl r_bxor(x:number, y:number, z:number)
+.output r_bxor()
 r_bxor(x bxor y, x, y) :- A(x), A(y).
 
-.decl r_bor(x:number, y:number, z:number) output
+.decl r_bor(x:number, y:number, z:number)
+.output r_bor()
 r_bor(x bor y, x, y) :- A(x), A(y).
 
-.decl r_bnot(x:number, y:number) output
+.decl r_bnot(x:number, y:number)
+.output r_bnot()
 r_bnot(bnot x, x) :- A(x).
 
