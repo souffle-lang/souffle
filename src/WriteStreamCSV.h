@@ -17,7 +17,9 @@
 #include "SymbolMask.h"
 #include "SymbolTable.h"
 #include "WriteStream.h"
+#ifdef USE_LIBZ
 #include "gzfstream.h"
+#endif
 
 #include <memory>
 #include <string>
@@ -77,6 +79,7 @@ private:
     WriteStreamCSV writeStream;
 };
 
+#ifdef USE_LIBZ
 class WriteGZipFileCSV : public WriteStream {
 public:
     WriteGZipFileCSV(const std::string& filename, const SymbolMask& symbolMask,
@@ -92,6 +95,7 @@ private:
     gzfstream::ogzfstream file;
     WriteStreamCSV writeStream;
 };
+#endif
 
 class WriteCoutCSV : public WriteStream {
 public:
@@ -128,13 +132,14 @@ public:
     virtual std::unique_ptr<WriteStream> getWriter(
             const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
         char delimiter = getDelimiter(ioDirectives);
+#ifdef USE_LIBZ
         if (ioDirectives.has("compress")) {
             return std::unique_ptr<WriteGZipFileCSV>(
                     new WriteGZipFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
-        } else {
-            return std::unique_ptr<WriteFileCSV>(
-                    new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
         }
+#endif
+        return std::unique_ptr<WriteFileCSV>(
+                new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
     }
     virtual const std::string& getName() const {
         return name;
