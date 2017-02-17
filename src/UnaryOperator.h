@@ -24,24 +24,25 @@ namespace souffle {
  */
 enum class UnaryOp {
     __UNDEFINED__,
-    ORD,    // character value
-    NEG,    // numeric negation
-    BNOT,   // bitwise negation
-    LNOT,   // logical negation
-    SIN,    // mathematical sin
-    COS,    // mathematical cos
-    TAN,    // mathematical tan
-    ASIN,   // mathematical asin
-    ACOS,   // mathematical acos
-    ATAN,   // mathematical atan
-    SINH,   // mathematical sinh
-    COSH,   // mathematical cosh
-    TANH,   // mathematical tanh
-    ASINH,  // mathematical asinh
-    ACOSH,  // mathematical acosh
-    ATANH,  // mathematical atanh
-    LOG,    // mathematical natural logarithm
-    EXP     // mathematical natural exponent
+    ORD,      // character value
+    STRLEN,   // length of a string
+    NEG,      // numeric negation
+    BNOT,     // bitwise negation
+    LNOT,     // logical negation
+    SIN,      // mathematical sin
+    COS,      // mathematical cos
+    TAN,      // mathematical tan
+    ASIN,     // mathematical asin
+    ACOS,     // mathematical acos
+    ATAN,     // mathematical atan
+    SINH,     // mathematical sinh
+    COSH,     // mathematical cosh
+    TANH,     // mathematical tanh
+    ASINH,    // mathematical asinh
+    ACOSH,    // mathematical acosh
+    ATANH,    // mathematical atanh
+    LOG,      // mathematical natural logarithm
+    EXP       // mathematical natural exponent
 };
 
 /**
@@ -51,6 +52,8 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
     switch (op) {
         case UnaryOp::ORD:
             return "ord";
+        case UnaryOp::STRLEN:
+            return "strlen";
         case UnaryOp::NEG:
             return "-";
         case UnaryOp::BNOT:
@@ -97,6 +100,7 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
  */
 inline UnaryOp getUnaryOpForSymbol(const std::string& symbol) {
     if (symbol == "ord") return UnaryOp::ORD;
+    if (symbol == "strlen") return UnaryOp::STRLEN;
     if (symbol == "-") return UnaryOp::NEG;
     if (symbol == "bnot") return UnaryOp::BNOT;
     if (symbol == "lnot") return UnaryOp::LNOT;
@@ -125,6 +129,7 @@ inline UnaryOp getUnaryOpForSymbol(const std::string& symbol) {
 inline bool isNumericUnaryOp(const UnaryOp op) {
     switch (op) {
         case UnaryOp::ORD:
+        case UnaryOp::STRLEN:
         case UnaryOp::NEG:
         case UnaryOp::BNOT:
         case UnaryOp::LNOT:
@@ -181,6 +186,7 @@ inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
         case UnaryOp::EXP:
             return true;
         case UnaryOp::ORD:
+        case UnaryOp::STRLEN:
             return false;
         default:
             break;
