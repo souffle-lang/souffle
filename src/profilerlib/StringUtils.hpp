@@ -63,5 +63,6 @@ std::string getworkingdir();
 
 std::string cleanString(std::string val);
 std::string cleanJsonOut(std::string val);
+std::string escapeQuotes(std::string val);
 std::string cleanJsonOut(double val);
 }

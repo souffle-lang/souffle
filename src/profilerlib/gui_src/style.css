@@ -615,3 +615,30 @@ button {
 #Help p {
     margin-bottom: 1em;
 }
+
+#code-view {
+    overflow: auto;
+    height: calc( 100vh - 160px );
+    width: calc( 100vw - 25px );
+    font-family: Consolas, Menlo, Monaco, Lucida Console,'Bitstream Vera Sans Mono','Courier',monospace;
+    line-height: 21px;
+}
+#code-view .text-span {
+    white-space: nowrap;
+}
+
+#code-view .ol li:before  {
+    color: #666;
+    background: #AAA;
+}
+
+.code-li:hover {
+    background: #eacf7d;
+}
+
+.number-span {
+    content: counter(item) ". ";
+    counter-increment: item;
+    list-style:decimal;
+    width: 60px;
+}

@@ -276,6 +276,23 @@ std::string Tools::cleanJsonOut(std::string val) {
     return val;
 }
 
+std::string Tools::escapeQuotes(std::string val) {
+    if (val.size() < 2) {
+        return val;
+    }
+
+    if (val.at(0) == '"' && val.at(val.size() - 1) == '"') {
+        val = val.substr(1, val.size() - 2);
+    }
+
+    size_t start_pos = 0;
+    while ((start_pos = val.find('"', start_pos)) != std::string::npos) {
+        val.replace(start_pos, 1, "\\\"");
+        start_pos += 2;
+    }
+    return val;
+}
+
 std::string Tools::cleanJsonOut(double val) {
     if (std::isnan(val)) {
         return "NaN";
