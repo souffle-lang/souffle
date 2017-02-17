@@ -24,25 +24,25 @@ namespace souffle {
  */
 enum class UnaryOp {
     __UNDEFINED__,
-    ORD,      // ordinal number of a string
-    STRLEN,   // length of a string
-    NEG,      // numeric negation
-    BNOT,     // bitwise negation
-    LNOT,     // logical negation
-    SIN,      // mathematical sin
-    COS,      // mathematical cos
-    TAN,      // mathematical tan
-    ASIN,     // mathematical asin
-    ACOS,     // mathematical acos
-    ATAN,     // mathematical atan
-    SINH,     // mathematical sinh
-    COSH,     // mathematical cosh
-    TANH,     // mathematical tanh
-    ASINH,    // mathematical asinh
-    ACOSH,    // mathematical acosh
-    ATANH,    // mathematical atanh
-    LOG,      // mathematical natural logarithm
-    EXP       // mathematical natural exponent
+    ORD,    // ordinal number of a string
+    STRLEN, // length of a string
+    NEG,    // numeric negation
+    BNOT,   // bitwise negation
+    LNOT,   // logical negation
+    SIN,    // mathematical sin
+    COS,    // mathematical cos
+    TAN,    // mathematical tan
+    ASIN,   // mathematical asin
+    ACOS,   // mathematical acos
+    ATAN,   // mathematical atan
+    SINH,   // mathematical sinh
+    COSH,   // mathematical cosh
+    TANH,   // mathematical tanh
+    ASINH,  // mathematical asinh
+    ACOSH,  // mathematical acosh
+    ATANH,  // mathematical atanh
+    LOG,    // mathematical natural logarithm
+    EXP     // mathematical natural exponent
 };
 
 /**
