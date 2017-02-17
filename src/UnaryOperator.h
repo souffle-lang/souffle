@@ -7,7 +7,7 @@
  */
 
 /************************************************************************
- *
+ * 
  * @file UnaryOperator.h
  *
  * Defines unary operators and relational operators.
@@ -20,11 +20,11 @@
 namespace souffle {
 
 /**
- * Unary Operators
+ * Unary Operators for functors and constraints
  */
 enum class UnaryOp {
     __UNDEFINED__,
-    ORD,      // character value
+    ORD,      // ordinal number of a string
     STRLEN,   // length of a string
     NEG,      // numeric negation
     BNOT,     // bitwise negation
