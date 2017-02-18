@@ -18,7 +18,9 @@
 #include "ReadStream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+#ifdef USE_LIBZ
 #include "gzfstream.h"
+#endif
 
 #include <map>
 #include <memory>
@@ -169,7 +171,11 @@ private:
     }
 
     std::string baseName;
+#ifdef USE_LIBZ
     gzfstream::igzfstream fileHandle;
+#else
+    std::ifstream fileHandle;
+#endif
     ReadStreamCSV readStream;
 };
 
