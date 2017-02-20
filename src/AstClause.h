@@ -220,8 +220,7 @@ protected:
 };
 
 /**
- * @class Clause
- * @brief Intermediate representation of a datalog clause.
+ * Intermediate representation of a datalog clause.
  *
  *  A clause can either be:
  *      - a fact  - a clause with no body (e.g., X(a,b))

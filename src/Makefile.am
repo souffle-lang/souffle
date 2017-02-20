@@ -124,7 +124,8 @@ souffle_sources = \
               IODirectives.h                            \
               WriteStreamCSV.h                          \
               IOSystem.h                                \
-              Global.cpp            Global.h
+              Global.cpp            Global.h            \
+              IndexUtils.h
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la

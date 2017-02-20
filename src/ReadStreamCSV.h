@@ -188,7 +188,7 @@ protected:
         }
         return delimiter;
     }
-    std::map<int, int> getInputColumnMap(const IODirectives& ioDirectives, int arity) {
+    std::map<int, int> getInputColumnMap(const IODirectives& ioDirectives, const unsigned arity) {
         std::string columnString = "";
         if (ioDirectives.has("columns")) {
             columnString = ioDirectives.get("columns");

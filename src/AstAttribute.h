@@ -32,8 +32,7 @@ namespace souffle {
 class Type;
 
 /**
- *  @class Attribute
- *  @brief Intermediate representation of an attribute which stores the name and the type of an attribute
+ *  Intermediate representation of an attribute which stores the name and the type of an attribute
  *
  *  Attribute has the only name attribute
  */

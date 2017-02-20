@@ -19,6 +19,8 @@
 
 #include <zlib.h>
 
+namespace souffle {
+
 namespace gzfstream {
 
 namespace internal {
@@ -104,7 +106,7 @@ public:
             return *reinterpret_cast<unsigned char*>(gptr());
         }
 
-        int charsPutBack = gptr() - eback();
+        unsigned charsPutBack = gptr() - eback();
         if (charsPutBack > reserveSize) {
             charsPutBack = reserveSize;
         }
@@ -227,3 +229,5 @@ public:
 };
 
 } /* namespace gzfstream */
+
+} /* namespace souffle */

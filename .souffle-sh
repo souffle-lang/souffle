@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #
-# .souffle-sh
+# .souffle_sh
 #
-# This script provides a nice shell environment for working with Souffle.
-# Simply do a 'source .souffle-sh' from the terminal to start using it.
+# A quick and dirty bash script for developing souffle.
 #
+
 
 export SOUFFLE=$(pwd)
 
@@ -14,26 +14,50 @@ JOBS=8
 alias souffle=$SOUFFLE/src/souffle
 alias souffle-profile=$SOUFFLE/src/souffle-profile
 
+souffle_help() {
+cat << EOF
+
+    > .souffle-sh
+
+        A quick and dirty bash script for developing souffle.
+
+    souffle             Alias for souffle executable.
+    souffle-profile     Alias for souffle-profile executable.
+    souffle_ubuntu      Install all packages required by souffle for Ubuntu.
+    souffle_setup       Bootstrap, configure, and make.
+    souffle_teardown    Make clean and remove all files ignored by git.
+    souffle_make        Run make.
+    souffle_reset       Reset hard to last commit, run teardown and setup.
+    souffle_commit      Add everything to git and do a commit.
+    souffle_push        Push the current branch to the git remote.
+    souffle_test        Run make and then the testsuite on the given tests.
+    souffle_debug       Run make and then the test in directory \$SOUFFLE/\$1/\$2.
+    souffle_format       Format the code with clang-format.
+
+EOF
+}
+
 souffle_ubuntu() {
 sudo apt-get update && \
 sudo apt-get upgrade && \
 sudo apt-get install \
-	git \
-	automake \
-	autoconf \
-	libtool \
-	doxygen \
-	flex \
-	bison \
-	sqlite \
-	libsqlite3-dev \
-	libedit-dev \
-	valgrind \
-	gdb \
-	graphviz \
-	default-jdk \
-	default-jre \
-    zlib-*
+    git \
+    automake \
+    autoconf \
+    libtool \
+    doxygen \
+    flex \
+    bison \
+    sqlite \
+    libsqlite3-dev \
+    libedit-dev \
+    valgrind \
+    gdb \
+    graphviz \
+    default-jdk \
+    default-jre \
+    zlib* \
+    clang-format
 }
 
 souffle_setup() {
@@ -59,8 +83,6 @@ souffle_make() {
 }
 
 souffle_reset() {
-    read -p "Continue?" && \
-    git reset --hard HEAD && \
     souffle_teardown && \
     souffle_setup && \
     souffle_make
@@ -99,4 +121,8 @@ souffle_debug() {
         $3 \
         1> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.out \
         2> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.err
+}
+
+souffle_format() {
+    clang-format -i -style=file src/*.c src/*.h src/*.cc src/*.hh src/*.cpp src/*.hpp
 }

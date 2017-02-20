@@ -37,8 +37,7 @@ class AstProgram;
 class AstAtom;
 
 /**
- * @class Literal
- * @brief Intermediate representation of atoms, binary relations,
+ * Intermediate representation of atoms, binary relations,
  * and negated atoms in the body and head of a clause.
  */
 class AstLiteral : public AstNode {
@@ -55,8 +54,7 @@ public:
 };
 
 /**
- * @class Atom
- * @brief Subclass of Literal that represents the use of a relation
+ * Subclass of Literal that represents the use of a relation
  * either in the head or in the body of a Clause, e.g., parent(x,y).
  * The arguments of the atom can be variables or constants.
  */
@@ -169,8 +167,7 @@ protected:
 };
 
 /**
- * @class Negation
- * @brief Subclass of Literal that represents a negated atom, * e.g., !parent(x,y).
+ * Subclass of Literal that represents a negated atom, * e.g., !parent(x,y).
  * A Negated atom occurs in a body of clause and cannot occur in a head of a clause.
  */
 class AstNegation : public AstLiteral {
@@ -226,8 +223,7 @@ protected:
 };
 
 /**
- * @class AstConstraints
- * @brief Subclass of Literal that represents a binary constraint
+ * Subclass of Literal that represents a binary constraint
  * e.g., x = y.
  */
 class AstConstraint : public AstLiteral {

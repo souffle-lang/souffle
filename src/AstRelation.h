@@ -179,6 +179,18 @@ public:
         return (qualifier & OVERRIDABLE_RELATION) != 0;
     }
 
+    /** Operator overload, calls print if reference is given */
+    friend std::ostream& operator<<(std::ostream& os, const AstRelation& rel) {
+        rel.print(os);
+        return os;
+    }
+
+    /** Operator overload, prints name if pointer is given */
+    friend std::ostream& operator<<(std::ostream& os, const AstRelation* rel) {
+        os << rel->getName();
+        return os;
+    }
+
     /** Print string representation of the relation to a given output stream */
     virtual void print(std::ostream& os) const {
         os << ".decl " << this->getName() << "(";

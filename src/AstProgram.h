@@ -38,8 +38,7 @@ class AstAtom;
 class AstArgument;
 
 /**
- *  @class Program
- *  @brief Intermediate representation of a datalog program
+ *  Intermediate representation of a datalog program
  *          that consists of relations, clauses and types
  */
 class AstProgram : public AstNode {
