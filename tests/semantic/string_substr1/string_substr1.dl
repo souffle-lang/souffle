@@ -1,0 +1,17 @@
+.decl A(x:symbol)
+A("Hello").
+
+.decl B(str:symbol, sstr:symbol, idx:number, len:number)
+B(x, substr(x,0,1), 0, 1) :- 
+   A(x), 
+   strlen(x) > 0.
+
+B(x, substr(x,0,l+1), 0, l+1) :- 
+   B(x, _, 0, l),
+   l + 1 <= strlen(x).
+
+B(x, substr(x,i+1,l), i+1, l) :- 
+   B(x, _, i, l),
+   i + 1 + l <= strlen(x).
+
+.output B() 
