@@ -406,7 +406,6 @@ public:
                 change = cur->update(ass) || change;
             }
         }
-
         // already done
         return ass;
     }

@@ -496,34 +496,34 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const Type& b) {
 
 /**
  * A constraint factory ensuring that all the types associated to the variable
- * a are subtypes of the least common super types of types associated to the variables {vars}.
+ * a are subtypes of type b.
  */
-TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>& vars) {
-    assert(!vars.empty() && "Unsupported for no variables!");
-
-    // if there is only one variable => chose easy way
-    if (vars.size() == 1u) {
-        return isSubtypeOf(a, vars[0]);
-    }
-
+TypeConstraint isSupertypeOf(const TypeVar& a, const Type& b) {
     struct C : public Constraint<TypeVar> {
         TypeVar a;
-        std::vector<TypeVar> vars;
+        const Type& b;
+        mutable bool repeat;
 
-        C(const TypeVar& a, const std::vector<TypeVar>& vars) : a(a), vars(vars) {}
+        C(const TypeVar& a, const Type& b) : a(a), b(b), repeat(true) {}
 
         virtual bool update(Assignment<TypeVar>& ass) const {
-            // get common super types of given variables
-            TypeSet limit = ass[a];
-            for (const TypeVar& cur : vars) {
-                limit = getLeastCommonSupertypes(limit, ass[cur]);
-            }
-
-            // compute new value
-            TypeSet res = getGreatestCommonSubtypes(ass[a], limit);
+            // don't continually update super type constraints
+            if (!repeat) return false;
+            repeat = false;
 
             // get current value of variable a
             TypeSet& s = ass[a];
+
+            // remove all types that are not super-types of b
+            if (s.isAll()) {
+                s = TypeSet(b);
+                return true;
+            }
+
+            TypeSet res;
+            for (const Type& t : s) {
+                res.insert(getLeastCommonSupertypes(t, b));
+            }
 
             // check whether there was a change
             if (res == s) {
@@ -534,16 +534,64 @@ TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>
         }
 
         virtual void print(std::ostream& out) const {
-            if (vars.size() == 1) {
-                out << a << " <: " << vars[0];
-                return;
-            }
-            out << a << " <: super(" << join(vars, ",") << ")";
+            out << a << " >: " << b.getName();
         }
     };
 
-    return std::make_shared<C>(a, vars);
+    return std::make_shared<C>(a, b);
 }
+
+/**
+ * A constraint factory ensuring that all the types associated to the variable
+ * a are subtypes of the least common super types of types associated to the variables {vars}.
+ */
+// TypeConstraint isSubtypeOfSuperType(const TypeVar& a, const std::vector<TypeVar>& vars) {
+//    // TODO: this function is not used, so maybe it should be deleted
+//    assert(!vars.empty() && "Unsupported for no variables!");
+
+//    // if there is only one variable => chose easy way
+//    if (vars.size() == 1u) {
+//        return isSubtypeOf(a, vars[0]);
+//    }
+
+//    struct C : public Constraint<TypeVar> {
+//        TypeVar a;
+//        std::vector<TypeVar> vars;
+
+//        C(const TypeVar& a, const std::vector<TypeVar>& vars) : a(a), vars(vars) {}
+
+//        virtual bool update(Assignment<TypeVar>& ass) const {
+//            // get common super types of given variables
+//            TypeSet limit = ass[a];
+//            for (const TypeVar& cur : vars) {
+//                limit = getLeastCommonSupertypes(limit, ass[cur]);
+//            }
+
+//            // compute new value
+//            TypeSet res = getGreatestCommonSubtypes(ass[a], limit);
+
+//            // get current value of variable a
+//            TypeSet& s = ass[a];
+
+//            // check whether there was a change
+//            if (res == s) {
+//                return false;
+//            }
+//            s = res;
+//            return true;
+//        }
+
+//        virtual void print(std::ostream& out) const {
+//            if (vars.size() == 1) {
+//                out << a << " <: " << vars[0];
+//                return;
+//            }
+//            out << a << " <: super(" << join(vars, ",") << ")";
+//        }
+//    };
+
+//    return std::make_shared<C>(a, vars);
+//}
 
 TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int index) {
     struct C : public Constraint<TypeVar> {
@@ -706,6 +754,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
     struct Analysis : public AstConstraintAnalysis<TypeVar> {
         const TypeEnvironment& env;
         const AstProgram* program;
+        std::set<const AstAtom*> negated;
 
         Analysis(const TypeEnvironment& env, const AstProgram* program) : env(env), program(program) {}
 
@@ -723,9 +772,20 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             for (unsigned i = 0; i < atts.size(); i++) {
                 const auto& typeName = atts[i]->getTypeName();
                 if (env.isType(typeName)) {
-                    addConstraint(isSubtypeOf(getVar(args[i]), env.getType(typeName)));
+                    // check whether atom is not negated
+                    if (negated.find(&atom) == negated.end()) {
+                        addConstraint(isSubtypeOf(getVar(args[i]), env.getType(typeName)));
+                    } else {
+                        addConstraint(isSupertypeOf(getVar(args[i]), env.getType(typeName)));
+                    }
                 }
             }
+        }
+
+        // #2 - negations need to be skipped
+        void visitNegation(const AstNegation& cur) {
+            // add nested atom to black-list
+            negated.insert(cur.getAtom());
         }
 
         // symbol
