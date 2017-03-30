@@ -178,4 +178,16 @@ public:
     }
 };
 
+/**
+ * Transformation pass to add provenance information via records
+ */
+class ProvenanceRecordTransformer : public AstTransformer {
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+public:
+    std::string getName() const override {
+        return "ProvenanceRecordTransformer";
+    }
+};
+
 }  // end of namespace souffle

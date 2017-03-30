@@ -752,4 +752,10 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     return changed;
 }
 
+bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit) {
+    for (auto r : translationUnit.getProgram() -> getRelations()) {
+        std::cout << r -> getQualifier() << std::endl;
+    }
+    return false;
+}
 }  // end of namespace souffle

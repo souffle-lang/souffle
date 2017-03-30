@@ -248,6 +248,9 @@ int main(int argc, char** argv) {
     // ------- rewriting / optimizations -------------
 
     std::vector<std::unique_ptr<AstTransformer>> transforms;
+    // Add provenance information by transforming to records
+    transforms.push_back(std::unique_ptr<AstTransformer>(new ProvenanceRecordTransformer()));
+
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstSemanticChecker()));

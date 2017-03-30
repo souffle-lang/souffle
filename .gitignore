@@ -45,3 +45,8 @@ doc
 prof
 
 .idea/
+
+*.swp
+*.tgz
+*-pak
+*.deb
