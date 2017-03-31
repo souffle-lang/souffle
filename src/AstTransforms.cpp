@@ -753,6 +753,17 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
 }
 
 bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit) {
+    bool changed = false;
+    
+    auto program = translationUnit.getProgram();
+    for (auto r : program->getRelations()) {
+        // std::unique_ptr<AstRecordType> new_type = AstRecordType(); 
+        std::cout << r->getRelationName() << std::endl;
+        for (auto a : r->getAttributes()) {
+            std::cout << a->getAttributeName() << std::endl;
+        }
+        // program->addType(new_type);
+    }
     for (auto r : translationUnit.getProgram() -> getRelations()) {
         std::cout << r -> getQualifier() << std::endl;
     }
