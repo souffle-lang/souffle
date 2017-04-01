@@ -52,7 +52,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
 namespace souffle {
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>>& transforms) {
