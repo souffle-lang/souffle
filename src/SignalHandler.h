@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
+#include "ParallelUtils.h"
 
 namespace souffle {
 
@@ -72,12 +73,15 @@ public:
 
     // set signal message
     void setMsg(const std::string& m) {
+        auto lease = access.acquire();
+        (void)lease;  // avoid warning;
         msg = m;
     }
 
 private:
     std::string msg;
     static SignalHandler singleton;
+    mutable Lock access;
 };
 
 }  // namespace souffle
