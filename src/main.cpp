@@ -52,9 +52,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-SignalHandler* SignalHandler::m_singleton = nullptr;
 
 namespace souffle {
+
+SignalHandler SignalHandler::singleton;
 
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>>& transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
