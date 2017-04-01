@@ -2017,7 +2017,6 @@ std::string RamCompiler::generateCode(
     os << "#include \"souffle/CompiledSouffle.h\"\n";
     os << "\n";
     os << "namespace souffle {\n";
-    os << "SignalHandler SignalHandler::singleton;\n";
     os << "using namespace ram;\n";
 
     // print wrapper for regex
