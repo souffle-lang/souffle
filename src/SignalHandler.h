@@ -34,8 +34,7 @@ private:
      * Signal handler for various types of signals.
      */
     static void handler(int signal) {
-        assert(m_singleton != nullptr && "m_singleton initialization failed");
-        std::string& msg = m_singleton->m_msg;
+        std::string& msg = singleton.msg;
         std::string error;
         switch (signal) {
             case SIGINT:
@@ -59,30 +58,26 @@ private:
         exit(1);
     }
 
-    SignalHandler() {}
+    SignalHandler() {
+       // register signals
+       signal(SIGFPE, handler);   // floating point exception
+       signal(SIGINT, handler);   // user interrupts
+       signal(SIGSEGV, handler);  // memory issues
+    }
 
 public:
     static SignalHandler* instance() {
-        if (m_singleton == nullptr) {
-            // create singleton instance
-            m_singleton = new SignalHandler();
-
-            // register signals
-            signal(SIGFPE, handler);   // floating point exception
-            signal(SIGINT, handler);   // user interrupts
-            signal(SIGSEGV, handler);  // memory issues
-        }
-        return m_singleton;
+        return &singleton;
     }
 
     // set signal message
-    void setMsg(const std::string& msg) {
-        m_msg = msg;
+    void setMsg(const std::string& m) {
+        msg = m;
     }
 
 private:
-    std::string m_msg;
-    static SignalHandler* m_singleton;
+    std::string msg;
+    static SignalHandler singleton;
 };
 
 }  // namespace souffle
