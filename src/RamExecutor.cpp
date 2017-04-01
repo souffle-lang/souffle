@@ -691,7 +691,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
             return visit(timer.getNested());
         }
 
-        bool visitDebugInfo(const RamDebugInfo& dbg) {
+        bool visitDebugInfo(const RamDebugInfo& dbg) override {
             SignalHandler::instance()->setMsg(dbg.getLabel());
             return visit(dbg.getNested());
         }
@@ -1323,10 +1323,10 @@ public:
         out << "}\n";
     }
 
-    void visitDebugInfo(const RamDebugInfo& dbg, std::ostream& out) {
-        out << "SignalHandler::instance()->setMsg(R\"(";
+    void visitDebugInfo(const RamDebugInfo& dbg, std::ostream& out) override {
+        out << "SignalHandler::instance()->setMsg(R\"_(";
         out << dbg.getLabel();
-        out << ")\");\n";
+        out << ")_\");\n";
 
         // insert statements of the rule
         visit(dbg.getNested(), out);
