@@ -847,10 +847,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
 
         /* create update statements for fixpoint (even iteration) */
         appendStmt(updateRelTable,
-                std::unique_ptr<RamStatement>(
-                        new RamSequence(std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
-                                std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
-                                std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
+                std::unique_ptr<RamStatement>(new RamSequence(
+                        std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
+                        std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
+                        std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
 
         /* measure update time for each relation */
         if (logging) {
@@ -880,9 +880,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
     std::unique_ptr<RamParallel> loopSeq(new RamParallel());
 
     // create a utility to check SCC membership
-    auto isInSameSCC = [&](const AstRelation* rel) {
-        return std::find(scc.begin(), scc.end(), rel) != scc.end();
-    };
+    auto isInSameSCC = [&](
+            const AstRelation* rel) { return std::find(scc.begin(), scc.end(), rel) != scc.end(); };
 
     /* Compute temp for the current tables */
     for (const AstRelation* rel : scc) {

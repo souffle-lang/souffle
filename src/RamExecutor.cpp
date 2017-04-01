@@ -939,8 +939,8 @@ Order scheduleByModel(AstClause& clause, RamEnvironment& env, std::ostream* repo
 }  // namespace
 
 /** With this strategy queries will be processed as they are stated by the user */
-const QueryExecutionStrategy DirectExecution = [](const RamInsert& insert, RamEnvironment& env,
-                                                       std::ostream*) -> ExecutionSummary {
+const QueryExecutionStrategy DirectExecution = [](
+        const RamInsert& insert, RamEnvironment& env, std::ostream*) -> ExecutionSummary {
     // measure the time
     auto start = now();
 
@@ -954,8 +954,8 @@ const QueryExecutionStrategy DirectExecution = [](const RamInsert& insert, RamEn
 };
 
 /** With this strategy queries will be dynamically rescheduled before each execution */
-const QueryExecutionStrategy ScheduledExecution = [](const RamInsert& insert, RamEnvironment& env,
-                                                          std::ostream* report) -> ExecutionSummary {
+const QueryExecutionStrategy ScheduledExecution = [](
+        const RamInsert& insert, RamEnvironment& env, std::ostream* report) -> ExecutionSummary {
 
     // Report scheduling
     // TODO: only re-schedule atoms (avoid cloning entire clause)
@@ -1137,13 +1137,11 @@ public:
         std::set<RamRelationIdentifier> input_relations;
         visitDepthFirst(insert, [&](const RamScan& scan) { input_relations.insert(scan.getRelation()); });
         if (!input_relations.empty()) {
-            out << "if ("
-                << join(input_relations, "&&",
-                           [&](std::ostream& out, const RamRelationIdentifier& rel) {
-                               out << "!" << getRelationName(rel) << "->"
-                                   << "empty()";
-                           })
-                << ") ";
+            out << "if (" << join(input_relations, "&&", [&](std::ostream& out,
+                                                                 const RamRelationIdentifier& rel) {
+                out << "!" << getRelationName(rel) << "->"
+                    << "empty()";
+            }) << ") ";
         }
 
         // outline each search operation to improve compilation time
