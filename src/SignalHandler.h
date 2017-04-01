@@ -15,11 +15,11 @@
  ***********************************************************************/
 
 #pragma once
+#include <atomic>
 #include <iostream>
 #include <string>
 #include <assert.h>
 #include <signal.h>
-#include <stdio.h>
 #include "ParallelUtils.h"
 
 namespace souffle {
@@ -31,11 +31,15 @@ namespace souffle {
  */
 class SignalHandler {
 private:
+    // signal context information
+    std::atomic<const char *> msg; 
+
+private:
     /**
      * Signal handler for various types of signals.
      */
     static void handler(int signal) {
-        std::string& msg = singleton.msg;
+        const char *msg = instance()->msg;
         std::string error;
         switch (signal) {
             case SIGINT:
@@ -51,7 +55,7 @@ private:
                 error = "Unknown";
                 break;
         }
-        if (msg != "") {
+        if (msg != nullptr) {
             std::cerr << error << " signal in rule:\n" << msg << std::endl;
         } else {
             std::cerr << error << " signal." << std::endl;
@@ -60,28 +64,23 @@ private:
     }
 
     SignalHandler() {
-       // register signals
-       signal(SIGFPE, handler);   // floating point exception
-       signal(SIGINT, handler);   // user interrupts
-       signal(SIGSEGV, handler);  // memory issues
+        // register signals
+        signal(SIGFPE, handler);   // floating point exception
+        signal(SIGINT, handler);   // user interrupts
+        signal(SIGSEGV, handler);  // memory issues
     }
 
 public:
+    // get singleton
     static SignalHandler* instance() {
+        static SignalHandler singleton;
         return &singleton;
     }
 
     // set signal message
-    void setMsg(const std::string& m) {
-        auto lease = access.acquire();
-        (void)lease;  // avoid warning;
+    void setMsg(const char *m) {
         msg = m;
     }
-
-private:
-    std::string msg;
-    static SignalHandler singleton;
-    mutable Lock access;
 };
 
 }  // namespace souffle

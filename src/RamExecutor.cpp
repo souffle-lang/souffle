@@ -692,7 +692,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         }
 
         bool visitDebugInfo(const RamDebugInfo& dbg) override {
-            SignalHandler::instance()->setMsg(dbg.getLabel());
+            SignalHandler::instance()->setMsg(dbg.getLabel().c_str());
             return visit(dbg.getNested());
         }
 

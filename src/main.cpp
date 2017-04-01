@@ -55,8 +55,6 @@
 
 namespace souffle {
 
-SignalHandler SignalHandler::singleton;
-
 static void wrapPassesForDebugReporting(std::vector<std::unique_ptr<AstTransformer>>& transforms) {
     for (unsigned int i = 0; i < transforms.size(); i++) {
         transforms[i] = std::unique_ptr<AstTransformer>(new DebugReporter(std::move(transforms[i])));
