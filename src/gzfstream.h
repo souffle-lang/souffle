@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <iostream>
 
 #include <zlib.h>
@@ -50,9 +51,8 @@ public:
 
         if (!fileHandle) {
             return nullptr;
-        } else {
-            isOpen = true;
         }
+        isOpen = true;
 
         return this;
     }
@@ -72,7 +72,7 @@ public:
         return isOpen;
     }
 
-    ~gzfstreambuf() {
+    ~gzfstreambuf() override {
         try {
             close();
         } catch (...) {
@@ -80,7 +80,8 @@ public:
         }
     }
 
-    virtual int overflow(int c = EOF) {
+protected:
+    int_type overflow(int c = EOF) override {
         if (!(mode & std::ios::out) || !isOpen) {
             return EOF;
         }
@@ -98,12 +99,12 @@ public:
         return c;
     }
 
-    virtual int underflow() {
+    int_type underflow() override {
         if (!(mode & std::ios::in) || !isOpen) {
             return EOF;
         }
         if (gptr() && (gptr() < egptr())) {
-            return *reinterpret_cast<unsigned char*>(gptr());
+            return traits_type::to_int_type(*gptr());
         }
 
         unsigned charsPutBack = gptr() - eback();
@@ -119,10 +120,10 @@ public:
 
         setg(buffer + reserveSize - charsPutBack, buffer + reserveSize, buffer + reserveSize + charsRead);
 
-        return *reinterpret_cast<unsigned char*>(gptr());
+        return traits_type::to_int_type(*gptr());
     }
 
-    virtual int sync() {
+    int sync() override {
         if (pptr() && pptr() > pbase()) {
             int toWrite = pptr() - pbase();
             if (gzwrite(fileHandle, pbase(), toWrite) != toWrite) {
@@ -134,7 +135,6 @@ public:
     }
 
 private:
-    // TODO(mmcgr): Determine optimal sizes for the buffer and putback reserve space.
     static constexpr unsigned int bufferSize = 4096;
     static constexpr unsigned int reserveSize = 16;
 
@@ -159,7 +159,7 @@ public:
 
     gzfstream(gzfstream&&) = default;
 
-    ~gzfstream() {}
+    ~gzfstream() override = default;
 
     void open(const std::string& filename, std::ios_base::openmode mode) {
         if (!buf.open(filename, mode)) {
@@ -172,10 +172,11 @@ public:
     }
 
     void close() {
-        if (buf.is_open())
+        if (buf.is_open()) {
             if (!buf.close()) {
                 clear(rdstate() | std::ios::badbit);
             }
+        }
     }
 
     gzfstreambuf* rdbuf() const {
@@ -186,7 +187,7 @@ protected:
     mutable gzfstreambuf buf;
 };
 
-} /* namespace gzfstream::internal */
+}  // namespace internal
 
 class igzfstream : public internal::gzfstream, public std::istream {
 public:

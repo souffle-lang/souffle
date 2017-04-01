@@ -76,7 +76,9 @@ public:
     }
 
     uint64_t getEstimatedCardinality(Column c) const {
-        if (c >= cardinalities.size()) return 0;
+        if (c >= cardinalities.size()) {
+            return 0;
+        }
         return cardinalities[c];
     }
 

@@ -1,0 +1,173 @@
+//
+// Type System 3
+//
+// This test checks that types are handled correctly. It was
+// created for issue #201 "Type system: Fails when Union type
+// expands to different primitive types".
+//
+
+// Numbers
+
+.decl number_relation(x:number)
+
+number_relation(1).
+number_relation(2).
+number_relation(3).
+
+// Primitive Types
+
+.number_type number_primi_1
+.number_type number_primi_2
+.number_type number_primi_3
+
+.type number_primi_1_2 = number_primi_1 | number_primi_2
+.type number_primi_2_3 = number_primi_2 | number_primi_3
+
+.decl number_primi_relation_1(x:number_primi_1)
+.decl number_primi_relation_2(x:number_primi_2)
+.decl number_primi_relation_3(x:number_primi_3)
+.decl number_primi_relation_1_2_A(x:number_primi_1_2)
+.decl number_primi_relation_1_2_B(x:number_primi_1_2)
+.decl number_primi_relation_2_3(x:number_primi_2_3)
+
+number_primi_relation_1(1).
+number_primi_relation_1(2).
+
+number_primi_relation_2(2).
+number_primi_relation_2(3).
+
+number_primi_relation_1_2_B(X) :- number_relation(X).
+number_primi_relation_2_3(X) :- number_relation(X).
+
+number_primi_relation_1(X) :- number_primi_relation_2(X). // error
+
+number_primi_relation_1_2_A(X) :- number_primi_relation_1(X).
+number_primi_relation_1_2_A(X) :- number_primi_relation_2(X).
+number_primi_relation_1_2_A(X) :- number_primi_relation_1(X), number_primi_relation_2(X). // error
+number_primi_relation_1_2_A(X) :- number_relation(X), !number_primi_relation_1(X), !number_primi_relation_2(X).
+number_primi_relation_1_2_A(X) :- number_primi_relation_1_2_B(X), !number_primi_relation_1(X), !number_primi_relation_2(X).
+
+number_primi_relation_3(X) :- number_primi_relation_2_3(X).
+
+// Union Types
+
+.type number_union_1 = number
+.type number_union_2 = number
+.type number_union_3 = number
+
+.type number_union_1_2 = number_union_1 | number_union_2
+.type number_union_2_3 = number_union_2 | number_union_3
+
+.decl number_union_relation_1(x:number_union_1)
+.decl number_union_relation_2(x:number_union_2)
+.decl number_union_relation_3(x:number_union_3)
+.decl number_union_relation_1_2_A(x:number_union_1_2)
+.decl number_union_relation_1_2_B(x:number_union_1_2)
+.decl number_union_relation_2_3(x:number_union_2_3)
+
+number_union_relation_1(1).
+number_union_relation_1(2).
+
+number_union_relation_2(2).
+number_union_relation_2(3).
+
+number_union_relation_1_2_B(X) :- number_relation(X).
+number_union_relation_2_3(X) :- number_relation(X).
+
+number_union_relation_1(X) :- number_union_relation_2(X).
+
+number_union_relation_1_2_A(X) :- number_union_relation_1(X).
+number_union_relation_1_2_A(X) :- number_union_relation_2(X).
+number_union_relation_1_2_A(X) :- number_union_relation_1(X), number_union_relation_2(X).
+number_union_relation_1_2_A(X) :- number_relation(X), !number_union_relation_1(X), !number_union_relation_2(X).
+number_union_relation_1_2_A(X) :- number_union_relation_1_2_B(X), !number_union_relation_1(X), !number_union_relation_2(X).
+
+number_union_relation_3(X) :- number_union_relation_2_3(X).
+
+// Symbols
+
+.decl symbol_relation(x:symbol)
+
+symbol_relation("1").
+symbol_relation("2").
+symbol_relation("3").
+
+// Primitive Types
+
+.symbol_type symbol_primi_1
+.symbol_type symbol_primi_2
+.symbol_type symbol_primi_3
+
+.type symbol_primi_1_2 = symbol_primi_1 | symbol_primi_2
+.type symbol_primi_2_3 = symbol_primi_2 | symbol_primi_3
+
+.decl symbol_primi_relation_1(x:symbol_primi_1)
+.decl symbol_primi_relation_2(x:symbol_primi_2)
+.decl symbol_primi_relation_3(x:symbol_primi_3)
+.decl symbol_primi_relation_1_2_A(x:symbol_primi_1_2)
+.decl symbol_primi_relation_1_2_B(x:symbol_primi_1_2)
+.decl symbol_primi_relation_2_3(x:symbol_primi_2_3)
+
+symbol_primi_relation_1("1").
+symbol_primi_relation_1("2").
+
+symbol_primi_relation_2("2").
+symbol_primi_relation_2("3").
+
+symbol_primi_relation_1_2_B(X) :- symbol_relation(X).
+symbol_primi_relation_2_3(X) :- symbol_relation(X).
+
+symbol_primi_relation_1(X) :- symbol_primi_relation_2(X). // error
+
+symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1(X).
+symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_2(X).
+symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1(X), symbol_primi_relation_2(X). // error
+symbol_primi_relation_1_2_A(X) :- symbol_relation(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X).
+symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1_2_B(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X).
+
+symbol_primi_relation_3(X) :- symbol_primi_relation_2_3(X).
+
+// Union Types
+
+.type symbol_union_1 = symbol
+.type symbol_union_2 = symbol
+.type symbol_union_3 = symbol
+
+.type symbol_union_1_2 = symbol_union_1 | symbol_union_2
+.type symbol_union_2_3 = symbol_union_2 | symbol_union_3
+
+.decl symbol_union_relation_1(x:symbol_union_1)
+.decl symbol_union_relation_2(x:symbol_union_2)
+.decl symbol_union_relation_3(x:symbol_union_3)
+.decl symbol_union_relation_1_2_A(x:symbol_union_1_2)
+.decl symbol_union_relation_1_2_B(x:symbol_union_1_2)
+.decl symbol_union_relation_2_3(x:symbol_union_2_3)
+
+symbol_union_relation_1("1").
+symbol_union_relation_1("2").
+
+symbol_union_relation_2("2").
+symbol_union_relation_2("3").
+
+symbol_union_relation_1_2_B(X) :- symbol_relation(X).
+symbol_union_relation_2_3(X) :- symbol_relation(X).
+
+symbol_union_relation_1(X) :- symbol_union_relation_2(X).
+
+symbol_union_relation_1_2_A(X) :- symbol_union_relation_1(X).
+symbol_union_relation_1_2_A(X) :- symbol_union_relation_2(X).
+symbol_union_relation_1_2_A(X) :- symbol_union_relation_1(X), symbol_union_relation_2(X).
+symbol_union_relation_1_2_A(X) :- symbol_relation(X), !symbol_union_relation_1(X), !symbol_union_relation_2(X).
+symbol_union_relation_1_2_A(X) :- symbol_union_relation_1_2_B(X), !symbol_union_relation_1(X), !symbol_union_relation_2(X).
+
+symbol_union_relation_3(X) :- symbol_union_relation_2_3(X).
+
+// Numbers and Symbols
+
+.type number_symbol = number | symbol
+
+.type number_symbol_primi = number_primi_1 | symbol_primi_1
+.type number_symbol_primi_1_2 = number_primi_1_2 | symbol_primi_1_2
+
+.type number_symbol_union = number_union_1 | symbol_union_1
+.type number_symbol_union_1_2 = number_union_1_2 | symbol_union_1_2

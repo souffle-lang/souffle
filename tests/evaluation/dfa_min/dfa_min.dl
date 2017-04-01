@@ -1,0 +1,38 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.number_type State
+.type Letter
+
+.decl Q				(q:State)
+.decl Init			(q:State)
+.decl Final			(q:State)
+.decl Tr			(q:State, a:Letter, r:State)
+
+.input Final
+.input Tr
+
+Init(0).
+
+Q(q) :- Tr(q, _, _).
+
+.decl Dis			(q:State, r:State)
+
+Dis(q, r) :- Q(q), Q(r), Final(q), !Final(r).
+Dis(q, r) :- Tr(q, a, s), Tr(r, a, t), Dis(s, t).
+Dis(q, r) :- Dis(r, q).
+
+.decl Equiv		(q:State, r:State)
+
+Equiv(q, r) :- Q(q), Q(r), !Dis(q, r).
+
+.decl NotMinEquiv	(q:State, r:State)
+.decl MinEquiv		(q:State, r:State)
+
+NotMinEquiv(q, r) :- Equiv(q, r), Equiv(q, s), s < r.
+MinEquiv(q, r) :- Equiv(q, r), !NotMinEquiv(q, r).
+
+.output MinEquiv

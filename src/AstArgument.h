@@ -43,15 +43,15 @@ class AstLiteral;
  */
 class AstArgument : public AstNode {
 public:
-    virtual ~AstArgument() {}
+    ~AstArgument() override = default;
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         return std::vector<const AstNode*>();  // type is just cached, not essential
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstArgument* clone() const = 0;
+    AstArgument* clone() const override = 0;
 };
 
 /**
@@ -76,25 +76,25 @@ public:
     }
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << name;
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstVariable* clone() const {
+    AstVariable* clone() const override {
         AstVariable* res = new AstVariable(name);
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& mapper) {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstVariable*>(&node));
         const AstVariable& other = static_cast<const AstVariable&>(node);
         return name == other.name;
@@ -110,25 +110,25 @@ public:
     AstUnnamedVariable() : AstArgument() {}
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "_";
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstUnnamedVariable* clone() const {
+    AstUnnamedVariable* clone() const override {
         AstUnnamedVariable* res = new AstUnnamedVariable();
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& mapper) {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstUnnamedVariable*>(&node));
         return true;
     }
@@ -143,25 +143,25 @@ public:
     AstCounter() : AstArgument() {}
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "$";
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstCounter* clone() const {
+    AstCounter* clone() const override {
         AstCounter* res = new AstCounter();
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& mapper) {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider within constants
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstCounter*>(&node));
         return true;
     }
@@ -184,13 +184,13 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& mapper) {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         // no sub-nodes to consider within constants
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstConstant*>(&node));
         const AstConstant& other = static_cast<const AstConstant&>(node);
         return idx == other.idx;
@@ -201,7 +201,6 @@ protected:
  * Subclass of Argument that represents a datalog constant value
  */
 class AstStringConstant : public AstConstant {
-    using SymbolTable = souffle::SymbolTable;  // TODO: pending namespace cleanup
     SymbolTable* symTable;
     AstStringConstant(SymbolTable* symTable, size_t index) : AstConstant(index), symTable(symTable) {}
 
@@ -215,12 +214,12 @@ public:
     }
 
     /**  Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "\"" << getConstant() << "\"";
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstStringConstant* clone() const {
+    AstStringConstant* clone() const override {
         AstStringConstant* res = new AstStringConstant(symTable, getIndex());
         res->setSrcLoc(getSrcLoc());
         return res;
@@ -235,12 +234,12 @@ public:
     AstNumberConstant(AstDomain num) : AstConstant(num) {}
 
     /**  Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
-        os << (AstDomain)idx;
+    void print(std::ostream& os) const override {
+        os << idx;
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstNumberConstant* clone() const {
+    AstNumberConstant* clone() const override {
         AstNumberConstant* res = new AstNumberConstant(getIndex());
         res->setSrcLoc(getSrcLoc());
         return res;
@@ -255,12 +254,12 @@ public:
     AstNullConstant() : AstConstant(0) {}
 
     /**  Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << '-';
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstNullConstant* clone() const {
+    AstNullConstant* clone() const override {
         AstNullConstant* res = new AstNullConstant();
         res->setSrcLoc(getSrcLoc());
         return res;
@@ -284,7 +283,7 @@ protected:
 public:
     AstUnaryFunctor(UnaryOp fun, std::unique_ptr<AstArgument> o) : fun(fun), operand(std::move(o)) {}
 
-    virtual ~AstUnaryFunctor() {}
+    ~AstUnaryFunctor() override = default;
 
     AstArgument* getOperand() const {
         return operand.get();
@@ -315,7 +314,7 @@ public:
     }
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << getSymbolForUnaryOp(fun);
         os << "(";
         operand->print(os);
@@ -323,19 +322,19 @@ public:
     }
 
     /** Creates a clone */
-    virtual AstUnaryFunctor* clone() const {
+    AstUnaryFunctor* clone() const override {
         auto res = new AstUnaryFunctor(fun, std::unique_ptr<AstArgument>(operand->clone()));
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         operand = map(std::move(operand));
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         auto res = AstArgument::getChildNodes();
         res.push_back(operand.get());
         return res;
@@ -343,7 +342,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstUnaryFunctor*>(&node));
         const AstUnaryFunctor& other = static_cast<const AstUnaryFunctor&>(node);
         return fun == other.fun && *operand == *other.operand;
@@ -363,7 +362,7 @@ public:
     AstBinaryFunctor(BinaryOp fun, std::unique_ptr<AstArgument> l, std::unique_ptr<AstArgument> r)
             : fun(fun), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    virtual ~AstBinaryFunctor() {}
+    ~AstBinaryFunctor() override = default;
 
     AstArgument* getLHS() const {
         return lhs.get();
@@ -398,7 +397,7 @@ public:
     }
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         if (isNumericBinaryOp(fun)) {
             os << "(";
             lhs->print(os);
@@ -416,7 +415,7 @@ public:
     }
 
     /** Creates a clone */
-    virtual AstBinaryFunctor* clone() const {
+    AstBinaryFunctor* clone() const override {
         auto res = new AstBinaryFunctor(
                 fun, std::unique_ptr<AstArgument>(lhs->clone()), std::unique_ptr<AstArgument>(rhs->clone()));
         res->setSrcLoc(getSrcLoc());
@@ -424,13 +423,13 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         lhs = map(std::move(lhs));
         rhs = map(std::move(rhs));
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         auto res = AstArgument::getChildNodes();
         res.push_back(lhs.get());
         res.push_back(rhs.get());
@@ -439,7 +438,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstBinaryFunctor*>(&node));
         const AstBinaryFunctor& other = static_cast<const AstBinaryFunctor&>(node);
         return fun == other.fun && *lhs == *other.lhs && *rhs == *other.rhs;
@@ -460,7 +459,7 @@ public:
             std::unique_ptr<AstArgument> a3)
             : fun(fun), arg({{std::move(a1), std::move(a2), std::move(a3)}}) {}
 
-    virtual ~AstTernaryFunctor() {}
+    ~AstTernaryFunctor() override = default;
 
     AstArgument* getArg(int idx) const {
         assert(idx >= 0 && idx < 3 && "wrong argument");
@@ -492,7 +491,7 @@ public:
     }
 
     /** Print argument to the given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << getSymbolForTernaryOp(fun);
         os << "(";
         arg[0]->print(os);
@@ -504,7 +503,7 @@ public:
     }
 
     /** Clone this node  */
-    virtual AstTernaryFunctor* clone() const {
+    AstTernaryFunctor* clone() const override {
         auto res = new AstTernaryFunctor(fun, std::unique_ptr<AstArgument>(arg[0]->clone()),
                 std::unique_ptr<AstArgument>(arg[1]->clone()), std::unique_ptr<AstArgument>(arg[2]->clone()));
         res->setSrcLoc(getSrcLoc());
@@ -512,14 +511,14 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         arg[0] = map(std::move(arg[0]));
         arg[1] = map(std::move(arg[1]));
         arg[2] = map(std::move(arg[2]));
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         auto res = AstArgument::getChildNodes();
         res.push_back(arg[0].get());
         res.push_back(arg[1].get());
@@ -529,7 +528,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstTernaryFunctor*>(&node));
         const AstTernaryFunctor& other = static_cast<const AstTernaryFunctor&>(node);
         return fun == other.fun && *arg[0] == *other.arg[0] && *arg[1] == *other.arg[1] &&
@@ -548,7 +547,7 @@ class AstRecordInit : public AstArgument {
 public:
     AstRecordInit() {}
 
-    ~AstRecordInit() {}
+    ~AstRecordInit() override = default;
 
     void add(std::unique_ptr<AstArgument> arg) {
         args.push_back(std::move(arg));
@@ -558,12 +557,12 @@ public:
         return toPtrVector(args);
     }
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "[" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << "]";
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstRecordInit* clone() const {
+    AstRecordInit* clone() const override {
         auto res = new AstRecordInit();
         for (auto& cur : args) {
             res->args.push_back(std::unique_ptr<AstArgument>(cur->clone()));
@@ -573,14 +572,14 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         for (auto& arg : args) {
             arg = map(std::move(arg));
         }
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         auto res = AstArgument::getChildNodes();
         for (auto& cur : args) {
             res.push_back(cur.get());
@@ -590,7 +589,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstRecordInit*>(&node));
         const AstRecordInit& other = static_cast<const AstRecordInit&>(node);
         return equal_targets(args, other.args);
@@ -611,7 +610,7 @@ public:
     AstTypeCast(std::unique_ptr<AstArgument> value, const std::string& type)
             : value(std::move(value)), type(type) {}
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << *value << " as " << type;
     }
 
@@ -620,27 +619,27 @@ public:
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         auto res = AstArgument::getChildNodes();
         res.push_back(value.get());
         return res;
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstTypeCast* clone() const {
+    AstTypeCast* clone() const override {
         auto res = new AstTypeCast(std::unique_ptr<AstArgument>(value->clone()), type);
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         value = map(std::move(value));
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstTypeCast*>(&node));
         const AstTypeCast& other = static_cast<const AstTypeCast&>(node);
         return type == other.type && *value == *other.value;
@@ -674,7 +673,7 @@ public:
     AstAggregator(Op fun) : fun(fun), expr(nullptr) {}
 
     /** Destructor */
-    ~AstAggregator() {}
+    ~AstAggregator() override = default;
 
     // -- getters and setters --
 
@@ -705,17 +704,19 @@ public:
     // -- others --
 
     /** Prints this instance in a parse-able format */
-    virtual void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const;
+    std::vector<const AstNode*> getChildNodes() const override;
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstAggregator* clone() const;
+    AstAggregator* clone() const override;
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
-        if (expr) expr = map(std::move(expr));
+    void apply(const AstNodeMapper& map) override {
+        if (expr) {
+            expr = map(std::move(expr));
+        }
         for (auto& cur : body) {
             cur = map(std::move(cur));
         }
@@ -723,7 +724,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstAggregator*>(&node));
         const AstAggregator& other = static_cast<const AstAggregator&>(node);
         return fun == other.fun && equal_ptr(expr, other.expr) && equal_targets(body, other.body);

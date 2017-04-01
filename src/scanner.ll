@@ -33,7 +33,8 @@
     #include "AstSrcLocation.h"
     #define YYLTYPE AstSrcLocation
 
-    #include "ParserDriver.h"    
+    #include "ParserDriver.h"
+    #include "RamTypes.h"
     #include "parser.hh"
     
     #define register
@@ -152,7 +153,7 @@
                                           token = std::strtok(NULL, ".");
                                           ++i;
                                         }
-                                        int ipnumber = (vals[0]*2^24) + (vals[1]*2^16) + (vals[2]*2^8) + vals[3];
+                                        int ipnumber = (vals[0]<<24) + (vals[1]<<16) + (vals[2]<<8) + vals[3];
                                         return yy::parser::make_NUMBER(ipnumber, yylloc);
                                         } catch(...) {
                                           driver.error(yylloc, "IP out of range");
@@ -161,7 +162,7 @@
                                       }
 0b[0-1][0-1]*                         {
                                         try {
-                                          return yy::parser::make_NUMBER(std::stoull(yytext+2, NULL, 2), yylloc);
+                                          return yy::parser::make_NUMBER((RamDomain)std::stoull(yytext+2, NULL, 2), yylloc);
                                         } catch(...) {
                                           driver.error(yylloc, "bool out of range");
                                           return yy::parser::make_NUMBER(0, yylloc);
@@ -169,7 +170,7 @@
                                       }
 0x[a-fA-F0-9]+                        {
                                         try {
-                                          return yy::parser::make_NUMBER(std::stoull(yytext+2, NULL, 16), yylloc);
+                                          return yy::parser::make_NUMBER((RamDomain)std::stoull(yytext+2, NULL, 16), yylloc);
                                         } catch(...) {
                                           driver.error(yylloc, "hex out of range");
                                           return yy::parser::make_NUMBER(0, yylloc);

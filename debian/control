@@ -3,17 +3,17 @@ Maintainer: Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.5
-Build-Depends: debhelper (>= 9), libsqlite3-dev, openjdk-7-jdk | openjdk-8-jdk
+Build-Depends: autoconf, automake, bison, debhelper (>= 9), flex, libsqlite3-dev, openjdk-7-jdk | openjdk-8-jdk, zlib1g-dev
 Homepage: https://github.com/oracle/souffle
 Vcs-Git: https://github.com/souffle-lang/souffle.git
 
 Package: souffle
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, g++, jarwrapper,libsqlite3-dev, openjdk-7-jre | openjdk-8-jre
+Depends: ${shlibs:Depends}, ${misc:Depends}, g++, jarwrapper, openjdk-7-jre | openjdk-8-jre
 Description: Translator of declarative Datalog programs into the C++ language.
  Soufflé is a translator of declarative Datalog programs into the C++ language.
  Soufflé is used as a domain-specific language for static program analysis, over
- large code bases with millions of lines of code. Soufflé aims at producing
+ large code bases with millions of lines of code. Soufflé aims to produce
  high-performance C++ code that can be compiled with the native compiler on
  the target machine.
 

@@ -78,7 +78,7 @@ public:
     RamNode(RamNodeType type) : type(type) {}
 
     /** A virtual destructor for RAM nodes */
-    virtual ~RamNode() {}
+    virtual ~RamNode() = default;
 
     RamNodeType getNodeType() const {
         return type;

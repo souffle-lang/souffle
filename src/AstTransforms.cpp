@@ -74,7 +74,7 @@ public:
         map.insert(std::make_pair(var, std::unique_ptr<AstArgument>(arg->clone())));
     }
 
-    virtual ~Substitution() {}
+    virtual ~Substitution() = default;
 
     /**
      * Applies this substitution to the given argument and
@@ -92,7 +92,7 @@ public:
 
             using AstNodeMapper::operator();
 
-            virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+            std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
                 // see whether it is a variable to be substituted
                 if (auto var = dynamic_cast<AstVariable*>(node.get())) {
                     auto pos = map.find(var->getName());
@@ -183,7 +183,7 @@ struct Equation {
 
     Equation(Equation&& other) : lhs(std::move(other.lhs)), rhs(std::move(other.rhs)) {}
 
-    ~Equation() {}
+    ~Equation() = default;
 
     /**
      * Applies the given substitution to both sides of the equation.
@@ -203,7 +203,7 @@ struct Equation {
         return out;
     }
 };
-}
+}  // namespace
 
 std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
     /**
@@ -229,7 +229,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     // I) extract equations
     std::vector<Equation> equations;
     visitDepthFirst(clause, [&](const AstConstraint& rel) {
-        if (rel.getOperator() == BinaryRelOp::EQ) {
+        if (rel.getOperator() == BinaryConstraintOp::EQ) {
             equations.push_back(Equation(rel.getLHS(), rel.getRHS()));
         }
     });
@@ -328,7 +328,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(cons
     for (AstLiteral* cur : clause.getBodyLiterals()) {
         // filter out t = t
         if (AstConstraint* rel = dynamic_cast<AstConstraint*>(cur)) {
-            if (rel->getOperator() == BinaryRelOp::EQ) {
+            if (rel->getOperator() == BinaryConstraintOp::EQ) {
                 if (*rel->getLHS() == *rel->getRHS()) {
                     continue;  // skip this one
                 }
@@ -382,7 +382,7 @@ void ResolveAliasesTransformer::removeComplexTermsInAtoms(AstClause& clause) {
     struct Update : public AstNodeMapper {
         const substitution_map& map;
         Update(const substitution_map& map) : map(map) {}
-        virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // check whether node needs to be replaced
             for (const auto& cur : map) {
                 if (*cur.first == *node) {
@@ -405,13 +405,19 @@ void ResolveAliasesTransformer::removeComplexTermsInAtoms(AstClause& clause) {
     // add variable constraints to clause
     for (const auto& cur : map) {
         clause.addToBody(std::unique_ptr<AstLiteral>(
-                new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>(cur.second->clone()),
+                new AstConstraint(BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>(cur.second->clone()),
                         std::unique_ptr<AstArgument>(cur.first->clone()))));
     }
 }
 
 bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram& program) {
     typedef std::map<AstRelationIdentifier, AstRelationIdentifier> alias_map;
+
+    // tests whether something is a variable
+    auto isVar = [&](const AstArgument& arg) { return dynamic_cast<const AstVariable*>(&arg); };
+
+    // tests whether something is a record
+    auto isRec = [&](const AstArgument& arg) { return dynamic_cast<const AstRecordInit*>(&arg); };
 
     // collect aliases
     alias_map isDirectAliasOf;
@@ -424,8 +430,30 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram& program) 
             if (!cl->isFact() && cl->getBodySize() == 1u && cl->getAtoms().size() == 1u) {
                 AstAtom* atom = cl->getAtoms()[0];
                 if (equal_targets(cl->getHead()->getArguments(), atom->getArguments())) {
-                    // we have a match
-                    isDirectAliasOf[cl->getHead()->getName()] = atom->getName();
+                    // we have a match but have to check that all arguments are either
+                    // variables or records containing variables
+                    bool onlyVars = true;
+                    auto args = cl->getHead()->getArguments();
+                    while (!args.empty()) {
+                        const auto& cur = args.back();
+                        args.pop_back();
+                        if (!isVar(*cur)) {
+                            if (isRec(*cur)) {
+                                // records are decomposed and their arguments are checked
+                                const auto& rec_args = static_cast<const AstRecordInit&>(*cur).getArguments();
+                                for (size_t i = 0; i < rec_args.size(); ++i) {
+                                    args.push_back(rec_args[i]);
+                                }
+                            } else {
+                                onlyVars = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (onlyVars) {
+                        // all arguments are either variables or records containing variables
+                        isDirectAliasOf[cl->getHead()->getName()] = atom->getName();
+                    }
                 }
             }
         }
@@ -743,7 +771,7 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     RedundantRelations* redundantRelationsAnalysis = translationUnit.getAnalysis<RedundantRelations>();
     const std::set<const AstRelation*>& redundantRelations =
             redundantRelationsAnalysis->getRedundantRelations();
-    if (redundantRelations.size() > 0) {
+    if (!redundantRelations.empty()) {
         for (auto rel : redundantRelations) {
             translationUnit.getProgram()->removeRelation(rel->getName());
             changed = true;

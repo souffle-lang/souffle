@@ -44,13 +44,13 @@ class AstLiteral : public AstNode {
 public:
     AstLiteral() {}
 
-    virtual ~AstLiteral() {}
+    ~AstLiteral() override = default;
 
     /** Obtains the atom referenced by this literal - if any */
     virtual const AstAtom* getAtom() const = 0;
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstLiteral* clone() const = 0;
+    AstLiteral* clone() const override = 0;
 };
 
 /**
@@ -69,7 +69,7 @@ protected:
 public:
     AstAtom(const AstRelationIdentifier& name = AstRelationIdentifier()) : name(name) {}
 
-    virtual ~AstAtom() {}
+    ~AstAtom() override = default;
 
     /** Return the name of this atom */
     const AstRelationIdentifier& getName() const {
@@ -87,7 +87,7 @@ public:
     }
 
     /** Returns this class as the referenced atom */
-    const AstAtom* getAtom() const {
+    const AstAtom* getAtom() const override {
         return this;
     }
 
@@ -117,22 +117,24 @@ public:
     }
 
     /** Output to a given stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << getName() << "(";
 
         for (size_t i = 0; i < arguments.size(); ++i) {
-            if (i != 0) os << ",";
-
-            if (arguments[i] != NULL)
+            if (i != 0) {
+                os << ",";
+            }
+            if (arguments[i] != nullptr) {
                 arguments[i]->print(os);
-            else
+            } else {
                 os << "_";
+            }
         }
         os << ")";
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstAtom* clone() const {
+    AstAtom* clone() const override {
         auto res = new AstAtom(name);
         res->setSrcLoc(getSrcLoc());
         for (const auto& cur : arguments) {
@@ -142,14 +144,14 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         for (auto& arg : arguments) {
             arg = map(std::move(arg));
         }
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res;
         for (auto& cur : arguments) {
             res.push_back(cur.get());
@@ -159,7 +161,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstAtom*>(&node));
         const AstAtom& other = static_cast<const AstAtom&>(node);
         return name == other.name && equal_targets(arguments, other.arguments);
@@ -178,10 +180,10 @@ protected:
 public:
     AstNegation(std::unique_ptr<AstAtom> a) : atom(std::move(a)) {}
 
-    virtual ~AstNegation() {}
+    ~AstNegation() override = default;
 
     /** Returns the nested atom as the referenced atom */
-    const AstAtom* getAtom() const {
+    const AstAtom* getAtom() const override {
         return atom.get();
     }
 
@@ -191,31 +193,31 @@ public:
     }
 
     /** Output to a given stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "!";
         atom->print(os);
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstNegation* clone() const {
+    AstNegation* clone() const override {
         AstNegation* res = new AstNegation(std::unique_ptr<AstAtom>(atom->clone()));
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         atom = map(std::move(atom));
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         return {atom.get()};
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstNegation*>(&node));
         const AstNegation& other = static_cast<const AstNegation&>(node);
         return *atom == *other.atom;
@@ -229,7 +231,7 @@ protected:
 class AstConstraint : public AstLiteral {
 protected:
     /** The operator in this relation */
-    BinaryRelOp operation;
+    BinaryConstraintOp operation;
 
     /** Left-hand side argument of a binary operation */
     std::unique_ptr<AstArgument> lhs;
@@ -238,16 +240,16 @@ protected:
     std::unique_ptr<AstArgument> rhs;
 
 public:
-    AstConstraint(BinaryRelOp o, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
+    AstConstraint(BinaryConstraintOp o, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
             : operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
     AstConstraint(const std::string& op, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
-            : operation(getBinaryRelOpForSymbol(op)), lhs(std::move(ls)), rhs(std::move(rs)) {}
+            : operation(toBinaryConstraintOp(op)), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
-    virtual ~AstConstraint() {}
+    ~AstConstraint() override = default;
 
     /** This kind of literal has no nested atom */
-    const AstAtom* getAtom() const {
+    const AstAtom* getAtom() const override {
         return nullptr;
     }
 
@@ -262,29 +264,39 @@ public:
     }
 
     /** Return binary operator */
-    BinaryRelOp getOperator() const {
+    BinaryConstraintOp getOperator() const {
         return operation;
     }
 
     /** Update the binary operator */
-    void setOperator(BinaryRelOp op) {
+    void setOperator(BinaryConstraintOp op) {
         operation = op;
     }
 
     /** Negates the constraint */
     void negate() {
-        setOperator(souffle::negate(operation));
+        setOperator(souffle::negatedConstraintOp(operation));
+    }
+
+    /** Check whether constraint is a numeric constraint */
+    const bool isNumerical() const {
+        return isNumericBinaryConstraintOp(operation);
+    }
+
+    /** Check whether constraint is a symbolic constraint */
+    const bool isSymbolic() const {
+        return isSymbolicBinaryConstraintOp(operation);
     }
 
     /** Output the constraint to a given stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         lhs->print(os);
-        os << " " << getSymbolForBinaryRelOp(operation) << " ";
+        os << " " << toBinaryConstraintSymbol(operation) << " ";
         rhs->print(os);
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstConstraint* clone() const {
+    AstConstraint* clone() const override {
         AstConstraint* res = new AstConstraint(operation, std::unique_ptr<AstArgument>(lhs->clone()),
                 std::unique_ptr<AstArgument>(rhs->clone()));
         res->setSrcLoc(getSrcLoc());
@@ -292,19 +304,19 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         lhs = map(std::move(lhs));
         rhs = map(std::move(rhs));
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         return {lhs.get(), rhs.get()};
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstConstraint*>(&node));
         const AstConstraint& other = static_cast<const AstConstraint&>(node);
         return operation == other.operation && *lhs == *other.lhs && *rhs == *other.rhs;

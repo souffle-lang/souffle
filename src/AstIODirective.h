@@ -30,16 +30,16 @@ namespace souffle {
  */
 class AstIODirective : public AstNode {
 public:
-    virtual ~AstIODirective() {}
+    ~AstIODirective() override = default;
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         // type is just cached, not essential
         return std::vector<const AstNode*>();
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstIODirective* clone() const {
+    AstIODirective* clone() const override {
         auto res = new AstIODirective();
         res->names = names;
         res->kvps = kvps;
@@ -51,10 +51,10 @@ public:
     }
 
     /** No nested nodes to apply to */
-    virtual void apply(const AstNodeMapper& mapper) {}
+    void apply(const AstNodeMapper& /*mapper*/) override {}
 
     /** Output to a given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         if (input) {
             os << ".input ";
         }
@@ -88,13 +88,13 @@ public:
     }
 
     /** Set kvp map name */
-    void addName(const AstRelationIdentifier& n) {
-        names.insert(n);
+    void addName(const AstRelationIdentifier& name) {
+        names.insert(name);
     }
     /** Set kvp map name */
-    void setName(const AstRelationIdentifier& n) {
+    void setName(const AstRelationIdentifier& name) {
         names.clear();
-        names.insert(n);
+        names.insert(name);
     }
 
     void addKVP(const std::string& key, const std::string& value) {
@@ -127,7 +127,7 @@ public:
 
 protected:
     /** An internal function to determine equality to another node */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstIODirective*>(&node));
         const AstIODirective& other = static_cast<const AstIODirective&>(node);
         return other.names == names && other.input == input && other.kvps == kvps;

@@ -23,7 +23,7 @@
 #include "AstTranslationUnit.h"
 #include "GraphUtils.h"
 
-#include <iomanip>
+#include <iostream>
 #include <list>
 #include <map>
 #include <stack>
@@ -39,17 +39,20 @@ typedef Graph<const AstRelation*, AstNameComparison> AstRelationGraph;
  */
 class PrecedenceGraph : public AstAnalysis {
 private:
-    // Adjacency list of precedence graph (determined by the dependencies of the relations)
+    /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
     AstRelationGraph precedenceGraph;
 
 public:
     static constexpr const char* name = "precedence-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
+
+    /** Output precedence graph in graphviz format to a given stream */
+    void outputPrecedenceGraph(std::ostream& os);
 
     const AstRelationSet& getPredecessors(const AstRelation* relation) {
-        assert(precedenceGraph.hasVertex(relation) && "Relation not present in precedence graph!");
-        return precedenceGraph.getSuccessors(relation);
+        assert(precedenceGraph.contains(relation) && "Relation not present in precedence graph!");
+        return precedenceGraph.getEdges(relation);
     }
 
     const AstRelationGraph getGraph() const {
@@ -70,7 +73,7 @@ private:
 public:
     static constexpr const char* name = "redundant-relations";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     const std::set<const AstRelation*>& getRedundantRelations() {
         return redundantRelations;
@@ -84,13 +87,13 @@ class RecursiveClauses : public AstAnalysis {
 private:
     std::set<const AstClause*> recursiveClauses;
 
-    // Determines whether the given clause is recursive within the given program
+    /** Determines whether the given clause is recursive within the given program */
     bool computeIsRecursive(const AstClause& clause, const AstTranslationUnit& translationUnit) const;
 
 public:
     static constexpr const char* name = "recursive-clauses";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     bool isRecursive(const AstClause* clause) const {
         return recursiveClauses.count(clause);
@@ -104,29 +107,67 @@ class SCCGraph : public AstAnalysis {
 private:
     PrecedenceGraph* precedenceGraph;
 
-    HyperGraph<index::SetTable, const AstRelation*> sccGraph;
+    /** Map from node number to SCC number */
+    std::map<const AstRelation*, int> nodeToSCC;
+
+    /** Adjacency lists for the SCC graph */
+    std::vector<std::set<int>> succSCC;
+
+    /** Predecessor set for the SCC graph */
+    std::vector<std::set<int>> predSCC;
+
+    /** Relations contained in a SCC */
+    std::vector<std::set<const AstRelation*>> SCC;
+
+    /** Recursive scR method for computing SCC */
+    void scR(const AstRelation* relation, std::map<const AstRelation*, int>& preOrder, unsigned int& counter,
+            std::stack<const AstRelation*>& S, std::stack<const AstRelation*>& P, int& numSCCs);
 
 public:
-    const HyperGraph<index::SetTable, const AstRelation*>& getGraph() {
-        return sccGraph;
-    }
-
     static constexpr const char* name = "scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit) {
-        precedenceGraph = translationUnit.getAnalysis<PrecedenceGraph>();
-        sccGraph = GraphConvert::toAcyclicHyperGraph<index::SetTable>(precedenceGraph->getGraph());
+    void run(const AstTranslationUnit& translationUnit) override;
+
+    int getSCCForRelation(const AstRelation* relation) {
+        return nodeToSCC[relation];
     }
 
-    const bool isRecursive(size_t vertex) const {
-        const auto& objects = sccGraph.table().get(vertex);
-        if (objects.size() == 1 && !precedenceGraph->getGraph().isRecursive(*objects.begin())) return false;
+    bool isRecursive(int scc) {
+        const std::set<const AstRelation*>& sccRelations = SCC[scc];
+        if (sccRelations.size() == 1) {
+            const AstRelation* singleRelation = *sccRelations.begin();
+            if (!precedenceGraph->getPredecessors(singleRelation).count(singleRelation)) {
+                return false;
+            }
+        }
         return true;
     }
 
-    const bool isRecursive(const AstRelation* relation) const {
-        return isRecursive(sccGraph.table().getIndex(relation));
+    bool isRecursive(const AstRelation* relation) {
+        return isRecursive(getSCCForRelation(relation));
     }
+
+    /** Return the number of strongly connected components in the SCC graph */
+    int getNumSCCs() {
+        return succSCC.size();
+    }
+
+    /** Get all successor SCCs of a specified scc. */
+    const std::set<int>& getSuccessorSCCs(int scc) {
+        return succSCC[scc];
+    }
+
+    /** Get all predecessor SCCs of a specified scc. */
+    const std::set<int>& getPredecessorSCCs(int scc) {
+        return predSCC[scc];
+    }
+
+    const std::set<const AstRelation*> getRelationsForSCC(int scc) {
+        return SCC[scc];
+    }
+
+    /** Output strongly connected component graph in graphviz format */
+    void outputSCCGraph(std::ostream& os);
 };
 
 /**
@@ -134,59 +175,34 @@ public:
  */
 class TopologicallySortedSCCGraph : public AstAnalysis {
 private:
-    // The strongly connected component (SCC) graph.
+    /** The strongly connected component (SCC) graph. */
     SCCGraph* sccGraph;
 
-    // The final topological ordering of the SCCs.
-    std::vector<size_t> orderedSCCs;
+    /** The final topological ordering of the SCCs. */
+    std::vector<int> orderedSCCs;
+
+    /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
+    using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
+    const int topologicalOrderingCost(const std::vector<int>& permutationOfSCCs) const;
+
+    /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
+    void computeTopologicalOrdering(int scc, std::vector<bool>& visited);
 
 public:
     static constexpr const char* name = "topological-scc-graph";
 
-    virtual void run(const AstTranslationUnit& translationUnit) {
-        sccGraph = translationUnit.getAnalysis<SCCGraph>();
+    void run(const AstTranslationUnit& translationUnit) override;
 
-        // TODO: determine which of the following is better
-
-        // === KHAN ===
-        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
-        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::khansAlgorithm);
-
-        // === KHAN WITH PRE-PROCESSING ===
-        // HyperGraph<index::SeqTable, size_t> graph =
-        //         GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        // GraphTransform::joinUntilFixedPoint(
-        //         graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES |
-        //                        GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
-        // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::khansAlgorithm);
-
-        // === RDFS ===
-        //        HyperGraph<index::SetTable, const AstRelation*> graph = sccGraph->getGraph();
-        //        orderedSCCs = GraphOrder::outerOrder(graph, &GraphSearch::reverseDFS);
-
-        // === RDFS WITH PRE-PROCESSING ===
-        // HyperGraph<index::SeqTable, size_t> graph =
-        //         GraphConvert::toHyperGraph<index::SeqTable>(sccGraph->getGraph());
-        // GraphTransform::joinUntilFixedPoint(
-        //         graph, GraphTransform::SINGLES | GraphTransform::ROOTS | GraphTransform::LEAVES |
-        //                        GraphTransform::SMOOTH_BACKWARD | GraphTransform::LOOPS);
-        // orderedSCCs = GraphOrder::innerOrder(graph, &GraphSearch::reverseDFS);
-    }
-
-    SCCGraph* getSCCGraph() const {
+    SCCGraph* getSCCGraph() {
         return sccGraph;
     }
 
-    const std::vector<size_t>& getSCCOrder() const {
+    const std::vector<int>& getSCCOrder() {
         return orderedSCCs;
     }
 
-    void outputTopologicallySortedSCCGraph(std::ostream& os) const {
-        for (size_t i = 0; i < orderedSCCs.size(); i++)
-            os << "[" << join(sccGraph->getGraph().table().get(orderedSCCs[i])) << "]\n";
-        os << "\n";
-        os << "cost: " << GraphQuery::topologicalOrderingCost(sccGraph->getGraph(), orderedSCCs) << "\n";
-    }
+    /** Output topologically sorted strongly connected component graph in text format */
+    void outputTopologicallySortedSCCGraph(std::ostream& os);
 };
 
 /**
@@ -226,7 +242,7 @@ private:
     TopologicallySortedSCCGraph* topsortSCCGraph;
     PrecedenceGraph* precedenceGraph;
 
-    // Relations computed and expired relations at each step
+    /** Relations computed and expired relations at each step */
     std::vector<RelationScheduleStep> schedule;
 
     std::vector<std::set<const AstRelation*>> computeRelationExpirySchedule(
@@ -235,7 +251,7 @@ private:
 public:
     static constexpr const char* name = "relation-schedule";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     const std::vector<RelationScheduleStep>& getSchedule() {
         return schedule;

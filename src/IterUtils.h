@@ -32,7 +32,7 @@ struct IterDerefWrapper : public std::iterator<std::forward_iterator_tag, T> {
 
 public:
     // some constructores
-    IterDerefWrapper() {}
+    IterDerefWrapper() = default;
     IterDerefWrapper(const Iter& iter) : iter(iter) {}
 
     // defaulted copy and move constructors

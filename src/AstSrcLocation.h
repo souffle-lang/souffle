@@ -63,11 +63,21 @@ public:
 
     /** A comparison for source locations */
     bool operator<(const AstSrcLocation& other) const {
-        if (filename < other.filename) return true;
-        if (filename > other.filename) return false;
-        if (start < other.start) return true;
-        if (start > other.start) return false;
-        if (end < other.end) return true;
+        if (filename < other.filename) {
+            return true;
+        }
+        if (filename > other.filename) {
+            return false;
+        }
+        if (start < other.start) {
+            return true;
+        }
+        if (start > other.start) {
+            return false;
+        }
+        if (end < other.end) {
+            return true;
+        }
         return false;
     }
 

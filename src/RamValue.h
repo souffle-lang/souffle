@@ -42,7 +42,7 @@ class RamValue : public RamNode {
 public:
     RamValue(RamNodeType type, bool isCnst) : RamNode(type), cnst(isCnst) {}
 
-    virtual ~RamValue() {}
+    ~RamValue() override = default;
 
     /** get level of value (which for-loop of a query) */
     virtual size_t getLevel() const = 0;
@@ -65,9 +65,9 @@ public:
     RamUnaryOperator(UnaryOp op, std::unique_ptr<RamValue> v)
             : RamValue(RN_UnaryOperator, v->isConstant()), op(op), value(std::move(v)) {}
 
-    virtual ~RamUnaryOperator() {}
+    ~RamUnaryOperator() override = default;
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << getSymbolForUnaryOp(op);
         os << "(";
         value->print(os);
@@ -82,12 +82,12 @@ public:
         return op;
     }
 
-    size_t getLevel() const {
+    size_t getLevel() const override {
         return value->getLevel();
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(value.get());
     }
 };
@@ -105,9 +105,9 @@ public:
             : RamValue(RN_BinaryOperator, l->isConstant() && r->isConstant()), op(op), lhs(std::move(l)),
               rhs(std::move(r)) {}
 
-    virtual ~RamBinaryOperator() {}
+    ~RamBinaryOperator() override = default;
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         if (isNumericBinaryOp(op)) {
             os << "(";
             lhs->print(os);
@@ -136,12 +136,12 @@ public:
         return op;
     }
 
-    size_t getLevel() const {
+    size_t getLevel() const override {
         return std::max(lhs->getLevel(), rhs->getLevel());
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(lhs.get(), rhs.get());
     }
 };
@@ -160,9 +160,9 @@ public:
             : RamValue(RN_TernaryOperator, a0->isConstant() && a1->isConstant() && a2->isConstant()), op(op),
               arg({{std::move(a0), std::move(a1), std::move(a2)}}) {}
 
-    virtual ~RamTernaryOperator() {}
+    ~RamTernaryOperator() override = default;
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << getSymbolForTernaryOp(op);
         os << "(";
         arg[0]->print(os);
@@ -181,12 +181,12 @@ public:
         return op;
     }
 
-    size_t getLevel() const {
+    size_t getLevel() const override {
         return std::max(std::max(arg[0]->getLevel(), arg[1]->getLevel()), arg[2]->getLevel());
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return toVector<const RamNode*>(arg[0].get(), arg[1].get(), arg[2].get());
     }
 };
@@ -201,7 +201,7 @@ public:
     RamElementAccess(size_t l, size_t e, const std::string& n = "")
             : RamValue(RN_ElementAccess, false), level(l), element(e), name(n) {}
 
-    void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         if (name == "") {
             os << "env(t" << level << ", i" << element << ")";
         } else {
@@ -209,14 +209,14 @@ public:
         }
     }
 
-    size_t getLevel() const {
+    size_t getLevel() const override {
         return level;
     }
     size_t getElement() const {
         return element;
     }
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
@@ -231,14 +231,14 @@ public:
     RamDomain getConstant() const {
         return constant;
     }
-    void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "number(" << constant << ")";
     }
-    size_t getLevel() const {
+    size_t getLevel() const override {
         return 0;
     }
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
@@ -248,15 +248,15 @@ class RamAutoIncrement : public RamValue {
 public:
     RamAutoIncrement() : RamValue(RN_AutoIncrement, false) {}
 
-    void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "autoinc()";
     }
 
-    size_t getLevel() const {
+    size_t getLevel() const override {
         return 0;
     }
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();  // no child nodes
     }
 };
@@ -272,34 +272,40 @@ public:
                                [](const std::unique_ptr<RamValue>& v) { return v && v->isConstant(); })),
               values(std::move(values)) {}
 
-    ~RamPack() {}
+    ~RamPack() override = default;
 
     std::vector<RamValue*> getValues() const {
         return toPtrVector(values);
     }
 
-    void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "[" << join(values, ",", [](std::ostream& out, const std::unique_ptr<RamValue>& value) {
-            if (value)
+            if (value) {
                 out << *value;
-            else
+            } else {
                 out << "_";
+            }
         }) << "]";
     }
 
-    size_t getLevel() const {
+    size_t getLevel() const override {
         size_t level = 0;
         for (const auto& value : values) {
-            if (value) level = std::max(level, value->getLevel());
+            if (value) {
+                level = std::max(level, value->getLevel());
+            }
         }
         return level;
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> res;
-        for (const auto& cur : values)
-            if (cur) res.push_back(cur.get());
+        for (const auto& cur : values) {
+            if (cur) {
+                res.push_back(cur.get());
+            }
+        }
         return res;
     }
 };

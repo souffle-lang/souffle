@@ -16,15 +16,16 @@
 
 #pragma once
 
-#include "Global.h"
 #include "RamData.h"
 #include "RamRelation.h"
+#include "SymbolTable.h"
+#include "Util.h"
 
 #include <functional>
-#include <map>
+//#include <map>
+#include <ostream>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 namespace souffle {
 
@@ -41,11 +42,10 @@ protected:
     std::ostream* report;
 
 public:
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
     RamExecutor() : report(nullptr) {}
 
     /** A virtual destructor to support safe inheritance */
-    virtual ~RamExecutor() {}
+    virtual ~RamExecutor() = default;
 
     /**
      * Updates the target this executor is reporting to.
@@ -118,7 +118,9 @@ public:
 
     bool isComplete() const {
         for (size_t i = 0; i < order.size(); i++) {
-            if (!contains(order, i)) return false;
+            if (!contains(order, i)) {
+                return false;
+            }
         }
         return true;
     }
@@ -175,7 +177,7 @@ public:
      * The implementation of the interpreter applying the given program
      * on the given environment.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
+    void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const override;
 };
 
 /**
@@ -227,7 +229,7 @@ public:
      * The actual implementation of this executor encoding the given
      * program into a source file, compiling and executing it.
      */
-    virtual void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const;
+    void applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const override;
 
 private:
     /**
@@ -245,7 +247,9 @@ public:
      * Obtains the singleton instance.
      */
     static CPPIdentifierMap& getInstance() {
-        if (instance == NULL) instance = new CPPIdentifierMap();
+        if (instance == nullptr) {
+            instance = new CPPIdentifierMap();
+        }
         return *instance;
     }
 
@@ -256,7 +260,7 @@ public:
         return getInstance().identifier(name);
     }
 
-    ~CPPIdentifierMap() {}
+    ~CPPIdentifierMap() = default;
 
 private:
     CPPIdentifierMap() {}
@@ -268,11 +272,16 @@ private:
      */
     const std::string identifier(const std::string& name) {
         auto it = identifiers.find(name);
-        if (it != identifiers.end()) return it->second;
+        if (it != identifiers.end()) {
+            return it->second;
+        }
         // strip leading numbers
         unsigned int i;
-        for (i = 0; i < name.length(); ++i)
-            if (isalnum(name.at(i)) || name.at(i) == '_') break;
+        for (i = 0; i < name.length(); ++i) {
+            if (isalnum(name.at(i)) || name.at(i) == '_') {
+                break;
+            }
+        }
         std::string id;
         for (auto ch : std::to_string(identifiers.size() + 1) + '_' + name.substr(i)) {
             // alphanumeric characters are allowed

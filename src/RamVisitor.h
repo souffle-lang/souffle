@@ -27,7 +27,7 @@
 
 namespace souffle {
 
-/** A tag type required for the is_visitor type trait to identify RamVisitors */
+/** A tag type required for the is_ram_visitor type trait to identify RamVisitors */
 struct ram_visitor_tag {};
 
 /**
@@ -42,7 +42,7 @@ struct ram_visitor_tag {};
 template <typename R = void, typename... Params>
 struct RamVisitor : public ram_visitor_tag {
     /** A virtual destructor */
-    virtual ~RamVisitor() {}
+    virtual ~RamVisitor() = default;
 
     /** The main entry for the user allowing visitors to be utilized as functions */
     R operator()(const RamNode& node, Params... args) {
@@ -189,7 +189,7 @@ protected:
 #undef LINK
 
     /** The base case for all visitors -- if no more specific overload was defined */
-    virtual R visitNode(const RamNode& node, Params... args) {
+    virtual R visitNode(const RamNode& /*node*/, Params... /*args*/) {
         return R();
     }
 };
@@ -207,7 +207,9 @@ template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPreOrder(const RamNode& root, RamVisitor<R, Ps...>& visitor, Args&... args) {
     visitor(root, args...);
     for (const RamNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
 }
 
@@ -223,7 +225,9 @@ void visitDepthFirstPreOrder(const RamNode& root, RamVisitor<R, Ps...>& visitor,
 template <typename R, typename... Ps, typename... Args>
 void visitDepthFirstPostOrder(const RamNode& root, RamVisitor<R, Ps...>& visitor, Args&... args) {
     for (const RamNode* cur : root.getChildNodes()) {
-        if (cur) visitDepthFirstPreOrder(*cur, visitor, args...);
+        if (cur) {
+            visitDepthFirstPreOrder(*cur, visitor, args...);
+        }
     }
     visitor(root, args...);
 }
@@ -249,10 +253,10 @@ namespace detail {
  * for visitor convenience functions.
  */
 template <typename R, typename N>
-struct LambdaVisitor : public RamVisitor<void> {
+struct LambdaRamVisitor : public RamVisitor<void> {
     std::function<R(const N&)> lambda;
-    LambdaVisitor(const std::function<R(const N&)>& lambda) : lambda(lambda) {}
-    virtual void visit(const RamNode& node) {
+    LambdaRamVisitor(const std::function<R(const N&)>& lambda) : lambda(lambda) {}
+    void visit(const RamNode& node) override {
         if (const N* n = dynamic_cast<const N*>(&node)) {
             lambda(*n);
         }
@@ -260,26 +264,26 @@ struct LambdaVisitor : public RamVisitor<void> {
 };
 
 /**
- * A factory function for creating LambdaVisitor instances.
+ * A factory function for creating LambdaRamVisitor instances.
  */
 template <typename R, typename N>
-LambdaVisitor<R, N> makeLambdaVisitor(const std::function<R(const N&)>& fun) {
-    return LambdaVisitor<R, N>(fun);
+LambdaRamVisitor<R, N> makeLambdaRamVisitor(const std::function<R(const N&)>& fun) {
+    return LambdaRamVisitor<R, N>(fun);
 }
 
 /**
  * A type trait determining whether a given type is a visitor or not.
  */
 template <typename T>
-struct is_visitor {
+struct is_ram_visitor {
     enum { value = std::is_base_of<ram_visitor_tag, T>::value };
 };
 
 template <typename T>
-struct is_visitor<const T> : public is_visitor<T> {};
+struct is_ram_visitor<const T> : public is_ram_visitor<T> {};
 
 template <typename T>
-struct is_visitor<T&> : public is_visitor<T> {};
+struct is_ram_visitor<T&> : public is_ram_visitor<T> {};
 }  // namespace detail
 
 /**
@@ -293,7 +297,7 @@ struct is_visitor<T&> : public is_visitor<T> {};
  */
 template <typename R, typename N>
 void visitDepthFirst(const RamNode& root, const std::function<R(const N&)>& fun) {
-    auto visitor = detail::makeLambdaVisitor(fun);
+    auto visitor = detail::makeLambdaRamVisitor(fun);
     visitDepthFirst<void>(root, visitor);
 }
 
@@ -308,7 +312,7 @@ void visitDepthFirst(const RamNode& root, const std::function<R(const N&)>& fun)
  */
 template <typename Lambda, typename R = typename lambda_traits<Lambda>::result_type,
         typename N = typename lambda_traits<Lambda>::arg0_type>
-typename std::enable_if<!detail::is_visitor<Lambda>::value, void>::type visitDepthFirst(
+typename std::enable_if<!detail::is_ram_visitor<Lambda>::value, void>::type visitDepthFirst(
         const RamNode& root, const Lambda& fun) {
     visitDepthFirst(root, std::function<R(const N&)>(fun));
 }

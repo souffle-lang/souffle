@@ -21,15 +21,25 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_ARG_ENABLE([java],
-[  --enable-java    Turn on java interface],
-[case "${enableval}" in
-  yes) java=true ;;
-  no)  java=false ;;
-  *) AC_MSG_ERROR([bad value ${enableval} for --enable-java]) ;;
-esac],[java=false])
-
-AM_CONDITIONAL([JAVAI], [test x$java = xtrue])
+# Enable jni
+AC_ARG_ENABLE(
+  [jni],
+  [AS_HELP_STRING([--enable-jni], [Enable java interface])]
+)
+AS_IF([test "x$enable_jni" = "xyes"], [
+  AS_VAR_APPEND(CXXFLAGS, [" -DUSE_JAVAI "])
+  # Java
+  AX_PROG_JAVAC
+  AX_PROG_JAVAH
+  AX_PROG_JAVA
+  AX_PROG_JAR
+  AX_JNI_INCLUDE_DIR
+  for dir in $JNI_INCLUDE_DIRS; do
+    JNIFLAGS="$JNIFLAGS -I$dir"
+  done
+  AC_SUBST([JNIFLAGS])
+])
+AM_CONDITIONAL([JAVAI], [test "x$enable_jni" = "xyes"])
 
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
@@ -56,17 +66,6 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AM_PROG_CC_STDC
-
-# Java
-AX_PROG_JAVAC
-AX_PROG_JAVAH
-AX_PROG_JAVA
-AX_PROG_JAR
-AX_JNI_INCLUDE_DIR
-for dir in $JNI_INCLUDE_DIRS; do
-  JNIFLAGS="$JNIFLAGS -I$dir"
-done
-AC_SUBST([JNIFLAGS])
 
 # Check for flex and bison
 AM_PROG_LEX
@@ -512,6 +511,9 @@ AC_CONFIG_LINKS([include/souffle/RamTypes.h:src/RamTypes.h])
 AC_CONFIG_LINKS([include/souffle/AstTypes.h:src/AstTypes.h])
 AC_CONFIG_LINKS([include/souffle/BTree.h:src/BTree.h])
 AC_CONFIG_LINKS([include/souffle/Trie.h:src/Trie.h])
+AC_CONFIG_LINKS([include/souffle/BinaryRelation.h:src/BinaryRelation.h])
+AC_CONFIG_LINKS([include/souffle/BlockList.h:src/BlockList.h])
+AC_CONFIG_LINKS([include/souffle/UnionFind.h:src/UnionFind.h])
 AC_CONFIG_LINKS([include/souffle/Table.h:src/Table.h])
 AC_CONFIG_LINKS([include/souffle/IterUtils.h:src/IterUtils.h])
 AC_CONFIG_LINKS([include/souffle/Util.h:src/Util.h])

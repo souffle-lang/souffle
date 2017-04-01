@@ -37,7 +37,7 @@ class RamCondition : public RamNode {
 public:
     RamCondition(RamNodeType type) : RamNode(type) {}
 
-    virtual ~RamCondition() {}
+    ~RamCondition() override = default;
 
     /** get level of condition */
     virtual size_t getLevel() = 0;
@@ -55,7 +55,7 @@ public:
     RamAnd(std::unique_ptr<RamCondition> l, std::unique_ptr<RamCondition> r)
             : RamCondition(RN_And), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    ~RamAnd() {}
+    ~RamAnd() override = default;
 
     const RamCondition& getLHS() const {
         return *lhs;
@@ -65,17 +65,17 @@ public:
         return *rhs;
     }
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         lhs->print(os);
         os << " and ";
         rhs->print(os);
     }
-    virtual size_t getLevel() {
+    size_t getLevel() override {
         return std::max(lhs->getLevel(), rhs->getLevel());
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return {lhs.get(), rhs.get()};
     }
 };
@@ -83,24 +83,24 @@ public:
 /** abstract class for binary operation/relations on values */
 class RamBinaryRelation : public RamCondition {
 private:
-    BinaryRelOp op;
+    BinaryConstraintOp op;
     /** left-hand side */
     std::unique_ptr<RamValue> lhs;
     /** right-hand side */
     std::unique_ptr<RamValue> rhs;
 
 public:
-    RamBinaryRelation(BinaryRelOp op, std::unique_ptr<RamValue> l, std::unique_ptr<RamValue> r)
+    RamBinaryRelation(BinaryConstraintOp op, std::unique_ptr<RamValue> l, std::unique_ptr<RamValue> r)
             : RamCondition(RN_BinaryRelation), op(op), lhs(std::move(l)), rhs(std::move(r)) {}
 
-    virtual ~RamBinaryRelation() {}
+    ~RamBinaryRelation() override = default;
 
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         lhs->print(os);
-        os << " " << getSymbolForBinaryRelOp(op) << " ";
+        os << " " << toBinaryConstraintSymbol(op) << " ";
         rhs->print(os);
     }
-    virtual size_t getLevel() {
+    size_t getLevel() override {
         return std::max(lhs->getLevel(), rhs->getLevel());
     }
     /** get left-hand side */
@@ -129,12 +129,12 @@ public:
         rhs.swap(r);
     }
 
-    BinaryRelOp getOperator() const {
+    BinaryConstraintOp getOperator() const {
         return op;
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return {lhs.get(), rhs.get()};
     }
 };
@@ -154,7 +154,7 @@ public:
     RamNotExists(const RamRelationIdentifier& rel)
             : RamCondition(RN_NotExists), relation(rel), index(nullptr) {}
 
-    ~RamNotExists() {}
+    ~RamNotExists() override = default;
 
     const RamRelationIdentifier& getRelation() const {
         return relation;
@@ -168,10 +168,12 @@ public:
         values.push_back(std::move(v));
     }
 
-    virtual size_t getLevel() {
+    size_t getLevel() override {
         size_t level = 0;
         for (const auto& cur : values) {
-            if (cur) level = std::max(level, cur->getLevel());
+            if (cur) {
+                level = std::max(level, cur->getLevel());
+            }
         }
         return level;
     }
@@ -186,19 +188,20 @@ public:
         this->index = index;
     }
 
-    void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << "(" << join(values, ",",
                              [](std::ostream& out, const std::unique_ptr<RamValue>& value) {
-                                 if (!value)
+                                 if (!value) {
                                      out << "_";
-                                 else
+                                 } else {
                                      out << *value;
+                                 }
                              })
            << ") ∉ " << relation.getName();
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> res;
         for (const auto& cur : values) {
             res.push_back(cur.get());
@@ -209,14 +212,18 @@ public:
     SearchColumns getKey() const {
         SearchColumns res = 0;
         for (unsigned i = 0; i < values.size(); i++) {
-            if (values[i]) res |= (1 << i);
+            if (values[i]) {
+                res |= (1 << i);
+            }
         }
         return res;
     }
 
     bool isTotal() const {
         for (const auto& cur : values) {
-            if (!cur) return false;
+            if (!cur) {
+                return false;
+            }
         }
         return true;
     }
@@ -230,22 +237,22 @@ class RamEmpty : public RamCondition {
 public:
     RamEmpty(const RamRelationIdentifier& rel) : RamCondition(RN_Empty), relation(rel) {}
 
-    ~RamEmpty() {}
+    ~RamEmpty() override = default;
 
     const RamRelationIdentifier& getRelation() const {
         return relation;
     }
 
-    virtual size_t getLevel() {
+    size_t getLevel() override {
         return 0;  // can be in the top level
     }
 
-    void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << relation.getName() << " ≠ ∅";
     }
 
     /** Obtains a list of child nodes */
-    virtual std::vector<const RamNode*> getChildNodes() const {
+    std::vector<const RamNode*> getChildNodes() const override {
         return std::vector<const RamNode*>();
     }
 };

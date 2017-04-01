@@ -19,15 +19,11 @@
 #include "ParallelUtils.h"
 #include "Util.h"
 
-#include <fstream>
-#include <functional>
 #include <iostream>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <string.h>
 
 namespace souffle {
 
@@ -54,7 +50,9 @@ private:
         for (auto& cur : numToStr) {
             cur = strdup(cur);
         }
-        for (auto& cur : strToNum) const_cast<std::string&>(cur.first) = numToStr[cur.second];
+        for (auto& cur : strToNum) {
+            const_cast<std::string&>(cur.first) = numToStr[cur.second];
+        }
     }
 
     /** Convenience method to free memory allocated for strings. */
@@ -99,7 +97,7 @@ public:
     }
 
     /** Copy constructor for r-value reference. */
-    SymbolTable(SymbolTable&& other) {
+    SymbolTable(SymbolTable&& other) noexcept {
         numToStr.swap(other.numToStr);
         strToNum.swap(other.strToNum);
     }
@@ -111,7 +109,9 @@ public:
 
     /** Assignment operator, performs a deep copy and frees memory allocated for all strings. */
     SymbolTable& operator=(const SymbolTable& other) {
-        if (this == &other) return *this;
+        if (this == &other) {
+            return *this;
+        }
         freeAll();
         numToStr = other.numToStr;
         strToNum = other.strToNum;
@@ -120,7 +120,7 @@ public:
     }
 
     /** Assignment operator for r-value references. */
-    SymbolTable& operator=(SymbolTable&& other) {
+    SymbolTable& operator=(SymbolTable&& other) noexcept {
         numToStr.swap(other.numToStr);
         strToNum.swap(other.strToNum);
         return *this;
@@ -187,4 +187,4 @@ public:
         return out;
     }
 };
-}
+}  // namespace souffle

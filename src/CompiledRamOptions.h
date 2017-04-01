@@ -241,7 +241,7 @@ private:
 #endif
         std::cerr << "    -h                           -- prints this help page.\n";
         std::cerr << "--------------------------------------------------------------------\n";
-        std::cerr << " Copyright (c) 2013, 2015, Oracle and/or its affiliates.\n";
+        std::cerr << " Copyright (c) 2016 Oracle and/or its affiliates.\n";
         std::cerr << " All rights reserved.\n";
         std::cerr << "====================================================================\n";
     }

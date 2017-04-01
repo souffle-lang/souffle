@@ -90,7 +90,9 @@ struct linear_search : public search_strategy {
         auto c = a;
         while (c < b) {
             auto r = comp(*c, k);
-            if (r >= 0) return c;
+            if (r >= 0) {
+                return c;
+            }
             ++c;
         }
         return b;
@@ -104,7 +106,9 @@ struct linear_search : public search_strategy {
     inline Iter upper_bound(const Key& k, Iter a, Iter b, Comp& comp) const {
         auto c = a;
         while (c < b) {
-            if (comp(*c, k) > 0) return c;
+            if (comp(*c, k) > 0) {
+                return c;
+            }
             ++c;
         }
         return b;
@@ -136,7 +140,9 @@ struct binary_search : public search_strategy {
             auto step = count >> 1;
             c = a + step;
             auto r = comp(*c, k);
-            if (r == 0) return c;
+            if (r == 0) {
+                return c;
+            }
             if (r < 0) {
                 a = ++c;
                 count -= step + 1;
@@ -346,7 +352,9 @@ private:
 
         // a destructor cleaning up nodes
         ~node() {
-            if (this->inner) asInnerNode().cleanup();
+            if (this->inner) {
+                asInnerNode().cleanup();
+            }
         }
 
         /**
@@ -366,7 +374,9 @@ private:
             }
 
             // if this is a leaf we are done
-            if (this->isLeaf()) return res;
+            if (this->isLeaf()) {
+                return res;
+            }
 
             // copy child nodes recursively
             inner_node* ires = (inner_node*)res;
@@ -402,7 +412,9 @@ private:
          * by this node.
          */
         size_type getDepth() const {
-            if (this->isLeaf()) return 1;
+            if (this->isLeaf()) {
+                return 1;
+            }
             return getChild(0)->getDepth() + 1;
         }
 
@@ -411,7 +423,9 @@ private:
          * by this node.
          */
         size_type countNodes() const {
-            if (this->isLeaf()) return 1;
+            if (this->isLeaf()) {
+                return 1;
+            }
             size_type sum = 1;
             for (unsigned i = 0; i <= this->numElements; ++i) {
                 sum += getChild(i)->countNodes();
@@ -424,7 +438,9 @@ private:
          * by this node.
          */
         size_type getMemoryUsage() const {
-            if (this->isLeaf()) return sizeof(leaf_node);
+            if (this->isLeaf()) {
+                return sizeof(leaf_node);
+            }
             size_type res = sizeof(inner_node);
             for (unsigned i = 0; i <= this->numElements; ++i) {
                 res += getChild(i)->getMemoryUsage();
@@ -476,7 +492,7 @@ private:
          * larger portions to the right fragment provide higher performance
          * and a better node-filling rate.
          */
-        int getSplitPoint(int) {
+        int getSplitPoint(int /*unused*/) {
             return std::min(3 * maxKeys / 4, maxKeys - 2);
         }
 
@@ -824,7 +840,9 @@ private:
 
             // special case: this node is empty
             if (isEmpty()) {
-                if (begin != end) res.push_back(chunk(begin, end));
+                if (begin != end) {
+                    res.push_back(chunk(begin, end));
+                }
                 return res;
             }
 
@@ -837,7 +855,9 @@ private:
             // cut-off
             if (this->isLeaf() || num < (this->numElements + 1)) {
                 auto step = this->numElements / num;
-                if (step == 0) step = 1;
+                if (step == 0) {
+                    step = 1;
+                }
 
                 size_type i = 0;
 
@@ -1050,7 +1070,9 @@ public:
                 pos = 0;
 
                 // nodes may be empty due to biased insertion
-                if (!cur->isEmpty()) return *this;
+                if (!cur->isEmpty()) {
+                    return *this;
+                }
             }
 
             // B) we are at the right-most element of a leaf => go to next inner node
@@ -1460,7 +1482,9 @@ public:
                 auto idx = pos - a;
 
                 // early exit for sets
-                if (isSet && pos != b && equal(*pos, k)) return false;
+                if (isSet && pos != b && equal(*pos, k)) {
+                    return false;
+                }
 
                 cur = cur->getChild(idx);
                 continue;
@@ -1478,7 +1502,9 @@ public:
             auto idx = pos - a;
 
             // early exit for sets
-            if (isSet && pos != a && equal(*(pos - 1), k)) return false;
+            if (isSet && pos != a && equal(*(pos - 1), k)) {
+                return false;
+            }
 
             if (cur->numElements >= node::maxKeys) {
                 // split this node
@@ -1534,7 +1560,9 @@ public:
      */
     void insertAll(const btree& other) {
         // shortcut for non-sense operation
-        if (this == &other) return;
+        if (this == &other) {
+            return;
+        }
 
         // make sure bigger tree is inserted in smaller tree
         if ((size() + 10000) < other.size()) {
@@ -1569,7 +1597,9 @@ public:
      */
     std::vector<chunk> getChunks(size_type num) const {
         std::vector<chunk> res;
-        if (empty()) return res;
+        if (empty()) {
+            return res;
+        }
         return root->collectChunks(res, num, begin(), end());
     }
 
@@ -1602,7 +1632,9 @@ public:
      * referencing its position. If not found, an end-iterator will be returned.
      */
     iterator find(const Key& k, operation_hints& hints) const {
-        if (empty()) return end();
+        if (empty()) {
+            return end();
+        }
 
         node* cur = root;
 
@@ -1650,7 +1682,9 @@ public:
      * an end-iterator will be returned.
      */
     iterator lower_bound(const Key& k, operation_hints& hints) const {
-        if (empty()) return end();
+        if (empty()) {
+            return end();
+        }
 
         node* cur = root;
 
@@ -1672,9 +1706,13 @@ public:
                 return (pos != b) ? iterator(cur, idx) : res;
             }
 
-            if (isSet && pos != b && equal(*pos, k)) return iterator(cur, idx);
+            if (isSet && pos != b && equal(*pos, k)) {
+                return iterator(cur, idx);
+            }
 
-            if (pos != b) res = iterator(cur, idx);
+            if (pos != b) {
+                res = iterator(cur, idx);
+            }
 
             cur = cur->getChild(idx);
         }
@@ -1696,7 +1734,9 @@ public:
      * there is no such element, an end-iterator will be returned.
      */
     iterator upper_bound(const Key& k, operation_hints& hints) const {
-        if (empty()) return end();
+        if (empty()) {
+            return end();
+        }
 
         node* cur = root;
 
@@ -1718,7 +1758,9 @@ public:
                 return (pos != b) ? iterator(cur, idx) : res;
             }
 
-            if (pos != b) res = iterator(cur, idx);
+            if (pos != b) {
+                res = iterator(cur, idx);
+            }
 
             cur = cur->getChild(idx);
         }
@@ -1729,7 +1771,9 @@ public:
      */
     void clear() {
         numElements = 0;
-        if (root) delete root;
+        if (root) {
+            delete root;
+        }
         root = nullptr;
         leftmost = nullptr;
     }
@@ -1749,11 +1793,15 @@ public:
     // Implementation of the assignment operation for trees.
     btree& operator=(const btree& other) {
         // check identity
-        if (this == &other) return *this;
+        if (this == &other) {
+            return *this;
+        }
 
         // create a deep-copy of the content of the other tree
         // shortcut for empty sets
-        if (other.empty()) return *this;
+        if (other.empty()) {
+            return *this;
+        }
 
         // clone content (deep copy)
         numElements = other.size();
@@ -1773,15 +1821,23 @@ public:
     // Implementation of an equality operation for trees.
     bool operator==(const btree& other) const {
         // check identity
-        if (this == &other) return true;
+        if (this == &other) {
+            return true;
+        }
 
         // check size
-        if (size() != other.size()) return false;
-        if (size() < other.size()) return other == *this;
+        if (size() != other.size()) {
+            return false;
+        }
+        if (size() < other.size()) {
+            return other == *this;
+        }
 
         // check content
         for (const auto& key : other) {
-            if (!contains(key)) return false;
+            if (!contains(key)) {
+                return false;
+            }
         }
         return true;
     }
@@ -1850,7 +1906,9 @@ public:
      */
     bool check() {
         auto ok = empty() || root->check(comp, root);
-        if (!ok) printTree();
+        if (!ok) {
+            printTree();
+        }
         return ok;
     }
 
@@ -1868,7 +1926,9 @@ public:
             R>::type
     load(const Iter& a, const Iter& b) {
         // quick exit - empty range
-        if (a == b) return R();
+        if (a == b) {
+            return R();
+        }
 
         // resolve tree recursively
         auto root = buildSubTree(a, b - 1);

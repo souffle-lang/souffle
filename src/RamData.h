@@ -50,7 +50,7 @@ public:
     }
 
     void addTuples(std::string name, PrimData* d) {
-        assert(d != NULL);
+        assert(d != nullptr);
         data_map[name] = d;
     }
 
@@ -73,11 +73,11 @@ public:
 
     PrimData* getTuples(std::string name) {
         if (data_map.find(name) == data_map.end()) {
-            return NULL;
+            return nullptr;
         }
 
-        if (data_map[name]->data.size() == 0) {
-            return NULL;
+        if (data_map[name]->data.empty()) {
+            return nullptr;
         }
 
         return data_map[name];
@@ -97,4 +97,4 @@ public:
         return ss;
     }
 };
-}
+}  // namespace souffle

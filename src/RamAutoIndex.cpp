@@ -28,7 +28,7 @@ namespace souffle {
 
 /** map the keys in the key set to lexicographical order */
 void RamAutoIndex::solve() {
-    if (searches.size() == 0) {
+    if (searches.empty()) {
         return;
     }
 
@@ -83,14 +83,14 @@ void RamAutoIndex::solve() {
 
     // Perform the hopcroft-karp on the graph and receive matchings (mapped A->B and B->A)
     // Assume: alg.calculate is not called on an empty graph
-    ASSERT(searches.size() > 0);
+    ASSERT(!searches.empty());
     const RamMaxMatching::Matchings& matchings = matching.calculate();
 
     // Extract the chains given the nodes and matchings
     const ChainOrderMap chains = getChainsFromMatching(matchings, searches);
 
     // Should never get no chains back as we never call calculate on an empty graph
-    ASSERT(chains.size() > 0);
+    ASSERT(!chains.empty());
 
     for (ChainOrderMap::const_iterator it = chains.begin(); it != chains.end(); ++it) {
         std::vector<int> ids;
@@ -102,7 +102,7 @@ void RamAutoIndex::solve() {
             insertIndex(ids, delta);
         }
 
-        ASSERT(ids.size() > 0);
+        ASSERT(!ids.empty());
 
         orders.push_back(ids);
     }
@@ -143,13 +143,13 @@ RamAutoIndex::Chain RamAutoIndex::getChain(const SearchColumns umn, const RamMax
 /** get all chains from the matching */
 const RamAutoIndex::ChainOrderMap RamAutoIndex::getChainsFromMatching(
         const RamMaxMatching::Matchings& match, const SearchSet& nodes) {
-    ASSERT(nodes.size() > 0);
+    ASSERT(!nodes.empty());
 
     // Get all unmatched nodes from A
     const SearchSet& umKeys = getUnmatchedKeys(match, nodes);
 
     // Case: if no unmatched nodes then we have an anti-chain
-    if (umKeys.size() == 0) {
+    if (umKeys.empty()) {
         for (SearchSet::const_iterator nit = nodes.begin(); nit != nodes.end(); ++nit) {
             std::set<SearchColumns> a;
             a.insert(*nit);
@@ -158,7 +158,7 @@ const RamAutoIndex::ChainOrderMap RamAutoIndex::getChainsFromMatching(
         }
     }
 
-    ASSERT(umKeys.size() > 0);
+    ASSERT(!umKeys.empty());
 
     // A worklist of used nodes
     SearchSet usedKeys;
@@ -166,11 +166,11 @@ const RamAutoIndex::ChainOrderMap RamAutoIndex::getChainsFromMatching(
     // Case: nodes < umKeys or if nodes == umKeys then anti chain - this is handled by this loop
     for (SearchSet::iterator it = umKeys.begin(); it != umKeys.end(); ++it) {
         Chain c = getChain(*it, match);
-        ASSERT(c.size() > 0);
+        ASSERT(!c.empty());
         chainToOrder.push_back(c);
     }
 
-    ASSERT(chainToOrder.size() > 0);
+    ASSERT(!chainToOrder.empty());
 
     return chainToOrder;
 }

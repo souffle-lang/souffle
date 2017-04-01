@@ -29,7 +29,7 @@ namespace souffle {
 
 ParserDriver::ParserDriver() : trace_scanning(false), trace_parsing(false) {}
 
-ParserDriver::~ParserDriver() {}
+ParserDriver::~ParserDriver() = default;
 
 std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string& f, FILE* in, bool nowarn) {
     translationUnit = std::unique_ptr<AstTranslationUnit>(

@@ -1,0 +1,37 @@
+//
+// Union Types
+//
+// This test checks that types are handled correctly. It was
+// created for issue #201 "Type system: Fails when Union type
+// expands to different primitive types".
+//
+
+.number_type one
+.number_type two
+.symbol_type three
+
+.type all = one | two
+
+.decl A (i:one)
+.decl B (i:two)
+.decl C (i:three)
+.decl D (i:three)
+
+.decl G (i:one)
+.decl F (i:all)
+.decl E (i:all)
+
+A(1).
+A(2).
+
+B(2).
+B(3).
+
+F(X) :- A(X). // no error
+F(X) :- B(X). // no error
+G(X) :- E(X). // no error
+
+E(X) :- F(X), !A(X), !B(X). // no error
+E(X) :- F(X), A(X), B(X). // error
+
+C(X) :- D(X), !A(X). // error

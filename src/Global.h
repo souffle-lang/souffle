@@ -115,7 +115,7 @@ public:
 class Global {
 private:
     /* Private empty constructor, there is only one global instance. */
-    Global() {}
+    Global() = default;
 
 public:
     /* Deleted copy constructor. */
@@ -128,4 +128,4 @@ public:
         return _config;
     }
 };
-};
+}  // namespace souffle

@@ -1,5 +1,5 @@
 # ===========================================================================
-#       http://www.gnu.org/software/autoconf-archive/ax_prog_javac.html
+#      https://www.gnu.org/software/autoconf-archive/ax_prog_javac.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -49,7 +49,7 @@
 #   Public License for more details.
 #
 #   You should have received a copy of the GNU General Public License along
-#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#   with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 #   As a special exception, the respective Autoconf Macro's copyright owner
 #   gives unlimited permission to copy, distribute and modify the configure
@@ -64,11 +64,11 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 7
+#serial 8
 
 AU_ALIAS([AC_PROG_JAVAC], [AX_PROG_JAVAC])
 AC_DEFUN([AX_PROG_JAVAC],[
-m4_define([m4_ax_prog_javac_list],[javac])dnl
+m4_define([m4_ax_prog_javac_list],["gcj -C" guavac jikes javac])dnl
 AS_IF([test "x$JAVAPREFIX" = x],
       [test "x$JAVAC" = x && AC_CHECK_PROGS([JAVAC], [m4_ax_prog_javac_list])],
       [test "x$JAVAC" = x && AC_CHECK_PROGS([JAVAC], [m4_ax_prog_javac_list], [], [$JAVAPREFIX/bin])])

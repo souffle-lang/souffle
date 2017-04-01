@@ -1,0 +1,29 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.type Text
+
+.decl food(name:Text, carbs:number, fat:number, protein:number, per:number, measure:Text)
+.input food()
+
+.decl recipe(index: number, name:Text, amount: number, measure: Text)
+.input recipe()
+
+.decl max_index(result:number)
+.output max_index()
+
+max_index(a) :-  a = max a : recipe(a,_,_,_) .
+
+.decl totals(name:Text, amount:number, carbs:number, fat:number, protein:number, cal:number)
+.output totals()
+
+totals(name, amount, amount*a/per, amount*b/per, amount*c/per, ((4*amount*a/per)+(9*amount*b/per)+(4*amount*c/per))) :- recipe(_, name, amount, _), food(name, a,b,c,per,_).
+
+
+.decl calories(result:number)
+.output calories()
+
+calories(result) :- result = sum a : totals(_,_,_,_,_,a).

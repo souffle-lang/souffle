@@ -19,6 +19,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace souffle {
 
@@ -30,9 +34,9 @@ private:
 
 public:
     DiagnosticMessage(std::string message, AstSrcLocation location)
-            : message(message), hasLoc(true), location(location) {}
+            : message(std::move(message)), hasLoc(true), location(std::move(location)) {}
 
-    DiagnosticMessage(std::string message) : message(message), hasLoc(false) {}
+    DiagnosticMessage(std::string message) : message(std::move(message)), hasLoc(false) {}
 
     const std::string& getMessage() const {
         return message;
@@ -72,9 +76,11 @@ private:
 
 public:
     Diagnostic(Type type, DiagnosticMessage primaryMessage, std::vector<DiagnosticMessage> additionalMessages)
-            : type(type), primaryMessage(primaryMessage), additionalMessages(additionalMessages) {}
+            : type(type), primaryMessage(std::move(primaryMessage)),
+              additionalMessages(std::move(additionalMessages)) {}
 
-    Diagnostic(Type type, DiagnosticMessage primaryMessage) : type(type), primaryMessage(primaryMessage) {}
+    Diagnostic(Type type, DiagnosticMessage primaryMessage)
+            : type(type), primaryMessage(std::move(primaryMessage)) {}
 
     Type getType() const {
         return type;
@@ -102,19 +108,35 @@ public:
     }
 
     bool operator<(const Diagnostic& other) const {
-        if (primaryMessage.hasLocation() && !other.primaryMessage.hasLocation()) return true;
-        if (other.primaryMessage.hasLocation() && !primaryMessage.hasLocation()) return false;
-
-        if (primaryMessage.hasLocation() && other.primaryMessage.hasLocation()) {
-            if (primaryMessage.getLocation() < other.primaryMessage.getLocation()) return true;
-            if (other.primaryMessage.getLocation() < primaryMessage.getLocation()) return false;
+        if (primaryMessage.hasLocation() && !other.primaryMessage.hasLocation()) {
+            return true;
+        }
+        if (other.primaryMessage.hasLocation() && !primaryMessage.hasLocation()) {
+            return false;
         }
 
-        if (type == ERROR && other.getType() == WARNING) return true;
-        if (other.getType() == ERROR && type == WARNING) return false;
+        if (primaryMessage.hasLocation() && other.primaryMessage.hasLocation()) {
+            if (primaryMessage.getLocation() < other.primaryMessage.getLocation()) {
+                return true;
+            }
+            if (other.primaryMessage.getLocation() < primaryMessage.getLocation()) {
+                return false;
+            }
+        }
 
-        if (primaryMessage.getMessage() < other.primaryMessage.getMessage()) return true;
-        if (other.primaryMessage.getMessage() < primaryMessage.getMessage()) return false;
+        if (type == ERROR && other.getType() == WARNING) {
+            return true;
+        }
+        if (other.getType() == ERROR && type == WARNING) {
+            return false;
+        }
+
+        if (primaryMessage.getMessage() < other.primaryMessage.getMessage()) {
+            return true;
+        }
+        if (other.primaryMessage.getMessage() < primaryMessage.getMessage()) {
+            return false;
+        }
 
         return false;
     }
@@ -127,7 +149,7 @@ class ErrorReport {
 public:
     ErrorReport(bool nowarn = false) : nowarn(nowarn) {}
 
-    ErrorReport(const ErrorReport& other) : diagnostics(other.diagnostics), nowarn(other.nowarn) {}
+    ErrorReport(const ErrorReport& other) = default;
 
     unsigned getNumErrors() const {
         return std::count_if(diagnostics.begin(), diagnostics.end(),

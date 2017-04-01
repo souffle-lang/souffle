@@ -6,10 +6,7 @@
 #   A quick and dirty bash script for developing souffle.
 #
 
-
 export SOUFFLE=$(pwd)
-
-JOBS=8
 
 alias souffle=$SOUFFLE/src/souffle
 alias souffle-profile=$SOUFFLE/src/souffle-profile
@@ -24,23 +21,22 @@ cat << EOF
     souffle             Alias for souffle executable.
     souffle-profile     Alias for souffle-profile executable.
     souffle_ubuntu      Install all packages required by souffle for Ubuntu.
-    souffle_setup       Bootstrap, configure, and make.
-    souffle_teardown    Make clean and remove all files ignored by git.
-    souffle_make        Run make.
-    souffle_reset       Reset hard to last commit, run teardown and setup.
-    souffle_commit      Add everything to git and do a commit.
+    souffle_setup       Fetch branches and tags, if no executable is found, run bootstrap, configure, and make.
+    souffle_make        Run souffle_setup and then make.
+    souffle_reset       Reset hard to last commit, delete untracked files, run souffle_setup.
+    souffle_commit      Format with clang, repair permissions, add everything to git and commit.
     souffle_push        Push the current branch to the git remote.
-    souffle_test        Run make and then the testsuite on the given tests.
-    souffle_debug       Run make and then the test in directory \$SOUFFLE/\$1/\$2.
-    souffle_format      Format the code with clang-format.
+    souffle_pull        Pull the current branch from the git remote.
+    souffle_test        Run souffle_make and then the testsuite on the given tests.
+    souffle_debug       Run souffle_make and then the test in directory \$SOUFFLE/\$1/\$2.
 
 EOF
 }
 
 souffle_ubuntu() {
-sudo apt-get update && \
-sudo apt-get upgrade && \
-sudo apt-get install \
+    sudo apt-get update && \
+    sudo apt-get upgrade && \
+    sudo apt-get install \
     git \
     automake \
     autoconf \
@@ -62,34 +58,39 @@ sudo apt-get install \
 
 souffle_setup() {
     cd $SOUFFLE && \
-    chmod 775 bootstrap && \
-    ./bootstrap && \
-    chmod 775 configure && \
-    ./configure && \
-    make -j$JOBS && \
-    cd -
-}
-
-souffle_teardown() {
-    cd $SOUFFLE && \
-    git clean -xdf && \
+    git fetch origin && \
+    git fetch origin --tags && \
+    git fetch upstream && \
+    git fetch upstream --tags && \
+    if [ ! -e src/souffle ]
+    then
+        chmod 775 bootstrap && \
+        ./bootstrap && \
+        chmod 775 configure && \
+        ./configure
+    fi && \
     cd -
 }
 
 souffle_make() {
+    souffle_setup && \
     cd $SOUFFLE && \
-    make -j$JOBS $1 && \
+    make -j8 && \
     cd -
 }
 
 souffle_reset() {
-    souffle_teardown && \
+    cd $SOUFFLE && \
+    git reset --hard HEAD && \
+    git clean -xdf && \
     souffle_setup && \
-    souffle_make
+    cd -
 }
 
 souffle_commit() {
     cd $SOUFFLE && \
+    clang-format -i -style=file $SOUFFLE/src/*.cpp $SOUFFLE/src/*.h $SOUFFLE/src/test/*.cpp $SOUFFLE/src/test/*.h && \
+    git checkout upstream/master -- src/mcpp*.[chCH] && \
     chmod 775 .travis/* debian/rules osx/preinstall && \
     git add . && \
     git commit -m "$(date)" && \
@@ -103,11 +104,16 @@ souffle_push() {
     cd -
 }
 
-souffle_test() {
-    souffle_make &&
+souffle_pull() {
+    cd $SOUFFLE && \
+    git pull origin $(git branch | grep \* | sed 's/^\*\s//g') && \
+    cd -
+}
 
+souffle_test() {
+    souffle_make && \
     cd $SOUFFLE/tests && \
-    ./testsuite -j$JOBS $@ && \
+    ./testsuite -j8 $@ && \
     cd -
 }
 
@@ -118,15 +124,11 @@ souffle_debug() {
     $SOUFFLE/src/souffle $SOUFFLE/tests/$1/$2/$2.dl \
         -F $SOUFFLE/tests/$1/$2/facts \
         -D $SOUFFLE/tests/testsuite.dir/$1/$2 \
-        -j$JOBS \
+        -j8 \
         --debug-report=$SOUFFLE/tests/testsuite.dir/$1/$2/$2.html \
         $3 \
         1> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.out \
         2> $SOUFFLE/tests/testsuite.dir/$1/$2/$2.err
 }
 
-souffle_format() {
-    clang-format -i -style=file $SOUFFLE/src/*.cpp $SOUFFLE/src/*.h $SOUFFLE/src/test/*.cpp $SOUFFLE/src/test/*.h && \
-    git checkout upstream/master -- src/mcpp*.[chCH]
-}
 

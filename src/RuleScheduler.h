@@ -140,7 +140,7 @@ struct Atom {
 public:
     Atom(int id, const std::vector<Argument>& args) : id(id), args(args) {}
 
-    virtual ~Atom() {}
+    virtual ~Atom() = default;
 
     /** Obtains the identifier of this atom */
     int getID() const {
@@ -156,7 +156,9 @@ public:
     unsigned getNumConstants() const {
         unsigned count = 0;
         for (const auto& cur : args) {
-            if (cur.isConstant()) count++;
+            if (cur.isConstant()) {
+                count++;
+            }
         }
         return count;
     }
@@ -167,7 +169,9 @@ public:
         for (const Argument& cur : args) {
             if (cur.isVariable()) {
                 Var v = cur;
-                if (!contains(res, v)) res.push_back(v);
+                if (!contains(res, v)) {
+                    res.push_back(v);
+                }
             }
         }
         return res;
@@ -240,12 +244,16 @@ public:
         CostModel model;
 
         // shortcut
-        if (atoms.size() < 2) return atoms;  // not much to plan there
+        if (atoms.size() < 2) {
+            return atoms;  // not much to plan there
+        }
 
         // print some debugging
-        if (debug) std::cout << "Processing Problem: " << atoms << "\n";
+        if (debug) {
+            std::cout << "Processing Problem: " << atoms << "\n";
 
-        // list of memorized results
+            // list of memorized results
+        }
         map<int, map<plan, state_type>> cache;
 
         // initialize with empty plan
@@ -259,7 +267,9 @@ public:
 
                 for (const auto& cur : atoms) {
                     // only add non-covered steps
-                    if (contains(subPlan, cur)) continue;
+                    if (contains(subPlan, cur)) {
+                        continue;
+                    }
 
                     // extend plan
                     plan plan = subPlan;
@@ -338,7 +348,7 @@ class State {
 public:
     State() : cost(0) {}
 
-    virtual ~State() {}
+    virtual ~State() = default;
 
     Cost getCost() const {
         return cost;
@@ -371,7 +381,7 @@ struct cost_model {
     /** The type of state to be associated to plans by this model. */
     typedef State state_type;
 
-    virtual ~cost_model() {}
+    virtual ~cost_model() = default;
 
     /** A factory for creating the state to be associated to the empty plan */
     virtual State getInitState() const {
@@ -406,7 +416,7 @@ public:
         return bound.find(var) != bound.end();
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "State(" << getCost() << "," << bound << ")";
     }
 };
@@ -420,7 +430,7 @@ public:
  * default.
  */
 struct MaxBindingModel : public cost_model<Atom, BindingState> {
-    BindingState applyTo(const BindingState& state, const Atom& atom) const {
+    BindingState applyTo(const BindingState& state, const Atom& atom) const override {
         BindingState res = state;
 
         // adding this relation costs 1 unit
@@ -461,7 +471,7 @@ public:
         return cardinality;
     }
 
-    virtual void print(std::ostream& out) const override {
+    void print(std::ostream& out) const override {
         out << "<" << getID() << ">|" << cardinality << "|( " << getArguments() << " )";
     }
 };
@@ -497,7 +507,7 @@ public:
         innermostIterations = val;
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "State(" << getCost() << "," << bound << "," << innermostIterations << ")";
     }
 };
@@ -508,8 +518,8 @@ public:
  */
 struct SimpleComputationalCostModel
         : public cost_model<SimpleComputationalCostAtom, SimpleComputationalCostState> {
-    SimpleComputationalCostState applyTo(
-            const SimpleComputationalCostState& state, const SimpleComputationalCostAtom& atom) const {
+    SimpleComputationalCostState applyTo(const SimpleComputationalCostState& state,
+            const SimpleComputationalCostAtom& atom) const override {
         SimpleComputationalCostState res = state;
 
         // keep a record on bound attributes
@@ -577,7 +587,7 @@ public:
         return stats.getCardinality();
     }
 
-    virtual void print(std::ostream& out) const override {
+    void print(std::ostream& out) const override {
         out << "<" << getID() << ">|" << getCardinality() << "," << getRelationStats() << "|( "
             << getArguments() << " )";
     }
@@ -625,7 +635,7 @@ public:
         innermostIterations = val;
     }
 
-    virtual void print(std::ostream& out) const {
+    void print(std::ostream& out) const override {
         out << "State(" << getCost() << "," << multiplicity << "," << innermostIterations << ")";
     }
 };
@@ -641,7 +651,7 @@ public:
  * to be inferior to the simple cost model.
  */
 struct ComputeCostModel : public cost_model<ComputeCostAtom, ComputeCostState> {
-    ComputeCostState applyTo(const ComputeCostState& state, const ComputeCostAtom& atom) const {
+    ComputeCostState applyTo(const ComputeCostState& state, const ComputeCostAtom& atom) const override {
         ComputeCostState res = state;
 
         const RamRelationStats& stats = atom.getRelationStats();
@@ -668,7 +678,9 @@ struct ComputeCostModel : public cost_model<ComputeCostAtom, ComputeCostState> {
 
         // compute number of nested iterations
         uint64_t numIterations = (uint64_t)f;
-        if (numIterations <= 0) numIterations = 1;
+        if (numIterations <= 0) {
+            numIterations = 1;
+        }
 
         // costs per iteration
         double iterCost = (!constraint) ? 1 : log(stats.getCardinality());
@@ -702,13 +714,13 @@ struct ComputeCostModel : public cost_model<ComputeCostAtom, ComputeCostState> {
  *
  */
 struct LogCostModel : public cost_model<SimpleComputationalCostAtom, BindingState> {
-    virtual BindingState getInitState() const {
+    BindingState getInitState() const override {
         BindingState res;
         res.setCost(1);
         return res;
     }
 
-    BindingState applyTo(const BindingState& state, const SimpleComputationalCostAtom& atom) const {
+    BindingState applyTo(const BindingState& state, const SimpleComputationalCostAtom& atom) const override {
         BindingState res = state;
 
         // compute the costs of this step

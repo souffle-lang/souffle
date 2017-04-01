@@ -57,7 +57,7 @@ private:
 public:
     static constexpr const char* name = "type-environment";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     const TypeEnvironment& getTypeEnvironment() {
         return env;
@@ -71,7 +71,7 @@ private:
 public:
     static constexpr const char* name = "type-analysis";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     /**
      * Get the computed types for the given argument.

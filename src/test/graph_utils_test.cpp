@@ -25,89 +25,86 @@ namespace test {
 TEST(Graph, Basic) {
     Graph<int> g;
 
-    EXPECT_FALSE(g.hasVertex(1));
-    EXPECT_FALSE(g.hasVertex(2));
-    EXPECT_FALSE(g.hasVertex(3));
+    EXPECT_FALSE(g.contains(1));
+    EXPECT_FALSE(g.contains(2));
+    EXPECT_FALSE(g.contains(3));
 
-    EXPECT_FALSE(g.hasEdge(1, 2));
-    EXPECT_FALSE(g.hasEdge(1, 3));
-    EXPECT_FALSE(g.hasEdge(2, 3));
+    EXPECT_FALSE(g.contains(1, 2));
+    EXPECT_FALSE(g.contains(1, 3));
+    EXPECT_FALSE(g.contains(2, 3));
 
-    EXPECT_FALSE(g.hasPath(1, 1));
-    EXPECT_FALSE(g.hasPath(1, 2));
-    EXPECT_FALSE(g.hasPath(1, 3));
-    EXPECT_FALSE(g.hasPath(2, 1));
-    EXPECT_FALSE(g.hasPath(2, 2));
-    EXPECT_FALSE(g.hasPath(2, 3));
-    EXPECT_FALSE(g.hasPath(3, 1));
-    EXPECT_FALSE(g.hasPath(3, 2));
-    EXPECT_FALSE(g.hasPath(3, 3));
+    EXPECT_FALSE(g.reaches(1, 1));
+    EXPECT_FALSE(g.reaches(1, 2));
+    EXPECT_FALSE(g.reaches(1, 3));
+    EXPECT_FALSE(g.reaches(2, 1));
+    EXPECT_FALSE(g.reaches(2, 2));
+    EXPECT_FALSE(g.reaches(2, 3));
+    EXPECT_FALSE(g.reaches(3, 1));
+    EXPECT_FALSE(g.reaches(3, 2));
+    EXPECT_FALSE(g.reaches(3, 3));
 
-    g.insertEdge(1, 2);
+    g.addEdge(1, 2);
 
-    EXPECT_TRUE(g.hasVertex(1));
-    EXPECT_TRUE(g.hasVertex(2));
-    EXPECT_FALSE(g.hasVertex(3));
+    EXPECT_TRUE(g.contains(1));
+    EXPECT_TRUE(g.contains(2));
+    EXPECT_FALSE(g.contains(3));
 
-    EXPECT_TRUE(g.hasEdge(1, 2));
-    EXPECT_FALSE(g.hasEdge(1, 3));
-    EXPECT_FALSE(g.hasEdge(2, 3));
+    EXPECT_TRUE(g.contains(1, 2));
+    EXPECT_FALSE(g.contains(1, 3));
+    EXPECT_FALSE(g.contains(2, 3));
 
-    EXPECT_FALSE(g.hasPath(1, 1));
-    EXPECT_TRUE(g.hasPath(1, 2));
-    EXPECT_FALSE(g.hasPath(1, 3));
-    EXPECT_FALSE(g.hasPath(2, 1));
-    EXPECT_FALSE(g.hasPath(2, 2));
-    EXPECT_FALSE(g.hasPath(2, 3));
-    EXPECT_FALSE(g.hasPath(3, 1));
-    EXPECT_FALSE(g.hasPath(3, 2));
-    EXPECT_FALSE(g.hasPath(3, 3));
+    EXPECT_FALSE(g.reaches(1, 1));
+    EXPECT_TRUE(g.reaches(1, 2));
+    EXPECT_FALSE(g.reaches(1, 3));
+    EXPECT_FALSE(g.reaches(2, 1));
+    EXPECT_FALSE(g.reaches(2, 2));
+    EXPECT_FALSE(g.reaches(2, 3));
+    EXPECT_FALSE(g.reaches(3, 1));
+    EXPECT_FALSE(g.reaches(3, 2));
+    EXPECT_FALSE(g.reaches(3, 3));
 
-    g.insertEdge(2, 3);
+    g.addEdge(2, 3);
 
-    EXPECT_TRUE(g.hasVertex(1));
-    EXPECT_TRUE(g.hasVertex(2));
-    EXPECT_TRUE(g.hasVertex(3));
+    EXPECT_TRUE(g.contains(1));
+    EXPECT_TRUE(g.contains(2));
+    EXPECT_TRUE(g.contains(3));
 
-    EXPECT_TRUE(g.hasEdge(1, 2));
-    EXPECT_FALSE(g.hasEdge(1, 3));
-    EXPECT_TRUE(g.hasEdge(2, 3));
+    EXPECT_TRUE(g.contains(1, 2));
+    EXPECT_FALSE(g.contains(1, 3));
+    EXPECT_TRUE(g.contains(2, 3));
 
-    EXPECT_FALSE(g.hasPath(1, 1));
-    EXPECT_TRUE(g.hasPath(1, 2));
-    EXPECT_TRUE(g.hasPath(1, 3));
-    EXPECT_FALSE(g.hasPath(2, 1));
-    EXPECT_FALSE(g.hasPath(2, 2));
-    EXPECT_TRUE(g.hasPath(2, 3));
-    EXPECT_FALSE(g.hasPath(3, 1));
-    EXPECT_FALSE(g.hasPath(3, 2));
-    EXPECT_FALSE(g.hasPath(3, 3));
+    EXPECT_FALSE(g.reaches(1, 1));
+    EXPECT_TRUE(g.reaches(1, 2));
+    EXPECT_TRUE(g.reaches(1, 3));
+    EXPECT_FALSE(g.reaches(2, 1));
+    EXPECT_FALSE(g.reaches(2, 2));
+    EXPECT_TRUE(g.reaches(2, 3));
+    EXPECT_FALSE(g.reaches(3, 1));
+    EXPECT_FALSE(g.reaches(3, 2));
+    EXPECT_FALSE(g.reaches(3, 3));
 
-    g.insertEdge(3, 1);
+    g.addEdge(3, 1);
 
-    EXPECT_TRUE(g.hasVertex(1));
-    EXPECT_TRUE(g.hasVertex(2));
-    EXPECT_TRUE(g.hasVertex(3));
+    EXPECT_TRUE(g.contains(1));
+    EXPECT_TRUE(g.contains(2));
+    EXPECT_TRUE(g.contains(3));
 
-    EXPECT_TRUE(g.hasEdge(1, 2));
-    EXPECT_FALSE(g.hasEdge(1, 3));
-    EXPECT_TRUE(g.hasEdge(2, 3));
+    EXPECT_TRUE(g.contains(1, 2));
+    EXPECT_FALSE(g.contains(1, 3));
+    EXPECT_TRUE(g.contains(2, 3));
 
-    EXPECT_TRUE(g.hasPath(1, 1));
-    EXPECT_TRUE(g.hasPath(1, 2));
-    EXPECT_TRUE(g.hasPath(1, 3));
-    EXPECT_TRUE(g.hasPath(2, 1));
-    EXPECT_TRUE(g.hasPath(2, 2));
-    EXPECT_TRUE(g.hasPath(2, 3));
-    EXPECT_TRUE(g.hasPath(3, 1));
-    EXPECT_TRUE(g.hasPath(3, 2));
-    EXPECT_TRUE(g.hasPath(3, 3));
+    EXPECT_TRUE(g.reaches(1, 1));
+    EXPECT_TRUE(g.reaches(1, 2));
+    EXPECT_TRUE(g.reaches(1, 3));
+    EXPECT_TRUE(g.reaches(2, 1));
+    EXPECT_TRUE(g.reaches(2, 2));
+    EXPECT_TRUE(g.reaches(2, 3));
+    EXPECT_TRUE(g.reaches(3, 1));
+    EXPECT_TRUE(g.reaches(3, 2));
+    EXPECT_TRUE(g.reaches(3, 3));
 
-    EXPECT_EQ(
-            "digraph {\n\"1\" [label=\"1\"];\n\"1\" -> \"2\";\n\"2\" [label=\"2\"];\n\"2\" -> \"3\";\n\"3\" "
-            "[label=\"3\"];\n\"3\" -> \"1\"\n}\n",
-            toString(g));
-};
+    EXPECT_EQ("{1->2,2->3,3->1}", toString(g));
+}
 
 }  // end namespace test
 }  // end namespace souffle

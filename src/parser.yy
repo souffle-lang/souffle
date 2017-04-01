@@ -691,17 +691,17 @@ literal: arg RELOP arg {
             $$ = new RuleBody(RuleBody::constraint(res));
           }
        | arg LT arg {
-           auto* res = new AstConstraint(BinaryRelOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+           auto* res = new AstConstraint(BinaryConstraintOp::LT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
            $$ = new RuleBody(RuleBody::constraint(res));
          }
        | arg GT arg {
-    	   auto* res = new AstConstraint(BinaryRelOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+    	   auto* res = new AstConstraint(BinaryConstraintOp::GT, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
            $$ = new RuleBody(RuleBody::constraint(res));
          }
        | arg EQUALS arg {
-    	   auto* res = new AstConstraint(BinaryRelOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
+    	   auto* res = new AstConstraint(BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>($1), std::unique_ptr<AstArgument>($3));
            res->setSrcLoc(@$);
            $$ = new RuleBody(RuleBody::constraint(res));
          }
@@ -710,12 +710,12 @@ literal: arg RELOP arg {
             $$ = new RuleBody(RuleBody::atom($1));
           }
        | TMATCH LPAREN arg COMMA arg RPAREN {
-            auto* res = new AstConstraint(BinaryRelOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+            auto* res = new AstConstraint(BinaryConstraintOp::MATCH, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
 		    $$ = new RuleBody(RuleBody::constraint(res));
           }
        | TCONTAINS LPAREN arg COMMA arg RPAREN {
-            auto* res = new AstConstraint(BinaryRelOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+            auto* res = new AstConstraint(BinaryConstraintOp::CONTAINS, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
             res->setSrcLoc(@$);
             $$ = new RuleBody(RuleBody::constraint(res));
           }
@@ -819,7 +819,7 @@ rule: rule_def {
       }
     | rule exec_plan {
          $$ = $1;
-         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2));
+         for(const auto& cur : $$) cur->setExecutionPlan(std::unique_ptr<AstExecutionPlan>($2->clone()));
       }
     ;
     

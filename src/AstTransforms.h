@@ -26,14 +26,14 @@ namespace souffle {
  */
 class ResolveAliasesTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit) {
+    bool transform(AstTranslationUnit& translationUnit) override {
         resolveAliases(*translationUnit.getProgram());
         return true;
     }
     static void removeComplexTermsInAtoms(AstClause& clause);
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "ResolveAliasesTransformer";
     }
 
@@ -72,12 +72,12 @@ public:
  */
 class RemoveRelationCopiesTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit) {
+    bool transform(AstTranslationUnit& translationUnit) override {
         return removeRelationCopies(*translationUnit.getProgram());
     }
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "RemoveRelationCopiesTransformer";
     }
 
@@ -95,10 +95,10 @@ public:
  */
 class UniqueAggregationVariablesTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "UniqueAggregationVariablesTransformer";
     }
 };
@@ -109,7 +109,7 @@ public:
  */
 class MaterializeAggregationQueriesTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit) {
+    bool transform(AstTranslationUnit& translationUnit) override {
         return materializeAggregationQueries(translationUnit);
     }
 
@@ -120,7 +120,7 @@ private:
     static bool needsMaterializedRelation(const AstAggregator& agg);
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "MaterializeAggregationQueriesTransformer";
     }
 
@@ -139,7 +139,7 @@ public:
  */
 class RemoveEmptyRelationsTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit) {
+    bool transform(AstTranslationUnit& translationUnit) override {
         return removeEmptyRelations(translationUnit);
     }
 
@@ -152,7 +152,7 @@ private:
     static void removeEmptyRelationUses(AstTranslationUnit& translationUnit, AstRelation* emptyRelation);
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "RemoveEmptyRelationsTransformer";
     }
 
@@ -170,10 +170,10 @@ public:
  */
 class RemoveRedundantRelationsTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "RemoveRedundantRelationsTransformer";
     }
 };

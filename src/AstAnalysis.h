@@ -21,7 +21,7 @@ class AstTranslationUnit;
 
 class AstAnalysis {
 public:
-    virtual ~AstAnalysis() {}
+    virtual ~AstAnalysis() = default;
 
     virtual void run(const AstTranslationUnit& translationUnit) = 0;
 };

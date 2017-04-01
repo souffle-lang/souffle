@@ -44,7 +44,11 @@ There is no mailing list to talk about Soufflé at the moment. It will be establ
 
 Follow the steps below to compile and install Soufflé on a UNIX system:
 
-1.  G++ 4.8 or greater is recommended to compile Soufflé. 
+1.  Install the needed dependencies. G++ 4.8 or greater is recommended to compile Soufflé. openjdk-7 can be used if openjdk-8 is not available on your platform.
+
+```
+sudo apt-get install autoconf automake bison build-essential doxygen flex g++ git libsqlite3-dev libtool make openjdk-8-jdk pkg-config python zlib1g-dev
+```
 
 2.  Run `sh ./bootstrap` to generate configure files 
 

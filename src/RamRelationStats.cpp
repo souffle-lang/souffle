@@ -8,14 +8,10 @@
 
 /************************************************************************
  *
- * @file RamTable.h
+ * @file RamRelationStats.h.h
  *
- * Defines classes Table, TupleBlock, Index, and HashBlock for implementing
- * an ram relational database. A table consists of a linked list of
- * tuple blocks that contain tuples of the table. An index is a hash-index
- * whose hash table is stored in Index. The entry of a hash table entry
- * refer to HashBlocks that are blocks of pointers that point to tuples
- * in tuple blocks with the same hash.
+ * A set of utilities for extracting and handling statistical data on
+ * the data stored within relations.
  *
  ***********************************************************************/
 

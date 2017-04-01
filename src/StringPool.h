@@ -16,7 +16,7 @@ class StringPool {
     struct hashentry {
         char* str;
         hashentry* next;
-        hashentry(char* s = NULL, struct hashentry* n = NULL) : str(s), next(n) {}
+        hashentry(char* s = nullptr, struct hashentry* n = NULL) : str(s), next(n) {}
     };
     static hashentry* hashtab[HASH_SIZE];
 
@@ -33,7 +33,7 @@ class StringPool {
     ~StringPool() {
         for (size_t i = 0; i < HASH_SIZE; i++) {
             hashentry* q;
-            for (hashentry* p = hashtab[i]; p != NULL; p = q) {
+            for (hashentry* p = hashtab[i]; p != nullptr; p = q) {
                 q = p->next;
                 free(p->str);
                 delete p;
@@ -51,15 +51,15 @@ public:
     inline const char* lookup(const char* str) {
         size_t i = hash(str);
 
-        const char* res = NULL;
+        const char* res = nullptr;
 
         {
-            if (hashtab[i] == NULL) {
+            if (hashtab[i] == nullptr) {
                 char* nstr = strdup(str);
                 hashtab[i] = new hashentry(nstr);
                 res = nstr;
             } else {
-                for (hashentry* p = hashtab[i]; p != NULL && res == NULL; p = p->next) {
+                for (hashentry* p = hashtab[i]; p != nullptr && res == NULL; p = p->next) {
                     if (!strcmp(p->str, str)) {
                         res = p->str;
                     }

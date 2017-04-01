@@ -70,7 +70,7 @@ public:
         }
         return inputFactories.at(ioType)->getReader(symbolMask, symbolTable, ioDirectives);
     }
-    ~IOSystem() {}
+    ~IOSystem() = default;
 
 private:
     IOSystem() {

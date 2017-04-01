@@ -64,10 +64,11 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
 
             // again, pad with empty space for prettiness
             for (length += opt.longName.size(); length < maxArgumentIdLength + maxLongNameLength + 3;
-                    ++length)
+                    ++length) {
                 ss << " ";
 
-            // print the description
+                // print the description
+            }
             ss << "\t" << opt.description << std::endl;
         }
 
@@ -149,11 +150,12 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
     }
 
     // obtain the name of the datalog file, and store it in the option with the empty key
-    {
+    if (argc > 1 && !Global::config().has("help")) {
         std::string filename = "";
         // ensure that the optind is less than the total number of arguments
-        if (optind >= argc)
+        if (argc > 1 && optind >= argc) {
             ERROR("unexpected command line argument", []() { std::cerr << Global::config().help(); });
+        }
         // if only one datalog program is allowed
         if (mainOptions[0].longName == "" && mainOptions[0].takesMany) {
             // set the option in the global config for the main datalog file to that specified by the command
@@ -165,10 +167,11 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
             // for each of the command line arguments not associated with an option
             for (; optind < argc; optind++) {
                 // append this filename to the concatenated string of filenames
-                if (filenames == "")
+                if (filenames == "") {
                     filenames = argv[optind];
-                else
+                } else {
                     filenames = filenames + " " + std::string(argv[optind]);
+                }
             }
             // set the option in the global config for the main datalog file to all those specified by the
             // command line arguments
@@ -176,4 +179,4 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         }
     }
 }
-};
+}  // namespace souffle

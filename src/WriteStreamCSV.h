@@ -21,7 +21,9 @@
 #include "gzfstream.h"
 #endif
 
+#include <fstream>
 #include <memory>
+#include <ostream>
 #include <string>
 
 namespace souffle {
@@ -31,7 +33,7 @@ public:
     WriteStreamCSV(std::ostream& out, const SymbolMask& symbolMask, const SymbolTable& symbolTable,
             char delimiter = '\t')
             : delimiter(delimiter), out(out), symbolMask(symbolMask), symbolTable(symbolTable) {}
-    virtual void writeNextTuple(const RamDomain* tuple) {
+    void writeNextTuple(const RamDomain* tuple) override {
         if (symbolMask.getArity() == 0) {
             out << "()\n";
             return;
@@ -40,7 +42,7 @@ public:
         if (symbolMask.isSymbol(0)) {
             out << symbolTable.resolve(tuple[0]);
         } else {
-            out << (int32_t)tuple[0];
+            out << static_cast<int32_t>(tuple[0]);
         }
         for (size_t col = 1; col < symbolMask.getArity(); ++col) {
             out << delimiter;
@@ -48,13 +50,13 @@ public:
                 std::string s = symbolTable.resolve(tuple[col]);
                 out << s;
             } else {
-                out << (int32_t)tuple[col];
+                out << static_cast<int32_t>(tuple[col]);
             }
         }
         out << "\n";
     }
 
-    virtual ~WriteStreamCSV() {}
+    ~WriteStreamCSV() override = default;
 
 private:
     const char delimiter;
@@ -68,11 +70,11 @@ public:
     WriteFileCSV(const std::string& filename, const SymbolMask& symbolMask, const SymbolTable& symbolTable,
             char delimiter = '\t')
             : file(filename), writeStream(file, symbolMask, symbolTable, delimiter) {}
-    virtual void writeNextTuple(const RamDomain* tuple) {
+    void writeNextTuple(const RamDomain* tuple) override {
         writeStream.writeNextTuple(tuple);
     }
 
-    virtual ~WriteFileCSV() {}
+    ~WriteFileCSV() override = default;
 
 private:
     std::ofstream file;
@@ -85,11 +87,11 @@ public:
     WriteGZipFileCSV(const std::string& filename, const SymbolMask& symbolMask,
             const SymbolTable& symbolTable, char delimiter = '\t')
             : file(filename), writeStream(file, symbolMask, symbolTable, delimiter) {}
-    virtual void writeNextTuple(const RamDomain* tuple) {
+    void writeNextTuple(const RamDomain* tuple) override {
         writeStream.writeNextTuple(tuple);
     }
 
-    virtual ~WriteGZipFileCSV() {}
+    ~WriteGZipFileCSV() override = default;
 
 private:
     gzfstream::ogzfstream file;
@@ -104,11 +106,11 @@ public:
             : writeStream(std::cout, symbolMask, symbolTable, delimiter) {
         std::cout << "---------------\n" << relationName << "\n===============\n";
     }
-    virtual void writeNextTuple(const RamDomain* tuple) {
+    void writeNextTuple(const RamDomain* tuple) override {
         writeStream.writeNextTuple(tuple);
     }
 
-    virtual ~WriteCoutCSV() {
+    ~WriteCoutCSV() override {
         std::cout << "===============\n";
     }
 
@@ -129,8 +131,8 @@ protected:
 
 class WriteFileCSVFactory : public WriteStreamFactory, public WriteCSVFactory {
 public:
-    virtual std::unique_ptr<WriteStream> getWriter(
-            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         char delimiter = getDelimiter(ioDirectives);
 #ifdef USE_LIBZ
         if (ioDirectives.has("compress")) {
@@ -141,34 +143,26 @@ public:
         return std::unique_ptr<WriteFileCSV>(
                 new WriteFileCSV(ioDirectives.get("filename"), symbolMask, symbolTable, delimiter));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
+        static const std::string name = "file";
         return name;
     }
-    virtual ~WriteFileCSVFactory() {}
-
-private:
-    static const std::string name;
+    ~WriteFileCSVFactory() override = default;
 };
-
-const std::string WriteFileCSVFactory::name = "file";
 
 class WriteCoutCSVFactory : public WriteStreamFactory, public WriteCSVFactory {
 public:
-    virtual std::unique_ptr<WriteStream> getWriter(
-            const SymbolMask& symbolMask, const SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask, const SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<WriteCoutCSV>(
                 new WriteCoutCSV(ioDirectives.getRelationName(), symbolMask, symbolTable, delimiter));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
+        static const std::string name = "stdout";
         return name;
     }
-    virtual ~WriteCoutCSVFactory() {}
-
-private:
-    static const std::string name;
+    ~WriteCoutCSVFactory() override = default;
 };
-
-const std::string WriteCoutCSVFactory::name = "stdout";
 
 } /* namespace souffle */

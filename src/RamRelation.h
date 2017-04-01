@@ -29,9 +29,9 @@
 #include "Table.h"
 #include "Util.h"
 
+#include <list>
 #include <map>
 #include <string>
-
 #include <pthread.h>
 
 namespace souffle {
@@ -96,11 +96,11 @@ public:
     const std::string getArg(uint32_t i) const {
         if (!attributeNames.empty()) {
             return attributeNames[i];
-        } else if (arity == 0) {
-            return "";
-        } else {
-            return "c" + std::to_string(i);
         }
+        if (arity == 0) {
+            return "";
+        }
+        return "c" + std::to_string(i);
     }
 
     const std::string getArgTypeQualifier(uint32_t i) const {
@@ -207,6 +207,9 @@ class RamRelation {
     std::unique_ptr<Block> head;
     Block* tail;
 
+    /** keep an eye on the implicit tuples we create so that we can remove when dtor is called */
+    std::list<RamDomain*> allocatedBlocks;
+
     mutable std::map<RamIndexOrder, std::unique_ptr<RamIndex>> indices;
 
     mutable RamIndex* totalIndex;
@@ -215,26 +218,29 @@ class RamRelation {
     mutable pthread_mutex_t lock;
 
 public:
-    using SymbolTable = souffle::SymbolTable;  // XXX pending namespace cleanup
-
     RamRelation(const RamRelationIdentifier& id)
             : id(id), num_tuples(0), head(std::unique_ptr<Block>(new Block())), tail(head.get()),
               totalIndex(nullptr) {
-        pthread_mutex_init(&lock, NULL);
+        pthread_mutex_init(&lock, nullptr);
     }
 
     RamRelation(const RamRelation& other) = delete;
 
     RamRelation(RamRelation&& other)
-            : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
-        pthread_mutex_init(&lock, NULL);
+            : id(std::move(other.id)), num_tuples(other.num_tuples), tail(other.tail),
+              totalIndex(other.totalIndex) {
+        pthread_mutex_init(&lock, nullptr);
 
         // take over ownership
         head.swap(other.head);
         indices.swap(other.indices);
+
+        allocatedBlocks.swap(other.allocatedBlocks);
     }
 
-    ~RamRelation() {}
+    ~RamRelation() {
+        for (auto x : allocatedBlocks) delete[] x;
+    }
 
     RamRelation& operator=(const RamRelation& other) = delete;
 
@@ -278,8 +284,8 @@ public:
         return num_tuples;
     }
 
-    /** insert a new tuple to table */
-    void insert(const RamDomain* tuple) {
+    /** only insert exactly one tuple, maintaining order **/
+    void quickInsert(const RamDomain* tuple) {
         // check for null-arity
         auto arity = getArity();
         if (arity == 0) {
@@ -289,7 +295,9 @@ public:
         }
 
         // make existence check
-        if (exists(tuple)) return;
+        if (exists(tuple)) {
+            return;
+        }
 
         // prepare tail
         if (tail->getFreeSpace() < arity || arity == 0) {
@@ -311,6 +319,86 @@ public:
 
         // increment relation size
         num_tuples++;
+    }
+
+    /** insert a new tuple to table, possibly more than one tuple depending on relation type */
+    void insert(const RamDomain* tuple) {
+        // TODO: (pnappa) an eqrel check here is all that appears to be needed for implicit additions
+        if (id.isEqRel()) {
+            // TODO: future optimisation would require this as a member datatype
+            // brave soul required to pass this quest
+            // // specialisation for eqrel defs
+            // std::unique_ptr<binaryrelation> eqreltuples;
+            // in addition, it requires insert functions to insert into that, and functions
+            // which allow reading of stored values must be changed to accommodate.
+            // e.g. insert =>  eqRelTuples->insert(tuple[0], tuple[1]);
+
+            // for now, we just have a naive & extremely slow version, otherwise known as a O(n^2) insertion
+            // ):
+
+            // store all values that will be implicitly relevant to the two that we will insert
+            std::vector<const RamDomain*> relevantStored;
+            for (const RamDomain* vals : *this) {
+                if (vals[0] == tuple[0] || vals[0] == tuple[1] || vals[1] == tuple[0] ||
+                        vals[1] == tuple[1]) {
+                    relevantStored.push_back(vals);
+                }
+            }
+
+            // we also need to keep a list of all tuples stored s.t. we can free on destruction
+            std::list<RamDomain*> dtorLooks;
+
+            for (const auto vals : relevantStored) {
+                // insert all possible pairings between these and existing elements
+
+                // ew, temp code
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[0];
+                dtorLooks.back()[1] = tuple[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[0];
+                dtorLooks.back()[1] = tuple[1];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[1];
+                dtorLooks.back()[1] = tuple[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = vals[1];
+                dtorLooks.back()[1] = tuple[1];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[0];
+                dtorLooks.back()[1] = vals[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[0];
+                dtorLooks.back()[1] = vals[1];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[1];
+                dtorLooks.back()[1] = vals[0];
+                dtorLooks.push_back(new RamDomain[2]);
+                dtorLooks.back()[0] = tuple[1];
+                dtorLooks.back()[1] = vals[1];
+            }
+
+            // and of course we need to actually insert this pair
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[1];
+            dtorLooks.back()[1] = tuple[0];
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[0];
+            dtorLooks.back()[1] = tuple[1];
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[0];
+            dtorLooks.back()[1] = tuple[0];
+            dtorLooks.push_back(new RamDomain[2]);
+            dtorLooks.back()[0] = tuple[1];
+            dtorLooks.back()[1] = tuple[1];
+
+            for (const auto x : dtorLooks) quickInsert(x);
+
+            allocatedBlocks.insert(allocatedBlocks.end(), dtorLooks.begin(), dtorLooks.end());
+
+        } else {
+            quickInsert(tuple);
+        }
     }
 
     /** a convenience function for inserting tuples */
@@ -342,7 +430,9 @@ public:
     /** get index for a given set of keys using a cached index as a helper. Keys are encoded as bits for each
      * column */
     RamIndex* getIndex(const SearchColumns& key, RamIndex* cachedIndex) const {
-        if (!cachedIndex) return getIndex(key);
+        if (!cachedIndex) {
+            return getIndex(key);
+        }
         return getIndex(cachedIndex->order());
     }
 
@@ -366,12 +456,16 @@ public:
         RamIndex* res = nullptr;
         pthread_mutex_lock(&lock);
         for (auto it = indices.begin(); !res && it != indices.end(); ++it) {
-            if (order.isCompatible(it->first)) res = it->second.get();
+            if (order.isCompatible(it->first)) {
+                res = it->second.get();
+            }
         }
         pthread_mutex_unlock(&lock);
 
         // if found, use compatible index
-        if (res) return res;
+        if (res) {
+            return res;
+        }
 
         // extend index to full index
         for (auto cur : suffix) {
@@ -409,10 +503,14 @@ public:
     /** check whether a tuple exists in the relation */
     bool exists(const RamDomain* tuple) const {
         // handle arity 0
-        if (getArity() == 0) return !empty();
+        if (getArity() == 0) {
+            return !empty();
+        }
 
         // handle all other arities
-        if (!totalIndex) totalIndex = getIndex(getTotalIndexKey());
+        if (!totalIndex) {
+            totalIndex = getIndex(getTotalIndexKey());
+        }
         return totalIndex->exists(tuple);
     }
 
@@ -450,7 +548,9 @@ public:
 
         iterator& operator++() {
             // check for end
-            if (!cur) return *this;
+            if (!cur) {
+                return *this;
+            }
 
             // support 0-arity
             if (arity == 0) {
@@ -472,7 +572,9 @@ public:
     /** get iterator begin of relation */
     inline iterator begin() const {
         // check for emptiness
-        if (empty()) return end();
+        if (empty()) {
+            return end();
+        }
 
         // support 0-arity
         auto arity = getArity();
@@ -497,8 +599,6 @@ public:
  * processing a RAM program.
  */
 class RamEnvironment {
-    using SymbolTable = souffle::SymbolTable;
-
     /** The type utilized for storing relations */
     typedef std::map<std::string, RamRelation> relation_map;
 
@@ -543,7 +643,9 @@ public:
      */
     RamRelation& getRelation(const RamRelationIdentifier& id) {
         // use cached value
-        if (id.last == this) return *id.rel;
+        if (id.last == this) {
+            return *id.rel;
+        }
 
         RamRelation* res = nullptr;
         auto pos = data.find(id.getName());
@@ -569,7 +671,9 @@ public:
      */
     const RamRelation& getRelation(const RamRelationIdentifier& id) const {
         // use cached value if available
-        if (id.last == this) return *id.rel;
+        if (id.last == this) {
+            return *id.rel;
+        }
 
         // look up relation
         auto pos = data.find(id.getName());

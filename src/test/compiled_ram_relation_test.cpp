@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file compiled_ram_relation_test.h
+ * @file compiled_ram_relation_test.cpp
  *
  * Test cases for the RAM relation data structure.
  *
@@ -18,7 +18,6 @@
 #include "test.h"
 
 namespace souffle {
-
 namespace ram {
 
 using namespace std;

@@ -581,9 +581,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         // add constant constraints
         for (size_t pos = 0; pos < atom->argSize(); ++pos) {
             if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
-                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                        std::unique_ptr<RamValue>(
-                                new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
+                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryConstraintOp::EQ,
+                        std::unique_ptr<RamValue>(new RamElementAccess(
+                                level, pos, getRelation(atom).getArg(pos))),
                         std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
             }
         }
@@ -613,15 +613,15 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
             // add constraints
             for (size_t pos = 0; pos < atom->argSize(); ++pos) {
                 if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
-                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                            std::unique_ptr<RamValue>(
-                                    new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
+                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                            BinaryConstraintOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
+                                                            level, pos, getRelation(atom).getArg(pos))),
                             std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                 } else if (AstAggregator* agg = dynamic_cast<AstAggregator*>(atom->getArgument(pos))) {
                     auto loc = valueIndex.getAggregatorLocation(*agg);
-                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                            std::unique_ptr<RamValue>(
-                                    new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
+                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                            BinaryConstraintOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
+                                                            level, pos, getRelation(atom).getArg(pos))),
                             std::unique_ptr<RamValue>(
                                     new RamElementAccess(loc.level, loc.component, loc.name)))));
                 }
@@ -637,9 +637,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
             // add constant constraints
             for (size_t pos = 0; pos < rec->getArguments().size(); ++pos) {
                 if (AstConstant* c = dynamic_cast<AstConstant*>(rec->getArguments()[pos])) {
-                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                            std::unique_ptr<RamValue>(new RamElementAccess(level, pos)),
-                            std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
+                    op->addCondition(
+                            std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryConstraintOp::EQ,
+                                    std::unique_ptr<RamValue>(new RamElementAccess(level, pos)),
+                                    std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                 }
             }
         } else {
@@ -655,9 +656,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         // all other appearances
         for (const Location& loc : cur.second) {
             if (first != loc) {
-                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                        std::unique_ptr<RamValue>(
-                                new RamElementAccess(first.level, first.component, first.name)),
+                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                        BinaryConstraintOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
+                                                        first.level, first.component, first.name)),
                         std::unique_ptr<RamValue>(
                                 new RamElementAccess(loc.level, loc.component, loc.name)))));
             }
@@ -793,7 +794,7 @@ void nameUnnamedVariables(AstClause* clause) {
 
         Instantiator() : counter(0) {}
 
-        virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // apply recursive
             node->apply(*this);
 
@@ -1025,7 +1026,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
         appendStmt(res, std::unique_ptr<RamStatement>(new RamCreate(rrel)));
 
         // optional: load inputs
-        if (rel->isInput()) appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
+        if (rel->isInput()) {
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamLoad(rrel)));
+        }
 
         // create delta-relations if necessary
         if (relationSchedule->isRecursive(rel)) {

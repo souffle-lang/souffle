@@ -14,30 +14,37 @@ compiler:
 env:
   - TEST_FORMAT=1
   - MAKEPACKAGE=1
-  - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile
-  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=",-j8,-p profile.log"
-  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -j8"
-  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=-c
+  - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile SOUFFLE_CONFS=",-c,-c -p profile.log,-p profile.log,--auto-schedule -o testprog"
+  - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile SOUFFLE_CONFS="-c -j8,-j8"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j8,-c -j8"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS=",-c"
   - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="--auto-schedule -o testprog"
-  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-c -p profile.log"
+  - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-p profile.log,-c -p profile.log"
 dist: trusty
 osx_image: xcode7.3
 
 matrix:
-  exclude: 
+  exclude:
   - os: linux
     compiler: gcc
     env: TEST_FORMAT=1
   - os: osx
     compiler: clang
     env: TEST_FORMAT=1
-  - os: linux 
+  - os: osx
+    env: SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile SOUFFLE_CONFS="-c -j8,-j8"
+  - os: osx
+    env: SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j8,-c -j8"
+  - os: linux
     compiler: clang
-    env: MAKEPACKAGE=1 
+    env: MAKEPACKAGE=1
   - os: osx
     compiler: gcc
 
-script: 
+before_script:
+  - "./.travis/init.sh"
+
+script:
   - "./.travis/run.sh"
 
 after_failure:

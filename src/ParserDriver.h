@@ -50,7 +50,7 @@ public:
     void addRelation(AstRelation* r);
     void addIODirective(AstIODirective* d);
     void addIODirectiveChain(AstIODirective* d);
-    void addType(AstType* t);
+    void addType(AstType* type);
     void addClause(AstClause* c);
     void addComponent(AstComponent* c);
     void addInstantiation(AstComponentInit* ci);

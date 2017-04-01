@@ -45,7 +45,7 @@ public:
     AstTranslationUnit(std::unique_ptr<AstProgram> program, bool nowarn = false)
             : program(std::move(program)), errorReport(nowarn) {}
 
-    virtual ~AstTranslationUnit() {}
+    virtual ~AstTranslationUnit() = default;
 
     template <class Analysis>
     Analysis* getAnalysis() const {

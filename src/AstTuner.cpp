@@ -59,7 +59,7 @@ public:
         return res;
     }
 };
-}
+}  // namespace
 
 bool AutoScheduleTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;

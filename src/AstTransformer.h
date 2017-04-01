@@ -26,7 +26,7 @@ private:
     virtual bool transform(AstTranslationUnit& translationUnit) = 0;
 
 public:
-    virtual ~AstTransformer() {}
+    virtual ~AstTransformer() = default;
 
     bool apply(AstTranslationUnit& translationUnit);
 

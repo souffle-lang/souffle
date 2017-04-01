@@ -62,7 +62,7 @@ struct default_meet_op {
         return res;
     }
 };
-}
+}  // namespace detail
 
 /**
  * A MPL type for defining a property space. A property space consists of
@@ -106,7 +106,7 @@ struct set_meet_assign_op {
         return changed;
     }
 };
-}
+}  // namespace detail
 
 /**
  * A property space for set-based properties based on sub-set lattices.
@@ -136,7 +136,7 @@ protected:
 
 public:
     Variable(const Id& id) : id(id) {}
-    virtual ~Variable() {}
+    virtual ~Variable() = default;
 
     Variable(const Variable&) = default;
     Variable(Variable&&) = default;
@@ -186,7 +186,7 @@ class Constraint {
 
 public:
     /** A virtual destructor */
-    virtual ~Constraint() {}
+    virtual ~Constraint() = default;
 
     /**
      * Requests the given assignment to be updated according to
@@ -227,12 +227,12 @@ std::shared_ptr<Constraint<Var>> sub(const Var& a, const Var& b, const std::stri
 
         Sub(const Var& a, const Var& b, const std::string& symbol) : a(a), b(b), symbol(symbol) {}
 
-        virtual bool update(Assignment<Var>& ass) const {
+        bool update(Assignment<Var>& ass) const override {
             typename Var::property_space::meet_assign_op_type meet_assign;
             return meet_assign(ass[b], ass[a]);
         }
 
-        virtual void print(std::ostream& out) const {
+        void print(std::ostream& out) const override {
             out << a << " " << symbol << " " << b;
         }
     };
@@ -406,7 +406,6 @@ public:
                 change = cur->update(ass) || change;
             }
         }
-
         // already done
         return ass;
     }

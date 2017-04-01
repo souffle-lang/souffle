@@ -91,7 +91,7 @@ protected:
 public:
     AstRelation() : qualifier(0) {}
 
-    ~AstRelation() {}
+    ~AstRelation() override = default;
 
     /** Return the name of the relation */
     const AstRelationIdentifier& getName() const {
@@ -192,9 +192,9 @@ public:
     }
 
     /** Print string representation of the relation to a given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << ".decl " << this->getName() << "(";
-        if (attributes.size() > 0) {
+        if (!attributes.empty()) {
             os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
 
             for (size_t i = 1; i < attributes.size(); ++i) {
@@ -220,7 +220,7 @@ public:
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstRelation* clone() const {
+    AstRelation* clone() const override {
         auto res = new AstRelation();
         res->name = name;
         res->setSrcLoc(getSrcLoc());
@@ -238,7 +238,7 @@ public:
     }
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& map) override {
         for (auto& cur : attributes) {
             cur = map(std::move(cur));
         }
@@ -286,7 +286,7 @@ public:
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res;
         for (const auto& cur : attributes) {
             res.push_back(cur.get());
@@ -322,7 +322,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstRelation*>(&node));
         const AstRelation& other = static_cast<const AstRelation&>(node);
         return name == other.name && equal_targets(attributes, other.attributes) &&
@@ -334,9 +334,8 @@ struct AstNameComparison {
     bool operator()(const AstRelation* x, const AstRelation* y) const {
         if (x != nullptr && y != nullptr) {
             return x->getName() < y->getName();
-        } else {
-            return y != nullptr;
         }
+        return y != nullptr;
     }
 };
 

@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "AstSrcLocation.h"
+#include "Util.h"
 
 #include <cstring>
 #include <fstream>
@@ -30,10 +31,8 @@ namespace souffle {
 std::string AstSrcLocation::extloc() const {
     std::ifstream in(filename);
     std::stringstream s;
-    char fname[filename.length() + 1];
-    strcpy(fname, filename.c_str());
     if (in.is_open()) {
-        s << "file " << basename(fname) << " at line " << start.line << "\n";
+        s << "file " << baseName(filename) << " at line " << start.line << "\n";
         for (int i = 0; i < start.line - 1; ++i) {
             in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }

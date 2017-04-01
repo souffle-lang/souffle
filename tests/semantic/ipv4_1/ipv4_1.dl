@@ -1,0 +1,14 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test that IPs are converted to an int correctly
+.decl IP (n:number)
+.output IP
+
+IP(0.0.0.1).
+IP(1.0.0.1).
+IP(0.0.0.0).
+IP(255.255.255.255).

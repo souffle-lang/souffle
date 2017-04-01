@@ -1,0 +1,10 @@
+Error: Auto-increment functor in a recursive rule in file counter2.dl at line 13
+A($) :- A(1).
+--^-----------
+Error: Auto-increment functor in a recursive rule in file counter2.dl at line 14
+A($) :- A(1).
+--^-----------
+Error: Auto-increment functor in a recursive rule in file counter2.dl at line 15
+A($) :- A(1).
+--^-----------
+3 errors generated, evaluation aborted

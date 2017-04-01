@@ -27,7 +27,7 @@ namespace souffle {
 /**
  * Binary Constraint Operators
  */
-enum class BinaryRelOp {
+enum class BinaryConstraintOp {
     __UNDEFINED__,  // undefined operator
     EQ,             // equivalence of two values
     NE,             // whether two values are different
@@ -46,28 +46,28 @@ enum class BinaryRelOp {
  * Each opeprator requires a negated operator which is
  * necessary for the expansion of complex rule bodies with disjunction and negation.
  */
-inline BinaryRelOp negate(BinaryRelOp op) {
+inline BinaryConstraintOp negatedConstraintOp(BinaryConstraintOp op) {
     switch (op) {
-        case BinaryRelOp::EQ:
-            return BinaryRelOp::NE;
-        case BinaryRelOp::NE:
-            return BinaryRelOp::EQ;
-        case BinaryRelOp::LT:
-            return BinaryRelOp::GE;
-        case BinaryRelOp::LE:
-            return BinaryRelOp::GT;
-        case BinaryRelOp::GE:
-            return BinaryRelOp::LT;
-        case BinaryRelOp::GT:
-            return BinaryRelOp::LE;
-        case BinaryRelOp::MATCH:
-            return BinaryRelOp::NOT_MATCH;
-        case BinaryRelOp::NOT_MATCH:
-            return BinaryRelOp::MATCH;
-        case BinaryRelOp::CONTAINS:
-            return BinaryRelOp::NOT_CONTAINS;
-        case BinaryRelOp::NOT_CONTAINS:
-            return BinaryRelOp::CONTAINS;
+        case BinaryConstraintOp::EQ:
+            return BinaryConstraintOp::NE;
+        case BinaryConstraintOp::NE:
+            return BinaryConstraintOp::EQ;
+        case BinaryConstraintOp::LT:
+            return BinaryConstraintOp::GE;
+        case BinaryConstraintOp::LE:
+            return BinaryConstraintOp::GT;
+        case BinaryConstraintOp::GE:
+            return BinaryConstraintOp::LT;
+        case BinaryConstraintOp::GT:
+            return BinaryConstraintOp::LE;
+        case BinaryConstraintOp::MATCH:
+            return BinaryConstraintOp::NOT_MATCH;
+        case BinaryConstraintOp::NOT_MATCH:
+            return BinaryConstraintOp::MATCH;
+        case BinaryConstraintOp::CONTAINS:
+            return BinaryConstraintOp::NOT_CONTAINS;
+        case BinaryConstraintOp::NOT_CONTAINS:
+            return BinaryConstraintOp::CONTAINS;
         default:
             break;
     }
@@ -78,27 +78,27 @@ inline BinaryRelOp negate(BinaryRelOp op) {
 /**
  * Converts operator to its symbolic representation
  */
-inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) {
+inline std::string toBinaryConstraintSymbol(BinaryConstraintOp op) {
     switch (op) {
-        case BinaryRelOp::EQ:
+        case BinaryConstraintOp::EQ:
             return "=";
-        case BinaryRelOp::NE:
+        case BinaryConstraintOp::NE:
             return "!=";
-        case BinaryRelOp::LT:
+        case BinaryConstraintOp::LT:
             return "<";
-        case BinaryRelOp::LE:
+        case BinaryConstraintOp::LE:
             return "<=";
-        case BinaryRelOp::GT:
+        case BinaryConstraintOp::GT:
             return ">";
-        case BinaryRelOp::GE:
+        case BinaryConstraintOp::GE:
             return ">=";
-        case BinaryRelOp::MATCH:
+        case BinaryConstraintOp::MATCH:
             return "match";
-        case BinaryRelOp::CONTAINS:
+        case BinaryConstraintOp::CONTAINS:
             return "contains";
-        case BinaryRelOp::NOT_MATCH:
+        case BinaryConstraintOp::NOT_MATCH:
             return "not_match";
-        case BinaryRelOp::NOT_CONTAINS:
+        case BinaryConstraintOp::NOT_CONTAINS:
             return "not_contains";
         default:
             break;
@@ -110,20 +110,20 @@ inline std::string getSymbolForBinaryRelOp(BinaryRelOp op) {
 /**
  * Converts symbolic representation of an operator to the operator
  */
-inline BinaryRelOp getBinaryRelOpForSymbol(const std::string& symbol) {
-    if (symbol == "=") return BinaryRelOp::EQ;
-    if (symbol == "!=") return BinaryRelOp::NE;
-    if (symbol == "<") return BinaryRelOp::LT;
-    if (symbol == "<=") return BinaryRelOp::LE;
-    if (symbol == ">=") return BinaryRelOp::GE;
-    if (symbol == ">") return BinaryRelOp::GT;
-    if (symbol == "match") return BinaryRelOp::MATCH;
-    if (symbol == "contains") return BinaryRelOp::CONTAINS;
-    if (symbol == "not_match") return BinaryRelOp::NOT_MATCH;
-    if (symbol == "not_contains") return BinaryRelOp::NOT_CONTAINS;
+inline BinaryConstraintOp toBinaryConstraintOp(const std::string& symbol) {
+    if (symbol == "=") return BinaryConstraintOp::EQ;
+    if (symbol == "!=") return BinaryConstraintOp::NE;
+    if (symbol == "<") return BinaryConstraintOp::LT;
+    if (symbol == "<=") return BinaryConstraintOp::LE;
+    if (symbol == ">=") return BinaryConstraintOp::GE;
+    if (symbol == ">") return BinaryConstraintOp::GT;
+    if (symbol == "match") return BinaryConstraintOp::MATCH;
+    if (symbol == "contains") return BinaryConstraintOp::CONTAINS;
+    if (symbol == "not_match") return BinaryConstraintOp::NOT_MATCH;
+    if (symbol == "not_contains") return BinaryConstraintOp::NOT_CONTAINS;
     std::cout << "Unrecognised operator: " << symbol << "\n";
     assert(false && "Unsupported Operator!");
-    return BinaryRelOp::__UNDEFINED__;
+    return BinaryConstraintOp::__UNDEFINED__;
 }
 
 /**
@@ -133,20 +133,20 @@ inline BinaryRelOp getBinaryRelOpForSymbol(const std::string& symbol) {
 /**
  * Determines whether arguments of constraint are numeric
  */
-inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
+inline bool isNumericBinaryConstraintOp(const BinaryConstraintOp op) {
     switch (op) {
-        case BinaryRelOp::EQ:
-        case BinaryRelOp::NE:
-        case BinaryRelOp::LT:
-        case BinaryRelOp::LE:
-        case BinaryRelOp::GE:
-        case BinaryRelOp::GT:
+        case BinaryConstraintOp::EQ:
+        case BinaryConstraintOp::NE:
+        case BinaryConstraintOp::LT:
+        case BinaryConstraintOp::LE:
+        case BinaryConstraintOp::GE:
+        case BinaryConstraintOp::GT:
             return true;
 
-        case BinaryRelOp::MATCH:
-        case BinaryRelOp::NOT_MATCH:
-        case BinaryRelOp::CONTAINS:
-        case BinaryRelOp::NOT_CONTAINS:
+        case BinaryConstraintOp::MATCH:
+        case BinaryConstraintOp::NOT_MATCH:
+        case BinaryConstraintOp::CONTAINS:
+        case BinaryConstraintOp::NOT_CONTAINS:
             return false;
 
         default:
@@ -159,8 +159,8 @@ inline bool isNumericBinaryRelOp(const BinaryRelOp op) {
 /**
  * Determines whether arguments of constraint are numeric
  */
-inline bool isSymbolicBinaryRelOp(const BinaryRelOp op) {
-    return !isNumericBinaryRelOp(op);
+inline bool isSymbolicBinaryConstraintOp(const BinaryConstraintOp op) {
+    return !isNumericBinaryConstraintOp(op);
 }
 
 }  // end of namespace souffle

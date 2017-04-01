@@ -105,7 +105,7 @@ RecordMap& getForArity(int arity) {
     maps.emplace(arity, arity);
     return getForArity(arity);
 }
-}
+}  // namespace
 
 RamDomain pack(RamDomain* tuple, int arity) {
     // conduct the packing

@@ -20,6 +20,7 @@
 #include <memory>
 #include <ostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 namespace souffle {
@@ -41,7 +42,8 @@ private:
 public:
     DebugReportSection(
             std::string id, std::string title, std::vector<DebugReportSection> subsections, std::string body)
-            : id(id), title(title), subsections(subsections), body(body) {}
+            : id(std::move(id)), title(std::move(title)), subsections(std::move(subsections)),
+              body(std::move(body)) {}
 
     /**
      * Outputs the HTML code for the index to the given stream,
@@ -105,13 +107,13 @@ class DebugReporter : public AstTransformer {
 private:
     std::unique_ptr<AstTransformer> wrappedTransformer;
 
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
     DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer)
             : wrappedTransformer(std::move(wrappedTransformer)) {}
 
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "DebugReporter";
     }
 

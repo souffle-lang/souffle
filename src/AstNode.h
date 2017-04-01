@@ -44,7 +44,7 @@ class AstNode {
     AstSrcLocation location;
 
 public:
-    virtual ~AstNode() {}
+    virtual ~AstNode() = default;
 
     /** Return source location of the AstNode */
     AstSrcLocation getSrcLoc() const {
@@ -102,7 +102,7 @@ protected:
 class AstNodeMapper {
 public:
     /** A virtual destructor for this abstract type */
-    virtual ~AstNodeMapper() {}
+    virtual ~AstNodeMapper() = default;
 
     /**
      * Computes a replacement for the given node. If the given nodes
@@ -136,11 +136,11 @@ class LambdaNodeMapper : public AstNodeMapper {
 public:
     LambdaNodeMapper(const Lambda& lambda) : lambda(lambda) {}
 
-    virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const {
+    std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
         return lambda(std::move(node));
     }
 };
-}
+}  // namespace detail
 
 /**
  * Creates a node mapper based on a corresponding lambda expression.

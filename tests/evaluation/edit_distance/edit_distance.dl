@@ -1,0 +1,48 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.type Letter
+.number_type Pos
+.number_type Cost
+
+.decl String1			(p:Pos, a:Letter)
+.decl String2			(p:Pos, a:Letter)
+
+.input String1
+.input String2
+
+.decl End1				(p:Pos)
+.decl End2				(p:Pos)
+.decl NotEnd1			(p:Pos)
+.decl NotEnd2			(p:Pos)
+
+NotEnd1(p) :- String1(p, _), String1(q, _), p < q.
+End1(p) :- String1(p, _), !NotEnd1(p).
+NotEnd2(p) :- String2(p, _), String2(q, _), p < q.
+End2(p) :- String2(p, _), !NotEnd2(p).
+
+.decl Match				(i:Pos, j:Pos, c:Cost)
+
+Match(0, 0, 0).
+
+// Match a character
+Match(i + 1, j + 1, s) :- End1(e), i < e, End2(f), j < f, Match(i, j, s), String1(i + 1, a), String2(j + 1, a).
+
+// Indels
+Match(i + 1, j, s + 1) :- End1(e), i < e, End2(f), j <= f, Match(i, j, s).
+Match(i, j + 1, s + 1) :- End1(e), i <= e, End2(f), j < f, Match(i, j, s).
+
+.decl MinMatch			(i:Pos, j:Pos, c:Cost)
+.decl NotMinMatch		(i:Pos, j:Pos, c:Cost)
+
+NotMinMatch(i, j, s) :- Match(i, j, s), Match(i, j, t), t < s.
+MinMatch(i, j, s) :- Match(i, j, s), !NotMinMatch(i, j, s).
+//MinMatch(i, j, s) :- s = min t : Match(i, j, t).
+
+.decl Result			(c:Cost)
+
+Result(c) :- End1(e), End2(f), MinMatch(e, f, c).
+.output Result

@@ -81,7 +81,7 @@ std::vector<AstLiteral*> AstClause::getBodyLiterals() const {
 
 bool AstClause::isFact() const {
     // there must be a head
-    if (head == NULL) {
+    if (head == nullptr) {
         return false;
     }
     // there must not be any body clauses
@@ -95,7 +95,7 @@ bool AstClause::isFact() const {
 }
 
 void AstClause::print(std::ostream& os) const {
-    if (head != NULL) {
+    if (head != nullptr) {
         head->print(os);
     }
     if (getBodySize() > 0) {

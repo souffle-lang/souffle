@@ -30,7 +30,7 @@ public:
         }
     }
 
-    ~IODirectives() {}
+    ~IODirectives() = default;
 
     const std::string& getIOType() const {
         return get("IO");
@@ -116,4 +116,4 @@ private:
 
     std::map<std::string, std::string> directives;
 };
-}
+}  // namespace souffle

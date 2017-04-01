@@ -214,12 +214,12 @@ void DebugReporter::generateDebugReport(
     DebugReportSection datalogSection = getCodeSection(id + "-dl", "Datalog", datalogSpec.str());
 
     std::stringstream precGraphDot;
-    translationUnit.getAnalysis<PrecedenceGraph>()->getGraph().print(precGraphDot, true);
+    translationUnit.getAnalysis<PrecedenceGraph>()->outputPrecedenceGraph(precGraphDot);
     DebugReportSection precedenceGraphSection =
             getDotGraphSection(id + "-prec-graph", "Precedence Graph", precGraphDot.str());
 
     std::stringstream sccGraphDot;
-    translationUnit.getAnalysis<SCCGraph>()->getGraph().print(sccGraphDot);
+    translationUnit.getAnalysis<SCCGraph>()->outputSCCGraph(sccGraphDot);
     DebugReportSection sccGraphSection =
             getDotGraphSection(id + "-scc-graph", "SCC Graph", sccGraphDot.str());
 

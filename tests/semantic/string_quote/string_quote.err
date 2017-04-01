@@ -1,4 +1,0 @@
-Error: syntax error, unexpected identifier, expecting ) or "," in file string_quote.dl at line 6
-R ("Quoted \"quote\"").
--------------^----------
-1 errors generated, evaluation aborted

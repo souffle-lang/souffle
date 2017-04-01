@@ -509,7 +509,7 @@ struct Lock {
  */
 class SpinLock {
 public:
-    SpinLock() {}
+    SpinLock() = default;
 
     void lock() {}
 
@@ -522,7 +522,7 @@ public:
 
 class ReadWriteLock {
 public:
-    ReadWriteLock() {}
+    ReadWriteLock() = default;
 
     void start_read() {}
 
@@ -550,17 +550,17 @@ class OptimisticReadWriteLock {
 public:
     class Lease {};
 
-    OptimisticReadWriteLock() {}
+    OptimisticReadWriteLock() = default;
 
     Lease start_read() {
         return Lease();
     }
 
-    bool validate(const Lease&) {
+    bool validate(const Lease& /*lease*/) {
         return true;
     }
 
-    bool end_read(const Lease&) {
+    bool end_read(const Lease& /*lease*/) {
         return true;
     }
 
@@ -570,7 +570,7 @@ public:
         return true;
     }
 
-    bool try_upgrade_to_write(const Lease& lease) {
+    bool try_upgrade_to_write(const Lease& /*lease*/) {
         return true;
     }
 

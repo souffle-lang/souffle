@@ -78,7 +78,9 @@ public:
     bool isComplete() const {
         // the columns must contain the values 0 ... |length|
         for (unsigned i = 0; i < columns.size(); i++) {
-            if (!contains(columns, i)) return false;
+            if (!contains(columns, i)) {
+                return false;
+            }
         }
         return true;
     }
@@ -86,9 +88,13 @@ public:
     /** Tests whether this order is a prefix of the given order. */
     bool isPrefixOf(const RamIndexOrder& other) const {
         // this one must not be longer
-        if (columns.size() > other.columns.size()) return false;
+        if (columns.size() > other.columns.size()) {
+            return false;
+        }
         for (unsigned i = 0; i < columns.size(); i++) {
-            if (columns[i] != other.columns[i]) return false;
+            if (columns[i] != other.columns[i]) {
+                return false;
+            }
         }
         return true;
     }
@@ -100,10 +106,14 @@ public:
      */
     bool isCompatible(const RamIndexOrder& other) const {
         // this one must be shorter
-        if (columns.size() > other.columns.size()) return false;
+        if (columns.size() > other.columns.size()) {
+            return false;
+        }
         // check overlapping prefix
         for (unsigned i = 0; i < columns.size(); ++i) {
-            if (!contains(columns, other.columns[i])) return false;
+            if (!contains(columns, other.columns[i])) {
+                return false;
+            }
         }
         return true;
     }
@@ -132,8 +142,12 @@ protected:
         /* comparison function */
         int operator()(const RamDomain* x, const RamDomain* y) const {
             for (size_t i = 0; i < order.size(); i++) {
-                if (x[order[i]] < y[order[i]]) return -1;
-                if (x[order[i]] > y[order[i]]) return 1;
+                if (x[order[i]] < y[order[i]]) {
+                    return -1;
+                }
+                if (x[order[i]] > y[order[i]]) {
+                    return 1;
+                }
             }
             return 0;
         }
@@ -146,7 +160,9 @@ protected:
         /* equal comparison */
         bool equal(const RamDomain* x, const RamDomain* y) const {
             for (size_t i = 0; i < order.size(); i++) {
-                if (x[order[i]] != y[order[i]]) return false;
+                if (x[order[i]] != y[order[i]]) {
+                    return false;
+                }
             }
             return true;
         }

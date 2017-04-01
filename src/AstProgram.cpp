@@ -38,7 +38,7 @@ namespace souffle {
  * Program
  */
 
-AstProgram::AstProgram(AstProgram&& other) {
+AstProgram::AstProgram(AstProgram&& other) noexcept {
     types.swap(other.types);
     relations.swap(other.relations);
     clauses.swap(other.clauses);

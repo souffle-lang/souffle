@@ -8,10 +8,9 @@
 
 /************************************************************************
  *
- * @file AstClause.h
+ * @file AstParserUtils.h
  *
- * Defines class Clause that represents rules including facts, predicates, and
- * queries in a Datalog program.
+ * Defines class RuleBody to represents rule bodies.
  *
  ***********************************************************************/
 

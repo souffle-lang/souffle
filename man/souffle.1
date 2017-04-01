@@ -1,4 +1,4 @@
-.TH SOUFFLE 1 2016-03-25
+.TH SOUFFLE 1 2017-03-30
 
 .SH NAME
 .B souffle
@@ -10,8 +10,8 @@
 ]
 .I files
 .SH DESCRIPTION
-Souffle is used as a domain-specific language for static program analysis, over
-large code bases with millions of lines of code. Souffle aims at producing
+Souffle is used as a domain-specific language for static program analysis over
+large code bases with millions of lines of code. Souffle aims to produce
 high-performance C++ code that can be compiled with the native compiler on the
 target machine.
 .SH OPTIONS
@@ -25,12 +25,8 @@ verbose output
 .B -F\fI<DIR>\fP, --fact-dir=\fI<DIR>\fP
 specify directory for fact files
 .TP
-.TP
-.B -I\fI<DIR>\fP, --include-dir=\fI<DIR>\fP
-specify directory for include files
-.TP
-.B -D\fI<DIR>\fP, --output-dir-dir=\fI<DIR>\fP
-Specify directory for output relations (if \fI<DIR>\fP is -, output is written to stdout)
+.B -D\fI<DIR>\fP, --output-dir=\fI<DIR>\fP
+Specify directory for output relations (if \fI<DIR>\fP is -, all output is written to stdout)
 .TP
 .B -j\fI<N>\fP, --jobs=\fI<N>\fP
 run interpreter/compiler in parallel using N threads, N=auto for system default
@@ -55,8 +51,8 @@ write debugging output to HTML report
 .SH EXAMPLES
 souffle program.dl
 .SH VERSION
-1.0
+1.1
 .SH LICENSE
-Copyright (c) 2013, 2015, Oracle and/or its affiliates. All rights reserved.
+Copyright (c) 2016 Oracle and/or its affiliates. All Rights reserved.
 .SH SEE ALSO
 \fBg++\fP(1), \fBjava\fP(1)

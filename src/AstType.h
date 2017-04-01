@@ -23,8 +23,6 @@
 #include <string>
 #include <vector>
 
-#include <ctype.h>
-
 namespace souffle {
 
 /**
@@ -63,7 +61,7 @@ public:
         names.push_back(name);
     }
 
-    void prepent(const std::string& name) {
+    void prepend(const std::string& name) {
         names.insert(names.begin(), name);
     }
 
@@ -107,7 +105,7 @@ public:
  */
 inline AstTypeIdentifier operator+(const std::string& name, const AstTypeIdentifier& id) {
     AstTypeIdentifier res = id;
-    res.prepent(name);
+    res.prepend(name);
     return res;
 }
 
@@ -135,15 +133,15 @@ public:
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         return {};
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstType* clone() const = 0;
+    AstType* clone() const override = 0;
 
     /** Mutates this node */
-    virtual void apply(const AstNodeMapper& map) {
+    void apply(const AstNodeMapper& /*map*/) override {
         // no nested nodes in any type
     }
 };
@@ -172,18 +170,18 @@ public:
     }
 
     /** Prints a summary of this type to the given stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << ".type " << getName() << (num ? "= number" : "");
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstPrimitiveType* clone() const {
+    AstPrimitiveType* clone() const override {
         return new AstPrimitiveType(getName(), num);
     }
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstPrimitiveType*>(&node));
         const AstPrimitiveType& other = static_cast<const AstPrimitiveType&>(node);
         return getName() == other.getName() && num == other.num;
@@ -214,12 +212,12 @@ public:
     }
 
     /** Prints a summary of this type to the given stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << ".type " << getName() << " = " << join(types, " | ");
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstUnionType* clone() const {
+    AstUnionType* clone() const override {
         auto res = new AstUnionType();
         res->setName(getName());
         res->types = types;
@@ -228,7 +226,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstUnionType*>(&node));
         const AstUnionType& other = static_cast<const AstUnionType&>(node);
         return getName() == other.getName() && types == other.types;
@@ -272,11 +270,13 @@ public:
     }
 
     /** Prints a summary of this type to the given stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << ".type " << getName() << " = "
            << "[";
         for (unsigned i = 0; i < fields.size(); i++) {
-            if (i != 0) os << ",";
+            if (i != 0) {
+                os << ",";
+            }
             os << fields[i].name;
             os << ":";
             os << fields[i].type;
@@ -285,7 +285,7 @@ public:
     }
 
     /** Creates a clone if this AST sub-structure */
-    virtual AstRecordType* clone() const {
+    AstRecordType* clone() const override {
         auto res = new AstRecordType();
         res->setName(getName());
         res->fields = fields;
@@ -294,7 +294,7 @@ public:
 
 protected:
     /** Implements the node comparison for this node type */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstRecordType*>(&node));
         const AstRecordType& other = static_cast<const AstRecordType&>(node);
         return getName() == other.getName() && fields == other.fields;

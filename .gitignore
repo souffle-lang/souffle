@@ -45,3 +45,5 @@ doc
 prof
 
 .idea/
+#macosx
+.DS_Store

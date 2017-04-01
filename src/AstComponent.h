@@ -93,7 +93,9 @@ public:
 
     void print(std::ostream& out) const {
         out << name;
-        if (!typeParams.empty()) out << "<" << join(typeParams, ",") << ">";
+        if (!typeParams.empty()) {
+            out << "<" << join(typeParams, ",") << ">";
+        }
     }
 
     friend std::ostream& operator<<(std::ostream& out, const AstComponentType& id) {
@@ -137,7 +139,7 @@ public:
     }
 
     /** Requests an independent, deep copy of this node */
-    virtual AstComponentInit* clone() const {
+    AstComponentInit* clone() const override {
         auto res = new AstComponentInit();
         res->componentType = componentType;
         res->instanceName = instanceName;
@@ -145,24 +147,24 @@ public:
     }
 
     /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
-    virtual void apply(const AstNodeMapper& mapper) {
+    void apply(const AstNodeMapper& /*mapper*/) override {
         return;  // nothing to do
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res;
         return res;  // no child nodes
     }
 
     /** Output to a given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << ".init " << instanceName << " = " << componentType;
     }
 
 protected:
     /** An internal function to determine equality to another node */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstComponentInit*>(&node));
         const AstComponentInit& other = static_cast<const AstComponentInit&>(node);
         return instanceName == other.instanceName && componentType == other.componentType;
@@ -219,7 +221,7 @@ class AstComponent : public AstNode {
     std::set<std::string> overrideRules;
 
 public:
-    ~AstComponent() {}
+    ~AstComponent() override = default;
 
     // -- getters and setters --
 
@@ -308,7 +310,7 @@ public:
     }
 
     /** Requests an independent, deep copy of this node */
-    virtual AstComponent* clone() const {
+    AstComponent* clone() const override {
         AstComponent* res = new AstComponent();
 
         res->setComponentType(getComponentType());
@@ -340,7 +342,7 @@ public:
     }
 
     /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
-    virtual void apply(const AstNodeMapper& mapper) {
+    void apply(const AstNodeMapper& mapper) override {
         // apply mapper to all sub-nodes
         for (auto& cur : components) {
             cur = mapper(std::move(cur));
@@ -365,7 +367,7 @@ public:
     }
 
     /** Obtains a list of all embedded child nodes */
-    virtual std::vector<const AstNode*> getChildNodes() const {
+    std::vector<const AstNode*> getChildNodes() const override {
         std::vector<const AstNode*> res;
 
         for (const auto& cur : components) {
@@ -391,7 +393,7 @@ public:
     }
 
     /** Output to a given output stream */
-    virtual void print(std::ostream& os) const {
+    void print(std::ostream& os) const override {
         os << ".comp " << getComponentType() << " ";
 
         if (!baseComponents.empty()) {
@@ -426,7 +428,7 @@ public:
 
 protected:
     /** An internal function to determine equality to another node */
-    virtual bool equal(const AstNode& node) const {
+    bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstComponent*>(&node));
         const AstComponent& other = static_cast<const AstComponent&>(node);
 

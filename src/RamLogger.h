@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file CompiledRamLogger.h
+ * @file RamLogger.h
  *
  * A logger is the utility utilized by RAM programs to create logs and
  * traces.

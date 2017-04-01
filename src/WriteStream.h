@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "IODirectives.h"
 #include "RamTypes.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
@@ -28,13 +29,12 @@ public:
             writeNext(current);
         }
     }
-    // TODO (mmcgr): change all the Tuple<RamDomain, arity> to std:array, then remove this.
     template <typename Tuple>
     void writeNext(Tuple tuple) {
         writeNextTuple(tuple.data);
     }
     virtual void writeNextTuple(const RamDomain* tuple) = 0;
-    virtual ~WriteStream() {}
+    virtual ~WriteStream() = default;
 };
 
 class WriteStreamFactory {
@@ -42,7 +42,7 @@ public:
     virtual std::unique_ptr<WriteStream> getWriter(const SymbolMask& symbolMask,
             const SymbolTable& symbolTable, const IODirectives& ioDirectives) = 0;
     virtual const std::string& getName() const = 0;
-    virtual ~WriteStreamFactory() {}
+    virtual ~WriteStreamFactory() = default;
 };
 
 template <>

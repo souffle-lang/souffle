@@ -30,4 +30,4 @@ typedef int64_t AstDomain;
 /** lower and upper boundaries for the ast domain **/
 #define MIN_AST_DOMAIN (std::numeric_limits<AstDomain>::min())
 #define MAX_Ast_DOMAIN (std::numeric_limits<AstDomain>::max())
-}
+}  // namespace souffle

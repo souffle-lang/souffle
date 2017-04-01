@@ -81,19 +81,19 @@ protected:
     /** returns match of v */
     inline SearchColumns getMatch(SearchColumns v) {
         Matchings::iterator it = match.find(v);
-        if (it == match.end())
+        if (it == match.end()) {
             return NIL;
-        else
-            return it->second;
+        }
+        return it->second;
     }
 
     /** returns distance of v */
     inline int getDistance(int v) {
         Distance::iterator it = distance.find(v);
-        if (it == distance.end())
+        if (it == distance.end()) {
             return INF;
-        else
-            return it->second;
+        }
+        return it->second;
     }
 
     /** breadth first search */

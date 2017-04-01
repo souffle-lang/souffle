@@ -4,7 +4,6 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-NEGATIVE_TEST([string_empty],[syntactic])
 POSITIVE_TEST([binary],[syntactic])
 POSITIVE_TEST([comment],[syntactic])
 POSITIVE_TEST([comment2],[syntactic])

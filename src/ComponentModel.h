@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ComponentInstantiation.h
+ * @file ComponentModel.h
  *
  ***********************************************************************/
 
@@ -45,15 +45,18 @@ public:
     const AstTypeIdentifier& find(const AstTypeIdentifier& name) const {
         const static AstTypeIdentifier unknown;
         auto pos = binding.find(name);
-        if (pos == binding.end()) return unknown;
+        if (pos == binding.end()) {
+            return unknown;
+        }
         return pos->second;
     }
 
     TypeBinding extend(const std::vector<AstTypeIdentifier>& formalParams,
             const std::vector<AstTypeIdentifier>& actualParams) const {
         TypeBinding result;
-        if (formalParams.size() != actualParams.size())
+        if (formalParams.size() != actualParams.size()) {
             return *this;  // invalid init => will trigger a semantic error
+        }
 
         for (std::size_t i = 0; i < formalParams.size(); i++) {
             auto pos = binding.find(actualParams[i]);
@@ -78,7 +81,7 @@ private:
 public:
     static constexpr const char* name = "component-lookup";
 
-    virtual void run(const AstTranslationUnit& translationUnit);
+    void run(const AstTranslationUnit& translationUnit) override;
 
     /**
      * Performs a lookup operation for a component with the given name within the addressed scope.
@@ -93,10 +96,10 @@ public:
 
 class ComponentInstantiationTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
-    std::string getName() const {
+    std::string getName() const override {
         return "ComponentInstantiationTransformer";
     }
 };

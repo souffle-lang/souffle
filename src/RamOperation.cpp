@@ -24,10 +24,8 @@
 
 #include <iostream>
 #include <list>
+#include <memory>
 #include <string>
-
-#include <memory.h>
-#include <stdio.h>
 
 namespace souffle {
 
@@ -60,7 +58,7 @@ namespace {
 /** get indexable element */
 std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size_t level) {
     if (RamBinaryRelation* binRelOp = dynamic_cast<RamBinaryRelation*>(c)) {
-        if (binRelOp->getOperator() == BinaryRelOp::EQ) {
+        if (binRelOp->getOperator() == BinaryConstraintOp::EQ) {
             if (RamElementAccess* lhs = dynamic_cast<RamElementAccess*>(binRelOp->getLHS())) {
                 RamValue* rhs = binRelOp->getRHS();
                 if (lhs->getLevel() == level && (rhs->isConstant() || rhs->getLevel() < level)) {
@@ -79,7 +77,7 @@ std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size
     }
     return std::unique_ptr<RamValue>(nullptr);
 }
-}
+}  // namespace
 
 /** add condition */
 void RamScan::addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) {
@@ -88,12 +86,12 @@ void RamScan::addCondition(std::unique_ptr<RamCondition> c, RamOperation* root) 
         size_t element;
         if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, level)) {
             keys |= (1 << element);
-            if (queryPattern[element] == NULL) {
+            if (queryPattern[element] == nullptr) {
                 queryPattern[element] = std::move(value);
             } else {
                 std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
                 RamSearch::addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
-                                                BinaryRelOp::EQ, std::move(field), std::move(value))),
+                                                BinaryConstraintOp::EQ, std::move(field), std::move(value))),
                         root);
             }
             return;
@@ -113,11 +111,12 @@ void RamScan::print(std::ostream& os, int tabpos) const {
             os << "WITH ";
             bool first = true;
             for (size_t i = 0; i < relation.getArity(); i++) {
-                if (queryPattern[i] != NULL) {
-                    if (first)
+                if (queryPattern[i] != nullptr) {
+                    if (first) {
                         first = false;
-                    else
+                    } else {
                         os << "and ";
+                    }
                     os << "t" << level << "." << relation.getArg(i) << "=";
                     queryPattern[i]->print(os);
                     os << " ";
@@ -133,11 +132,12 @@ void RamScan::print(std::ostream& os, int tabpos) const {
             os << " ON INDEX ";
             bool first = true;
             for (size_t i = 0; i < relation.getArity(); i++) {
-                if (queryPattern[i] != NULL) {
-                    if (first)
+                if (queryPattern[i] != nullptr) {
+                    if (first) {
                         first = false;
-                    else
+                    } else {
                         os << "and ";
+                    }
                     os << "t" << level << "." << relation.getArg(i) << "=";
                     queryPattern[i]->print(os);
                     os << " ";
@@ -151,7 +151,7 @@ void RamScan::print(std::ostream& os, int tabpos) const {
     }
 
     os << "\n";
-    if (getNestedOperation() != NULL) {
+    if (getNestedOperation() != nullptr) {
         getNestedOperation()->print(os, tabpos + 1);
     }
 }
@@ -183,19 +183,20 @@ void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, RamOperation* r
         if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, level)) {
             if (element > 0 || relation.getName().find("__agg") == std::string::npos) {
                 keys |= (1 << element);
-                if (pattern[element] == NULL) {
+                if (pattern[element] == nullptr) {
                     pattern[element] = std::move(value);
                 } else {
                     std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
-                    RamSearch::addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
-                                                    BinaryRelOp::EQ, std::move(field), std::move(value))),
+                    RamSearch::addCondition(
+                            std::unique_ptr<RamCondition>(new RamBinaryRelation(
+                                    BinaryConstraintOp::EQ, std::move(field), std::move(value))),
                             root);
                 }
             } else {
                 std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
                 std::unique_ptr<RamCondition> eq(
-                        new RamBinaryRelation(BinaryRelOp::EQ, std::move(field), std::move(value)));
-                if (condition != NULL) {
+                        new RamBinaryRelation(BinaryConstraintOp::EQ, std::move(field), std::move(value)));
+                if (condition != nullptr) {
                     condition =
                             std::unique_ptr<RamCondition>(new RamAnd(std::move(condition), std::move(eq)));
                 } else {
@@ -235,10 +236,11 @@ void RamAggregate::print(std::ostream& os, int tabpos) const {
 
     os << "AS t" << getLevel() << ".0 IN t" << getLevel() << " ∈ " << relation.getName();
     os << "(" << join(pattern, ",", [&](std::ostream& out, const std::unique_ptr<RamValue>& value) {
-        if (!value)
+        if (!value) {
             out << "_";
-        else
+        } else {
             out << *value;
+        }
     }) << ")";
 
     if (auto condition = getCondition()) {

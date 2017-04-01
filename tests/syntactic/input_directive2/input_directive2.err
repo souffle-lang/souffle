@@ -1,7 +1,7 @@
-Error: Redefinition of input directives for relation B in file input_directive2.dl at line 4
+Error: Redefinition of input directives for relation B in file input_directive2.dl at line 10
 .input A,B(IO=stdout)
 -------^--------------
-Previous definition in file input_directive2.dl at line 3
+Previous definition in file input_directive2.dl at line 9
 .input B(IO=stdout)
 -------^------------
 1 errors generated, evaluation aborted

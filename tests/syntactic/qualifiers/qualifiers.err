@@ -1,64 +1,64 @@
-Warning: Deprecated output qualifier was used in relation A in file qualifiers.dl at line 1
+Warning: Deprecated output qualifier was used in relation A in file qualifiers.dl at line 7
 .decl A(x:number, y:number) eqrel output
 ^----------------------------------------
-Warning: Deprecated output qualifier was used in relation B in file qualifiers.dl at line 3
+Warning: Deprecated output qualifier was used in relation B in file qualifiers.dl at line 9
 .decl B(x:number, y:number) btree output
 ^----------------------------------------
-Warning: Deprecated output qualifier was used in relation C in file qualifiers.dl at line 5
+Warning: Deprecated output qualifier was used in relation C in file qualifiers.dl at line 11
 .decl C(x:number, y:number) brie output
 ^---------------------------------------
-Warning: Deprecated output qualifier was used in relation D in file qualifiers.dl at line 7
+Warning: Deprecated output qualifier was used in relation D in file qualifiers.dl at line 13
 .decl D(x:number, y:number) brie brie output
 ^--------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 7
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 13
 .decl D(x:number, y:number) brie brie output
 ---------------------------------^-----------
-Warning: Deprecated output qualifier was used in relation E in file qualifiers.dl at line 8
+Warning: Deprecated output qualifier was used in relation E in file qualifiers.dl at line 14
 .decl E(x:number, y:number) brie btree output
 ^---------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 8
-.decl E(x:number, y:number) brie btree output
----------------------------------^------------
-Warning: Deprecated output qualifier was used in relation F in file qualifiers.dl at line 9
-.decl F(x:number, y:number) brie eqrel output
-^---------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 9
-.decl F(x:number, y:number) brie eqrel output
----------------------------------^------------
-Warning: Deprecated output qualifier was used in relation G in file qualifiers.dl at line 10
-.decl G(x:number, y:number) btree brie output
-^---------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 10
-.decl G(x:number, y:number) btree brie output
-----------------------------------^-----------
-Warning: Deprecated output qualifier was used in relation H in file qualifiers.dl at line 11
-.decl H(x:number, y:number) btree btree output
-^----------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 11
-.decl H(x:number, y:number) btree btree output
-----------------------------------^------------
-Warning: Deprecated output qualifier was used in relation I in file qualifiers.dl at line 12
-.decl I(x:number, y:number) btree eqrel output
-^----------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 12
-.decl I(x:number, y:number) btree eqrel output
-----------------------------------^------------
-Warning: Deprecated output qualifier was used in relation J in file qualifiers.dl at line 13
-.decl J(x:number, y:number) eqrel brie output
-^---------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 13
-.decl J(x:number, y:number) eqrel brie output
-----------------------------------^-----------
-Warning: Deprecated output qualifier was used in relation K in file qualifiers.dl at line 14
-.decl K(x:number, y:number) eqrel btree output
-^----------------------------------------------
 Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 14
+.decl E(x:number, y:number) brie btree output
+---------------------------------^------------
+Warning: Deprecated output qualifier was used in relation F in file qualifiers.dl at line 15
+.decl F(x:number, y:number) brie eqrel output
+^---------------------------------------------
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 15
+.decl F(x:number, y:number) brie eqrel output
+---------------------------------^------------
+Warning: Deprecated output qualifier was used in relation G in file qualifiers.dl at line 16
+.decl G(x:number, y:number) btree brie output
+^---------------------------------------------
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 16
+.decl G(x:number, y:number) btree brie output
+----------------------------------^-----------
+Warning: Deprecated output qualifier was used in relation H in file qualifiers.dl at line 17
+.decl H(x:number, y:number) btree btree output
+^----------------------------------------------
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 17
+.decl H(x:number, y:number) btree btree output
+----------------------------------^------------
+Warning: Deprecated output qualifier was used in relation I in file qualifiers.dl at line 18
+.decl I(x:number, y:number) btree eqrel output
+^----------------------------------------------
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 18
+.decl I(x:number, y:number) btree eqrel output
+----------------------------------^------------
+Warning: Deprecated output qualifier was used in relation J in file qualifiers.dl at line 19
+.decl J(x:number, y:number) eqrel brie output
+^---------------------------------------------
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 19
+.decl J(x:number, y:number) eqrel brie output
+----------------------------------^-----------
+Warning: Deprecated output qualifier was used in relation K in file qualifiers.dl at line 20
+.decl K(x:number, y:number) eqrel btree output
+^----------------------------------------------
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 20
 .decl K(x:number, y:number) eqrel btree output
 ----------------------------------^------------
-Warning: Deprecated output qualifier was used in relation L in file qualifiers.dl at line 15
+Warning: Deprecated output qualifier was used in relation L in file qualifiers.dl at line 21
 .decl L(x:number, y:number) eqrel eqrel output
 ^----------------------------------------------
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 15
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 21
 .decl L(x:number, y:number) eqrel eqrel output
 ----------------------------------^------------
 9 errors generated, evaluation aborted

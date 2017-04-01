@@ -18,6 +18,7 @@
 #include "ReadStream.h"
 #include "SymbolMask.h"
 #include "SymbolTable.h"
+#include "Util.h"
 #ifdef USE_LIBZ
 #include "gzfstream.h"
 #endif
@@ -48,7 +49,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         if (file.eof()) {
             return nullptr;
         }
@@ -121,7 +122,7 @@ public:
         return tuple;
     }
 
-    virtual ~ReadStreamCSV() {}
+    ~ReadStreamCSV() override = default;
 
 private:
     const char delimiter;
@@ -137,7 +138,7 @@ public:
     ReadFileCSV(const std::string& filename, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             std::map<int, int> inputMap = std::map<int, int>(), char delimiter = '\t')
             : fileHandle(filename), readStream(fileHandle, symbolMask, symbolTable, inputMap, delimiter) {
-        baseName = extractBaseName(filename);
+        baseName = souffle::baseName(filename);
         if (!fileHandle.is_open()) {
             throw std::invalid_argument("Cannot open fact file " + baseName + "\n");
         }
@@ -148,7 +149,7 @@ public:
      * Returns nullptr if no tuple was readable.
      * @return
      */
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() {
+    std::unique_ptr<RamDomain[]> readNextTuple() override {
         try {
             return readStream.readNextTuple();
         } catch (std::exception& e) {
@@ -159,17 +160,9 @@ public:
         }
     }
 
-    virtual ~ReadFileCSV() {}
+    ~ReadFileCSV() override = default;
 
 private:
-    std::string extractBaseName(const std::string& filename) {
-        size_t pos = filename.find_last_of('/');
-        if (pos == std::string::npos) {
-            return filename;
-        }
-        return filename.substr(pos + 1);
-    }
-
     std::string baseName;
 #ifdef USE_LIBZ
     gzfstream::igzfstream fileHandle;
@@ -218,28 +211,24 @@ protected:
 
 class ReadCinCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(
-            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
         char delimiter = getDelimiter(ioDirectives);
         return std::unique_ptr<ReadStreamCSV>(
                 new ReadStreamCSV(std::cin, symbolMask, symbolTable, inputMap, delimiter));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
+        static const std::string name = "stdin";
         return name;
     }
-    virtual ~ReadCinCSVFactory() {}
-
-private:
-    static const std::string name;
+    ~ReadCinCSVFactory() override = default;
 };
-
-const std::string ReadCinCSVFactory::name = "stdin";
 
 class ReadFileCSVFactory : public ReadStreamFactory, public ReadCSVFactory {
 public:
-    std::unique_ptr<ReadStream> getReader(
-            const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives) {
+    std::unique_ptr<ReadStream> getReader(const SymbolMask& symbolMask, SymbolTable& symbolTable,
+            const IODirectives& ioDirectives) override {
         std::map<int, int> inputMap = getInputColumnMap(ioDirectives, symbolMask.getArity());
         char delimiter = getDelimiter(ioDirectives);
         std::string filename = ioDirectives.has("filename") ? ioDirectives.get("filename")
@@ -247,15 +236,12 @@ public:
         return std::unique_ptr<ReadFileCSV>(
                 new ReadFileCSV(filename, symbolMask, symbolTable, inputMap, delimiter));
     }
-    virtual const std::string& getName() const {
+    const std::string& getName() const override {
+        static const std::string name = "file";
         return name;
     }
-    virtual ~ReadFileCSVFactory() {}
 
-private:
-    static const std::string name;
+    ~ReadFileCSVFactory() override = default;
 };
-
-const std::string ReadFileCSVFactory::name = "file";
 
 } /* namespace souffle */

@@ -33,14 +33,14 @@ class AstTranslationUnit;
  */
 class AutoScheduleTransformer : public AstTransformer {
 private:
-    virtual bool transform(AstTranslationUnit& translationUnit);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
     AutoScheduleTransformer() {}
 
-    virtual ~AutoScheduleTransformer() {}
+    ~AutoScheduleTransformer() override = default;
 
-    virtual std::string getName() const {
+    std::string getName() const override {
         return "AutoScheduleTransformer";
     }
 
