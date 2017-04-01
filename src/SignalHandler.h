@@ -20,7 +20,6 @@
 #include <string>
 #include <assert.h>
 #include <signal.h>
-#include "ParallelUtils.h"
 
 namespace souffle {
 
@@ -32,14 +31,14 @@ namespace souffle {
 class SignalHandler {
 private:
     // signal context information
-    std::atomic<const char *> msg; 
+    std::atomic<const char*> msg;
 
 private:
     /**
      * Signal handler for various types of signals.
      */
     static void handler(int signal) {
-        const char *msg = instance()->msg;
+        const char* msg = instance()->msg;
         std::string error;
         switch (signal) {
             case SIGINT:
@@ -78,7 +77,7 @@ public:
     }
 
     // set signal message
-    void setMsg(const char *m) {
+    void setMsg(const char* m) {
         msg = m;
     }
 };
