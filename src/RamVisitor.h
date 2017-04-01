@@ -111,6 +111,7 @@ struct RamVisitor : public ram_visitor_tag {
             FORWARD(Parallel);
             FORWARD(Exit);
             FORWARD(LogTimer);
+            FORWARD(DebugInfo);
 
 #undef FORWARD
         }
@@ -153,6 +154,7 @@ protected:
     LINK(Parallel, Statement);
     LINK(Exit, Statement);
     LINK(LogTimer, Statement);
+    LINK(DebugInfo, Statement);
 
     LINK(Statement, Node);
 
@@ -278,7 +280,7 @@ struct is_visitor<const T> : public is_visitor<T> {};
 
 template <typename T>
 struct is_visitor<T&> : public is_visitor<T> {};
-}
+}  // namespace detail
 
 /**
  * A utility function visiting all nodes within the RAM fragment rooted by the given node

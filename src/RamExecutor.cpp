@@ -26,6 +26,7 @@
 #include "RamTranslator.h"
 #include "RamVisitor.h"
 #include "RuleScheduler.h"
+#include "SignalHandler.h"
 #include "TypeSystem.h"
 #include "UnaryFunctorOps.h"
 
@@ -169,7 +170,6 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                 }
                 case BinaryOp::DIV: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "Unsupported Operand! (division by zero)");
                     return visit(op.getLHS()) / rhs;
                 }
                 case BinaryOp::EXP: {
@@ -177,7 +177,6 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                 }
                 case BinaryOp::MOD: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "Unsupported Operand! (modulo by zero)");
                     return visit(op.getLHS()) % rhs;
                 }
                 case BinaryOp::BAND: {
@@ -689,6 +688,11 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
             return visit(timer.getNested());
         }
 
+        bool visitDebugInfo(const RamDebugInfo& dbg) {
+            SignalHandler::instance()->setMsg(dbg.getLabel());
+            return visit(dbg.getNested());
+        }
+
         bool visitCreate(const RamCreate& create) {
             env.getRelation(create.getRelation());
             return true;
@@ -814,7 +818,7 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
     // create and run interpreter
     Interpreter(env, executor, report, profile, data).visit(stmt);
 }
-}
+}  // namespace
 
 void RamGuidedInterpreter::applyOn(const RamStatement& stmt, RamEnvironment& env, RamData* data) const {
     if (Global::config().has("profile")) {
@@ -927,11 +931,11 @@ Order scheduleByModel(AstClause& clause, RamEnvironment& env, std::ostream* repo
     // done
     return res;
 }
-}
+}  // namespace
 
 /** With this strategy queries will be processed as they are stated by the user */
-const QueryExecutionStrategy DirectExecution = [](
-        const RamInsert& insert, RamEnvironment& env, std::ostream*) -> ExecutionSummary {
+const QueryExecutionStrategy DirectExecution = [](const RamInsert& insert, RamEnvironment& env,
+                                                       std::ostream*) -> ExecutionSummary {
     // measure the time
     auto start = now();
 
@@ -945,8 +949,8 @@ const QueryExecutionStrategy DirectExecution = [](
 };
 
 /** With this strategy queries will be dynamically rescheduled before each execution */
-const QueryExecutionStrategy ScheduledExecution = [](
-        const RamInsert& insert, RamEnvironment& env, std::ostream* report) -> ExecutionSummary {
+const QueryExecutionStrategy ScheduledExecution = [](const RamInsert& insert, RamEnvironment& env,
+                                                          std::ostream* report) -> ExecutionSummary {
 
     // Report scheduling
     // TODO: only re-schedule atoms (avoid cloning entire clause)
@@ -1122,11 +1126,13 @@ public:
         std::set<RamRelationIdentifier> input_relations;
         visitDepthFirst(insert, [&](const RamScan& scan) { input_relations.insert(scan.getRelation()); });
         if (!input_relations.empty()) {
-            out << "if (" << join(input_relations, "&&", [&](std::ostream& out,
-                                                                 const RamRelationIdentifier& rel) {
-                out << "!" << getRelationName(rel) << "->"
-                    << "empty()";
-            }) << ") ";
+            out << "if ("
+                << join(input_relations, "&&",
+                           [&](std::ostream& out, const RamRelationIdentifier& rel) {
+                               out << "!" << getRelationName(rel) << "->"
+                                   << "empty()";
+                           })
+                << ") ";
         }
 
         // outline each search operation to improve compilation time
@@ -1303,6 +1309,15 @@ public:
 
         // done
         out << "}\n";
+    }
+
+    void visitDebugInfo(const RamDebugInfo& dbg, std::ostream& out) {
+        out << "SignalHandler::instance()->setMsg(R\"(";
+        out << dbg.getLabel();
+        out << ")\");\n";
+
+        // insert statements of the rule
+        visit(dbg.getNested(), out);
     }
 
     // -- operations --
@@ -1892,7 +1907,7 @@ void genCode(std::ostream& out, const RamStatement& stmt, const IndexMap& indice
     // use printer
     Printer(indices).visit(stmt, out);
 }
-}
+}  // namespace
 
 std::string RamCompiler::resolveFileName() const {
     if (Global::config().get("dl-program") == "") {
@@ -1994,6 +2009,7 @@ std::string RamCompiler::generateCode(
     os << "#include \"souffle/CompiledSouffle.h\"\n";
     os << "\n";
     os << "namespace souffle {\n";
+    os << "SignalHandler *SignalHandler::m_singleton = nullptr;\n";
     os << "using namespace ram;\n";
 
     // print wrapper for regex

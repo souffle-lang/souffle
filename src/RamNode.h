@@ -63,8 +63,8 @@ enum RamNodeType {
     RN_Loop,
     RN_Parallel,
     RN_Exit,
-    RN_LogTimer
-
+    RN_LogTimer,
+    RN_DebugInfo
 };
 
 /**

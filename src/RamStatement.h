@@ -530,4 +530,42 @@ public:
     }
 };
 
+/** A statement logging the execution time of a statement */
+class RamDebugInfo : public RamStatement {
+    std::unique_ptr<const RamStatement> nested;
+    std::string label;
+
+public:
+    RamDebugInfo(std::unique_ptr<const RamStatement> stmt, const std::string& label)
+            : RamStatement(RN_DebugInfo), nested(std::move(stmt)), label(label) {
+        ASSERT(nested);
+    }
+
+    const std::string& getLabel() const {
+        return label;
+    }
+
+    const RamStatement& getNested() const {
+        return *nested;
+    }
+
+    virtual void print(std::ostream& os, int tabpos) const {
+        for (int i = 0; i < tabpos; ++i) {
+            os << '\t';
+        }
+        os << "BEGIN_DEBUG \"" << label << "\"\n";
+        nested->print(os, tabpos + 1);
+        os << "\n";
+        for (int i = 0; i < tabpos; ++i) {
+            os << '\t';
+        }
+        os << "END_DEBUG \"" << label << "\"";
+    }
+
+    /** Obtains a list of child nodes */
+    virtual std::vector<const RamNode*> getChildNodes() const {
+        return toVector<const RamNode*>(nested.get());
+    }
+};
+
 }  // end of namespace souffle

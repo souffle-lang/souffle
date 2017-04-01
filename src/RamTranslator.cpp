@@ -133,7 +133,7 @@ RamRelationIdentifier getRamRelationIdentifier(std::string name, unsigned arity,
             getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
             rel->isBrie(), rel->isEqRel(), rel->isData(), inputDirectives, outputDirectives, istemp);
 }
-}
+}  // namespace
 
 std::string RamTranslator::translateRelationName(const AstRelationIdentifier& id) {
     return getRelationName(id);
@@ -376,7 +376,7 @@ std::unique_ptr<RamValue> translateValue(const AstArgument* arg, const ValueInde
 std::unique_ptr<RamValue> translateValue(const AstArgument& arg, const ValueIndex& index = ValueIndex()) {
     return translateValue(&arg, index);
 }
-}
+}  // namespace
 
 /** generate RAM code for a clause */
 std::unique_ptr<RamStatement> RamTranslator::translateClause(
@@ -582,8 +582,8 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         for (size_t pos = 0; pos < atom->argSize(); ++pos) {
             if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                 op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                        std::unique_ptr<RamValue>(new RamElementAccess(
-                                level, pos, getRelation(atom).getArg(pos))),
+                        std::unique_ptr<RamValue>(
+                                new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
                         std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
             }
         }
@@ -614,14 +614,14 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
             for (size_t pos = 0; pos < atom->argSize(); ++pos) {
                 if (AstConstant* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                     op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
-                            std::unique_ptr<RamValue>(new RamElementAccess(
-                                    level, pos, getRelation(atom).getArg(pos))),
+                            std::unique_ptr<RamValue>(
+                                    new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
                             std::unique_ptr<RamValue>(new RamNumber(c->getIndex())))));
                 } else if (AstAggregator* agg = dynamic_cast<AstAggregator*>(atom->getArgument(pos))) {
                     auto loc = valueIndex.getAggregatorLocation(*agg);
-                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
-                            BinaryRelOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
-                                                     level, pos, getRelation(atom).getArg(pos))),
+                    op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
+                            std::unique_ptr<RamValue>(
+                                    new RamElementAccess(level, pos, getRelation(atom).getArg(pos))),
                             std::unique_ptr<RamValue>(
                                     new RamElementAccess(loc.level, loc.component, loc.name)))));
                 }
@@ -655,9 +655,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         // all other appearances
         for (const Location& loc : cur.second) {
             if (first != loc) {
-                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(
-                        BinaryRelOp::EQ, std::unique_ptr<RamValue>(new RamElementAccess(
-                                                 first.level, first.component, first.name)),
+                op->addCondition(std::unique_ptr<RamCondition>(new RamBinaryRelation(BinaryRelOp::EQ,
+                        std::unique_ptr<RamValue>(
+                                new RamElementAccess(first.level, first.component, first.name)),
                         std::unique_ptr<RamValue>(
                                 new RamElementAccess(loc.level, loc.component, loc.name)))));
             }
@@ -746,6 +746,12 @@ std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const
                     std::unique_ptr<RamStatement>(new RamLogSize(rrel, "@n-" + label))));
         }
 
+        // add debug info
+        std::ostringstream ds;
+        ds << toString(*clause) << "\nin file ";
+        ds << clause->getSrcLoc();
+        rule = std::unique_ptr<RamStatement>(new RamDebugInfo(std::move(rule), ds.str()));
+
         // add rule to result
         appendStmt(res, std::move(rule));
     }
@@ -808,7 +814,7 @@ void nameUnnamedVariables(AstClause* clause) {
         atom->apply(init);
     }
 }
-}
+}  // namespace
 
 /** generate RAM code for recursive relations in a strongly-connected component */
 std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
@@ -816,7 +822,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
         const RecursiveClauses* recursiveClauses, const TypeEnvironment& typeEnv) {
     // initialize sections
     std::unique_ptr<RamStatement> preamble;
-    std::unique_ptr<RamSequence> updateTable1(new RamSequence());
+    std::unique_ptr<RamSequence> updateTable(new RamSequence());
     std::unique_ptr<RamStatement> postamble;
 
     // --- create preamble ---
@@ -829,7 +835,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
     /* Compute non-recursive clauses for relations in scc and push
        the results in their delta tables. */
     for (const AstRelation* rel : scc) {
-        std::unique_ptr<RamStatement> updateRelTable1;
+        std::unique_ptr<RamStatement> updateRelTable;
 
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
@@ -839,18 +845,18 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
         relNew[rel] = getRamRelationIdentifier("new_" + relName, rel->getArity(), rel, &typeEnv, true);
 
         /* create update statements for fixpoint (even iteration) */
-        appendStmt(updateRelTable1,
-                std::unique_ptr<RamStatement>(new RamSequence(
-                        std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
-                        std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
-                        std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
+        appendStmt(updateRelTable,
+                std::unique_ptr<RamStatement>(
+                        new RamSequence(std::unique_ptr<RamStatement>(new RamMerge(rrel[rel], relNew[rel])),
+                                std::unique_ptr<RamStatement>(new RamSwap(relDelta[rel], relNew[rel])),
+                                std::unique_ptr<RamStatement>(new RamClear(relNew[rel])))));
 
         /* measure update time for each relation */
         if (logging) {
             std::ostringstream ost, osn;
             ost << "@c-recursive-relation;" << rel->getName() << ";" << rel->getSrcLoc() << ";";
-            updateRelTable1 =
-                    std::unique_ptr<RamStatement>(new RamLogTimer(std::move(updateRelTable1), ost.str()));
+            updateRelTable =
+                    std::unique_ptr<RamStatement>(new RamLogTimer(std::move(updateRelTable), ost.str()));
         }
 
         /* drop temporary tables after recursion */
@@ -865,20 +871,21 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
         appendStmt(preamble, std::unique_ptr<RamStatement>(new RamMerge(relDelta[rel], rrel[rel])));
 
         /* Add update operations of relations to parallel statements */
-        updateTable1->add(std::move(updateRelTable1));
+        updateTable->add(std::move(updateRelTable));
     }
 
     // --- build main loop ---
 
-    std::unique_ptr<RamParallel> loopSeq1(new RamParallel());
+    std::unique_ptr<RamParallel> loopSeq(new RamParallel());
 
     // create a utility to check SCC membership
-    auto isInSameSCC = [&](
-            const AstRelation* rel) { return std::find(scc.begin(), scc.end(), rel) != scc.end(); };
+    auto isInSameSCC = [&](const AstRelation* rel) {
+        return std::find(scc.begin(), scc.end(), rel) != scc.end();
+    };
 
     /* Compute temp for the current tables */
     for (const AstRelation* rel : scc) {
-        std::unique_ptr<RamStatement> loopRelSeq1;
+        std::unique_ptr<RamStatement> loopRelSeq;
 
         /* Find clauses for relation rel */
         for (size_t i = 0; i < rel->clauseSize(); i++) {
@@ -922,7 +929,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
                     }
                 }
 
-                std::unique_ptr<RamStatement> rule1 = translateClause(*r1, program, &typeEnv, version);
+                std::unique_ptr<RamStatement> rule = translateClause(*r1, program, &typeEnv, version);
 
                 /* add logging */
                 if (logging) {
@@ -933,13 +940,19 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
                     line << cl->getSrcLoc() << ";";
                     line << clauseText << ";";
                     std::string label = line.str();
-                    rule1 = std::unique_ptr<RamStatement>(new RamSequence(
-                            std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule1), "@t-" + label)),
+                    rule = std::unique_ptr<RamStatement>(new RamSequence(
+                            std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule), "@t-" + label)),
                             std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label))));
                 }
 
+                // add debug info
+                std::ostringstream ds;
+                ds << toString(*cl) << "\nin file ";
+                ds << cl->getSrcLoc();
+                rule = std::unique_ptr<RamStatement>(new RamDebugInfo(std::move(rule), ds.str()));
+
                 // add to loop body
-                appendStmt(loopRelSeq1, std::move(rule1));
+                appendStmt(loopRelSeq, std::move(rule));
 
                 // increment version counter
                 version++;
@@ -948,7 +961,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
         }
 
         // if there was no rule, continue
-        if (!loopRelSeq1) {
+        if (!loopRelSeq) {
             continue;
         }
 
@@ -957,14 +970,12 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
             std::ostringstream line;
             line << "recursive-relation;" << rel->getName() << ";" << rel->getSrcLoc() << ";";
             std::string label = line.str();
-            loopRelSeq1 =
-                    std::unique_ptr<RamStatement>(new RamLogTimer(std::move(loopRelSeq1), "@t-" + label));
-            appendStmt(
-                    loopRelSeq1, std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label)));
+            loopRelSeq = std::unique_ptr<RamStatement>(new RamLogTimer(std::move(loopRelSeq), "@t-" + label));
+            appendStmt(loopRelSeq, std::unique_ptr<RamStatement>(new RamLogSize(relNew[rel], "@n-" + label)));
         }
 
         /* add rule computations of a relation to parallel statement */
-        loopSeq1->add(std::move(loopRelSeq1));
+        loopSeq->add(std::move(loopRelSeq));
     }
 
     /* construct exit conditions for odd and even iteration */
@@ -973,16 +984,15 @@ std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
                        : std::move(clause));
     };
 
-    std::unique_ptr<RamCondition> exitCond1;
+    std::unique_ptr<RamCondition> exitCond;
     for (const AstRelation* rel : scc) {
-        addCondition(exitCond1, std::unique_ptr<RamCondition>(new RamEmpty(relNew[rel])));
+        addCondition(exitCond, std::unique_ptr<RamCondition>(new RamEmpty(relNew[rel])));
     }
 
     /* construct fixpoint loop  */
     return std::unique_ptr<RamStatement>(new RamSequence(std::move(preamble),
-            std::unique_ptr<RamStatement>(new RamLoop(std::move(loopSeq1),
-                    std::unique_ptr<RamStatement>(new RamExit(std::move(exitCond1))),
-                    std::move(updateTable1))),
+            std::unique_ptr<RamStatement>(new RamLoop(std::move(loopSeq),
+                    std::unique_ptr<RamStatement>(new RamExit(std::move(exitCond))), std::move(updateTable))),
             std::move(postamble)));
 
     assert(false && "Not Implemented");

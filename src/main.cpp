@@ -30,6 +30,7 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 #include "RamTranslator.h"
+#include "SignalHandler.h"
 #include "SymbolTable.h"
 #include "Util.h"
 
@@ -50,6 +51,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+SignalHandler* SignalHandler::m_singleton = nullptr;
 
 namespace souffle {
 
