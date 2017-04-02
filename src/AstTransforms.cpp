@@ -754,18 +754,57 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
 
 bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
+
+    auto relationToTypeMap = std::map<AstRelationIdentifier, AstTypeIdentifier>();
     
     auto program = translationUnit.getProgram();
-    for (auto r : program->getRelations()) {
-        // std::unique_ptr<AstRecordType> new_type = AstRecordType(); 
-        std::cout << r->getRelationName() << std::endl;
-        for (auto a : r->getAttributes()) {
-            std::cout << a->getAttributeName() << std::endl;
+    for (const auto relation : program->getRelations()) {
+        
+        std::stringstream relationNameStream;
+        relationNameStream << relation;
+        std::string relationName = relationNameStream.str();
+
+        std::cout << relation << std::endl;
+
+        // make a new record type for each relation
+        auto newRecordType = std::unique_ptr<AstRecordType>(new AstRecordType());
+        newRecordType->setName(relationName + "_type");
+        relationToTypeMap[relation->getName()] = newRecordType->getName();
+
+        // set attributes for record
+        for (auto attribute : relation->getAttributes()) {
+            newRecordType->add(attribute->getAttributeName(), attribute->getTypeName());
         }
-        // program->addType(new_type);
-    }
-    for (auto r : translationUnit.getProgram() -> getRelations()) {
-        std::cout << r -> getQualifier() << std::endl;
+        newRecordType->print(std::cout);
+        std::cout << std::endl;
+        program->addType(std::move(newRecordType));
+
+        for (size_t i = 0; i < relation->getClauses().size(); ++i) {
+            const auto clause = relation->getClauses()[i];
+
+            // create new relation for each clause
+            auto newProvenanceRelation = std::unique_ptr<AstRelation>(new AstRelation());
+            newProvenanceRelation->setName(*(new AstRelationIdentifier(relationName +
+                            "_new_" + std::to_string(i))));
+
+            // create new clause for each new relation
+            auto newClause = std::unique_ptr<AstClause>(new AstClause());
+            newClause->setHead(std::unique_ptr<AstAtom>(new AstAtom(
+                            newProvenanceRelation->getName())));
+            newClause->print(std::cout);
+            std::cout << std::endl;
+            newProvenanceRelation->addClause(std::move(newClause));
+
+            // add appropriate attributes corresponding to atoms in body of clause
+            for (size_t j = 0; j < clause->getAtoms().size(); ++j) {
+                auto atom = clause->getAtoms()[j];
+                auto newAttrType = relationToTypeMap[atom->getName()];
+                auto newAttribute = std::unique_ptr<AstAttribute>(new AstAttribute(std::to_string(j), newAttrType));
+                newProvenanceRelation->addAttribute(std::move(newAttribute));
+            }
+            std::cout << *newProvenanceRelation << std::endl;
+        }
+
     }
     return false;
 }
