@@ -33,7 +33,6 @@ private:
     // signal context information
     std::atomic<const char*> msg;
 
-private:
     /**
      * Signal handler for various types of signals.
      */
@@ -62,7 +61,7 @@ private:
         exit(1);
     }
 
-    SignalHandler() {
+    SignalHandler() : msg(nullptr) {
         // register signals
         signal(SIGFPE, handler);   // floating point exception
         signal(SIGINT, handler);   // user interrupts

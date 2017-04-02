@@ -30,7 +30,6 @@
 #include "RamExecutor.h"
 #include "RamStatement.h"
 #include "RamTranslator.h"
-#include "SignalHandler.h"
 #include "SymbolTable.h"
 #include "Util.h"
 
