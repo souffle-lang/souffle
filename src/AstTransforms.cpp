@@ -752,6 +752,81 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     return changed;
 }
 
+std::unique_ptr<AstType> ProvenanceRecordTransformer::makeNewRecordType(const AstRelation& relation) {
+    std::stringstream relationName;
+    relationName << relation.getName();
+    
+    // make a new record type for each relation
+    auto newRecordType = std::unique_ptr<AstRecordType>(new AstRecordType());
+    newRecordType->setName(relationName.str() + "_type");
+    
+    // set attributes for record
+    for (auto attribute : relation.getAttributes()) {
+        newRecordType->add(attribute->getAttributeName(), attribute->getTypeName());
+    }
+
+    std::cout << *newRecordType << std::endl;
+    
+    return std::move(newRecordType);
+}
+
+std::unique_ptr<AstRecordInit> ProvenanceRecordTransformer::makeNewRecordInit(const std::vector<AstArgument*> args) {
+    auto newRecordInit = std::unique_ptr<AstRecordInit>(new AstRecordInit());
+    for (auto arg : args) {
+        newRecordInit->add(std::unique_ptr<AstArgument>(arg->clone()));
+    }
+    return newRecordInit;
+}
+
+std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewRelation(
+            const AstClause& clause,
+            AstRelationIdentifier& name,
+            const std::vector<AstTypeIdentifier> types) {
+    
+    // create new relation
+    auto newRelation = std::unique_ptr<AstRelation>(new AstRelation());
+    newRelation->setName(name);
+    
+    // add attributes to new relation
+    for (size_t i = 0; i < types.size(); ++i) {
+        newRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::to_string(i), types[i])));
+    }
+    
+    // new clause for newRelation corresponding to original clause
+    auto newRelationClause = std::unique_ptr<AstClause>(new AstClause());
+    
+    // add head to newRelationClause
+    auto newRelationClauseHead = std::unique_ptr<AstAtom>(new AstAtom(name));
+    newRelationClauseHead->addArgument(makeNewRecordInit(clause.getHead()->getArguments()));
+    
+    // for each literal in the body of clause, add corresponding argument to head, and literal to body of newClause
+    for (auto literal : clause.getBodyLiterals()) {
+        if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
+            // make and add new argument to newClauseHead
+            newRelationClauseHead->addArgument(makeNewRecordInit(atom->getArguments()));
+
+            // make and add new literals to body of newClause
+            std::stringstream newLiteralIdentifier;
+            newLiteralIdentifier << atom->getName() << "_new";
+            auto newLiteral = std::unique_ptr<AstAtom>(new AstAtom(*(new AstRelationIdentifier(newLiteralIdentifier.str()))));
+            std::unique_ptr<AstRecordInit> newRecordArgument = makeNewRecordInit(atom->getArguments());
+            newLiteral->addArgument(std::move(newRecordArgument));
+            newRelationClause->addToBody(std::move(newLiteral));
+        } else if (AstConstraint* constraint = dynamic_cast<AstConstraint*>(literal)) {
+            newRelationClause->addToBody(std::unique_ptr<AstLiteral>(constraint->clone()));
+        }
+    }
+    
+    newRelationClause->setHead(std::move(newRelationClauseHead));
+
+    std::cout << *newRelation << std::endl;
+    std::cout << *newRelationClause << std::endl;
+    
+    newRelation->addClause(std::move(newRelationClause));
+    
+    return newRelation;
+}
+
 bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
 
@@ -763,83 +838,50 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
         std::stringstream relationNameStream;
         relationNameStream << relation;
         std::string relationName = relationNameStream.str();
-
+        
         std::cout << relation << std::endl;
-
-        // make a new record type for each relation
-        auto newRecordType = std::unique_ptr<AstRecordType>(new AstRecordType());
-        newRecordType->setName(relationName + "_type");
+        
+        std::unique_ptr<AstType> newRecordType = makeNewRecordType(*relation);
         relationToTypeMap[relation->getName()] = newRecordType->getName();
-
-        // set attributes for record
-        for (auto attribute : relation->getAttributes()) {
-            newRecordType->add(attribute->getAttributeName(), attribute->getTypeName());
-        }
-        newRecordType->print(std::cout);
-        std::cout << std::endl;
 
         auto newRelation = std::unique_ptr<AstRelation>(new AstRelation());
         newRelation->setName(*(new AstRelationIdentifier(relationName + "_new")));
         newRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("0"), newRecordType->getName())));
-        newRelation->print(std::cout);
-        std::cout << std::endl;
-
-        // add everything to program
-        program->addType(std::move(newRecordType));
-
-        for (size_t i = 0; i < relation->getClauses().size(); ++i) {
-            const auto clause = relation->getClauses()[i];
-
-            // create new relation for each clause
-            auto newProvenanceRelation = std::unique_ptr<AstRelation>(new AstRelation());
-            newProvenanceRelation->setName(*(new AstRelationIdentifier(relationName +
-                            "_new_" + std::to_string(i))));
-
-            // add appropriate attributes corresponding to atoms in body of clause
-            // attribute corresponding to original type
-            auto newAttributeHead = std::unique_ptr<AstAttribute>(new AstAttribute(std::string("0"), relationToTypeMap[relation->getName()]));
-            newProvenanceRelation->addAttribute(std::move(newAttributeHead));
-            // attributes for provenance
-            for (size_t j = 0; j < clause->getAtoms().size(); ++j) {
-                const auto atom = clause->getAtoms()[j];
-                auto newAttribute = std::unique_ptr<AstAttribute>(new AstAttribute(std::to_string(j + 1), relationToTypeMap[atom->getName()]));
-                newProvenanceRelation->addAttribute(std::move(newAttribute));
-            }
-            std::cout << *newProvenanceRelation << std::endl;
-            
-            // create new clause for each new relation
+        
+        // add clause for newRelation
+        std::cout << "lol " << relation << std::endl;
+        if (relation->isInput()) {
             auto newClause = std::unique_ptr<AstClause>(new AstClause());
-            auto newClauseHead = std::unique_ptr<AstAtom>(new AstAtom(newProvenanceRelation->getName()));
-            // add original relation argument as first record argument
-            auto newHeadRecordArgument = std::unique_ptr<AstRecordInit>(new AstRecordInit());
-            for (auto argument : clause->getHead()->getArguments()) {
-                newHeadRecordArgument->add(std::unique_ptr<AstArgument>(argument->clone()));
-            }
-            newClauseHead->addArgument(std::move(newHeadRecordArgument));
-            // for each literal in the body of clause, add corresponding literal to body of newClause
-            for (auto literal : clause->getBodyLiterals()) {
-                if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
-                    // make and add new argument to newClauseHead
-                    auto newRecordArgument = std::unique_ptr<AstRecordInit>(new AstRecordInit());
-                    for (auto argument : atom->getArguments()) {
-                        newRecordArgument->add(std::unique_ptr<AstArgument>(argument->clone()));
-                    }
-                    newClauseHead->addArgument(std::unique_ptr<AstArgument>(newRecordArgument->clone()));
+            
+            // make head of newClause
+            auto newHead = std::unique_ptr<AstAtom>(new AstAtom(newRelation->getName()));
+            // auto newHeadArgument = makeNewRecordInit(relation->);
+            newHead->addArgument(newHeadArgument);
+            newClause->setHead(std::move(newHead));
 
-                    // make and add new literals to body of newClause
-                    std::stringstream newLiteralIdentifier;
-                    newLiteralIdentifier << atom->getName() << "_new";
-                    auto newLiteral = std::unique_ptr<AstAtom>(new AstAtom(*(new AstRelationIdentifier(newLiteralIdentifier.str()))));
-                    newLiteral->addArgument(std::move(newRecordArgument));
-                    newClause->addToBody(std::move(newLiteral));
-                }
-            }
-            newClause->setHead(std::move(newClauseHead));
             newClause->print(std::cout);
             std::cout << std::endl;
-            newProvenanceRelation->addClause(std::move(newClause));
+            newRelation->addClause(std::move(newClause));
         }
+        std::cout << *newRelation << std::endl;
+        
+        for (size_t i = 0; i < relation->getClauses().size(); ++i) {
+            const auto clause = relation->getClauses()[i];
+            std::vector<AstTypeIdentifier> types;
+            
+            types.push_back(newRecordType->getName());
+            for (auto literal : clause->getBodyLiterals()) {
+                if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
+                    types.push_back(relationToTypeMap[atom->getName()]);
+                }
+            }
+
+            // create new relation for each clause
+            auto newProvenanceRelation = makeNewRelation(*clause, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i))), types);
+        }
+
+        
     }
-    return false;
+    return changed;
 }
 }  // end of namespace souffle

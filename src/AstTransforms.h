@@ -184,6 +184,33 @@ public:
 class ProvenanceRecordTransformer : public AstTransformer {
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
+    
+    /**
+     * Add new record type for each relation
+     * 
+     * @param relation the relation to base new record type off
+     * @return new record type
+     */
+    static std::unique_ptr<AstType> makeNewRecordType(const AstRelation& relation);
+
+    /**
+     * Make new AstRecordInit (AstArgument) with given arguments
+     * 
+     * @param args the arguments of the record init
+     * @return new record init
+     */
+    static std::unique_ptr<AstRecordInit> makeNewRecordInit(const std::vector<AstArgument*> args);
+    
+    /**
+     * Add new relation type for each clause of an existing relation
+     * 
+     * @param clause the clause to base new relation off
+     * @param name the name of the new relation
+     * @param types the types of the new relation
+     * @return new relation
+     */
+    static std::unique_ptr<AstRelation> makeNewRelation(
+                const AstClause& clause, AstRelationIdentifier& name, const std::vector<AstTypeIdentifier> types);
 public:
     std::string getName() const override {
         return "ProvenanceRecordTransformer";
