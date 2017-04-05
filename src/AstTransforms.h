@@ -211,6 +211,7 @@ private:
      */
     static std::unique_ptr<AstRelation> makeNewRelation(
                 const AstClause& clause, AstRelationIdentifier& name, const std::vector<AstTypeIdentifier> types);
+
 public:
     std::string getName() const override {
         return "ProvenanceRecordTransformer";

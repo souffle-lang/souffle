@@ -249,7 +249,6 @@ int main(int argc, char** argv) {
 
     std::vector<std::unique_ptr<AstTransformer>> transforms;
     // Add provenance information by transforming to records
-    transforms.push_back(std::unique_ptr<AstTransformer>(new ProvenanceRecordTransformer()));
 
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
@@ -265,6 +264,7 @@ int main(int argc, char** argv) {
     if (Global::config().has("auto-schedule")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));
     }
+    transforms.push_back(std::unique_ptr<AstTransformer>(new ProvenanceRecordTransformer()));
     if (!Global::config().get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::string runtimeStr =
