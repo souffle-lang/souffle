@@ -871,6 +871,8 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             newRelation->addClause(std::move(newClause));
         } // else, we add a new clause for each existing clause
         
+        program->addType(std::move(newRecordType));
+
         for (size_t i = 0; i < relation->getClauses().size(); ++i) {
             const auto clause = relation->getClauses()[i];
             std::vector<AstTypeIdentifier> types;
@@ -899,13 +901,14 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             std::cout << *newRelationClause << std::endl;
             newRelation->addClause(std::move(newRelationClause));
 
-            program->addRelation(std::move(newProvenanceRelation));
+            // program->addRelation(std::move(newProvenanceRelation));
         }
 
         std::cout << *newRelation << std::endl;
 
-        program->addType(std::move(newRecordType));
-        program->addRelation(std::move(newRelation));
+        // program->addRelation(std::move(newRelation));
+
+        changed = true;
     }
     return changed;
 }
