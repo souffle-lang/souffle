@@ -61,6 +61,7 @@ private:
         exit(1);
     }
 
+
     SignalHandler() : msg(nullptr) {
         // register signals
         signal(SIGFPE, handler);   // floating point exception
@@ -79,6 +80,19 @@ public:
     void setMsg(const char* m) {
         msg = m;
     }
+
+    /*** 
+     * error handling routine that prints the rule context. 
+     */ 
+
+    void error(const std::string &error) { 
+        if (msg != nullptr) {
+            std::cerr << error << " in rule:\n" << msg << std::endl;
+        } else {
+            std::cerr << error << std::endl;
+        }
+        exit(1);
+    } 
 };
 
 }  // namespace souffle
