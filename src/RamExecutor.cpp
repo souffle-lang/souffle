@@ -1361,13 +1361,15 @@ public:
             } else if (scan.getLevel() == 0) {
                 // make this loop parallel
                 out << "pfor(auto it = part.begin(); it<part.end(); ++it) \n";
-                out << "for(const auto& env0 : *it) {\n";
+                out << "try{for(const auto& env0 : *it) {\n";
+                visitSearch(scan, out);
+                out << "}} catch(std::exception &e) { SignalHandler::instance()->error(e.what());}\n";
             } else {
                 out << "for(const auto& env" << level << " : "
                     << "*" << relName << ") {\n";
+                visitSearch(scan, out);
+                out << "}\n";
             }
-            visitSearch(scan, out);
-            out << "}\n";
             return;
         }
 
@@ -2285,7 +2287,7 @@ std::string RamCompiler::generateCode(
     os << "}\n";
     os << "#else\n";
     os << "}\n";
-    os << "int main(int argc, char** argv)\n{\n";
+    os << "int main(int argc, char** argv)\n{try{\n";
 
     // parse arguments
     os << "souffle::CmdOptions opt(";
@@ -2319,7 +2321,7 @@ std::string RamCompiler::generateCode(
     os << "obj.run();\n";
     os << "obj.printAll(opt.getOutputFileDir());\n";
     os << "return 0;\n";
-    os << "}\n";
+    os << "}catch(std::exception &e) { souffle::SignalHandler::instance()->error(e.what());}}\n";
     os << "#endif\n";
 
     // close source file
