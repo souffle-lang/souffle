@@ -871,7 +871,6 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             newRelation->addClause(std::move(newClause));
         } // else, we add a new clause for each existing clause
         
-        program->addType(std::move(newRecordType));
 
         for (size_t i = 0; i < relation->getClauses().size(); ++i) {
             const auto clause = relation->getClauses()[i];
@@ -894,20 +893,28 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             auto newRelationClauseBody = std::unique_ptr<AstAtom>(new AstAtom(newProvenanceRelation->getName()));
             newRelationClauseBody->addArgument(std::unique_ptr<AstArgument>(new AstVariable(std::string("x"))));
             for (auto literal : clause->getBodyLiterals()) {
-                newRelationClauseBody->addArgument(std::unique_ptr<AstArgument>(new AstUnnamedVariable()));
+                if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
+                    newRelationClauseBody->addArgument(std::unique_ptr<AstArgument>(new AstUnnamedVariable()));
+                }
             }
             newRelationClause->setHead(std::move(newRelationClauseHead));
             newRelationClause->addToBody(std::move(newRelationClauseBody));
             std::cout << *newRelationClause << std::endl;
             newRelation->addClause(std::move(newRelationClause));
 
-            // program->addRelation(std::move(newProvenanceRelation));
+            newProvenanceRelation->setQualifier(OUTPUT_RELATION);
+            program->appendRelation(std::move(newProvenanceRelation));
         }
 
         std::cout << *newRelation << std::endl;
 
-        // program->addRelation(std::move(newRelation));
+        program->addType(std::move(newRecordType));
+        newRelation->setQualifier(OUTPUT_RELATION);
+        program->appendRelation(std::move(newRelation));
 
+        if (!relation->isInput()) {
+            program->removeRelation(relation->getName());
+        }
         changed = true;
     }
     return changed;
