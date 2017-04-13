@@ -118,6 +118,7 @@ int main(int argc, char** argv) {
                             {"bddbddb", 'b', "FILE", "", false, "Convert input into bddbddb file format."},
                             {"debug-report", 'r', "FILE", "", false,
                                     "Write debugging output to HTML report."},
+                            {"provenance", 't', "", "", false, "Enable provenance information."},
                             {"verbose", 'v', "", "", false, "Verbose output."},
                             {"help", 'h', "", "", false, "Display this help message."}};
                     return std::vector<MainOption>(std::begin(opts), std::end(opts));
@@ -264,7 +265,9 @@ int main(int argc, char** argv) {
     if (Global::config().has("auto-schedule")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));
     }
-    transforms.push_back(std::unique_ptr<AstTransformer>(new ProvenanceRecordTransformer()));
+    if (Global::config().has("provenance")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new ProvenanceRecordTransformer()));
+    }
     if (!Global::config().get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
         std::string runtimeStr =
