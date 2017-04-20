@@ -208,7 +208,9 @@ dnl Defines all possible Souffle flag configurations for testing.
 dnl NOTE: This is the default configuration that can be overridden
 dnl using SOUFFLE_CONFS environment variable.
 m4_define([DEFAULT_CONFS], [[], dnl interpreter
+ [-t],
  [-c],                  dnl compilation
+ [-c -t],
  [-j8],                 dnl interpreter / parallel execution
  [-c -j8],              dnl compilation & parallel execution
  [--auto-schedule -o testprog],  dnl auto-scheduling & compilation
