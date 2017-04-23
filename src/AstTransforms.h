@@ -212,6 +212,16 @@ private:
     static std::unique_ptr<AstRelation> makeNewRelation(
                 const AstClause& clause, AstRelationIdentifier& name, const std::vector<AstTypeIdentifier> types);
 
+    /**
+     * Add new info relation for each rule, storing names and arities
+     * of body atoms
+     *
+     * @param original the original relation
+     * @param name the name of the new relation
+     * @return new info relation
+     */
+    static std::unique_ptr<AstRelation> makeNewInfoRelation(const AstClause& original, SymbolTable& symtable, AstRelationIdentifier& name);
+
 public:
     std::string getName() const override {
         return "ProvenanceRecordTransformer";
