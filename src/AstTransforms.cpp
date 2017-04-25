@@ -851,8 +851,6 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(co
         if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
             const char* relName = atom->getName().getNames()[0].c_str();
             symtable.insert(relName);
-            symtable.print(std::cout);
-            std::cout << std::endl;
             newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstStringConstant(symtable, relName)));
             newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(atom->getArity())));
         }
@@ -894,6 +892,8 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
         auto newRelation = std::unique_ptr<AstRelation>(new AstRelation());
         newRelation->setName(*(new AstRelationIdentifier(relationName + "_new")));
         newRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("0"), newRecordType->getName())));
+
+        program->addType(std::move(newRecordType));
         
         // add clause for newRelation
         if (relation->isInput()) {
@@ -929,7 +929,7 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
 
             std::vector<AstTypeIdentifier> types;
             
-            types.push_back(newRecordType->getName());
+            types.push_back(relationToTypeMap[relation->getName()]);
             for (auto literal : clause->getBodyLiterals()) {
                 if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
                     types.push_back(relationToTypeMap[atom->getName()]);
@@ -963,7 +963,7 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             newOutputRelation->setName(newOutputRelationName);
 
             for (size_t j = 0; j < newProvenanceRelation->getArity(); j++) {
-                auto attr = newProvenanceRelation->getAttribute(i);
+                auto attr = newProvenanceRelation->getAttribute(j);
                 const AstType* type = program->getType(attr->getTypeName());
                 if (auto recordType = dynamic_cast<const AstRecordType*>(type)) {
                     for (size_t k = 0; k < recordType->getFields().size(); k++) {
@@ -1005,7 +1005,6 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
 
         std::cout << *newRelation << std::endl;
 
-        program->addType(std::move(newRecordType));
         newRelation->setQualifier(OUTPUT_RELATION);
         program->appendRelation(std::move(newRelation));
 
