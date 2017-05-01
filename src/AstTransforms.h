@@ -191,7 +191,7 @@ private:
      * @param relation the relation to base new record type off
      * @return new record type
      */
-    static std::unique_ptr<AstType> makeNewRecordType(const AstRelation& relation);
+    static std::unique_ptr<AstRecordType> makeNewRecordType(const AstRelation& relation);
 
     /**
      * Make new AstRecordInit (AstArgument) with given arguments

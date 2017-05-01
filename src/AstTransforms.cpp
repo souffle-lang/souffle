@@ -752,7 +752,7 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
     return changed;
 }
 
-std::unique_ptr<AstType> ProvenanceRecordTransformer::makeNewRecordType(const AstRelation& relation) {
+std::unique_ptr<AstRecordType> ProvenanceRecordTransformer::makeNewRecordType(const AstRelation& relation) {
     std::stringstream relationName;
     relationName << relation.getName();
     
@@ -886,14 +886,13 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
         
         std::cout << relation << std::endl;
         
-        std::unique_ptr<AstType> newRecordType = makeNewRecordType(*relation);
+        std::unique_ptr<AstRecordType> newRecordType = makeNewRecordType(*relation);
         relationToTypeMap[relation->getName()] = newRecordType->getName();
 
         auto newRelation = std::unique_ptr<AstRelation>(new AstRelation());
         newRelation->setName(*(new AstRelationIdentifier(relationName + "_new")));
         newRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("0"), newRecordType->getName())));
 
-        program->addType(std::move(newRecordType));
         
         // add clause for newRelation
         if (relation->isInput()) {
@@ -956,7 +955,7 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             newRelation->addClause(std::move(newRelationClause));
 
             newProvenanceRelation->setQualifier(OUTPUT_RELATION);
-
+            /*
             // create new output relation from newProvenanceRelation
             auto newOutputRelation = std::unique_ptr<AstRelation>(new AstRelation());
             auto newOutputRelationName = *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_output"));
@@ -972,7 +971,7 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
                     }
                 }
             }
-            
+             
             // add new clause for output relation derived from provenance relation
             auto newOutputRelationClause = std::unique_ptr<AstClause>(new AstClause());
             auto newOutputRelationHead = std::unique_ptr<AstAtom>(new AstAtom());
@@ -997,13 +996,51 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             
             newOutputRelation->print(std::cout);
             std::cout << std::endl;
-
+            */
             // add new relations to program
             program->appendRelation(std::move(newProvenanceRelation));
-            program->appendRelation(std::move(newOutputRelation));
+            // program->appendRelation(std::move(newOutputRelation));
         }
 
         std::cout << *newRelation << std::endl;
+
+        auto newOutputRelation = std::unique_ptr<AstRelation>(new AstRelation());
+        auto newOutputRelationName = new AstRelationIdentifier(relationName + "_output");
+        newOutputRelation->setName(*newOutputRelationName);
+        newOutputRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("x"), newRecordType->getName())));
+
+        auto newOutputRelationClause = std::unique_ptr<AstClause>(new AstClause());
+        auto newOutputRelationHead = std::unique_ptr<AstAtom>(new AstAtom());
+        newOutputRelationHead->setName(*newOutputRelationName);
+        newOutputRelationHead->addArgument(std::unique_ptr<AstArgument>(new AstVariable(std::string("x"))));
+
+        auto newOutputRelationBody = std::unique_ptr<AstAtom>(newRelation->getClause(0)->getHead()->clone());
+        auto recordInitArgs = std::vector<AstArgument*>();
+
+        for (size_t j = 0; j < newRecordType->getFields().size(); j++) {
+            auto field = newRecordType->getFields()[j].type;
+            newOutputRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute("x_" + std::to_string(j), field)));
+            newOutputRelationHead->addArgument(std::unique_ptr<AstArgument>(new AstVariable("x_" + std::to_string(j))));
+            recordInitArgs.push_back(dynamic_cast<AstArgument*>(new AstVariable("x_" + std::to_string(j))));
+        }
+
+        auto newOutputRelationConstraint = std::unique_ptr<AstConstraint>(new AstConstraint(
+                    BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>(new AstVariable(std::string("x"))), makeNewRecordInit(recordInitArgs)));
+
+        newOutputRelationClause->setHead(std::move(newOutputRelationHead));
+        newOutputRelationClause->addToBody(std::move(newOutputRelationBody));
+        newOutputRelationClause->addToBody(std::move(newOutputRelationConstraint));
+
+        newOutputRelationClause->print(std::cout);
+        std::cout << std::endl;
+
+        newOutputRelation->addClause(std::move(newOutputRelationClause));
+        newOutputRelation->print(std::cout);
+        std::cout << std::endl;
+
+        program->appendRelation(std::move(newOutputRelation));
+
+        program->addType(std::move(newRecordType));
 
         newRelation->setQualifier(OUTPUT_RELATION);
         program->appendRelation(std::move(newRelation));
