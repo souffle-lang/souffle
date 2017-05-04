@@ -922,9 +922,9 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             const auto clause = relation->getClauses()[i];
 
             // create new info relation describing clause
-            std::unique_ptr<AstRelation> newInfoRelation = makeNewInfoRelation(*clause, symtable, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_info")));
-            newInfoRelation->setQualifier(OUTPUT_RELATION);
-            program->appendRelation(std::move(newInfoRelation));
+            // std::unique_ptr<AstRelation> newInfoRelation = makeNewInfoRelation(*clause, symtable, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_info")));
+            // newInfoRelation->setQualifier(OUTPUT_RELATION);
+            // program->appendRelation(std::move(newInfoRelation));
 
             std::vector<AstTypeIdentifier> types;
             
@@ -1010,26 +1010,27 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
         newOutputRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("x"), newRecordType->getName())));
 
         auto newOutputRelationClause = std::unique_ptr<AstClause>(new AstClause());
-        auto newOutputRelationHead = std::unique_ptr<AstAtom>(new AstAtom());
-        newOutputRelationHead->setName(*newOutputRelationName);
-        newOutputRelationHead->addArgument(std::unique_ptr<AstArgument>(new AstVariable(std::string("x"))));
+        auto newOutputRelationHead = std::unique_ptr<AstAtom>(new AstAtom(*newOutputRelationName));
+        // newOutputRelationHead->addArgument(std::unique_ptr<AstArgument>(newOutputRecordVar->clone()));
 
-        auto newOutputRelationBody = std::unique_ptr<AstAtom>(newRelation->getClause(0)->getHead()->clone());
+        auto newOutputRelationBody = std::unique_ptr<AstAtom>(new AstAtom(newRelation->getName()));
         auto recordInitArgs = std::vector<AstArgument*>();
 
         for (size_t j = 0; j < newRecordType->getFields().size(); j++) {
             auto field = newRecordType->getFields()[j].type;
+            auto newOutputFieldVar = new AstVariable("x_" + std::to_string(j));
             newOutputRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute("x_" + std::to_string(j), field)));
-            newOutputRelationHead->addArgument(std::unique_ptr<AstArgument>(new AstVariable("x_" + std::to_string(j))));
-            recordInitArgs.push_back(dynamic_cast<AstArgument*>(new AstVariable("x_" + std::to_string(j))));
+            recordInitArgs.push_back(dynamic_cast<AstArgument*>(newOutputFieldVar->clone()));
         }
 
-        auto newOutputRelationConstraint = std::unique_ptr<AstConstraint>(new AstConstraint(
-                    BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>(new AstVariable(std::string("x"))), makeNewRecordInit(recordInitArgs)));
+        newOutputRelationHead->addArgument(makeNewRecordInit(recordInitArgs));
+        for (size_t j = 0; j < newRecordType->getFields().size(); j++) {
+            newOutputRelationHead->addArgument(std::unique_ptr<AstArgument>(new AstVariable("x_" + std::to_string(j))));
+        }
+        newOutputRelationBody->addArgument(makeNewRecordInit(recordInitArgs));
 
         newOutputRelationClause->setHead(std::move(newOutputRelationHead));
         newOutputRelationClause->addToBody(std::move(newOutputRelationBody));
-        newOutputRelationClause->addToBody(std::move(newOutputRelationConstraint));
 
         newOutputRelationClause->print(std::cout);
         std::cout << std::endl;
@@ -1038,12 +1039,13 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
         newOutputRelation->print(std::cout);
         std::cout << std::endl;
 
+        newOutputRelation->setQualifier(OUTPUT_RELATION);
         program->appendRelation(std::move(newOutputRelation));
 
-        program->addType(std::move(newRecordType));
-
-        newRelation->setQualifier(OUTPUT_RELATION);
+        // newRelation->setQualifier(OUTPUT_RELATION);
         program->appendRelation(std::move(newRelation));
+
+        program->addType(std::move(newRecordType));
 
         if (!relation->isInput()) {
             program->removeRelation(relation->getName());

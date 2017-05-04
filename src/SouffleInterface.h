@@ -202,7 +202,7 @@ public:
      */
     tuple& operator>>(RamDomain& number) {
         assert(pos < size() && "exceeded tuple's size");
-        assert(*relation.getAttrType(pos) == 'i' && "wrong element type");
+        assert((*relation.getAttrType(pos) == 'i' || *relation.getAttrType(pos) == 'r') && "wrong element type");
         number = array[pos++];
         return *this;
     }
