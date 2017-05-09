@@ -850,7 +850,12 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(co
     for (auto literal : original.getBodyLiterals()) {
         if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
             const char* relName = atom->getName().getNames()[0].c_str();
-            symtable.insert(relName);
+            // symtable.insert(relName);
+            std::cout << "relation name: " << relName << std::endl;
+            symtable.print(std::cout);
+            std::cout << std::endl;
+            // auto sym = new SymbolTable();
+            // sym->insert(relName);
             newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstStringConstant(symtable, relName)));
             newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(atom->getArity())));
         }
@@ -876,8 +881,6 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
     
     auto program = translationUnit.getProgram();
     auto symtable = translationUnit.getSymbolTable();
-    symtable.print(std::cout);
-    std::cout << std::endl;
     for (const auto relation : program->getRelations()) {
         
         std::stringstream relationNameStream;
@@ -922,9 +925,9 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             const auto clause = relation->getClauses()[i];
 
             // create new info relation describing clause
-            // std::unique_ptr<AstRelation> newInfoRelation = makeNewInfoRelation(*clause, symtable, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_info")));
-            // newInfoRelation->setQualifier(OUTPUT_RELATION);
-            // program->appendRelation(std::move(newInfoRelation));
+            std::unique_ptr<AstRelation> newInfoRelation = makeNewInfoRelation(*clause, symtable, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_info")));
+            newInfoRelation->setQualifier(OUTPUT_RELATION);
+            program->appendRelation(std::move(newInfoRelation));
 
             std::vector<AstTypeIdentifier> types;
             
@@ -1052,6 +1055,8 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
         }
         changed = true;
     }
+    symtable.print(std::cout);
+    std::cout << std::endl;
     return changed;
 }
 }  // end of namespace souffle
