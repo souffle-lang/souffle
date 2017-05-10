@@ -220,7 +220,7 @@ private:
      * @param name the name of the new relation
      * @return new info relation
      */
-    static std::unique_ptr<AstRelation> makeNewInfoRelation(const AstClause& original, SymbolTable& symtable, AstRelationIdentifier& name);
+    static std::unique_ptr<AstRelation> makeNewInfoRelation(const AstClause& original, AstTranslationUnit& translationUnit, AstRelationIdentifier& name);
 
 public:
     std::string getName() const override {

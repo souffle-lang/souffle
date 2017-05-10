@@ -827,7 +827,7 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewRelation(
     return newRelation;
 }
 
-std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(const AstClause& original, SymbolTable& symtable, AstRelationIdentifier& name) {
+std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(const AstClause& original, AstTranslationUnit& translationUnit, AstRelationIdentifier& name) {
     auto newInfoRelation = std::unique_ptr<AstRelation>(new AstRelation());
     newInfoRelation->setName(name);
 
@@ -852,11 +852,11 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(co
             const char* relName = atom->getName().getNames()[0].c_str();
             // symtable.insert(relName);
             std::cout << "relation name: " << relName << std::endl;
-            symtable.print(std::cout);
+            translationUnit.getSymbolTable().print(std::cout);
             std::cout << std::endl;
             // auto sym = new SymbolTable();
             // sym->insert(relName);
-            newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstStringConstant(symtable, relName)));
+            newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstStringConstant(translationUnit.getSymbolTable(), relName)));
             newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(atom->getArity())));
         }
     }
@@ -925,7 +925,7 @@ bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit)
             const auto clause = relation->getClauses()[i];
 
             // create new info relation describing clause
-            std::unique_ptr<AstRelation> newInfoRelation = makeNewInfoRelation(*clause, symtable, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_info")));
+            std::unique_ptr<AstRelation> newInfoRelation = makeNewInfoRelation(*clause, translationUnit, *(new AstRelationIdentifier(relationName + "_new_" + std::to_string(i) + "_info")));
             newInfoRelation->setQualifier(OUTPUT_RELATION);
             program->appendRelation(std::move(newInfoRelation));
 
