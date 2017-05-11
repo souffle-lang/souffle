@@ -37,16 +37,22 @@ ram::Relation<Auto,1>* rel_6_new_path_new;
 // -- Table: path_new_0
 ram::Relation<Auto,2>* rel_7_path_new_0;
 souffle::RelationWrapper<2,ram::Relation<Auto,2>,Tuple<RamDomain,2>,2,false,true> wrapper_rel_7_path_new_0;
+// -- Table: path_new_0_info
+ram::Relation<Auto,3>* rel_8_path_new_0_info;
+souffle::RelationWrapper<3,ram::Relation<Auto,3>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_8_path_new_0_info;
 // -- Table: path_new_1
-ram::Relation<Auto,3, ram::index<0,1,2>>* rel_8_path_new_1;
-souffle::RelationWrapper<3,ram::Relation<Auto,3, ram::index<0,1,2>>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_8_path_new_1;
+ram::Relation<Auto,3, ram::index<0,1,2>>* rel_9_path_new_1;
+souffle::RelationWrapper<4,ram::Relation<Auto,3, ram::index<0,1,2>>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_9_path_new_1;
 // -- Table: @delta_path_new_1
-ram::Relation<Auto,3>* rel_9_delta_path_new_1;
+ram::Relation<Auto,3>* rel_10_delta_path_new_1;
 // -- Table: @new_path_new_1
-ram::Relation<Auto,3>* rel_10_new_path_new_1;
+ram::Relation<Auto,3>* rel_11_new_path_new_1;
+// -- Table: path_new_1_info
+ram::Relation<Auto,5>* rel_12_path_new_1_info;
+souffle::RelationWrapper<5,ram::Relation<Auto,5>,Tuple<RamDomain,5>,5,false,true> wrapper_rel_12_path_new_1_info;
 // -- Table: path_output
-ram::Relation<Auto,3>* rel_11_path_output;
-souffle::RelationWrapper<4,ram::Relation<Auto,3>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_11_path_output;
+ram::Relation<Auto,3>* rel_13_path_output;
+souffle::RelationWrapper<6,ram::Relation<Auto,3>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_13_path_output;
 public:
 Sf_path() : 
 rel_1_edge(new ram::Relation<Auto,2>()),
@@ -59,17 +65,30 @@ rel_5_delta_path_new(new ram::Relation<Auto,1>()),
 rel_6_new_path_new(new ram::Relation<Auto,1>()),
 rel_7_path_new_0(new ram::Relation<Auto,2>()),
 wrapper_rel_7_path_new_0(*rel_7_path_new_0,symTable,"path_new_0",std::array<const char *,2>{"r:path_type{x#s:symbol,y#s:symbol}","r:edge_type{x#s:symbol,y#s:symbol}"},std::array<const char *,2>{"0","1"}),
-rel_8_path_new_1(new ram::Relation<Auto,3, ram::index<0,1,2>>()),
-wrapper_rel_8_path_new_1(*rel_8_path_new_1,symTable,"path_new_1",std::array<const char *,3>{"r:path_type{x#s:symbol,y#s:symbol}","r:edge_type{x#s:symbol,y#s:symbol}","r:path_type{x#s:symbol,y#s:symbol}"},std::array<const char *,3>{"0","1","2"}),
-rel_9_delta_path_new_1(new ram::Relation<Auto,3>()),
-rel_10_new_path_new_1(new ram::Relation<Auto,3>()),
-rel_11_path_output(new ram::Relation<Auto,3>()),
-wrapper_rel_11_path_output(*rel_11_path_output,symTable,"path_output",std::array<const char *,3>{"r:path_type{x#s:symbol,y#s:symbol}","s:symbol","s:symbol"},std::array<const char *,3>{"x","x_0","x_1"}){
+rel_8_path_new_0_info(new ram::Relation<Auto,3>()),
+wrapper_rel_8_path_new_0_info(*rel_8_path_new_0_info,symTable,"path_new_0_info",std::array<const char *,3>{"i:number","s:symbol","i:number"},std::array<const char *,3>{"0","1_rel","1_arity"}),
+rel_9_path_new_1(new ram::Relation<Auto,3, ram::index<0,1,2>>()),
+wrapper_rel_9_path_new_1(*rel_9_path_new_1,symTable,"path_new_1",std::array<const char *,3>{"r:path_type{x#s:symbol,y#s:symbol}","r:edge_type{x#s:symbol,y#s:symbol}","r:path_type{x#s:symbol,y#s:symbol}"},std::array<const char *,3>{"0","1","2"}),
+rel_10_delta_path_new_1(new ram::Relation<Auto,3>()),
+rel_11_new_path_new_1(new ram::Relation<Auto,3>()),
+rel_12_path_new_1_info(new ram::Relation<Auto,5>()),
+wrapper_rel_12_path_new_1_info(*rel_12_path_new_1_info,symTable,"path_new_1_info",std::array<const char *,5>{"i:number","s:symbol","i:number","s:symbol","i:number"},std::array<const char *,5>{"0","1_rel","1_arity","2_rel","2_arity"}),
+rel_13_path_output(new ram::Relation<Auto,3>()),
+wrapper_rel_13_path_output(*rel_13_path_output,symTable,"path_output",std::array<const char *,3>{"r:path_type{x#s:symbol,y#s:symbol}","s:symbol","s:symbol"},std::array<const char *,3>{"x","x_0","x_1"}){
 addRelation("edge",&wrapper_rel_1_edge,1,0);
 addRelation("edge_output",&wrapper_rel_3_edge_output,0,1);
 addRelation("path_new_0",&wrapper_rel_7_path_new_0,0,1);
-addRelation("path_new_1",&wrapper_rel_8_path_new_1,0,1);
-addRelation("path_output",&wrapper_rel_11_path_output,0,1);
+addRelation("path_new_0_info",&wrapper_rel_8_path_new_0_info,0,1);
+addRelation("path_new_1",&wrapper_rel_9_path_new_1,0,1);
+addRelation("path_new_1_info",&wrapper_rel_12_path_new_1_info,0,1);
+addRelation("path_output",&wrapper_rel_13_path_output,0,1);
+// -- initialize symbol table --
+static const char *symbols[]={
+	R"(edge)",
+	R"(path)",
+};
+symTable.insert(symbols,2);
+
 }
 ~Sf_path() {
 delete rel_1_edge;
@@ -79,10 +98,12 @@ delete rel_4_path_new;
 delete rel_5_delta_path_new;
 delete rel_6_new_path_new;
 delete rel_7_path_new_0;
-delete rel_8_path_new_1;
-delete rel_9_delta_path_new_1;
-delete rel_10_new_path_new_1;
-delete rel_11_path_output;
+delete rel_8_path_new_0_info;
+delete rel_9_path_new_1;
+delete rel_10_delta_path_new_1;
+delete rel_11_new_path_new_1;
+delete rel_12_path_new_1_info;
+delete rel_13_path_output;
 }
 void run() {
 // -- initialize counter --
@@ -139,7 +160,6 @@ rel_7_path_new_0->insert(tuple,READ_OP_CONTEXT(rel_7_path_new_0_op_ctxt));
 }
 PARALLEL_END;
 }
-rel_9_delta_path_new_1->insertAll(*rel_8_path_new_1);
 if (!rel_7_path_new_0->empty()) {
 auto part = rel_7_path_new_0->partition();
 PARALLEL_START;
@@ -153,43 +173,14 @@ rel_4_path_new->insert(tuple,READ_OP_CONTEXT(rel_4_path_new_op_ctxt));
 PARALLEL_END;
 }
 rel_5_delta_path_new->insertAll(*rel_4_path_new);
+rel_10_delta_path_new_1->insertAll(*rel_9_path_new_1);
 for(;;) {
 SECTIONS_START;
 SECTION_START;
-if (!rel_5_delta_path_new->empty()&&!rel_2_edge_new->empty()) {
-auto part = rel_2_edge_new->partition();
+if (!rel_10_delta_path_new_1->empty()) {
+auto part = rel_10_delta_path_new_1->partition();
 PARALLEL_START;
-CREATE_OP_CONTEXT(rel_5_delta_path_new_op_ctxt,rel_5_delta_path_new->createContext());
-CREATE_OP_CONTEXT(rel_10_new_path_new_1_op_ctxt,rel_10_new_path_new_1->createContext());
-CREATE_OP_CONTEXT(rel_2_edge_new_op_ctxt,rel_2_edge_new->createContext());
-CREATE_OP_CONTEXT(rel_8_path_new_1_op_ctxt,rel_8_path_new_1->createContext());
-pfor(auto it = part.begin(); it<part.end(); ++it) 
-for(const auto& env0 : *it) {
-auto ref = env0[0];
-if (isNull<ram::Tuple<RamDomain,2>>(ref)) continue;
-ram::Tuple<RamDomain,2> env1 = unpack<ram::Tuple<RamDomain,2>>(ref);
-{
-for(const auto& env2 : *rel_5_delta_path_new) {
-auto ref = env2[0];
-if (isNull<ram::Tuple<RamDomain,2>>(ref)) continue;
-ram::Tuple<RamDomain,2> env3 = unpack<ram::Tuple<RamDomain,2>>(ref);
-{
-if( ((((env1[1]) == (env3[0]))) && (!rel_8_path_new_1->contains(Tuple<RamDomain,3>({pack(ram::Tuple<RamDomain,2>({env1[0],env3[1]})),pack(ram::Tuple<RamDomain,2>({env1[0],env1[1]})),pack(ram::Tuple<RamDomain,2>({env1[1],env3[1]}))}),READ_OP_CONTEXT(rel_8_path_new_1_op_ctxt))))) {
-Tuple<RamDomain,3> tuple({(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[0],env3[1]}))),(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[0],env1[1]}))),(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[1],env3[1]})))});
-rel_10_new_path_new_1->insert(tuple,READ_OP_CONTEXT(rel_10_new_path_new_1_op_ctxt));
-}
-}
-}
-}
-}
-PARALLEL_END;
-}
-SECTION_END
-SECTION_START;
-if (!rel_9_delta_path_new_1->empty()) {
-auto part = rel_9_delta_path_new_1->partition();
-PARALLEL_START;
-CREATE_OP_CONTEXT(rel_9_delta_path_new_1_op_ctxt,rel_9_delta_path_new_1->createContext());
+CREATE_OP_CONTEXT(rel_10_delta_path_new_1_op_ctxt,rel_10_delta_path_new_1->createContext());
 CREATE_OP_CONTEXT(rel_6_new_path_new_op_ctxt,rel_6_new_path_new->createContext());
 CREATE_OP_CONTEXT(rel_4_path_new_op_ctxt,rel_4_path_new->createContext());
 pfor(auto it = part.begin(); it<part.end(); ++it) 
@@ -202,15 +193,38 @@ rel_6_new_path_new->insert(tuple,READ_OP_CONTEXT(rel_6_new_path_new_op_ctxt));
 PARALLEL_END;
 }
 SECTION_END
-SECTIONS_END;
-if(((rel_10_new_path_new_1->empty()) && (rel_6_new_path_new->empty()))) break;
-rel_8_path_new_1->insertAll(*rel_10_new_path_new_1);
+SECTION_START;
+if (!rel_5_delta_path_new->empty()&&!rel_2_edge_new->empty()) {
+auto part = rel_2_edge_new->partition();
+PARALLEL_START;
+CREATE_OP_CONTEXT(rel_5_delta_path_new_op_ctxt,rel_5_delta_path_new->createContext());
+CREATE_OP_CONTEXT(rel_11_new_path_new_1_op_ctxt,rel_11_new_path_new_1->createContext());
+CREATE_OP_CONTEXT(rel_2_edge_new_op_ctxt,rel_2_edge_new->createContext());
+CREATE_OP_CONTEXT(rel_9_path_new_1_op_ctxt,rel_9_path_new_1->createContext());
+pfor(auto it = part.begin(); it<part.end(); ++it) 
+for(const auto& env0 : *it) {
+auto ref = env0[0];
+if (isNull<ram::Tuple<RamDomain,2>>(ref)) continue;
+ram::Tuple<RamDomain,2> env1 = unpack<ram::Tuple<RamDomain,2>>(ref);
 {
-auto rel_0 = rel_9_delta_path_new_1;
-rel_9_delta_path_new_1 = rel_10_new_path_new_1;
-rel_10_new_path_new_1 = rel_0;
+for(const auto& env2 : *rel_5_delta_path_new) {
+auto ref = env2[0];
+if (isNull<ram::Tuple<RamDomain,2>>(ref)) continue;
+ram::Tuple<RamDomain,2> env3 = unpack<ram::Tuple<RamDomain,2>>(ref);
+{
+if( ((((env1[1]) == (env3[0]))) && (!rel_9_path_new_1->contains(Tuple<RamDomain,3>({pack(ram::Tuple<RamDomain,2>({env1[0],env3[1]})),pack(ram::Tuple<RamDomain,2>({env1[0],env1[1]})),pack(ram::Tuple<RamDomain,2>({env1[1],env3[1]}))}),READ_OP_CONTEXT(rel_9_path_new_1_op_ctxt))))) {
+Tuple<RamDomain,3> tuple({(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[0],env3[1]}))),(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[0],env1[1]}))),(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[1],env3[1]})))});
+rel_11_new_path_new_1->insert(tuple,READ_OP_CONTEXT(rel_11_new_path_new_1_op_ctxt));
 }
-rel_10_new_path_new_1->purge();
+}
+}
+}
+}
+PARALLEL_END;
+}
+SECTION_END
+SECTIONS_END;
+if(((rel_6_new_path_new->empty()) && (rel_11_new_path_new_1->empty()))) break;
 rel_4_path_new->insertAll(*rel_6_new_path_new);
 {
 auto rel_0 = rel_5_delta_path_new;
@@ -218,16 +232,23 @@ rel_5_delta_path_new = rel_6_new_path_new;
 rel_6_new_path_new = rel_0;
 }
 rel_6_new_path_new->purge();
+rel_9_path_new_1->insertAll(*rel_11_new_path_new_1);
+{
+auto rel_0 = rel_10_delta_path_new_1;
+rel_10_delta_path_new_1 = rel_11_new_path_new_1;
+rel_11_new_path_new_1 = rel_0;
 }
-rel_9_delta_path_new_1->purge();
-rel_10_new_path_new_1->purge();
+rel_11_new_path_new_1->purge();
+}
 rel_5_delta_path_new->purge();
 rel_6_new_path_new->purge();
+rel_10_delta_path_new_1->purge();
+rel_11_new_path_new_1->purge();
 if (!rel_4_path_new->empty()) {
 auto part = rel_4_path_new->partition();
 PARALLEL_START;
 CREATE_OP_CONTEXT(rel_4_path_new_op_ctxt,rel_4_path_new->createContext());
-CREATE_OP_CONTEXT(rel_11_path_output_op_ctxt,rel_11_path_output->createContext());
+CREATE_OP_CONTEXT(rel_13_path_output_op_ctxt,rel_13_path_output->createContext());
 pfor(auto it = part.begin(); it<part.end(); ++it) 
 for(const auto& env0 : *it) {
 auto ref = env0[0];
@@ -235,29 +256,39 @@ if (isNull<ram::Tuple<RamDomain,2>>(ref)) continue;
 ram::Tuple<RamDomain,2> env1 = unpack<ram::Tuple<RamDomain,2>>(ref);
 {
 Tuple<RamDomain,3> tuple({(RamDomain)(pack(ram::Tuple<RamDomain,2>({env1[0],env1[1]}))),(RamDomain)(env1[0]),(RamDomain)(env1[1])});
-rel_11_path_output->insert(tuple,READ_OP_CONTEXT(rel_11_path_output_op_ctxt));
+rel_13_path_output->insert(tuple,READ_OP_CONTEXT(rel_13_path_output_op_ctxt));
 }
 }
 PARALLEL_END;
 }
+rel_8_path_new_0_info->insert(2,0,2);
+rel_12_path_new_1_info->insert(2,0,2,1,2);
 }
 public:
 void printAll(std::string dirname) {
-try {std::map<std::string, std::string> directiveMap({{"IO","stdout"},{"name","edge_output"}});
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./edge_output.csv"},{"name","edge_output"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
 IOSystem::getInstance().getWriter(SymbolMask({0, 1, 1}), symTable, ioDirectives)->writeAll(*rel_3_edge_output);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
-try {std::map<std::string, std::string> directiveMap({{"IO","stdout"},{"name","path_new_0"}});
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_0.csv"},{"name","path_new_0"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
 IOSystem::getInstance().getWriter(SymbolMask({0, 0}), symTable, ioDirectives)->writeAll(*rel_7_path_new_0);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
-try {std::map<std::string, std::string> directiveMap({{"IO","stdout"},{"name","path_new_1"}});
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_0_info.csv"},{"name","path_new_0_info"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
-IOSystem::getInstance().getWriter(SymbolMask({0, 0, 0}), symTable, ioDirectives)->writeAll(*rel_8_path_new_1);
+IOSystem::getInstance().getWriter(SymbolMask({0, 1, 0}), symTable, ioDirectives)->writeAll(*rel_8_path_new_0_info);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
-try {std::map<std::string, std::string> directiveMap({{"IO","stdout"},{"name","path_output"}});
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_1.csv"},{"name","path_new_1"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
-IOSystem::getInstance().getWriter(SymbolMask({0, 1, 1}), symTable, ioDirectives)->writeAll(*rel_11_path_output);
+IOSystem::getInstance().getWriter(SymbolMask({0, 0, 0}), symTable, ioDirectives)->writeAll(*rel_9_path_new_1);
+} catch (std::exception& e) {std::cerr << e.what();exit(1);}
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_1_info.csv"},{"name","path_new_1_info"}});
+if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
+IOSystem::getInstance().getWriter(SymbolMask({0, 1, 0, 1, 0}), symTable, ioDirectives)->writeAll(*rel_12_path_new_1_info);
+} catch (std::exception& e) {std::cerr << e.what();exit(1);}
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_output.csv"},{"name","path_output"}});
+if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
+IOSystem::getInstance().getWriter(SymbolMask({0, 1, 1}), symTable, ioDirectives)->writeAll(*rel_13_path_output);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 }
 public:
@@ -289,13 +320,23 @@ IOSystem::getInstance().getWriter(SymbolMask({0, 0}), symTable, ioDirectives)->w
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {IODirectives ioDirectives;
 ioDirectives.setIOType("stdout");
-ioDirectives.setRelationName("rel_8_path_new_1");
-IOSystem::getInstance().getWriter(SymbolMask({0, 0, 0}), symTable, ioDirectives)->writeAll(*rel_8_path_new_1);
+ioDirectives.setRelationName("rel_8_path_new_0_info");
+IOSystem::getInstance().getWriter(SymbolMask({0, 1, 0}), symTable, ioDirectives)->writeAll(*rel_8_path_new_0_info);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {IODirectives ioDirectives;
 ioDirectives.setIOType("stdout");
-ioDirectives.setRelationName("rel_11_path_output");
-IOSystem::getInstance().getWriter(SymbolMask({0, 1, 1}), symTable, ioDirectives)->writeAll(*rel_11_path_output);
+ioDirectives.setRelationName("rel_9_path_new_1");
+IOSystem::getInstance().getWriter(SymbolMask({0, 0, 0}), symTable, ioDirectives)->writeAll(*rel_9_path_new_1);
+} catch (std::exception& e) {std::cerr << e.what();exit(1);}
+try {IODirectives ioDirectives;
+ioDirectives.setIOType("stdout");
+ioDirectives.setRelationName("rel_12_path_new_1_info");
+IOSystem::getInstance().getWriter(SymbolMask({0, 1, 0, 1, 0}), symTable, ioDirectives)->writeAll(*rel_12_path_new_1_info);
+} catch (std::exception& e) {std::cerr << e.what();exit(1);}
+try {IODirectives ioDirectives;
+ioDirectives.setIOType("stdout");
+ioDirectives.setRelationName("rel_13_path_output");
+IOSystem::getInstance().getWriter(SymbolMask({0, 1, 1}), symTable, ioDirectives)->writeAll(*rel_13_path_output);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 }
 public:
