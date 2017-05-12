@@ -107,14 +107,16 @@ void load() {
                 tuple >> label;
 
                 for (size_t i = 0; i < tuple.size(); i++) {
-                    if (*(rel->getAttrType(i)) == 'i') {
+                    if (*(rel->getAttrType(i)) == 'i' || *(rel->getAttrType(i)) == 'r') {
+                        std::cout << rel->getName() << " " << rel->getAttrType(i) << std::endl;
+                        plabel n;
+                        tuple >> n;
+                        std::cout << "ASKJFHDLJKRHESR" << std::endl;
+                        tuple_elements.insert(n);
+                    } else if (*(rel->getAttrType(i)) == 's') {
                         std::string s;
                         tuple >> s;
                         tuple_elements.insert(s);
-                    } else if (*(rel->getAttrType(i)) == 's') {
-                        plabel i;
-                        tuple >> i;
-                        tuple_elements.insert(i);
                     }
                 }
 
