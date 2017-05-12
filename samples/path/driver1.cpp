@@ -12,6 +12,7 @@ using namespace souffle;
 
 typedef RamDomain plabel;
 
+// store elements of a tuple
 struct elements {
     std::string order;
     std::vector<plabel> integers;
@@ -50,6 +51,11 @@ struct elements {
     }
 
     std::string getRepresentation() {
+        if (order.size() == 0) {
+            return std::string("");
+        }
+
+        // maintain iterators for integers and strings
         std::vector<plabel>::iterator i_itr;
         std::vector<std::string>::iterator s_itr;
         std::string s = "(";
@@ -87,6 +93,7 @@ SouffleProgram *prog;
 std::map<std::pair<std::string, elements>, plabel> values;
 std::map<std::pair<std::string, plabel>, elements> labels;
 std::map<std::pair<std::string, plabel>, std::vector<plabel>> rules;
+std::map<std::string, std::vector<std::string>> info;
 
 int depthLimit = 4;
 
@@ -130,22 +137,50 @@ void load() {
 
                 rules.insert({std::make_pair(rel->getName(), label), refs});
             }
+        } else if (rel->getName().find("_info") != std::string::npos) {
+            for (auto &tuple : *rel) {
+                std::vector<std::string> rels;
+                for (size_t i = 0; i < tuple.size(); i++) {
+                    std::string s;
+                    tuple >> s;
+                    rels.push_back(s);
+                }
+
+                info.insert({rel->getName(), rels});
+            }
         }
     }
 }
 
 std::unique_ptr<tree_node> explain(std::string relName, plabel label, int depth) {
-    if (prog->getRelation(relName).isInput()) {
+    if (prog->getRelation(relName)->isInput()) {
         auto key = std::make_pair(relName + "_output", label);
         std::string lab = relName + labels[key].getRepresentation();
-        std::unique_ptr<tree_node> leaf(new leaf_node(label));
+        std::unique_ptr<tree_node> leaf(new leaf_node(lab));
         return leaf;
-    } else if (depth > 0) {
-        std::string lab = relName + labels[key].getRepresentation();
-        std::unique_ptr<inner_node> inner(new inner_node(label, ""));
+    } else {
+        std::string internalRelName;
+        // find correct relation
+        for (auto rel : prog->getAllRelations()) {
+            if (rel->getName().find(relName + "_info_") != std::string::npos) {
+                if (labels.find(std::make_pair(rel->getName(), label)) != labels.end()) {
+                    // found the correct relation
+                    internalRelName = rel->getName();
+                    break;
+                }
+            }
+        }
 
-        for (auto label : rules[key]) {
-            inner->add_child(explain(
+        auto key = std::make_pair(internalRelName, label);
+        std::string lab = relName + labels[key].getRepresentation();
+        std::unique_ptr<inner_node> inner(new inner_node(lab, std::string("")));
+
+        for (size_t i = 0; i < info[internalRelName].size(); i++) {
+            auto rel = info[internalRelName][i];
+            auto label = rules[key][i];
+            inner->add_child(explain(rel, label, depth - 1));
+        }
+    }
 }
 
 std::unique_ptr<tree_node> explain(std::string relName, elements tuple_elements) {
