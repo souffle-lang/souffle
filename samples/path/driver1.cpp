@@ -52,12 +52,12 @@ struct elements {
 
     std::string getRepresentation() {
         if (order.size() == 0) {
-            return std::string("");
+            return std::string("()");
         }
 
         // maintain iterators for integers and strings
-        std::vector<plabel>::iterator i_itr;
-        std::vector<std::string>::iterator s_itr;
+        std::vector<plabel>::iterator i_itr = integers.begin();
+        std::vector<std::string>::iterator s_itr = strings.begin();
         std::string s = "(";
 
         for (char &c : order) {
@@ -79,12 +79,26 @@ struct elements {
     }
         
 
-    bool operator==(const elements e) const {
+    bool operator==(const elements &e) const {
         return e.order == order && e.integers == integers && e.strings == strings;
     }
 
-    bool operator<(const elements e) const {
-        return order.size() < e.order.size();
+    bool operator<(const elements &e) const {
+        if (order.size() < e.order.size()) {
+            return true;
+        } else if (order.size() > e.order.size()) {
+            return false;
+        }
+
+        if (integers < e.integers) {
+            return true;
+        }
+
+        if (strings < e.strings) {
+            return true;
+        }
+
+        return false;
     }
 };
 
@@ -106,12 +120,10 @@ void load() {
 
                 tuple >> label;
 
-                for (size_t i = 0; i < tuple.size(); i++) {
+                for (size_t i = 1; i < tuple.size(); i++) {
                     if (*(rel->getAttrType(i)) == 'i' || *(rel->getAttrType(i)) == 'r') {
-                        std::cout << rel->getName() << " " << rel->getAttrType(i) << std::endl;
                         plabel n;
                         tuple >> n;
-                        std::cout << "ASKJFHDLJKRHESR" << std::endl;
                         tuple_elements.insert(n);
                     } else if (*(rel->getAttrType(i)) == 's') {
                         std::string s;
@@ -124,14 +136,14 @@ void load() {
                 values.insert({std::make_pair(rel->getName(), tuple_elements), label});
                 labels.insert({std::make_pair(rel->getName(), label), tuple_elements});
             }
-        } else if (rel->getName().find("_new_") != std::string::npos) {
+        } else if (rel->getName().find("_new_") != std::string::npos && rel->getName().find("_info") == std::string::npos) {
             for (auto &tuple : *rel) {
                 plabel label;
                 std::vector<plabel> refs;
 
                 tuple >> label;
 
-                for (size_t i = 0; i < tuple.size(); i++) {
+                for (size_t i = 1; i < tuple.size(); i++) {
                     plabel l;
                     tuple >> l;
                     refs.push_back(l);
@@ -155,7 +167,7 @@ void load() {
 }
 
 std::unique_ptr<tree_node> explain(std::string relName, plabel label, int depth) {
-    if (prog->getRelation(relName)->isInput()) {
+    if (prog->getRelation(relName) != nullptr && prog->getRelation(relName)->isInput()) {
         auto key = std::make_pair(relName + "_output", label);
         std::string lab = relName + labels[key].getRepresentation();
         std::unique_ptr<tree_node> leaf(new leaf_node(lab));
@@ -164,8 +176,8 @@ std::unique_ptr<tree_node> explain(std::string relName, plabel label, int depth)
         std::string internalRelName;
         // find correct relation
         for (auto rel : prog->getAllRelations()) {
-            if (rel->getName().find(relName + "_info_") != std::string::npos) {
-                if (labels.find(std::make_pair(rel->getName(), label)) != labels.end()) {
+            if (rel->getName().find(relName + "_new_") != std::string::npos && rel->getName().find("_info") == std::string::npos) {
+                if (rules.find(std::make_pair(rel->getName(), label)) != rules.end()) {
                     // found the correct relation
                     internalRelName = rel->getName();
                     break;
@@ -173,15 +185,15 @@ std::unique_ptr<tree_node> explain(std::string relName, plabel label, int depth)
             }
         }
 
-        auto key = std::make_pair(internalRelName, label);
-        std::string lab = relName + labels[key].getRepresentation();
-        std::unique_ptr<inner_node> inner(new inner_node(lab, std::string("")));
+        auto key = std::make_pair(relName + "_output", label);
+        auto subProofKey = std::make_pair(internalRelName, label);
 
-        for (size_t i = 0; i < info[internalRelName].size(); i++) {
-            auto rel = info[internalRelName][i];
-            auto label = rules[key][i];
-            inner->add_child(explain(rel, label, depth - 1));
+        for (size_t i = 0; i < info[internalRelName + "_info"].size(); i++) {
+            auto rel = info[internalRelName + "_info"][i];
+            auto newLab = rules[subProofKey][i];
+            inner->add_child(explain(rel, newLab, depth - 1));
         }
+        return inner;
     }
 }
 
@@ -189,13 +201,13 @@ std::unique_ptr<tree_node> explain(std::string relName, elements tuple_elements)
     auto key = std::make_pair(relName + "_output", tuple_elements);
     if (values.find(key) == values.end()) {
         std::cerr << "no tuple found " << relName << tuple_elements.getRepresentation() << std::endl;
+        return nullptr;
     }
 
-    return explain(relName, values[key], depthLimit);
+    return std::move(explain(relName, values[key], depthLimit));
 }
 
-
-void command(SouffleProgram *prog) {
+void commandLine(SouffleProgram *prog) {
     auto split = [](std::string s, char delim)->std::vector<std::string> {
         std::vector<std::string> v;
         std::stringstream ss(s);
@@ -220,7 +232,14 @@ void command(SouffleProgram *prog) {
             std::cout << "Depth is now " << depthLimit << std::endl;
         } else if (command[0] == "explain") {
             elements tuple_elements(std::vector<std::string>(command.begin() + 2, command.end()));
-            explain(command[1], tuple_elements);
+            std::unique_ptr<tree_node> t = explain(command[1], tuple_elements);
+
+            if (t) {
+                t->place(0, 0);
+                screen_buffer *s = new screen_buffer(t->getWidth(), t->getHeight());
+                t->render(*s);
+                s->print(std::cout);
+            }
         } else if (command[0] == "subproof") {
         } else if (command[0] == "exit") {
             break;
@@ -235,9 +254,18 @@ int main(int argc, char **argv) {
 
         load(); 
 
+        // for (auto p : labels) {
+        //     std::cout << p.first.first << " " << p.first.second << p.second.getRepresentation() << std::endl;
+        // }
+
+
+        // for (auto p : values) {
+        //     std::cout << p.first.first << p.second << std::endl;
+        // }
+
         // prog->printAll();
         //
-        command(prog);
+        commandLine(prog);
     } else {
         std::cout << "no program" << std::endl;
     }
