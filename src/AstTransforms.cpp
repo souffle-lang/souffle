@@ -831,13 +831,13 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(co
     auto newInfoRelation = std::unique_ptr<AstRelation>(new AstRelation());
     newInfoRelation->setName(name);
 
-    newInfoRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("0"), AstTypeIdentifier("number"))));
+    // newInfoRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("0"), AstTypeIdentifier("number"))));
     
     // add args for each body atom of relation
     for (size_t i = 1; i <= original.getBodyLiterals().size(); i++) {
         if (AstAtom* atom = dynamic_cast<AstAtom*>(original.getBodyLiterals()[i-1])) {
             newInfoRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::to_string(i) + std::string("_rel"), AstTypeIdentifier("symbol"))));
-            newInfoRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::to_string(i) + std::string("_arity"), AstTypeIdentifier("number"))));
+            // newInfoRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::to_string(i) + std::string("_arity"), AstTypeIdentifier("number"))));
         }
     }
 
@@ -846,7 +846,7 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(co
     auto newInfoClauseHead = std::unique_ptr<AstAtom>(new AstAtom(name));
 
     // add arity of actual relation
-    newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(original.getHead()->getArity())));
+    // newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(original.getHead()->getArity())));
     for (auto literal : original.getBodyLiterals()) {
         if (AstAtom* atom = dynamic_cast<AstAtom*>(literal)) {
             const char* relName = atom->getName().getNames()[0].c_str();
@@ -857,7 +857,7 @@ std::unique_ptr<AstRelation> ProvenanceRecordTransformer::makeNewInfoRelation(co
             // auto sym = new SymbolTable();
             // sym->insert(relName);
             newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstStringConstant(translationUnit.getSymbolTable(), relName)));
-            newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(atom->getArity())));
+            // newInfoClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstNumberConstant(atom->getArity())));
         }
     }
 
