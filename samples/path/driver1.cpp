@@ -111,6 +111,19 @@ std::map<std::string, std::vector<std::string>> info;
 
 int depthLimit = 4;
 
+inline std::vector<std::string> split(std::string s, char delim) {
+    std::vector<std::string> v;
+    std::stringstream ss(s);
+    std::string item;
+
+    while (std::getline(ss, item, delim)) {
+        v.push_back(item);
+    }
+
+    return v;
+};
+
+
 void load() {
     for (Relation *rel : prog->getAllRelations()) {
         if (rel->getName().find("_output") != std::string::npos) {
@@ -173,27 +186,36 @@ std::unique_ptr<tree_node> explain(std::string relName, plabel label, int depth)
         std::unique_ptr<tree_node> leaf(new leaf_node(lab));
         return leaf;
     } else {
-        std::string internalRelName;
-        // find correct relation
-        for (auto rel : prog->getAllRelations()) {
-            if (rel->getName().find(relName + "_new_") != std::string::npos && rel->getName().find("_info") == std::string::npos) {
-                if (rules.find(std::make_pair(rel->getName(), label)) != rules.end()) {
-                    // found the correct relation
-                    internalRelName = rel->getName();
-                    break;
+        if (depth > 0) {
+            std::string internalRelName;
+            // find correct relation
+            for (auto rel : prog->getAllRelations()) {
+                if (rel->getName().find(relName + "_new_") != std::string::npos && rel->getName().find("_info") == std::string::npos) {
+                    if (rules.find(std::make_pair(rel->getName(), label)) != rules.end()) {
+                        // found the correct relation
+                        internalRelName = rel->getName();
+                        break;
+                    }
                 }
             }
-        }
 
-        auto key = std::make_pair(relName + "_output", label);
-        auto subProofKey = std::make_pair(internalRelName, label);
+            auto key = std::make_pair(relName + "_output", label);
+            auto subProofKey = std::make_pair(internalRelName, label);
 
-        for (size_t i = 0; i < info[internalRelName + "_info"].size(); i++) {
-            auto rel = info[internalRelName + "_info"][i];
-            auto newLab = rules[subProofKey][i];
-            inner->add_child(explain(rel, newLab, depth - 1));
+            auto lab = relName + labels[key].getRepresentation();
+            auto ruleNum = split(internalRelName, '_').back();
+            auto inner = std::unique_ptr<inner_node>(new inner_node(lab, std::string("(R" + ruleNum + ")")));
+
+            for (size_t i = 0; i < info[internalRelName + "_info"].size(); i++) {
+                auto rel = info[internalRelName + "_info"][i];
+                auto newLab = rules[subProofKey][i];
+                inner->add_child(explain(rel, newLab, depth - 1));
+            }
+            return std::move(inner);
+        } else {
+            std::string lab = "subproof " + relName + "(" + std::to_string(label) + ")";
+            return std::unique_ptr<tree_node>(new leaf_node(lab));
         }
-        return inner;
     }
 }
 
@@ -207,19 +229,16 @@ std::unique_ptr<tree_node> explain(std::string relName, elements tuple_elements)
     return std::move(explain(relName, values[key], depthLimit));
 }
 
+void printTree(std::unique_ptr<tree_node> t) {
+    if (t) {
+        t->place(0, 0);
+        screen_buffer *s = new screen_buffer(t->getWidth(), t->getHeight());
+        t->render(*s);
+        s->print(std::cout);
+    }
+}
+
 void commandLine(SouffleProgram *prog) {
-    auto split = [](std::string s, char delim)->std::vector<std::string> {
-        std::vector<std::string> v;
-        std::stringstream ss(s);
-        std::string item;
-
-        while (std::getline(ss, item, delim)) {
-            v.push_back(item);
-        }
-
-        return v;
-    };
-
 
     std::string line;
     while (1) {
@@ -233,14 +252,10 @@ void commandLine(SouffleProgram *prog) {
         } else if (command[0] == "explain") {
             elements tuple_elements(std::vector<std::string>(command.begin() + 2, command.end()));
             std::unique_ptr<tree_node> t = explain(command[1], tuple_elements);
-
-            if (t) {
-                t->place(0, 0);
-                screen_buffer *s = new screen_buffer(t->getWidth(), t->getHeight());
-                t->render(*s);
-                s->print(std::cout);
-            }
+            printTree(std::move(t));
         } else if (command[0] == "subproof") {
+            std::unique_ptr<tree_node> t = explain(command[1], atoi(command[2].c_str()), depthLimit);
+            printTree(std::move(t));
         } else if (command[0] == "exit") {
             break;
         }
