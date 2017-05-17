@@ -98,7 +98,6 @@ struct AstVisitor : public ast_visitor_tag {
         FORWARD(Relation);
         FORWARD(IODirective);
         FORWARD(Program);
- 
 
 #undef FORWARD
 
