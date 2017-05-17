@@ -196,6 +196,9 @@ public:
         for (const auto& cur : clauses) {
             res.push_back(cur.get());
         }
+        for (const auto& cur : ioDirectives) {
+            res.push_back(cur.get());
+        }
         return res;
     }
 
@@ -246,6 +249,9 @@ protected:
             return false;
         }
         if (!equal_targets(clauses, other.clauses)) {
+            return false;
+        }
+        if (!equal_targets(ioDirectives, other.ioDirectives)) {
             return false;
         }
 
