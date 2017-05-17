@@ -158,4 +158,5 @@ POSITIVE_TEST([centroids],[evaluation])
 POSITIVE_TEST([dfa_min],[evaluation])
 POSITIVE_TEST([earley],[evaluation])
 POSITIVE_TEST([edit_distance],[evaluation])
+POSITIVE_TEST([subsumption],[evaluation])
 
