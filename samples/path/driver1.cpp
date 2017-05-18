@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <cstdlib>
+#include <algorithm>
 
 #include "souffle/SouffleInterface.h"
 #include "render_tree.h"
@@ -111,13 +112,20 @@ std::map<std::string, std::vector<std::string>> info;
 
 int depthLimit = 4;
 
-inline std::vector<std::string> split(std::string s, char delim) {
+inline std::vector<std::string> split(std::string s, char delim, int times = -1) {
     std::vector<std::string> v;
     std::stringstream ss(s);
     std::string item;
 
-    while (std::getline(ss, item, delim)) {
+    while ((times > 0 || times <= -1) && std::getline(ss, item, delim)) {
         v.push_back(item);
+        times--;
+    }
+
+    if (ss.peek() != EOF) {
+        std::string remainder;
+        std::getline(ss, remainder);
+        v.push_back(remainder);
     }
 
     return v;
@@ -238,23 +246,44 @@ void printTree(std::unique_ptr<tree_node> t) {
     }
 }
 
+std::pair<std::string, std::vector<std::string>> parseRel(std::string rel) {
+    // remove spaces
+    rel.erase(std::remove(rel.begin(), rel.end(), ' '), rel.end());
+
+    std::cout << rel << std::endl;
+
+    // remove last closing parenthesis
+    if (rel.back() == ')') {
+        rel.pop_back();
+    }
+
+    auto splitRel = split(rel, '(');
+    std::string relName = splitRel[0];
+    std::vector<std::string> args = split(splitRel[1], ',');
+
+    return std::make_pair(relName, args);
+}
+
 void commandLine(SouffleProgram *prog) {
 
     std::string line;
     while (1) {
         std::cout << "Enter command > ";
         std::getline(std::cin, line);
-        std::vector<std::string> command = split(line, ' ');
+        std::vector<std::string> command = split(line, ' ', 1);
 
         if (command[0] == "setdepth") {
             depthLimit = atoi(command[1].c_str());
             std::cout << "Depth is now " << depthLimit << std::endl;
         } else if (command[0] == "explain") {
-            elements tuple_elements(std::vector<std::string>(command.begin() + 2, command.end()));
-            std::unique_ptr<tree_node> t = explain(command[1], tuple_elements);
+            auto query = parseRel(command[1]);
+            elements tuple_elements(query.second);
+            // elements tuple_elements(std::vector<std::string>(command.begin() + 2, command.end()));
+            std::unique_ptr<tree_node> t = explain(query.first, tuple_elements);
             printTree(std::move(t));
         } else if (command[0] == "subproof") {
-            std::unique_ptr<tree_node> t = explain(command[1], atoi(command[2].c_str()), depthLimit);
+            auto query = parseRel(command[1]);
+            std::unique_ptr<tree_node> t = explain(query.first, atoi(query.second[0].c_str()), depthLimit);
             printTree(std::move(t));
         } else if (command[0] == "exit") {
             break;
