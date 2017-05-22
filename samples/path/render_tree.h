@@ -39,6 +39,12 @@ class screen_buffer {
       }
     }
 
+    const char *getString() {
+        std::stringstream ss;
+        print(ss);
+        return ss.str().c_str();
+    }
+
     // print screen buffer
     void print(std::ostream &os) { 
       if (height > 0 && width > 0) {

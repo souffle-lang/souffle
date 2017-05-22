@@ -38,8 +38,8 @@ ram::Relation<Auto,1>* rel_6_new_path_new;
 ram::Relation<Auto,2>* rel_7_path_new_0;
 souffle::RelationWrapper<2,ram::Relation<Auto,2>,Tuple<RamDomain,2>,2,false,true> wrapper_rel_7_path_new_0;
 // -- Table: path_new_0_info
-ram::Relation<Auto,1>* rel_8_path_new_0_info;
-souffle::RelationWrapper<3,ram::Relation<Auto,1>,Tuple<RamDomain,1>,1,false,true> wrapper_rel_8_path_new_0_info;
+ram::Relation<Auto,3>* rel_8_path_new_0_info;
+souffle::RelationWrapper<3,ram::Relation<Auto,3>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_8_path_new_0_info;
 // -- Table: path_new_1
 ram::Relation<Auto,3, ram::index<0,1,2>>* rel_9_path_new_1;
 souffle::RelationWrapper<4,ram::Relation<Auto,3, ram::index<0,1,2>>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_9_path_new_1;
@@ -48,8 +48,8 @@ ram::Relation<Auto,3>* rel_10_delta_path_new_1;
 // -- Table: @new_path_new_1
 ram::Relation<Auto,3>* rel_11_new_path_new_1;
 // -- Table: path_new_1_info
-ram::Relation<Auto,2>* rel_12_path_new_1_info;
-souffle::RelationWrapper<5,ram::Relation<Auto,2>,Tuple<RamDomain,2>,2,false,true> wrapper_rel_12_path_new_1_info;
+ram::Relation<Auto,4>* rel_12_path_new_1_info;
+souffle::RelationWrapper<5,ram::Relation<Auto,4>,Tuple<RamDomain,4>,4,false,true> wrapper_rel_12_path_new_1_info;
 // -- Table: path_output
 ram::Relation<Auto,3>* rel_13_path_output;
 souffle::RelationWrapper<6,ram::Relation<Auto,3>,Tuple<RamDomain,3>,3,false,true> wrapper_rel_13_path_output;
@@ -65,14 +65,14 @@ rel_5_delta_path_new(new ram::Relation<Auto,1>()),
 rel_6_new_path_new(new ram::Relation<Auto,1>()),
 rel_7_path_new_0(new ram::Relation<Auto,2>()),
 wrapper_rel_7_path_new_0(*rel_7_path_new_0,symTable,"path_new_0",std::array<const char *,2>{"r:path_type{x#s:symbol,y#s:symbol}","r:edge_type{x#s:symbol,y#s:symbol}"},std::array<const char *,2>{"0","1"}),
-rel_8_path_new_0_info(new ram::Relation<Auto,1>()),
-wrapper_rel_8_path_new_0_info(*rel_8_path_new_0_info,symTable,"path_new_0_info",std::array<const char *,1>{"s:symbol"},std::array<const char *,1>{"1_rel"}),
+rel_8_path_new_0_info(new ram::Relation<Auto,3>()),
+wrapper_rel_8_path_new_0_info(*rel_8_path_new_0_info,symTable,"path_new_0_info",std::array<const char *,3>{"s:symbol","s:symbol","s:symbol"},std::array<const char *,3>{"1_rel","orig_name","clause_repr"}),
 rel_9_path_new_1(new ram::Relation<Auto,3, ram::index<0,1,2>>()),
 wrapper_rel_9_path_new_1(*rel_9_path_new_1,symTable,"path_new_1",std::array<const char *,3>{"r:path_type{x#s:symbol,y#s:symbol}","r:edge_type{x#s:symbol,y#s:symbol}","r:path_type{x#s:symbol,y#s:symbol}"},std::array<const char *,3>{"0","1","2"}),
 rel_10_delta_path_new_1(new ram::Relation<Auto,3>()),
 rel_11_new_path_new_1(new ram::Relation<Auto,3>()),
-rel_12_path_new_1_info(new ram::Relation<Auto,2>()),
-wrapper_rel_12_path_new_1_info(*rel_12_path_new_1_info,symTable,"path_new_1_info",std::array<const char *,2>{"s:symbol","s:symbol"},std::array<const char *,2>{"1_rel","2_rel"}),
+rel_12_path_new_1_info(new ram::Relation<Auto,4>()),
+wrapper_rel_12_path_new_1_info(*rel_12_path_new_1_info,symTable,"path_new_1_info",std::array<const char *,4>{"s:symbol","s:symbol","s:symbol","s:symbol"},std::array<const char *,4>{"1_rel","2_rel","orig_name","clause_repr"}),
 rel_13_path_output(new ram::Relation<Auto,3>()),
 wrapper_rel_13_path_output(*rel_13_path_output,symTable,"path_output",std::array<const char *,3>{"r:path_type{x#s:symbol,y#s:symbol}","s:symbol","s:symbol"},std::array<const char *,3>{"x","x_0","x_1"}){
 addRelation("edge",&wrapper_rel_1_edge,1,0);
@@ -86,8 +86,13 @@ addRelation("path_output",&wrapper_rel_13_path_output,0,1);
 static const char *symbols[]={
 	R"(edge)",
 	R"(path)",
+	R"(path(x,y) :- 
+   edge(x,y).)",
+	R"(path(x,z) :- 
+   edge(x,y),
+   path(y,z).)",
 };
-symTable.insert(symbols,2);
+symTable.insert(symbols,4);
 
 }
 ~Sf_path() {
@@ -261,8 +266,8 @@ rel_13_path_output->insert(tuple,READ_OP_CONTEXT(rel_13_path_output_op_ctxt));
 }
 PARALLEL_END;
 }
-rel_8_path_new_0_info->insert(0);
-rel_12_path_new_1_info->insert(0,1);
+rel_8_path_new_0_info->insert(0,1,2);
+rel_12_path_new_1_info->insert(0,1,1,3);
 }
 public:
 void printAll(std::string dirname) {
@@ -276,7 +281,7 @@ IOSystem::getInstance().getWriter(SymbolMask({0, 0}), symTable, ioDirectives)->w
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_0_info.csv"},{"name","path_new_0_info"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
-IOSystem::getInstance().getWriter(SymbolMask({1}), symTable, ioDirectives)->writeAll(*rel_8_path_new_0_info);
+IOSystem::getInstance().getWriter(SymbolMask({1, 1, 1}), symTable, ioDirectives)->writeAll(*rel_8_path_new_0_info);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_1.csv"},{"name","path_new_1"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
@@ -284,7 +289,7 @@ IOSystem::getInstance().getWriter(SymbolMask({0, 0, 0}), symTable, ioDirectives)
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_new_1_info.csv"},{"name","path_new_1_info"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
-IOSystem::getInstance().getWriter(SymbolMask({1, 1}), symTable, ioDirectives)->writeAll(*rel_12_path_new_1_info);
+IOSystem::getInstance().getWriter(SymbolMask({1, 1, 1, 1}), symTable, ioDirectives)->writeAll(*rel_12_path_new_1_info);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./path_output.csv"},{"name","path_output"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
@@ -321,7 +326,7 @@ IOSystem::getInstance().getWriter(SymbolMask({0, 0}), symTable, ioDirectives)->w
 try {IODirectives ioDirectives;
 ioDirectives.setIOType("stdout");
 ioDirectives.setRelationName("rel_8_path_new_0_info");
-IOSystem::getInstance().getWriter(SymbolMask({1}), symTable, ioDirectives)->writeAll(*rel_8_path_new_0_info);
+IOSystem::getInstance().getWriter(SymbolMask({1, 1, 1}), symTable, ioDirectives)->writeAll(*rel_8_path_new_0_info);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {IODirectives ioDirectives;
 ioDirectives.setIOType("stdout");
@@ -331,7 +336,7 @@ IOSystem::getInstance().getWriter(SymbolMask({0, 0, 0}), symTable, ioDirectives)
 try {IODirectives ioDirectives;
 ioDirectives.setIOType("stdout");
 ioDirectives.setRelationName("rel_12_path_new_1_info");
-IOSystem::getInstance().getWriter(SymbolMask({1, 1}), symTable, ioDirectives)->writeAll(*rel_12_path_new_1_info);
+IOSystem::getInstance().getWriter(SymbolMask({1, 1, 1, 1}), symTable, ioDirectives)->writeAll(*rel_12_path_new_1_info);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
 try {IODirectives ioDirectives;
 ioDirectives.setIOType("stdout");
