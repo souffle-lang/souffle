@@ -260,7 +260,7 @@ void printTree(std::unique_ptr<tree_node> t) {
         screen_buffer *s = new screen_buffer(t->getWidth(), t->getHeight());
         t->render(*s);
         // s->print(std::cout);
-        wprintw(stdscr, s->getString());
+        wprintw(stdscr, s->getString().c_str());
         // std::cout << s->getString() << std::endl;
     }
 }

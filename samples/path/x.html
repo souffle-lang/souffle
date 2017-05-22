@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Souffle Debug Report</title>
+<style>
+ul { list-style-type: none; }
+ul > li.leaf { display: inline-block; padding: 0em 1em; }
+ul > li.nonleaf { padding: 0em 1em; }
+* { font-family: sans-serif; }
+pre { white-space: pre-wrap; font-family: monospace; }
+a:link { text-decoration: none; color: blue; }
+a:visited { text-decoration: none; color: blue; }
+div.headerdiv { background-color:lightgrey; margin:10px; padding-left:10px; padding-right:10px; padding-top:3px; padding-bottom:3px; border-radius:5px }
+.headerdiv h1 { display:inline; }
+.headerdiv a { float:right; }
+</style>
+<script type="text/javascript">
+function toggleVisibility(id) {
+  var element = document.getElementById(id);
+  if (element.style.display == 'none') {
+    element.style.display = 'block';
+  } else {
+    element.style.display = 'none';
+  }
+}
+</script>
+</head>
+<body>
+<div class='headerdiv'><h1>Souffle Debug Report</h1></div>
+<a href="#Parsing">After Parsing (0.007241s)</a>
+<ul>
+<li class='leaf'><a href="#Parsing-dl">Datalog</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#Parsing-prec-graph">Precedence Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#Parsing-scc-graph">SCC Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#Parsing-topsort-scc-graph">SCC Topological Sort Order</a>
+<ul>
+</ul>
+</li></ul>
+<a href="#ComponentInstantiationTransformer">After ComponentInstantiationTransformer (0.000023s)</a>
+<ul>
+<li class='leaf'><a href="#ComponentInstantiationTransformer-dl">Datalog</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ComponentInstantiationTransformer-prec-graph">Precedence Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ComponentInstantiationTransformer-scc-graph">SCC Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ComponentInstantiationTransformer-topsort-scc-graph">SCC Topological Sort Order</a>
+<ul>
+</ul>
+</li></ul>
+<a href="#UniqueAggregationVariablesTransformer">After UniqueAggregationVariablesTransformer (0.000013s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#AstSemanticChecker">After AstSemanticChecker (0.000196s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#ResolveAliasesTransformer">After ResolveAliasesTransformer (0.000051s)</a>
+<ul>
+<li class='leaf'><a href="#ResolveAliasesTransformer-dl">Datalog</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ResolveAliasesTransformer-prec-graph">Precedence Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ResolveAliasesTransformer-scc-graph">SCC Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ResolveAliasesTransformer-topsort-scc-graph">SCC Topological Sort Order</a>
+<ul>
+</ul>
+</li></ul>
+<a href="#RemoveRelationCopiesTransformer">After RemoveRelationCopiesTransformer (0.000002s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#MaterializeAggregationQueriesTransformer">After MaterializeAggregationQueriesTransformer (0.000015s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#RemoveEmptyRelationsTransformer">After RemoveEmptyRelationsTransformer (0.000001s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#RemoveRedundantRelationsTransformer">After RemoveRedundantRelationsTransformer (0.000015s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#AstExecutionPlanChecker">After AstExecutionPlanChecker (0.000022s) (unchanged)</a>
+<ul>
+</ul>
+<a href="#ProvenanceRecordTransformer">After ProvenanceRecordTransformer (0.000240s)</a>
+<ul>
+<li class='leaf'><a href="#ProvenanceRecordTransformer-dl">Datalog</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ProvenanceRecordTransformer-prec-graph">Precedence Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ProvenanceRecordTransformer-scc-graph">SCC Graph</a>
+<ul>
+</ul>
+</li><li class='leaf'><a href="#ProvenanceRecordTransformer-topsort-scc-graph">SCC Topological Sort Order</a>
+<ul>
+</ul>
+</li></ul>
+<a href="#ram-program">RAM Program (0.001112s)</a>
+<ul>
+</ul>
+<a id="Parsing"></a>
+<div class='headerdiv'>
+<h1>After Parsing (0.007241s)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+<a id="Parsing-dl"></a>
+<div class='headerdiv'>
+<h1>Datalog</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>// ----- Types -----
+
+// ----- Relations -----
+
+
+// -- edge --
+.decl edge(x:symbol,y:symbol) input 
+
+
+
+// -- path --
+.decl path(x:symbol,y:symbol) output 
+
+path(x,y) :- 
+   edge(x,y).
+
+path(x,z) :- 
+   edge(x,y),
+   path(y,z).
+
+</pre>
+
+</div>
+<a id="Parsing-prec-graph"></a>
+<div class='headerdiv'>
+<h1>Precedence Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('Parsing-prec-graph-source')">(show dot source)</a>
+<div id='Parsing-prec-graph-source' style='display:none'>
+<pre>digraph "dependence-graph" {
+	"edge" [label = "edge"];
+	"path" [label = "path"];
+	"edge" -> "path";
+	"path" -> "path";
+}
+</pre>
+</div>
+
+</div>
+<a id="Parsing-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('Parsing-scc-graph-source')">(show dot source)</a>
+<div id='Parsing-scc-graph-source' style='display:none'>
+<pre>digraph "scc-graph" {
+	 snode0[label = "edge" ];
+	 snode1[label = "path" ];
+	snode0 -> snode1;
+}
+</pre>
+</div>
+
+</div>
+<a id="Parsing-topsort-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Topological Sort Order</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>[edge]
+[path]
+
+cost: 1
+</pre>
+
+</div>
+</div>
+<a id="ComponentInstantiationTransformer"></a>
+<div class='headerdiv'>
+<h1>After ComponentInstantiationTransformer (0.000023s)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+<a id="ComponentInstantiationTransformer-dl"></a>
+<div class='headerdiv'>
+<h1>Datalog</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>// ----- Types -----
+
+// ----- Relations -----
+
+
+// -- edge --
+.decl edge(x:symbol,y:symbol) input 
+
+
+
+// -- path --
+.decl path(x:symbol,y:symbol) output 
+
+path(x,y) :- 
+   edge(x,y).
+
+path(x,z) :- 
+   edge(x,y),
+   path(y,z).
+
+</pre>
+
+</div>
+<a id="ComponentInstantiationTransformer-prec-graph"></a>
+<div class='headerdiv'>
+<h1>Precedence Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('ComponentInstantiationTransformer-prec-graph-source')">(show dot source)</a>
+<div id='ComponentInstantiationTransformer-prec-graph-source' style='display:none'>
+<pre>digraph "dependence-graph" {
+	"edge" [label = "edge"];
+	"path" [label = "path"];
+	"edge" -> "path";
+	"path" -> "path";
+}
+</pre>
+</div>
+
+</div>
+<a id="ComponentInstantiationTransformer-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('ComponentInstantiationTransformer-scc-graph-source')">(show dot source)</a>
+<div id='ComponentInstantiationTransformer-scc-graph-source' style='display:none'>
+<pre>digraph "scc-graph" {
+	 snode0[label = "edge" ];
+	 snode1[label = "path" ];
+	snode0 -> snode1;
+}
+</pre>
+</div>
+
+</div>
+<a id="ComponentInstantiationTransformer-topsort-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Topological Sort Order</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>[edge]
+[path]
+
+cost: 1
+</pre>
+
+</div>
+</div>
+<a id="UniqueAggregationVariablesTransformer"></a>
+<div class='headerdiv'>
+<h1>After UniqueAggregationVariablesTransformer (0.000013s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="AstSemanticChecker"></a>
+<div class='headerdiv'>
+<h1>After AstSemanticChecker (0.000196s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="ResolveAliasesTransformer"></a>
+<div class='headerdiv'>
+<h1>After ResolveAliasesTransformer (0.000051s)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+<a id="ResolveAliasesTransformer-dl"></a>
+<div class='headerdiv'>
+<h1>Datalog</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>// ----- Types -----
+
+// ----- Relations -----
+
+
+// -- edge --
+.decl edge(x:symbol,y:symbol) input 
+
+
+
+// -- path --
+.decl path(x:symbol,y:symbol) output 
+
+path(x,y) :- 
+   edge(x,y).
+
+path(x,z) :- 
+   edge(x,y),
+   path(y,z).
+
+</pre>
+
+</div>
+<a id="ResolveAliasesTransformer-prec-graph"></a>
+<div class='headerdiv'>
+<h1>Precedence Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('ResolveAliasesTransformer-prec-graph-source')">(show dot source)</a>
+<div id='ResolveAliasesTransformer-prec-graph-source' style='display:none'>
+<pre>digraph "dependence-graph" {
+	"edge" [label = "edge"];
+	"path" [label = "path"];
+	"edge" -> "path";
+	"path" -> "path";
+}
+</pre>
+</div>
+
+</div>
+<a id="ResolveAliasesTransformer-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('ResolveAliasesTransformer-scc-graph-source')">(show dot source)</a>
+<div id='ResolveAliasesTransformer-scc-graph-source' style='display:none'>
+<pre>digraph "scc-graph" {
+	 snode0[label = "edge" ];
+	 snode1[label = "path" ];
+	snode0 -> snode1;
+}
+</pre>
+</div>
+
+</div>
+<a id="ResolveAliasesTransformer-topsort-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Topological Sort Order</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>[edge]
+[path]
+
+cost: 1
+</pre>
+
+</div>
+</div>
+<a id="RemoveRelationCopiesTransformer"></a>
+<div class='headerdiv'>
+<h1>After RemoveRelationCopiesTransformer (0.000002s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="MaterializeAggregationQueriesTransformer"></a>
+<div class='headerdiv'>
+<h1>After MaterializeAggregationQueriesTransformer (0.000015s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="RemoveEmptyRelationsTransformer"></a>
+<div class='headerdiv'>
+<h1>After RemoveEmptyRelationsTransformer (0.000001s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="RemoveRedundantRelationsTransformer"></a>
+<div class='headerdiv'>
+<h1>After RemoveRedundantRelationsTransformer (0.000015s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="AstExecutionPlanChecker"></a>
+<div class='headerdiv'>
+<h1>After AstExecutionPlanChecker (0.000022s) (unchanged)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+</div>
+<a id="ProvenanceRecordTransformer"></a>
+<div class='headerdiv'>
+<h1>After ProvenanceRecordTransformer (0.000240s)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+
+<a id="ProvenanceRecordTransformer-dl"></a>
+<div class='headerdiv'>
+<h1>Datalog</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>// ----- Types -----
+.type edge_type = [x:symbol,y:symbol]
+.type path_type = [x:symbol,y:symbol]
+
+// ----- Relations -----
+
+
+// -- edge --
+.decl edge(x:symbol,y:symbol) input 
+
+
+
+// -- edge_new --
+.decl edge_new(0:edge_type) 
+
+edge_new([x,y]) :- 
+   edge(x,y).
+
+
+
+// -- edge_output --
+.decl edge_output(x:edge_type,x_0:symbol,x_1:symbol) output 
+
+edge_output([x_0,x_1],x_0,x_1) :- 
+   edge_new([x_0,x_1]).
+
+
+
+// -- path_new --
+.decl path_new(0:path_type) 
+
+path_new(x) :- 
+   path_new_0(x,_).
+
+path_new(x) :- 
+   path_new_1(x,_,_).
+
+
+
+// -- path_new_0 --
+.decl path_new_0(0:path_type,1:edge_type) output 
+
+path_new_0([x,y],[x,y]) :- 
+   edge_new([x,y]).
+
+
+
+// -- path_new_0_info --
+.decl path_new_0_info(1_rel:symbol) output 
+
+path_new_0_info("edge").
+
+
+
+// -- path_new_1 --
+.decl path_new_1(0:path_type,1:edge_type,2:path_type) output 
+
+path_new_1([x,z],[x,y],[y,z]) :- 
+   edge_new([x,y]),
+   path_new([y,z]).
+
+
+
+// -- path_new_1_info --
+.decl path_new_1_info(1_rel:symbol,2_rel:symbol) output 
+
+path_new_1_info("edge","path").
+
+
+
+// -- path_output --
+.decl path_output(x:path_type,x_0:symbol,x_1:symbol) output 
+
+path_output([x_0,x_1],x_0,x_1) :- 
+   path_new([x_0,x_1]).
+
+</pre>
+
+</div>
+<a id="ProvenanceRecordTransformer-prec-graph"></a>
+<div class='headerdiv'>
+<h1>Precedence Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('ProvenanceRecordTransformer-prec-graph-source')">(show dot source)</a>
+<div id='ProvenanceRecordTransformer-prec-graph-source' style='display:none'>
+<pre>digraph "dependence-graph" {
+	"edge" [label = "edge"];
+	"edge_new" [label = "edge_new"];
+	"edge_output" [label = "edge_output"];
+	"path_new" [label = "path_new"];
+	"path_new_0" [label = "path_new_0"];
+	"path_new_0_info" [label = "path_new_0_info"];
+	"path_new_1" [label = "path_new_1"];
+	"path_new_1_info" [label = "path_new_1_info"];
+	"path_output" [label = "path_output"];
+	"edge" -> "edge_new";
+	"edge_new" -> "edge_output";
+	"path_new_0" -> "path_new";
+	"path_new_1" -> "path_new";
+	"edge_new" -> "path_new_0";
+	"edge_new" -> "path_new_1";
+	"path_new" -> "path_new_1";
+	"path_new" -> "path_output";
+}
+</pre>
+</div>
+
+</div>
+<a id="ProvenanceRecordTransformer-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Graph</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<p>(error: unable to generate dot graph image)</p><a href="javascript:toggleVisibility('ProvenanceRecordTransformer-scc-graph-source')">(show dot source)</a>
+<div id='ProvenanceRecordTransformer-scc-graph-source' style='display:none'>
+<pre>digraph "scc-graph" {
+	 snode0[label = "edge" ];
+	 snode1[label = "edge_new" ];
+	 snode2[label = "edge_output" ];
+	 snode3[label = "path_new_0" ];
+	 snode4[label = "path_new,\npath_new_1" ];
+	 snode5[label = "path_new_0_info" ];
+	 snode6[label = "path_new_1_info" ];
+	 snode7[label = "path_output" ];
+	snode0 -> snode1;
+	snode1 -> snode2;
+	snode1 -> snode3;
+	snode1 -> snode4;
+	snode3 -> snode4;
+	snode4 -> snode7;
+}
+</pre>
+</div>
+
+</div>
+<a id="ProvenanceRecordTransformer-topsort-scc-graph"></a>
+<div class='headerdiv'>
+<h1>SCC Topological Sort Order</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>[edge]
+[edge_new]
+[edge_output]
+[path_new_0]
+[path_new, path_new_1]
+[path_output]
+[path_new_0_info]
+[path_new_1_info]
+
+cost: 3
+</pre>
+
+</div>
+</div>
+<a id="ram-program"></a>
+<div class='headerdiv'>
+<h1>RAM Program (0.001112s)</h1>
+<a href='#'>(return to top)</a>
+</div><div style='clear:both'></div>
+<div style='padding-left: 1em'>
+<pre>CREATE edge(x,y);
+LOAD DATA FOR edge;
+CREATE edge_new(0);
+CREATE edge_output(x,x_0,x_1);
+CREATE path_new(0);
+CREATE @delta_path_new(0);
+CREATE @new_path_new(0);
+CREATE path_new_0(0,1);
+CREATE path_new_0_info(1_rel);
+CREATE path_new_1(0,1,2);
+CREATE @delta_path_new_1(0,1,2);
+CREATE @new_path_new_1(0,1,2);
+CREATE path_new_1_info(1_rel,2_rel);
+CREATE path_output(x,x_0,x_1);
+INSERT 
+	SCAN edge AS t0 
+		PROJECT ([t0.x,t0.y]) INTO edge_new;
+DROP edge;
+INSERT 
+	SCAN edge_new AS t0 
+		UNPACK env(t0, i0) INTO t1 FOR 
+			PROJECT ([t1.0,env(t1, i1)], t1.0, env(t1, i1)) INTO edge_output;
+INSERT 
+	SCAN edge_new AS t0 
+		UNPACK env(t0, i0) INTO t1 FOR 
+			PROJECT ([t1.0,env(t1, i1)], [t1.0,env(t1, i1)]) INTO path_new_0;
+INSERT 
+	SCAN path_new_0 AS t0 
+		PROJECT (t0.0) INTO path_new;
+MERGE path_new INTO @delta_path_new;
+MERGE path_new_1 INTO @delta_path_new_1;
+LOOP
+	PARALLEL
+		INSERT 
+			SCAN @delta_path_new_1 AS t0 WHERE (t0.c0) ∉ path_new
+				PROJECT (t0.c0) INTO @new_path_new
+	 ||
+		INSERT 
+			SCAN edge_new AS t0 
+				UNPACK env(t0, i0) INTO t1 FOR 
+					SCAN @delta_path_new AS t2 
+						UNPACK env(t2, i0) INTO t3 WHERE env(t1, i1) = t3.c0 and ([t1.0,env(t3, i1)],[t1.0,env(t1, i1)],[env(t1, i1),env(t3, i1)]) ∉ path_new_1 FOR 
+							PROJECT ([t1.0,env(t3, i1)], [t1.0,env(t1, i1)], [env(t1, i1),env(t3, i1)]) INTO @new_path_new_1
+	END PARALLEL;
+	EXIT @new_path_new ≠ ∅ and @new_path_new_1 ≠ ∅;
+	MERGE @new_path_new INTO path_new;
+	SWAP (@delta_path_new, @new_path_new);
+	CLEAR @new_path_new;
+	MERGE @new_path_new_1 INTO path_new_1;
+	SWAP (@delta_path_new_1, @new_path_new_1);
+	CLEAR @new_path_new_1
+END LOOP;
+DROP @delta_path_new;
+DROP @new_path_new;
+DROP @delta_path_new_1;
+DROP @new_path_new_1;
+DROP edge_new;
+INSERT 
+	SCAN path_new AS t0 
+		UNPACK env(t0, i0) INTO t1 FOR 
+			PROJECT ([t1.0,env(t1, i1)], t1.0, env(t1, i1)) INTO path_output;
+DROP path_new;
+INSERT (number(0)) INTO path_new_0_info;
+INSERT (number(0),number(1)) INTO path_new_1_info;
+STORE DATA FOR edge_output;
+STORE DATA FOR path_new_0;
+STORE DATA FOR path_new_0_info;
+STORE DATA FOR path_new_1;
+STORE DATA FOR path_new_1_info;
+STORE DATA FOR path_output</pre>
+
+</div>
+<a href='#'>(return to top)</a>
+</body>
+</html>

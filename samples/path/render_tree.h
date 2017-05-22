@@ -39,10 +39,10 @@ class screen_buffer {
       }
     }
 
-    const char *getString() {
+    std::string getString() {
         std::stringstream ss;
         print(ss);
-        return ss.str().c_str();
+        return ss.str();
     }
 
     // print screen buffer
