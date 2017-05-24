@@ -1358,16 +1358,22 @@ public:
             if (scan.isPureExistenceCheck()) {
                 out << "if(!" << relName << "->"
                     << "empty()) {\n";
+                visitSearch(scan, out);
+                out << "}\n";
             } else if (scan.getLevel() == 0) {
                 // make this loop parallel
                 out << "pfor(auto it = part.begin(); it<part.end(); ++it) \n";
+                out << "try{";
                 out << "for(const auto& env0 : *it) {\n";
+                visitSearch(scan, out);
+                out << "}\n";
+                out << "} catch(std::exception &e) { SignalHandler::instance()->error(e.what());}\n";
             } else {
                 out << "for(const auto& env" << level << " : "
                     << "*" << relName << ") {\n";
+                visitSearch(scan, out);
+                out << "}\n";
             }
-            visitSearch(scan, out);
-            out << "}\n";
             return;
         }
 
@@ -2286,6 +2292,7 @@ std::string RamCompiler::generateCode(
     os << "#else\n";
     os << "}\n";
     os << "int main(int argc, char** argv)\n{\n";
+    os << "try{\n";
 
     // parse arguments
     os << "souffle::CmdOptions opt(";
@@ -2319,6 +2326,7 @@ std::string RamCompiler::generateCode(
     os << "obj.run();\n";
     os << "obj.printAll(opt.getOutputFileDir());\n";
     os << "return 0;\n";
+    os << "} catch(std::exception &e) { souffle::SignalHandler::instance()->error(e.what());}\n";
     os << "}\n";
     os << "#endif\n";
 

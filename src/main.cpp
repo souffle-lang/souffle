@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
         /* collect all input directories for the c pre-processor */
         if (Global::config().has("include-dir")) {
             std::string currentInclude = "";
-            std::string allIncludes = "-I";
+            std::string allIncludes = "";
             for (const char& ch : Global::config().get("include-dir")) {
                 if (ch == ' ') {
                     if (!existDir(currentInclude)) {
@@ -190,7 +190,7 @@ int main(int argc, char** argv) {
                     currentInclude += ch;
                 }
             }
-            allIncludes += currentInclude;
+            allIncludes += " -I" + currentInclude;
             Global::config().set("include-dir", allIncludes);
         }
     }

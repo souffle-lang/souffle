@@ -1,0 +1,43 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl Edge(vertex1:symbol,vertex2:symbol,weight:number)
+Edge(a,b,w) :- 
+  Edge(b,a,w).
+
+Edge("a","a",1).
+Edge("a","b",1).
+Edge("a","c",2).
+Edge("b","d",2).
+Edge("b","e",3).
+Edge("c","d",3).
+Edge("c","e",4).
+Edge("d","f",1).
+Edge("e","f",6).
+  
+.decl Path(source:symbol,destination:symbol,path:number)
+Path(a,c,w) :- Edge(a,c,w).
+Path(a,c,w1+w2) :- 
+  Path(a,b,w1), 
+  Edge(b,c,w2),
+  h = sum w :Edge(_,_,w), 
+  (w1+w2) < h.
+ 
+.decl FindingShorterPath(source:symbol,destination:symbol,weight:number)
+FindingShorterPath(a,b,w1) :- 
+  Path(a,b,w1),
+  Path(a,b,w2),
+  w2<w1.
+
+.decl ShortestPath(source:symbol,destination:symbol,weight:number)
+ShortestPath(a,b,w) :- 
+  Path(a,b,w), 
+  !FindingShorterPath(a,b,w).
+
+.output ShortestPath
+
+
+

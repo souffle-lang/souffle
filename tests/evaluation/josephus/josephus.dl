@@ -1,0 +1,44 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl Relation(a:symbol, b:symbol, step:number,turn:symbol)
+Relation(a, c, step+1,c) :-
+			Relation(a, b, step, a),
+			Relation(b, c, step, a),
+    			a!=c.
+
+Relation(d, e, step+1,c) :-
+			Relation(a, b, step, a),
+			Relation(b, c, step, a),
+			Relation(d, e, step, a),
+    			a!=c,
+			d!=a,
+			d!=b.
+
+
+
+.output Relation
+
+Relation("a","b",0,"a").
+Relation("b","c",0,"a").
+Relation("c","d",0,"a").
+Relation("d","e",0,"a").
+Relation("e","f",0,"a").
+Relation("f","a",0,"a").
+
+
+/*
+ // Small test case:
+Relation("a","b",0,"a").
+Relation("b","c",0,"a").
+Relation("c","a",0,"a").
+*/
+
+.decl Josephus(a:symbol)
+Josephus(a) :- 	
+			Relation(a, b, step, a),
+			Relation(b, a, step, a).
+.output Josephus
