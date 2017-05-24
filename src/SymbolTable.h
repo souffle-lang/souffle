@@ -149,7 +149,7 @@ public:
     const char* unsafeResolve(const size_t idx) const {
         return numToStr[idx];
     }
-    
+
     /* Return the size of the symbol table, being the number of symbols it currently holds. */
     const size_t size() const {
         return numToStr.size();
