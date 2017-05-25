@@ -93,14 +93,14 @@ private:
     std::set<const AstClause*> recursiveClauses;
 
     /** Determines whether the given clause is recursive within the given program */
-    const bool computeIsRecursive(const AstClause& clause, const AstTranslationUnit& translationUnit) const;
+    bool computeIsRecursive(const AstClause& clause, const AstTranslationUnit& translationUnit) const;
 
 public:
     static constexpr const char* name = "recursive-clauses";
 
     void run(const AstTranslationUnit& translationUnit) override;
 
-    const bool isRecursive(const AstClause* clause) const {
+    bool isRecursive(const AstClause* clause) const {
         return recursiveClauses.count(clause);
     }
 };
@@ -133,12 +133,12 @@ public:
 
     void run(const AstTranslationUnit& translationUnit) override;
 
-    const unsigned getSCCForRelation(const AstRelation* relation) const {
+    unsigned getSCCForRelation(const AstRelation* relation) const {
         return nodeToSCC.at(relation);
     }
 
     /** True if the given relation has any successors in another SCC, false otherwise. **/
-    const bool isOutbound(const AstRelation* relation) const {
+    bool isOutbound(const AstRelation* relation) const {
         const int scc = nodeToSCC.at(relation);
         for (auto succ : precedenceGraph->getSuccessors(relation))
             if (nodeToSCC.at(succ) != scc) return true;
@@ -146,7 +146,7 @@ public:
     }
 
     /** True if the given relation has any predecessors in another SCC, false otherwise. **/
-    const bool isInbound(const AstRelation* relation) const {
+    bool isInbound(const AstRelation* relation) const {
         const int scc = nodeToSCC.at(relation);
         for (auto pred : precedenceGraph->getPredecessors(relation))
             if (nodeToSCC.at(pred) != scc) return true;
@@ -154,11 +154,11 @@ public:
     }
 
     /** True if both given relations are in the same SCC, false otherwise. **/
-    const bool isInSameSCC(const AstRelation* relation1, const AstRelation* relation2) const {
+    bool isInSameSCC(const AstRelation* relation1, const AstRelation* relation2) const {
         return nodeToSCC.at(relation1) == nodeToSCC.at(relation2);
     }
 
-    const bool isRecursive(const unsigned scc) const {
+    bool isRecursive(const unsigned scc) const {
         const std::set<const AstRelation*>& sccRelations = SCC.at(scc);
         if (sccRelations.size() == 1) {
             const AstRelation* singleRelation = *sccRelations.begin();
@@ -169,12 +169,12 @@ public:
         return true;
     }
 
-    const bool isRecursive(const AstRelation* relation) const {
+    bool isRecursive(const AstRelation* relation) const {
         return isRecursive(getSCCForRelation(relation));
     }
 
     /** Return the number of strongly connected components in the SCC graph */
-    const unsigned getNumSCCs() const {
+    unsigned getNumSCCs() const {
         return succSCC.size();
     }
 
@@ -209,7 +209,7 @@ private:
 
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
-    const unsigned topologicalOrderingCost(const std::vector<unsigned>& permutationOfSCCs) const;
+    unsigned topologicalOrderingCost(const std::vector<unsigned>& permutationOfSCCs) const;
 
     /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
     void computeTopologicalOrdering(const unsigned scc, std::vector<bool>& visited);
@@ -255,7 +255,7 @@ public:
         return expiredRelations;
     }
 
-    const bool isRecursive() const {
+    bool isRecursive() const {
         return recursive;
     }
 };
@@ -284,17 +284,17 @@ public:
     }
 
     /** Check if a given relation is recursive. */
-    const bool isRecursive(const AstRelation* relation) const {
+    bool isRecursive(const AstRelation* relation) const {
         return topsortSCCGraph->getSCCGraph()->isRecursive(relation);
     }
 
     /** Check if a given relation has predecessor relations in another SCC. */
-    const bool isInbound(const AstRelation* relation) const {
+    bool isInbound(const AstRelation* relation) const {
         return topsortSCCGraph->getSCCGraph()->isInbound(relation);
     }
 
     /** Check if a given relation has successor relations in another SCC. */
-    const bool isOutbound(const AstRelation* relation) const {
+    bool isOutbound(const AstRelation* relation) const {
         return topsortSCCGraph->getSCCGraph()->isOutbound(relation);
     }
 

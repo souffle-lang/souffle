@@ -116,7 +116,7 @@ void RecursiveClauses::run(const AstTranslationUnit& translationUnit) {
     });
 }
 
-const bool RecursiveClauses::computeIsRecursive(
+bool RecursiveClauses::computeIsRecursive(
         const AstClause& clause, const AstTranslationUnit& translationUnit) const {
     const AstProgram& program = *translationUnit.getProgram();
 
@@ -265,7 +265,7 @@ void SCCGraph::outputSCCGraph(std::ostream& os) const {
     os << "}\n";
 }
 
-const unsigned TopologicallySortedSCCGraph::topologicalOrderingCost(
+unsigned TopologicallySortedSCCGraph::topologicalOrderingCost(
         const std::vector<unsigned>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole
     int costOfSCC = 0;

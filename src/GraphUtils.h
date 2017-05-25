@@ -72,12 +72,12 @@ public:
     }
 
     /** Determines whether the given node is present */
-    const bool contains(const Node& node) const {
+    bool contains(const Node& node) const {
         return nodes.find(node) != nodes.end();
     }
 
     /** Determines whether the given edge is present */
-    const bool contains(const Node& from, const Node& to) const {
+    bool contains(const Node& from, const Node& to) const {
         auto pos = forward.find(from);
         if (pos == forward.end()) {
             return false;
@@ -87,7 +87,7 @@ public:
     }
 
     /** Determines whether there is a directed path between the two nodes */
-    const bool reaches(const Node& from, const Node& to) const {
+    bool reaches(const Node& from, const Node& to) const {
         // quick check
         if (!contains(from) || !contains(to)) {
             return false;
