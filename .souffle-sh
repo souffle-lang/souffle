@@ -25,7 +25,7 @@ cat << EOF
     souffle_make        Run souffle_setup and then make.
     souffle_reset       Reset hard to last commit, delete untracked files, run souffle_setup.
     souffle_commit      Format with clang, repair permissions, add everything to git and commit.
-    souffle_format      Format codebase with clang.
+    souffle_format      Format codebase with clang, according to .clang-format file.
     souffle_push        Push the current branch to the git remote.
     souffle_pull        Pull the current branch from the git remote.
     souffle_test        Run souffle_make and then the testsuite on the given tests.
