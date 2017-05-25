@@ -134,13 +134,13 @@ RuleBody RuleBody::constraint(AstConstraint* constraint) {
 
 std::ostream& operator<<(std::ostream& out, const RuleBody& body) {
     return out << join(body.dnf, ";", [](std::ostream& out, const RuleBody::clause& cur) {
-               out << join(cur, ",", [](std::ostream& out, const RuleBody::literal& l) {
-                   if (l.negated) {
-                       out << "!";
-                   }
-                   out << *l.atom;
-               });
-           });
+        out << join(cur, ",", [](std::ostream& out, const RuleBody::literal& l) {
+            if (l.negated) {
+                out << "!";
+            }
+            out << *l.atom;
+        });
+    });
 }
 
 bool RuleBody::equal(const literal& a, const literal& b) {

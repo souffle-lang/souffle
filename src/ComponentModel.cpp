@@ -108,7 +108,7 @@ struct ComponentContent {
         if (foundItem != relations.end()) {
             Diagnostic err(Diagnostic::ERROR,
                     DiagnosticMessage(
-                                   "Redefinition of relation " + toString(rel->getName()), rel->getSrcLoc()),
+                            "Redefinition of relation " + toString(rel->getName()), rel->getSrcLoc()),
                     {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
             report.addDiagnostic(err);
         }
@@ -125,8 +125,8 @@ struct ComponentContent {
                 });
         if (foundItem != ioDirectives.end()) {
             Diagnostic err(Diagnostic::ERROR,
-                    DiagnosticMessage("Redefinition of IO directive " + toString(io->getName()),
-                                   io->getSrcLoc()),
+                    DiagnosticMessage(
+                            "Redefinition of IO directive " + toString(io->getName()), io->getSrcLoc()),
                     {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
             report.addDiagnostic(err);
         }

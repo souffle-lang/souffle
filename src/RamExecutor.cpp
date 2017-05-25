@@ -198,10 +198,10 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
 
                 // strings
                 case BinaryOp::CAT: {
-                    return env.getSymbolTable().lookup(
-                            (std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
-                                    std::string(env.getSymbolTable().resolve(visit(op.getRHS()))))
-                                    .c_str());
+                    return env.getSymbolTable().lookup((
+                            std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
+                            std::string(env.getSymbolTable().resolve(
+                                    visit(op.getRHS())))).c_str());
                 }
                 default:
                     assert(0 && "unsupported operator");
