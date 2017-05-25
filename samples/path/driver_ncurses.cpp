@@ -10,6 +10,9 @@
 #include "souffle/SouffleInterface.h"
 #include "render_tree.h"
 
+#define MAX_TREE_HEIGHT 100
+#define MAX_TREE_WIDTH 500
+
 using namespace souffle;
 
 typedef RamDomain plabel;
@@ -113,6 +116,7 @@ std::map<std::string, std::vector<std::string>> info;
 std::map<std::pair<std::string, int>, std::string> rule;
 
 int depthLimit = 4;
+WINDOW *treePad;
 
 inline std::vector<std::string> split(std::string s, char delim, int times = -1) {
     std::vector<std::string> v;
@@ -245,7 +249,7 @@ std::unique_ptr<tree_node> explain(std::string relName, elements tuple_elements)
     auto key = std::make_pair(relName + "_output", tuple_elements);
     if (valuesToLabel.find(key) == valuesToLabel.end()) {
         // std::cerr << "no tuple found " << relName << tuple_elements.getRepresentation() << std::endl;
-        wprintw(stdscr, "no tuple found %s%s\n", relName.c_str(), tuple_elements.getRepresentation().c_str());
+        wprintw(treePad, "no tuple found %s%s\n", relName.c_str(), tuple_elements.getRepresentation().c_str());
 
         return nullptr;
     }
@@ -254,13 +258,12 @@ std::unique_ptr<tree_node> explain(std::string relName, elements tuple_elements)
 }
 
 void printTree(std::unique_ptr<tree_node> t) {
-    refresh();
     if (t) {
         t->place(0, 0);
         screen_buffer *s = new screen_buffer(t->getWidth(), t->getHeight());
         t->render(*s);
         // s->print(std::cout);
-        wprintw(stdscr, s->getString().c_str());
+        wprintw(treePad, s->getString().c_str());
         // std::cout << s->getString() << std::endl;
     }
 }
@@ -297,13 +300,16 @@ void commandLine(SouffleProgram *prog) {
     // Create ncurses window
     initscr();
 
-    // Create new section at bottom of screen for query
+    int x, y;
+    getmaxyx(stdscr, y, x);
+
+    // Create windows for query and tree display
     WINDOW *queryWindow = makeQueryWindow();
+    treePad = newpad(MAX_TREE_HEIGHT, MAX_TREE_WIDTH);
 
     char buf[100];
     std::string line;
     while (1) {
-        werase(stdscr);
         werase(queryWindow);
         wrefresh(queryWindow);
         mvwprintw(queryWindow, 1, 0, "Enter command > ");
@@ -311,6 +317,10 @@ void commandLine(SouffleProgram *prog) {
         wgetnstr(queryWindow, buf, 100);
         noecho();
         line = buf;
+        
+        // reset tree display
+        werase(treePad);
+        pnoutrefresh(treePad, 0, 0, 0, 0, y - 3, x);
 
         // std::cout << "Enter command > ";
         // std::getline(std::cin, line);
@@ -318,7 +328,7 @@ void commandLine(SouffleProgram *prog) {
 
         if (command[0] == "setdepth") {
             depthLimit = atoi(command[1].c_str());
-            wprintw(stdscr, "Depth is now %d\n", depthLimit);
+            wprintw(treePad, "Depth is now %d\n", depthLimit);
             // std::cout << "Depth is now " << depthLimit << std::endl;
         } else if (command[0] == "explain") {
             auto query = parseRel(command[1]);
@@ -333,14 +343,16 @@ void commandLine(SouffleProgram *prog) {
             auto query = split(command[1], ' ');
             auto key = make_pair(query[0], atoi(query[1].c_str()));
             if (rule.find(key) != rule.end()) {
-                wprintw(stdscr, "%s\n", rule[key].c_str());
+                wprintw(treePad, "%s\n", rule[key].c_str());
             } else {
-                wprintw(stdscr, "no rule found");
+                wprintw(treePad, "no rule found");
             }
         } else if (command[0] == "exit") {
             break;
         }
-        getch();
+        pnoutrefresh(treePad, 0, 0, 0, 0, y - 3, x);
+        wgetch(treePad);
+        // sleep(1);        
     }
     endwin();
 }
