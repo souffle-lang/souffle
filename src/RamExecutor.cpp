@@ -2188,7 +2188,7 @@ std::string RamCompiler::generateCode(
                 os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
                 os << "directiveMap[\"filename\"].front() != '/') {";
                 os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
-                os << "}";
+                os << "}\n";
                 os << "IODirectives ioDirectives(directiveMap);\n";
                 os << "IOSystem::getInstance().getWriter(";
                 os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
@@ -2220,7 +2220,7 @@ std::string RamCompiler::generateCode(
         os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
         os << "directiveMap[\"filename\"].front() != '/') {";
         os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
-        os << "}";
+        os << "}\n";
         os << "IODirectives ioDirectives(directiveMap);\n";
         os << "IOSystem::getInstance().getReader(";
         os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";

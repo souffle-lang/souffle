@@ -1079,6 +1079,9 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
         if (rel->isPrintSize()) {
             appendStmt(res, std::unique_ptr<RamStatement>(new RamPrintSize(rrel)));
         }
+        if (rel->isOutput()) {
+            appendStmt(res, std::unique_ptr<RamStatement>(new RamDrop(rrel)));
+        }
     }
 
     if (res && logging) {

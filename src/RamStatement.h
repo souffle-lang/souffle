@@ -135,10 +135,6 @@ public:
         os << "LOAD DATA FOR " << getRelation().getName();
     };
 
-    /** Obtains the name of the file to load facts form */
-    std::string getFileName() const {
-        return getRelation().getName() + ".facts";
-    }
 };
 
 /** Dumps all data from a relation into file */
