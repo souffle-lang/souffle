@@ -141,7 +141,7 @@ public:
 #define _EXPECT(condition, loc)             \
     if (auto __res = evaluate(condition)) { \
     } else                                  \
-        logstream << "\t\tTEST FAILED @ line " << (loc) << " : "
+    logstream << "\t\tTEST FAILED @ line " << (loc) << " : "
 
 #define EXPECT_TRUE(a) _EXPECT(a, LOC) << "expecting " << #a << " to be true, evaluated to false"
 #define EXPECT_FALSE(a) _EXPECT(!(a), LOC) << "expecting " << #a << " to be false, evaluated to true"

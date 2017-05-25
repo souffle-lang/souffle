@@ -178,7 +178,7 @@ void SCCGraph::run(const AstTranslationUnit& translationUnit) {
     std::vector<AstRelation*> relations = translationUnit.getProgram()->getRelations();
     unsigned counter = 0;
     unsigned numSCCs = 0;
-    std::stack<const AstRelation*> S, P;
+    std::stack<const AstRelation *> S, P;
     std::map<const AstRelation*, int> preOrder;  // Pre-order number of a node (for Gabow's Algo)
     for (const AstRelation* relation : relations) {
         nodeToSCC[relation] = preOrder[relation] = -1;

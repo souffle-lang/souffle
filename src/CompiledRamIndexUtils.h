@@ -343,7 +343,7 @@ template <unsigned i, unsigned arity, typename Index>
 struct extend_to_full_index_aux {
     typedef typename extend_to_full_index_aux<i + 1, arity,
             typename std::conditional<(Index::template covers<i>::value), Index,
-                    typename extend<Index, i>::type>::type>::type type;
+                                                      typename extend<Index, i>::type>::type>::type type;
 };
 
 template <unsigned arity, typename Index>
@@ -1167,9 +1167,9 @@ struct index_factory<T, Index, true> {
     // pick direct or indirect indexing based on size of tuple
     typedef typename std::conditional<sizeof(T) <= 2 * sizeof(void*),  // if tuple is not bigger than a bound
             typename direct_index_factory<T, Index,
-                    true>::type,  // use a direct index
+                                              true>::type,  // use a direct index
             IndirectIndex<T,
-                    Index>  // otherwise use an indirect, pointer based index
+                                              Index>  // otherwise use an indirect, pointer based index
             >::type type;
 };
 

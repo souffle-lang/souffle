@@ -899,10 +899,10 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
                 if (version <= clause->getExecutionPlan()->getMaxVersion()) {
                     for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
                         if (cur.first >= version) {
-                            translationUnit.getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR,
-                                    DiagnosticMessage(
-                                            "execution plan for version " + std::to_string(cur.first),
-                                            cur.second->getSrcLoc()),
+                            translationUnit.getErrorReport().addDiagnostic(Diagnostic(
+                                    Diagnostic::ERROR, DiagnosticMessage("execution plan for version " +
+                                                                                 std::to_string(cur.first),
+                                                               cur.second->getSrcLoc()),
                                     {DiagnosticMessage("only versions 0.." + std::to_string(version - 1) +
                                                        " permitted")}));
                         }
