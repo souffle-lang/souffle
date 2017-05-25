@@ -549,7 +549,7 @@ std::unique_ptr<RamStatement> RamTranslator::translateClause(
         const AstAggregator* cur = *it;
         level--;
 
-        // translate aggregtation function
+        // translate aggregation function
         RamAggregate::Function fun = RamAggregate::MIN;
         switch (cur->getOperator()) {
             case AstAggregator::min:
