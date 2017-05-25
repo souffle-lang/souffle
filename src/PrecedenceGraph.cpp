@@ -141,7 +141,7 @@ const bool RecursiveClauses::computeIsRecursive(
         const AstRelation* cur = worklist.back();
         worklist.pop_back();
 
-        // skip null pounsigneders (errors in the input code)
+        // skip null pointers (errors in the input code)
         if (!cur) {
             continue;
         }
