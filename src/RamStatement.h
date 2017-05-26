@@ -134,11 +134,6 @@ public:
         }
         os << "LOAD DATA FOR " << getRelation().getName();
     };
-
-    /** Obtains the name of the file to load facts form */
-    std::string getFileName() const {
-        return getRelation().getName() + ".facts";
-    }
 };
 
 /** Dumps all data from a relation into file */
@@ -153,11 +148,6 @@ public:
         }
         os << "STORE DATA FOR " << getRelation().getName();
     };
-
-    /** Obtains the name of the file to load facts form */
-    std::string getFileName() const {
-        return getRelation().getName() + ".csv";
-    }
 };
 
 /** Removes all tuples form a relation */
