@@ -10,7 +10,7 @@
 #include "souffle/SouffleInterface.h"
 #include "render_tree.h"
 
-#define MAX_TREE_HEIGHT 100
+#define MAX_TREE_HEIGHT 500
 #define MAX_TREE_WIDTH 500
 
 using namespace souffle;
@@ -295,17 +295,46 @@ WINDOW *makeQueryWindow() {
     return w;
 }
 
+void scrollTree(int maxx, int maxy) {
+    int x = 0;
+    int y = 0;
+
+    while (1) {
+        int ch = wgetch(treePad);
+
+        if (ch == KEY_LEFT) {
+            if (x > 2)
+                x -= 3;
+        } else if (ch == KEY_RIGHT) {
+            if (x < MAX_TREE_WIDTH - 3)
+                x += 3;
+        } else if (ch == KEY_UP) {
+            if (y > 0)
+                y -= 1;
+        } else if (ch == KEY_DOWN) {
+            if (y < MAX_TREE_HEIGHT - 1)
+                y += 1;
+        } else {
+            break;
+        }
+
+        prefresh(treePad, y, x, 0, 0, maxy - 3, maxx - 1);
+    }
+}
+    
 void commandLine(SouffleProgram *prog) {
 
     // Create ncurses window
     initscr();
 
-    int x, y;
-    getmaxyx(stdscr, y, x);
+    int maxx, maxy;
+    getmaxyx(stdscr, maxy, maxx);
 
     // Create windows for query and tree display
     WINDOW *queryWindow = makeQueryWindow();
     treePad = newpad(MAX_TREE_HEIGHT, MAX_TREE_WIDTH);
+
+    keypad(treePad, true);
 
     char buf[100];
     std::string line;
@@ -313,14 +342,16 @@ void commandLine(SouffleProgram *prog) {
         werase(queryWindow);
         wrefresh(queryWindow);
         mvwprintw(queryWindow, 1, 0, "Enter command > ");
+        curs_set(1);
         echo();
         wgetnstr(queryWindow, buf, 100);
         noecho();
+        curs_set(0);
         line = buf;
         
         // reset tree display
         werase(treePad);
-        pnoutrefresh(treePad, 0, 0, 0, 0, y - 3, x);
+        prefresh(treePad, 0, 0, 0, 0, maxy - 3, maxx - 1);
 
         // std::cout << "Enter command > ";
         // std::getline(std::cin, line);
@@ -350,9 +381,9 @@ void commandLine(SouffleProgram *prog) {
         } else if (command[0] == "exit") {
             break;
         }
-        pnoutrefresh(treePad, 0, 0, 0, 0, y - 3, x);
-        wgetch(treePad);
-        // sleep(1);        
+        prefresh(treePad, 0, 0, 0, 0, maxy - 3, maxx - 1);
+        scrollTree(maxx, maxy);
+        // wgetch(treePad);
     }
     endwin();
 }
