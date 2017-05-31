@@ -16,7 +16,24 @@ void RamRelationInterface::iterator_base::operator++() {
 }
 
 tuple& RamRelationInterface::iterator_base::operator*() {
+    tuple t(this);
 
+    // get elements of tuple
+    RamDomain* origTuple = *ramRelation;
+
+    for (size_t i = 0; i < getArity(); i++) {
+        RamDomain num;
+        origTuple >> num;
+
+        if (*(getAttrType(i)) == 'c') {
+            std::string s = getSymbolTable()->resolve(num);
+            t << s;
+        } else {
+            t << num;
+        }
+    }
+
+    return t;
 }
 
 bool RamRelationInterface::isOutput() {
@@ -29,6 +46,22 @@ bool RamRelationInterface::isInput() {
 
 std::string RamRelationInterface::getName() {
     return name;
+}
+
+const char* RamRelationInterface::getAttrType(size_t idx) {
+    return ramRelation->getID()->getArgTypeQualifier(idx).c_str();
+}
+
+const char* RamRelationInterface::getAttrName(size_t idx) {
+    return ramRelation->getID()->getArg(idx).c_str();
+}
+
+size_t RamRelationInterface::getArity() {
+    return ramRelation->getArity();
+}
+
+SymbolTable& RamRelationInterface::getSymbolTable() {
+    return symTable;
 }
 
 } // end of namespace souffle
