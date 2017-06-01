@@ -21,8 +21,11 @@ private:
 
 protected:
     class iterator_base : public Relation::iterator_base {
+    private:
+        RamRelationInterface* ramRelationInterface;
     public:
-        iterator_base(uint32_t arg_id) : Relation::iterator_base(arg_id) {}
+        iterator_base(uint32_t arg_id, RamRelationInterface* r)
+                : Relation::iterator_base(arg_id), ramRelationInterface(r) {}
         ~iterator_base();
 
         void operator++();
@@ -41,7 +44,7 @@ public:
     public:
         iterator() : Relation::iterator() {}
         iterator(iterator_base* arg) : Relation::iterator(arg) {}
-    }
+    };
 
     // insert a new tuple into the relation
     void insert(const tuple& t);
@@ -64,6 +67,6 @@ public:
     const char* getAttrName(size_t) const;
     size_t getArity() const;
     SymbolTable& getSymbolTable() const;
-}
+};
 
 } // end of namespace souffle

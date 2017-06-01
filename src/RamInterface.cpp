@@ -5,28 +5,26 @@
 * - <souffle root>/licenses/SOUFFLE-UPL.txt
 */
 
-#pragma once
-
 #include "RamInterface.h"
 
 namespace souffle {
 
 void RamRelationInterface::iterator_base::operator++() {
-    ramRelation++;
+    ramRelationInterface->ramRelation++;
 }
 
 tuple& RamRelationInterface::iterator_base::operator*() {
-    tuple t(this);
+    tuple t(ramRelationInterface);
 
     // get elements of tuple
-    RamDomain* origTuple = *ramRelation;
+    RamRelation* origTuple = ramRelationInterface->ramRelation;
 
-    for (size_t i = 0; i < getArity(); i++) {
+    for (size_t i = 0; i < ramRelationInterface->getArity(); i++) {
         RamDomain num;
-        origTuple >> num;
+        *origTuple >> num;
 
-        if (*(getAttrType(i)) == 'c') {
-            std::string s = getSymbolTable()->resolve(num);
+        if (*(ramRelationInterface->getAttrType(i)) == 's') {
+            std::string s = ramRelationInterface->getSymbolTable()->resolve(num);
             t << s;
         } else {
             t << num;
