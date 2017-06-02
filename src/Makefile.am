@@ -116,6 +116,7 @@ souffle_sources = \
               RamRelationStats.cpp  RamRelationStats.h  \
               RamVisitor.h                              \
               RuleScheduler.h                           \
+              SignalHandler.h                           \
               StringPool.h                              \
               TypeSystem.cpp        TypeSystem.h        \
               PrecedenceGraph.cpp   PrecedenceGraph.h   \
@@ -153,6 +154,7 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
                         CompiledSouffle.h       \
+                        SignalHandler.h         \
                         SouffleInterface.h      \
                         ParallelUtils.h         \
                         BTree.h                 \
