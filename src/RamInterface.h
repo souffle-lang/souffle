@@ -23,28 +23,24 @@ protected:
     class iterator_base : public Relation::iterator_base {
     private:
         RamRelationInterface* ramRelationInterface;
+        RamRelation::iterator it;
+        tuple tup;
     public:
-        iterator_base(uint32_t arg_id, RamRelationInterface* r)
-                : Relation::iterator_base(arg_id), ramRelationInterface(r) {}
+        iterator_base(uint32_t arg_id, RamRelationInterface* r, RamRelation::iterator i)
+                : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
         ~iterator_base();
 
         void operator++();
         tuple& operator*();
-        iterator_base* clone();
+        iterator_base* clone() const;
 
     protected:
-        bool equal(const iterator_base& o) const;
+        bool equal(const Relation::iterator_base& o) const;
     };
 
 public:
     RamRelationInterface(RamRelation* r, SymbolTable& s, std::string n) : ramRelation(r), symTable(s), name(n) {}
     ~RamRelationInterface();
-
-    class iterator : public Relation::iterator {
-    public:
-        iterator() : Relation::iterator() {}
-        iterator(iterator_base* arg) : Relation::iterator(arg) {}
-    };
 
     // insert a new tuple into the relation
     void insert(const tuple& t);

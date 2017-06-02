@@ -10,55 +10,71 @@
 namespace souffle {
 
 void RamRelationInterface::iterator_base::operator++() {
-    ramRelationInterface->ramRelation++;
+    ++it;
 }
 
 tuple& RamRelationInterface::iterator_base::operator*() {
-    tuple t(ramRelationInterface);
+    tup.rewind();
 
-    // get elements of tuple
-    RamRelation* origTuple = ramRelationInterface->ramRelation;
+    const RamDomain* num = *it;
 
     for (size_t i = 0; i < ramRelationInterface->getArity(); i++) {
-        RamDomain num;
-        *origTuple >> num;
-
         if (*(ramRelationInterface->getAttrType(i)) == 's') {
-            std::string s = ramRelationInterface->getSymbolTable()->resolve(num);
-            t << s;
+            std::string s = ramRelationInterface->getSymbolTable().resolve(num[i]);
+            tup << s;
         } else {
-            t << num;
+            tup << num[i];
         }
     }
 
-    return t;
+    return tup;
 }
 
-bool RamRelationInterface::isOutput() {
-    return ramRelation->getId().isOutput();
+RamRelationInterface::iterator_base* RamRelationInterface::iterator_base::clone() const {
+    return new RamRelationInterface::iterator_base(getId(), ramRelationInterface, it);
 }
 
-bool RamRelationInterface::isInput() {
-    return ramRelation->getId().isInput();
+bool RamRelationInterface::iterator_base::equal(const Relation::iterator_base& o) const {
+    return false;
 }
 
-std::string RamRelationInterface::getName() {
+std::size_t RamRelationInterface::size() {
+    return ramRelation->size();
+}
+
+RamRelationInterface::iterator RamRelationInterface::begin() {
+    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(0, this, ramRelation->begin()));
+}
+
+RamRelationInterface::iterator RamRelationInterface::end() {
+    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(0, this, ramRelation->end()));
+}
+
+bool RamRelationInterface::isOutput() const {
+    return ramRelation->getID().isOutput();
+}
+
+bool RamRelationInterface::isInput() const {
+    return ramRelation->getID().isInput();
+}
+
+std::string RamRelationInterface::getName() const {
     return name;
 }
 
-const char* RamRelationInterface::getAttrType(size_t idx) {
-    return ramRelation->getID()->getArgTypeQualifier(idx).c_str();
+const char* RamRelationInterface::getAttrType(size_t idx) const {
+    return ramRelation->getID().getArgTypeQualifier(idx).c_str();
 }
 
-const char* RamRelationInterface::getAttrName(size_t idx) {
-    return ramRelation->getID()->getArg(idx).c_str();
+const char* RamRelationInterface::getAttrName(size_t idx) const {
+    return ramRelation->getID().getArg(idx).c_str();
 }
 
-size_t RamRelationInterface::getArity() {
+size_t RamRelationInterface::getArity() const {
     return ramRelation->getArity();
 }
 
-SymbolTable& RamRelationInterface::getSymbolTable() {
+SymbolTable& RamRelationInterface::getSymbolTable() const {
     return symTable;
 }
 
