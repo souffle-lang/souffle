@@ -69,7 +69,7 @@
    will point to the pointsto set of the base of the array
 */
 
-.decl ArrayIndexPointsTo(heap:HeapAllocationRef,baseheap:HeapAllocationRef)
+.decl ArrayIndexPointsTo(heap:tyHeapAllocationRef,baseheap:tyHeapAllocationRef)
 
 ArrayIndexPointsTo(heap,baseheap) :- 
    StoreHeapArrayIndex(baseheap,from),
@@ -88,14 +88,14 @@ ArrayIndexPointsTo(heap,baseheap) :-
 
 #ifndef DISABLE_REFLECTION
 
-.decl ReflectiveDeclaredMethodPointsTo(cheap:HeapAllocationRef,pheap:HeapAllocationRef,lhs:VarRef)
+.decl ReflectiveDeclaredMethodPointsTo(cheap:tyHeapAllocationRef,pheap:tyHeapAllocationRef,lhs:tyVarRef)
 ReflectiveDeclaredMethodPointsTo(cheap,pheap,lhs) :- 
   javalangClassgetDeclaredMethod(lhs,class,param),
   VarPointsTo(cheap, class),
   VarPointsTo(pheap,param).
 
 
-.decl ReflectiveGetMethodPointsTo(cheap:HeapAllocationRef,pheap:HeapAllocationRef,lhs:VarRef)
+.decl ReflectiveGetMethodPointsTo(cheap:tyHeapAllocationRef,pheap:tyHeapAllocationRef,lhs:tyVarRef)
 ReflectiveGetMethodPointsTo(cheap,pheap,lhs) :- 
   javalangClassgetMethod(lhs,class,param),
   VarPointsTo(cheap, class),
@@ -110,17 +110,17 @@ ReflectiveGetMethodPointsTo(cheap,pheap,lhs) :-
 // Assign
 //
 
-.decl Assign(to:VarRef,from:VarRef)
+.decl Assign(to:tyVarRef,from:tyVarRef)
 
 //
 // type checking
 //
-.decl BaseVarType(variable:VarRef, type:Type)
+.decl BaseVarType(variable:tyVarRef, type:tyType)
 BaseVarType(var, type) :- 
   VarType(var, type), 
   BaseVar(var).
 
-.decl BaseTypes(type:Type)
+.decl BaseTypes(type:tyType)
 BaseTypes(x) :- 
   Superclass(x, _), 
   BaseVarType(_, x).
@@ -129,14 +129,14 @@ BaseTypes(x) :-
   Superclass(_, x), 
   BaseVarType(_, x).
 
-.decl IsBaseTypeCompatible(subclass:Type, superclass:Type)
+.decl IsBaseTypeCompatible(subclass:tyType, superclass:tyType)
 IsBaseTypeCompatible(sub, super) :- 
   Superclass(sub, super).
 
 IsBaseTypeCompatible(t, t) :- 
   BaseTypes(t).
 
-.decl BaseTypeComparable(subclass:Type, superclass:Type)
+.decl BaseTypeComparable(subclass:tyType, superclass:tyType)
 BaseTypeComparable(type1, type2) :- 
   IsBaseTypeCompatible(type1, type2).
 
@@ -151,29 +151,29 @@ BaseTypeComparable(type1, type2) :-
 
 
 
-.decl BaseVar(baseVariable:VarRef)
+.decl BaseVar(baseVariable:tyVarRef)
 BaseVar(var) :- LoadInstanceFieldIndex(var, _, _,_).
 BaseVar(var) :- StoreInstanceFieldIndex(_, var, _, _).
 
 
 
-.decl BaseVarPointsTo(heapAllocation:HeapAllocationRef,variable:VarRef)
+.decl BaseVarPointsTo(heapAllocation:tyHeapAllocationRef,variable:tyVarRef)
 BaseVarPointsTo(heap,var1) :- 
   BaseVar(var1),
   VarPointsTo(heap, var1).
 
-.decl LoadInstanceVarPointsTo(heapAllocation:HeapAllocationRef,variable:VarRef)
+.decl LoadInstanceVarPointsTo(heapAllocation:tyHeapAllocationRef,variable:tyVarRef)
 LoadInstanceVarPointsTo(heap,var)  :-  
   BaseVarPointsTo(heap,var),      
   LoadInstanceFieldIndex(var, _, _, _).
 
-.decl StoreInstanceVarPointsTo(heapAllocation:HeapAllocationRef,variable:VarRef)
+.decl StoreInstanceVarPointsTo(heapAllocation:tyHeapAllocationRef,variable:tyVarRef)
 StoreInstanceVarPointsTo(heap,var) :-  
   BaseVarPointsTo(heap,var),     
   StoreInstanceFieldIndex(_, var, _, _).
 
 
-.decl Alias(v1:VarRef, v2:VarRef)
+.decl Alias(v1:tyVarRef, v2:tyVarRef)
 Alias(v1, v2) :-
   StoreInstanceVarPointsTo(h,v2),                           
   LoadInstanceVarPointsTo(h,v1),          
@@ -194,7 +194,7 @@ Assign(varAssignedTo,storedVar) :-
 // AssignContextInsensitiveHeapAllocation
 //
 
-.decl AssignContextInsensitiveHeapAllocation(heap:HeapAllocationRef,to:VarRef,inmethod:MethodSignatureRef) 
+.decl AssignContextInsensitiveHeapAllocation(heap:tyHeapAllocationRef,to:tyVarRef,inmethod:tyMethodSignatureRef) 
 
 AssignContextInsensitiveHeapAllocation(mergeHeap,var,inmethod) :- 
    AssignHeapAllocation(heap,var,inmethod),
@@ -213,7 +213,7 @@ AssignContextInsensitiveHeapAllocation(heap,var,inmethod) :-
 // AssignNormalHeapAllocation
 //
 
-.decl AssignNormalHeapAllocation(heap:HeapAllocationRef,var:VarRef,inmethod:MethodSignatureRef) 
+.decl AssignNormalHeapAllocation(heap:tyHeapAllocationRef,var:tyVarRef,inmethod:tyMethodSignatureRef) 
 
 AssignNormalHeapAllocation(heap,var,inmethod) :- 
    AssignHeapAllocation(heap,var,inmethod),
@@ -231,7 +231,7 @@ AssignNormalHeapAllocation(heap,var,inmethod) :-
 // Thereby, we can eliminate heap abstraction and improve the performance.
 //
 
-.decl InstanceFieldPointsTo(heap:HeapAllocationRef,sig:FieldSignatureRef,baseheap:HeapAllocationRef)
+.decl InstanceFieldPointsTo(heap:tyHeapAllocationRef,sig:tyFieldSignatureRef,baseheap:tyHeapAllocationRef)
 
 InstanceFieldPointsTo(heap,signature,baseheap) :- 
    StoreHeapInstanceField(signature,baseheap,from),
@@ -242,7 +242,7 @@ InstanceFieldPointsTo(heap,signature,baseheap) :-
 // StoreHeapInstanceField
 //
 
-.decl StoreHeapInstanceField(sig:FieldSignatureRef,baseheap:HeapAllocationRef,from:VarRef) 
+.decl StoreHeapInstanceField(sig:tyFieldSignatureRef,baseheap:tyHeapAllocationRef,from:tyVarRef) 
 
 StoreHeapInstanceField(signature,baseheap,from) :- 
    StoreInstanceField(from,base,signature,inmethod),
@@ -254,7 +254,7 @@ StoreHeapInstanceField(signature,baseheap,from) :-
 // Assignments that need type checking
 //
 
-.decl TypedAssign(type:Type,to:VarRef,from:VarRef) 
+.decl TypedAssign(type:tyType,to:tyVarRef,from:tyVarRef) 
 
 TypedAssign(type,to,from) :-
    AssignCast(type,from,to,inmethod),
@@ -280,7 +280,7 @@ TypedAssign(type,to,from) :-
 // AssignContextInsensitiveHeapAllocationSkolemOpt
 //
 
-.decl AssignContextInsensitiveHeapAllocationSkolemOpt(heap:HeapAllocationRef,var:VarRef)  
+.decl AssignContextInsensitiveHeapAllocationSkolemOpt(heap:tyHeapAllocationRef,var:tyVarRef)  
 
 AssignContextInsensitiveHeapAllocationSkolemOpt(heap,var) :- 
    AssignContextInsensitiveHeapAllocation(heap,var,inmethod),
@@ -291,7 +291,7 @@ AssignContextInsensitiveHeapAllocationSkolemOpt(heap,var) :-
 // AssignNormalHeapAllocationSkolemOpt
 //
 
-.decl AssignNormalHeapAllocationSkolemOpt(heap:HeapAllocationRef,var:VarRef) 
+.decl AssignNormalHeapAllocationSkolemOpt(heap:tyHeapAllocationRef,var:tyVarRef) 
 
 AssignNormalHeapAllocationSkolemOpt(heap,var) :- 
    AssignNormalHeapAllocation(heap,var,inmethod),
@@ -321,7 +321,7 @@ CallGraphEdge(invocation,tomethod) :-
    ThisVar(tomethod,this),
    VarRef(this).
 
-.decl hasObjectSpecialMethodInvocationBase(invocation:CallGraphEdgeSourceRef,signature:MethodSignatureRef)
+.decl hasObjectSpecialMethodInvocationBase(invocation:tyCallGraphEdgeSourceRef,signature:tyMethodSignatureRef)
 
 hasObjectSpecialMethodInvocationBase(invocation,signature) :- 
    SpecialMethodInvocationSignature(invocation,signature),
@@ -332,7 +332,7 @@ hasObjectSpecialMethodInvocationBase(invocation,signature) :-
 // CallToMethodWithNoBody
 //
 
-.decl CallToMethodWithNoBody(callsite:CallGraphEdgeSourceRef) 
+.decl CallToMethodWithNoBody(callsite:tyCallGraphEdgeSourceRef) 
 
 CallToMethodWithNoBody(callsite) :- 
    CallGraphEdge(callsite,method),
@@ -343,7 +343,7 @@ CallToMethodWithNoBody(callsite) :-
 // ExternalContextForMethod
 //
 
-.decl ExternalContextForMethod(type:Type,method:MethodSignatureRef) 
+.decl ExternalContextForMethod(type:tyType,method:tyMethodSignatureRef) 
 
 ExternalContextForMethod(type,method) :- 
    PublicEntry(type,method).
@@ -352,7 +352,7 @@ ExternalContextForMethod(type,method) :-
 // InitializedClass
 //
 
-.decl InitializedClass(classOrInterface:Type) 
+.decl InitializedClass(classOrInterface:tyType) 
 
 InitializedClass(superclass) :- 
    InitializedClass(classOrInterface),
@@ -446,7 +446,7 @@ InstructionRef( tmp_0) :-
 // LoadHeapArrayIndex
 //
 
-.decl LoadHeapArrayIndex(to:VarRef,baseheap:HeapAllocationRef) 
+.decl LoadHeapArrayIndex(to:tyVarRef,baseheap:tyHeapAllocationRef) 
 
 LoadHeapArrayIndex(to,baseheap) :- 
    LoadArrayIndex(base,to,inmethod),
@@ -467,7 +467,7 @@ LoadHeapArrayIndex(to,baseheap) :-
 // MainThread
 //
 
-.decl MainThread(heap:HeapAllocationRef) 
+.decl MainThread(heap:tyHeapAllocationRef) 
 
 MainThread(alloc) :- 
    MyMainThread(alloc).
@@ -476,7 +476,7 @@ MainThread(alloc) :-
 // MainThreadGroup
 //
 
-.decl MainThreadGroup(heap:HeapAllocationRef) 
+.decl MainThreadGroup(heap:tyHeapAllocationRef) 
 
 MainThreadGroup(alloc) :- 
    MyMainThreadGroup(alloc).
@@ -487,7 +487,7 @@ MainThreadGroup(alloc) :-
 // MyMainThread
 //
 
-.decl MyMainThread(heap:HeapAllocationRef) 
+.decl MyMainThread(heap:tyHeapAllocationRef) 
 
 MyMainThread("<<main-thread>>").
 
@@ -495,7 +495,7 @@ MyMainThread("<<main-thread>>").
 // MyMainThreadGroup
 //
 
-.decl MyMainThreadGroup(heap:HeapAllocationRef) 
+.decl MyMainThreadGroup(heap:tyHeapAllocationRef) 
 
 MyMainThreadGroup("<<main-thread-group>>").
 
@@ -503,7 +503,7 @@ MyMainThreadGroup("<<main-thread-group>>").
 // MySystemThreadGroup
 //
 
-.decl MySystemThreadGroup(heap:HeapAllocationRef) 
+.decl MySystemThreadGroup(heap:tyHeapAllocationRef) 
 
 MySystemThreadGroup("<<system-thread-group>>").
 
@@ -511,7 +511,7 @@ MySystemThreadGroup("<<system-thread-group>>").
 // NativeCallGraphEdge
 //
 
-.decl NativeCallGraphEdge(nativeMethod:MethodSignatureRef,method:MethodSignatureRef)
+.decl NativeCallGraphEdge(nativeMethod:tyMethodSignatureRef,method:tyMethodSignatureRef)
 
 NativeCallGraphEdge("<java.lang.Thread.start0()V>",run) :- 
    MethodSignatureRef("<java.lang.Thread.start0()V>"),
@@ -527,7 +527,7 @@ NativeCallGraphEdge("<java.lang.Thread.start0()V>",run) :-
 // OptAssignLocal
 //
 
-.decl OptAssignLocal(to:VarRef,from:VarRef) 
+.decl OptAssignLocal(to:tyVarRef,from:tyVarRef) 
 
 OptAssignLocal(to,from) :- 
    ReachableContext(inmethod),
@@ -545,7 +545,7 @@ OptAssignLocal(to,from) :-
 
 
 
-.decl OptInterproceduralAssign(to:VarRef,from:VarRef) overridable
+.decl OptInterproceduralAssign(to:tyVarRef,from:tyVarRef) overridable
 
 
 
@@ -584,7 +584,7 @@ OptInterproceduralAssign(formal,actual) :-
 // OptSpecialMethodInvocationBase
 //
 
-.decl OptSpecialMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) 
+.decl OptSpecialMethodInvocationBase(invocation:tyMethodInvocationRef,base:tyVarRef) 
 
 OptSpecialMethodInvocationBase(invocation,base) :- 
    ReachableContext(inmethod),
@@ -596,7 +596,7 @@ OptSpecialMethodInvocationBase(invocation,base) :-
 // OptVirtualMethodInvocationBase
 //
 
-.decl OptVirtualMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) 
+.decl OptVirtualMethodInvocationBase(invocation:tyMethodInvocationRef,base:tyVarRef) 
 
 OptVirtualMethodInvocationBase(invocation,base) :- 
    ReachableContext(inmethod),
@@ -611,7 +611,7 @@ OptVirtualMethodInvocationBase(invocation,base) :-
 // ReachableContext
 //
 
-.decl ReachableContext(clinit:MethodSignatureRef) overridable
+.decl ReachableContext(clinit:tyMethodSignatureRef) overridable
 
 ReachableContext(method) :- 
    CallGraphEdge(_,method).
@@ -663,7 +663,7 @@ ReachableContext(clinit) :-
 // ReachableCurrentThreadInvocation
 //
 
-.decl ReachableCurrentThreadInvocation(local:VarRef)
+.decl ReachableCurrentThreadInvocation(local:tyVarRef)
 
 ReachableCurrentThreadInvocation(local) :- 
    ReachableContext(inmethod),
@@ -679,7 +679,7 @@ ReachableCurrentThreadInvocation(local) :-
 // ReflectiveAssignClassConstant
 //
 
-.decl ReflectiveAssignClassConstant(invocation:MethodInvocationRef,type:Type) 
+.decl ReflectiveAssignClassConstant(invocation:tyMethodInvocationRef,type:tyType) 
 
 ReflectiveAssignClassConstant(invocation,type) :- 
    javalangClassforName(invocation,inmethod),
@@ -693,7 +693,7 @@ ReflectiveAssignClassConstant(invocation,type) :-
 // ReflectiveCallGraphEdge
 //
 
-.decl ReflectiveCallGraphEdge(caller:MethodInvocationRef,callee:MethodSignatureRef)
+.decl ReflectiveCallGraphEdge(caller:tyMethodInvocationRef,callee:tyMethodSignatureRef)
 
 ReflectiveCallGraphEdge(caller,callee) :- 
    ReflectiveStaticMethodInvocation(caller,callee).
@@ -726,7 +726,7 @@ ReflectiveCallGraphEdge(caller,tomethod) :-
 // ReflectiveLoadArrayIndex
 //
 
-.decl ReflectiveLoadArrayIndex(to:VarRef,base:VarRef)
+.decl ReflectiveLoadArrayIndex(to:tyVarRef,base:tyVarRef)
 
 /* if a reflective invocation is not in VarargsActualParam,
    it is considered to be an array */
@@ -743,7 +743,7 @@ ReflectiveLoadArrayIndex(formal,actual) :-
 // ReflectiveMethodInvocation
 //
 
-.decl ReflectiveMethodInvocation(caller:MethodInvocationRef,signature:MethodSignatureRef) 
+.decl ReflectiveMethodInvocation(caller:tyMethodInvocationRef,signature:tyMethodSignatureRef) 
 
 ReflectiveMethodInvocation(instruction,signature) :- 
    javalangreflectMethodinvoke(instruction,from),
@@ -754,7 +754,7 @@ ReflectiveMethodInvocation(instruction,signature) :-
 // ReflectiveSpecialMethodInvocation
 //
 
-.decl ReflectiveSpecialMethodInvocation(caller:MethodInvocationRef,signature:MethodSignatureRef) 
+.decl ReflectiveSpecialMethodInvocation(caller:tyMethodInvocationRef,signature:tyMethodSignatureRef) 
 
 ReflectiveSpecialMethodInvocation(caller,signature) :- 
    ReflectiveMethodInvocation(caller,signature),
@@ -767,7 +767,7 @@ ReflectiveSpecialMethodInvocation(caller,signature) :-
 // ReflectiveStaticMethodInvocation
 //
 
-.decl ReflectiveStaticMethodInvocation(caller:MethodInvocationRef,signature:MethodSignatureRef) 
+.decl ReflectiveStaticMethodInvocation(caller:tyMethodInvocationRef,signature:tyMethodSignatureRef) 
 
 ReflectiveStaticMethodInvocation(caller,signature) :- 
    ReflectiveMethodInvocation(caller,signature),
@@ -778,7 +778,7 @@ ReflectiveStaticMethodInvocation(caller,signature) :-
 // ReflectiveVirtualMethodInvocation
 //
 
-.decl ReflectiveVirtualMethodInvocation(signature:MethodSignatureRef,caller:MethodInvocationRef) 
+.decl ReflectiveVirtualMethodInvocation(signature:tyMethodSignatureRef,caller:tyMethodInvocationRef) 
 
 ReflectiveVirtualMethodInvocation(signature,caller) :- 
    ReflectiveMethodInvocation(caller,signature),
@@ -793,7 +793,7 @@ ReflectiveVirtualMethodInvocation(signature,caller) :-
 // RunningThread
 //
 
-.decl RunningThread(heap:HeapAllocationRef) 
+.decl RunningThread(heap:tyHeapAllocationRef) 
 
 RunningThread(heap) :- 
    MainThread(heap).
@@ -819,7 +819,7 @@ RunningThread(heapObject) :-
 // SimpleNameStringConstant
 //
 
-.decl SimpleNameStringConstant(heap:HeapAllocationRef) 
+.decl SimpleNameStringConstant(heap:tyHeapAllocationRef) 
 
 SimpleNameStringConstant(heap) :- 
    StringConstant(heap),
@@ -831,7 +831,7 @@ SimpleNameStringConstant(heap) :-
 // SimpleNameStringConstantSimpleName
 //
 
-.decl SimpleNameStringConstantSimpleName(heap:HeapAllocationRef,simpleName:SimpleNameRef) 
+.decl SimpleNameStringConstantSimpleName(heap:tyHeapAllocationRef,simpleName:tySimpleNameRef) 
 
 SimpleNameStringConstantSimpleName(heap,heap) :- 
    StringConstant(heap),
@@ -847,7 +847,7 @@ SimpleNameStringConstantSimpleName(heap,heap) :-
    field will point to the heap object which the right hand side
    points to  */
 
-.decl StaticFieldPointsTo(heap:HeapAllocationRef,sig:FieldSignatureRef)
+.decl StaticFieldPointsTo(heap:tyHeapAllocationRef,sig:tyFieldSignatureRef)
 
 StaticFieldPointsTo(heap,signature) :- 
    StoreStaticField(from,signature,inmethod),
@@ -858,7 +858,7 @@ StaticFieldPointsTo(heap,signature) :-
 // StaticMethodInvocationSkolemOpt
 //
 
-.decl StaticMethodInvocationSkolemOpt(invocation:CallGraphEdgeSourceRef,tomethod:MethodSignatureRef) 
+.decl StaticMethodInvocationSkolemOpt(invocation:tyCallGraphEdgeSourceRef,tomethod:tyMethodSignatureRef) 
 
 StaticMethodInvocationSkolemOpt(invocation,tomethod) :- 
    ReachableContext(inmethod),
@@ -872,7 +872,7 @@ StaticMethodInvocationSkolemOpt(invocation,tomethod) :-
 /* The variable stored in the array will point to the heap where the base of the array pointsto */
 
 
-.decl StoreHeapArrayIndex(baseheap:HeapAllocationRef,from:VarRef) 
+.decl StoreHeapArrayIndex(baseheap:tyHeapAllocationRef,from:tyVarRef) 
 
 StoreHeapArrayIndex(baseheap,from) :- 
    StoreArrayIndex(from,base,inmethod),
@@ -885,7 +885,7 @@ StoreHeapArrayIndex(baseheap,from) :-
 // StoreInstanceField
 //
 
-.decl StoreInstanceField(from:VarRef,base:VarRef,index:FieldSignatureRef,inmethod:MethodSignatureRef) 
+.decl StoreInstanceField(from:tyVarRef,base:tyVarRef,index:tyFieldSignatureRef,inmethod:tyMethodSignatureRef) 
 
 StoreInstanceField(from,base,field,inmethod) :- 
    StoreInstanceFieldIndex(from,base,index,inmethod),
@@ -900,7 +900,7 @@ StoreInstanceField(from,base,field,inmethod) :-
 // SystemThreadGroup
 //
 
-.decl SystemThreadGroup(heap:HeapAllocationRef) 
+.decl SystemThreadGroup(heap:tyHeapAllocationRef) 
 
 SystemThreadGroup(alloc) :- 
    MySystemThreadGroup(alloc).
@@ -916,7 +916,7 @@ SystemThreadGroup(alloc) :-
    input file to the left hand side of the assignments that contain
    calls to methods without body (e.g., native methods)  */
 
-.decl TypeUnsafeVarPointsToUnknownHeap(heapObject:HeapAllocationRef,localVariable:VarRef) 
+.decl TypeUnsafeVarPointsToUnknownHeap(heapObject:tyHeapAllocationRef,localVariable:tyVarRef) 
 
 TypeUnsafeVarPointsToUnknownHeap(heapObject,localVariable) :- 
    CallToMethodWithNoBody(callsite),
@@ -1162,7 +1162,7 @@ VarPointsTo(heapObject,localVariable) :-
 // VirtualMethodInvocationSimpleName
 //
 
-.decl VirtualMethodInvocationSimpleName(invocation:MethodInvocationRef,simplename:SimpleNameRef) 
+.decl VirtualMethodInvocationSimpleName(invocation:tyMethodInvocationRef,simplename:tySimpleNameRef) 
 
 VirtualMethodInvocationSimpleName(invocation,simplename) :- 
    VirtualMethodInvocationSignature(invocation,signature),
@@ -1173,7 +1173,7 @@ VirtualMethodInvocationSimpleName(invocation,simplename) :-
 // HeapAllocationMerge
 //
 
-.decl HeapAllocationMerge(heap:HeapAllocationRef,mergeHeap:HeapAllocationRef) 
+.decl HeapAllocationMerge(heap:tyHeapAllocationRef,mergeHeap:tyHeapAllocationRef) 
 
 #ifdef DISTINGUISH_CLASS_CONSTANTS
 HeapAllocationMerge(heap,"<<string-constant>>") :- 
@@ -1189,7 +1189,7 @@ HeapAllocationMerge(heap,"<<string-constant>>") :-
 
 #ifndef NO_TAINT_OVERRIDE_METHODS
 // Overridable methods on tainted objects return tainted objects
-.decl CallToMethodOfExternalInterface(callsite:MethodInvocationRef, tomethod:MethodSignatureRef)
+.decl CallToMethodOfExternalInterface(callsite:tyMethodInvocationRef, tomethod:tyMethodSignatureRef)
 
 CallToMethodOfExternalInterface(callsite, tomethod) :-
   ExternalHeapAllocation(heap),
@@ -1200,7 +1200,7 @@ CallToMethodOfExternalInterface(callsite, tomethod) :-
   VirtualMethodInvocationSignature(callsite, tomethod).
   .plan 1:(3,2,1,4,5,6)
 
-.decl VarPointsToExternalHeapObjectForType(var:VarRef, type:Type)
+.decl VarPointsToExternalHeapObjectForType(var:tyVarRef, type:tyType)
 
 VarPointsToExternalHeapObjectForType(var, type) :-
   CallToMethodOfExternalInterface(callsite, tomethod),
@@ -1216,7 +1216,7 @@ VarPointsToExternalHeapObjectForType(var, type) :-
 // all the callsites whose base variables are pointsing to those external heaps.
 
 
-.decl PotentialCallToExternalOverridableMethod(heaptype:Type, callsite:MethodInvocationRef)
+.decl PotentialCallToExternalOverridableMethod(heaptype:tyType, callsite:tyMethodInvocationRef)
 
 PotentialCallToExternalOverridableMethod(heaptype, callsite) :-
   ExternalHeapAllocation(heap),
@@ -1225,7 +1225,7 @@ PotentialCallToExternalOverridableMethod(heaptype, callsite) :-
   HeapAllocationType(heap, heaptype).
 .plan 1:(3,2,1,4)
 
-.decl CallToExternalOverridableMethod(callsite:MethodInvocationRef, tomethod:MethodSignatureRef) 
+.decl CallToExternalOverridableMethod(callsite:tyMethodInvocationRef, tomethod:tyMethodSignatureRef) 
 
 CallToExternalOverridableMethod(callsite, tomethod) :-
   PotentialCallToExternalOverridableMethod(heaptype, callsite),
@@ -1266,14 +1266,14 @@ TestPointsToType(htype, vtype) :-
    HeapAllocationType(heap, htype),
    !AssignCompatible(vtype, htype).
 
-.decl VCallGraphNoMatch(inv:MethodInvocationRef, method:MethodSignatureRef)
+.decl VCallGraphNoMatch(inv:tyMethodInvocationRef, method:tyMethodSignatureRef)
 
 VCallGraphNoMatch(inv, method) :-
   VirtualMethodInvocationSimpleName(inv, name),
   CallGraphEdge(inv, method),
   !MethodSignatureSimpleName(method, name). 
 
-.decl SCallGraphNoMatch(inv:MethodInvocationRef, method:MethodSignatureRef)
+.decl SCallGraphNoMatch(inv:tyMethodInvocationRef, method:tyMethodSignatureRef)
 
 SCallGraphNoMatch(inv, method) :-
   StaticMethodInvocationSignature(inv, sig),
@@ -1290,10 +1290,10 @@ SCallGraphNoMatch(inv, method) :-
   //VarPointsTo
   //
 
-  .decl VarPointsTo(heap:HeapAllocationRef,var:VarRef) 
+  .decl VarPointsTo(heap:tyHeapAllocationRef,var:tyVarRef) 
 
   //
   // CallGraphEdge
   //
 
-.decl CallGraphEdge(invocation:CallGraphEdgeSourceRef,method:MethodSignatureRef) overridable 
+.decl CallGraphEdge(invocation:tyCallGraphEdgeSourceRef,method:tyMethodSignatureRef) overridable 

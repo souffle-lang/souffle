@@ -59,39 +59,39 @@
 //
 //
 
-.type String
+.type tyString
 
-.type ArrayType = String
-.type BasicBlockRef = String
-.type ClassConstant = String
-.type ClassType = String
-.type FieldSignatureRef = String
-.type File = String
-.type InterfaceType = String
-.type VarRef = String
-.type MethodDescriptorRef = String
-.type MethodInvocationRef = String
-.type MethodSignatureRef = String
-.type ModifierRef = String
-.type NullType = String
-.type PrimitiveType = String
-.type SimpleNameRef = String
-.type StringConstant = String
+.type tyArrayType = tyString
+.type tyBasicBlockRef = tyString
+.type tyClassConstant = tyString
+.type tyClassType = tyString
+.type tyFieldSignatureRef = tyString
+.type tyFile = tyString
+.type tyInterfaceType = tyString
+.type tyVarRef = tyString
+.type tyMethodDescriptorRef = tyString
+.type tyMethodInvocationRef = tyString
+.type tyMethodSignatureRef = tyString
+.type tyModifierRef = tyString
+.type tyNullType = tyString
+.type tyPrimitiveType = tyString
+.type tySimpleNameRef = tyString
+.type tyStringConstant = tyString
 
-.type ParamIndexRef = number
+.type tyParamIndexRef = number
 
-.type HeapAllocationRef = StringConstant | ClassConstant
-.type InstructionRef = CallGraphEdgeSourceRef
-.type ReferenceType = ArrayType | ClassType | InterfaceType
-.type CallGraphEdgeSourceRef = HeapAllocationRef | MethodInvocationRef
-.type Type = PrimitiveType | ReferenceType | NullType
+.type tyHeapAllocationRef = tyStringConstant | tyClassConstant
+.type tyInstructionRef = tyCallGraphEdgeSourceRef
+.type tyReferenceType = tyArrayType | tyClassType | tyInterfaceType
+.type tyCallGraphEdgeSourceRef = tyHeapAllocationRef | tyMethodInvocationRef
+.type tyType = tyPrimitiveType | tyReferenceType | tyNullType
 
-.type Context = [obj1:HeapAllocationRef,obj2:HeapAllocationRef]
-.type SigCtxHeap = [sig:FieldSignatureRef,basectx:Context,baseheap:HeapAllocationRef]
+.type tyContext = [obj1:tyHeapAllocationRef,obj2:tyHeapAllocationRef]
+.type tySigCtxHeap = [sig:tyFieldSignatureRef,basectx:tyContext,baseheap:tyHeapAllocationRef]
 
-.type Int = number
+.type tyInt = number
 
 // HACK: TODO this is necessary for traces, Souffle would not 
 // allow to have this in ci-trace.dl Need to investigate why...
-.type EmptyAllocationRef
-.type BaseHeapAllocationRef = EmptyAllocationRef|HeapAllocationRef
+.type tyEmptyAllocationRef
+.type tyBaseHeapAllocationRef = tyEmptyAllocationRef|tyHeapAllocationRef

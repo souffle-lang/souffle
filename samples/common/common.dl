@@ -62,7 +62,7 @@
 // InstructionRef
 //
 
-.decl InstructionRef(x:InstructionRef) overridable
+.decl InstructionRef(x:tyInstructionRef) overridable
 
 InstructionRef(x) :- 
    MethodInvocationRef(x).
@@ -98,7 +98,7 @@ InstructionRef("<<main-thread>>").
 // ClassCunstructor
 //
 
-.decl ClassConstructor(method:MethodSignatureRef, type:Type) 
+.decl ClassConstructor(method:tyMethodSignatureRef, type:tyType) 
 
 ClassConstructor(method, type) :-
   MethodLookup(_, _, type, method),
@@ -109,7 +109,7 @@ ClassConstructor(method, type) :-
 // Unsubclassable
 //
 
-.decl Unsubclassable(type:Type)    
+.decl Unsubclassable(type:tyType)    
 Unsubclassable(type) :-
   Type(type),
   type = "java.lang.ClassLoader".
@@ -123,7 +123,7 @@ Unsubclassable(type) :-
 // Subclassable
 //
 
-.decl Subclassable(type:Type)    
+.decl Subclassable(type:tyType)    
 Subclassable(type) :-
   ClassModifier("public", type),
   ! ClassModifier("final", type),
@@ -143,7 +143,7 @@ Subclassable(type) :-
 // Overridable methods
 //
 
-.decl OverridableMethod(type:Type, method:MethodSignatureRef)    
+.decl OverridableMethod(type:tyType, method:tyMethodSignatureRef)    
 OverridableMethod(type, method) :-
   MethodLookup(_, _, type, method),
   !MethodModifier("static", method),
@@ -162,7 +162,7 @@ OverridableMethod(type, method) :-
 // DirectSubclass
 //
 
-.decl DirectSubclass(a:Type,c:Type) 
+.decl DirectSubclass(a:tyType,c:tyType) 
 
 DirectSubclass(a,c) :- 
    DirectSuperclass(a,c).
@@ -171,7 +171,7 @@ DirectSubclass(a,c) :-
 // Subclass
 //
 
-.decl Subclass(c:Type,a:Type) 
+.decl Subclass(c:tyType,a:tyType) 
 
 Subclass(c,a) :- 
    DirectSubclass(a,c).
@@ -184,7 +184,7 @@ Subclass(c,a) :-
 // Superclass
 //
 
-.decl Superclass(c:Type,a:Type) 
+.decl Superclass(c:tyType,a:tyType) 
 
 Superclass(c,a) :- 
    Subclass(a,c).
@@ -193,7 +193,7 @@ Superclass(c,a) :-
 // Superinterface
 //
 
-.decl Superinterface(k:Type,c:Type) 
+.decl Superinterface(k:tyType,c:tyType) 
 
 Superinterface(k,c) :- 
    DirectSuperinterface(c,k).
@@ -211,7 +211,7 @@ Superinterface(k,c) :-
 // CheckCast
 //
 
-.decl CheckCast(s:Type,t:Type)
+.decl CheckCast(s:tyType,t:tyType)
 
 CheckCast(s,s) :- 
    Type(s).
@@ -270,7 +270,7 @@ CheckCast(s,"java.io.Serializable") :-
 // AssignCompatible
 //
 
-.decl AssignCompatible(target:Type,source:Type) 
+.decl AssignCompatible(target:tyType,source:tyType) 
 
 AssignCompatible(target,source) :- 
    CheckCast(source,target).
@@ -281,7 +281,7 @@ AssignCompatible(target,source) :-
 // Type
 //
 
-.decl Type(x:Type) 
+.decl Type(x:tyType) 
 
 Type(t) :- 
    ReferenceType(t).
@@ -318,7 +318,7 @@ Type("java.lang.Thread").
 // PublicEntry
 //
 
-.decl PublicEntry(type:Type,method:MethodSignatureRef) 
+.decl PublicEntry(type:tyType,method:tyMethodSignatureRef) 
   
 // public method of a public class 
 PublicEntry(class,method) :- 
@@ -436,7 +436,7 @@ HeapAllocationType( cat ( cat ("<reified field ",x),">"),"java.lang.reflect.Fiel
 // javalangClassforName
 //
 
-.decl javalangClassforName(invocation:MethodInvocationRef,inmethod:MethodSignatureRef) 
+.decl javalangClassforName(invocation:tyMethodInvocationRef,inmethod:tyMethodSignatureRef) 
 
 javalangClassforName(invocation,inmethod) :- 
    MethodSignatureRef("<java.lang.Class.forName(Ljava/lang/String;)Ljava/lang/Class;>"),
@@ -450,7 +450,7 @@ javalangClassforName(invocation,inmethod) :-
 // javalangClassforNameActualParam
 //
 
-.decl javalangClassforNameActualParam(invocation:MethodInvocationRef,param:VarRef) 
+.decl javalangClassforNameActualParam(invocation:tyMethodInvocationRef,param:tyVarRef) 
 
 javalangClassforNameActualParam(invocation,param) :- 
    ActualParam(0,invocation,param),
@@ -460,7 +460,7 @@ javalangClassforNameActualParam(invocation,param) :-
 // javalangClassgetDeclaredMethod
 //
 
-.decl javalangClassgetDeclaredMethod(to:VarRef,from:VarRef,nameParam:VarRef) 
+.decl javalangClassgetDeclaredMethod(to:tyVarRef,from:tyVarRef,nameParam:tyVarRef) 
 
 javalangClassgetDeclaredMethod(to,from,nameParam) :- 
    MethodSignatureRef("<java.lang.Class.getDeclaredMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;>"),
@@ -475,7 +475,7 @@ javalangClassgetDeclaredMethod(to,from,nameParam) :-
 // javalangClassgetMethod
 //
 
-.decl javalangClassgetMethod(to:VarRef,from:VarRef,nameParam:VarRef) 
+.decl javalangClassgetMethod(to:tyVarRef,from:tyVarRef,nameParam:tyVarRef) 
 
 javalangClassgetMethod(to,from,nameParam) :- 
    MethodSignatureRef("<java.lang.Class.getMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;>"),
@@ -489,7 +489,7 @@ javalangClassgetMethod(to,from,nameParam) :-
 // javalangClassnewInstance
 //
 
-.decl javalangClassnewInstance(invocation:MethodInvocationRef,to:VarRef,from:VarRef) 
+.decl javalangClassnewInstance(invocation:tyMethodInvocationRef,to:tyVarRef,from:tyVarRef) 
 
 javalangClassnewInstance(invocation,to,from) :- 
    MethodSignatureRef("<java.lang.Class.newInstance()Ljava/lang/Object;>"),
@@ -503,7 +503,7 @@ javalangClassnewInstance(invocation,to,from) :-
 // javalangreflectConstructornewInstance
 //
 
-.decl javalangreflectConstructornewInstance(invocation:MethodInvocationRef,to:VarRef,from:VarRef) 
+.decl javalangreflectConstructornewInstance(invocation:tyMethodInvocationRef,to:tyVarRef,from:tyVarRef) 
 
 javalangreflectConstructornewInstance(invocation,to,base) :- 
    VarRef(to),
@@ -517,7 +517,7 @@ javalangreflectConstructornewInstance(invocation,to,base) :-
 // javalangreflectMethodinvoke
 //
 
-.decl javalangreflectMethodinvoke(invocation:MethodInvocationRef,from:VarRef) 
+.decl javalangreflectMethodinvoke(invocation:tyMethodInvocationRef,from:tyVarRef) 
 
 javalangreflectMethodinvoke(invocation,base) :- 
    VarRef(from),
@@ -532,7 +532,7 @@ javalangreflectMethodinvoke(invocation,base) :-
 // InstanceMethodInvocationBase
 //
 
-.decl InstanceMethodInvocationBase(invocation:MethodInvocationRef,base:VarRef) 
+.decl InstanceMethodInvocationBase(invocation:tyMethodInvocationRef,base:tyVarRef) 
 
 InstanceMethodInvocationBase(invocation,base) :- 
    VirtualMethodInvocationBase(invocation,base),
@@ -546,7 +546,7 @@ InstanceMethodInvocationBase(invocation,base) :-
 // InstanceMethodInvocationSignature
 //
 
-.decl InstanceMethodInvocationSignature(invocation:MethodInvocationRef,method:MethodSignatureRef) 
+.decl InstanceMethodInvocationSignature(invocation:tyMethodInvocationRef,method:tyMethodSignatureRef) 
 
 InstanceMethodInvocationSignature(invocation,method) :- 
    VirtualMethodInvocationSignature(invocation,method).
@@ -559,7 +559,7 @@ InstanceMethodInvocationSignature(invocation,method) :-
 // InstructionMethod
 //
 
-.decl InstructionMethod(instruction:InstructionRef,inmethod:MethodSignatureRef) 
+.decl InstructionMethod(instruction:tyInstructionRef,inmethod:tyMethodSignatureRef) 
 
 InstructionMethod(invocation,inmethod) :- 
    SpecialMethodInvocationIn(invocation,inmethod).
@@ -575,7 +575,7 @@ InstructionMethod(invocation,inmethod) :-
 // EntryBasicBlock
 //
 
-.decl EntryBasicBlock(method:MethodSignatureRef,basicBlock:BasicBlockRef) 
+.decl EntryBasicBlock(method:tyMethodSignatureRef,basicBlock:tyBasicBlockRef) 
 
 EntryBasicBlock(method,basicBlock) :- 
    BasicBlockIn(basicBlock,method),
@@ -585,7 +585,7 @@ EntryBasicBlock(method,basicBlock) :-
 // ExitBasicBlock
 //
 
-.decl ExitBasicBlock(basicBlock:BasicBlockRef, method:MethodSignatureRef) 
+.decl ExitBasicBlock(basicBlock:tyBasicBlockRef, method:tyMethodSignatureRef) 
 
 ExitBasicBlock(basicBlock, method) :- 
   BasicBlockIn(basicBlock, method), 
@@ -595,7 +595,7 @@ ExitBasicBlock(basicBlock, method) :-
 // FieldIndexSignature
 //
 
-.decl FieldIndexSignature(field:FieldSignatureRef,index:number,type:Type) 
+.decl FieldIndexSignature(field:tyFieldSignatureRef,index:number,type:tyType) 
 
 FieldIndexSignature(field,index,type) :- 
    DirectFieldIndexSignature(type,index,field).
@@ -608,7 +608,7 @@ FieldIndexSignature(field,index,subclass) :-
 // HasNoMethodBody
 //
 
-.decl HasNoMethodBody(method:MethodSignatureRef) 
+.decl HasNoMethodBody(method:tyMethodSignatureRef) 
 
 HasNoMethodBody(method) :- 
    MethodSignatureRef(method),
@@ -621,7 +621,7 @@ HasNoMethodBody(method) :-
 
 /* List of special methods that are always reachable. 
  * These methods are usually invoked by Java runtime behind the scenes. */ 
-.decl ImplicitReachable(sig:MethodSignatureRef) 
+.decl ImplicitReachable(sig:tyMethodSignatureRef) 
 
 ImplicitReachable("<java.lang.System.initializeSystemClass()V>") :- 
    MethodSignatureRef("<java.lang.System.initializeSystemClass()V>").
@@ -655,7 +655,7 @@ ImplicitReachable("<java.security.PrivilegedActionException.<init>(Ljava/lang/Ex
 // MethodImplemented
 //
 
-.decl MethodImplemented(simplename:SimpleNameRef,descriptor:MethodDescriptorRef,type:Type,method:MethodSignatureRef) 
+.decl MethodImplemented(simplename:tySimpleNameRef,descriptor:tyMethodDescriptorRef,type:tyType,method:tyMethodSignatureRef) 
 
 MethodImplemented(simplename,descriptor,type,method) :- 
    MethodSignatureType(signature,type),
@@ -669,7 +669,7 @@ MethodImplemented(simplename,descriptor,type,method) :-
 // MethodLookup
 //
 
-.decl MethodLookup(simplename:SimpleNameRef,descriptor:MethodDescriptorRef,type:Type,method:MethodSignatureRef) 
+.decl MethodLookup(simplename:tySimpleNameRef,descriptor:tyMethodDescriptorRef,type:tyType,method:tyMethodSignatureRef) 
 
 MethodLookup(simplename,descriptor,type,method) :- 
    MethodImplemented(simplename,descriptor,type,method).
@@ -689,7 +689,7 @@ MethodLookup(simplename,descriptor,arraytype,method) :-
 // ReferenceType
 //
 
-.decl ReferenceType(t:ReferenceType) 
+.decl ReferenceType(t:tyReferenceType) 
 
 ReferenceType(t) :- 
    ClassType(t).
@@ -705,7 +705,7 @@ ReferenceType(t) :-
 // TypeHasMethod
 //
 
-.decl TypeHasMethod(type:Type,method:MethodSignatureRef) 
+.decl TypeHasMethod(type:tyType,method:tyMethodSignatureRef) 
 
 TypeHasMethod(type,method) :- 
    MethodSignatureType(method,type).
@@ -715,7 +715,7 @@ TypeHasMethod(type,method) :-
 // InvocationBase
 //
 
-.decl InvocationBase(i:MethodInvocationRef, b:VarRef)
+.decl InvocationBase(i:tyMethodInvocationRef, b:tyVarRef)
 
 InvocationBase(i,b) :- SpecialMethodInvocationBase(i,b).
 InvocationBase(i,b) :- VirtualMethodInvocationBase(i,b).
@@ -724,7 +724,7 @@ InvocationBase(i,b) :- VirtualMethodInvocationBase(i,b).
 // VirtualMethodInvocationDescriptor
 //
 
-.decl VirtualMethodInvocationDescriptor(invocation:MethodInvocationRef,descriptor:MethodDescriptorRef) 
+.decl VirtualMethodInvocationDescriptor(invocation:tyMethodInvocationRef,descriptor:tyMethodDescriptorRef) 
 
 VirtualMethodInvocationDescriptor(invocation,descriptor) :- 
    VirtualMethodInvocationSignature(invocation,signature),
@@ -736,7 +736,7 @@ VirtualMethodInvocationDescriptor(invocation,descriptor) :-
 // HeapAllocationRef
 //
 
-.decl HeapAllocationRef(x:String) 
+.decl HeapAllocationRef(x:tyString) 
 
 HeapAllocationRef(x) :- 
    HeapAllocationType(x,_).
@@ -828,7 +828,7 @@ HeapAllocationRef( cat ( cat ("<reified field ",x),">")) :-
 // ReflectiveHeapAllocation
 //
 
-.decl ReflectiveHeapAllocation(type:Type,heap:HeapAllocationRef) 
+.decl ReflectiveHeapAllocation(type:tyType,heap:tyHeapAllocationRef) 
 
 ReflectiveHeapAllocation(type, cat ( cat ("<reflective Class.newInstance ",type),">")) :- 
    isNotEmptyJavalangClassnewInstance(_),
@@ -846,7 +846,7 @@ ReflectiveHeapAllocation(type, cat ( cat ("<reflective Constructor.newInstance "
 // ReifiedConstructor
 //
 
-.decl ReifiedConstructor(constructor:MethodSignatureRef,heap:HeapAllocationRef) 
+.decl ReifiedConstructor(constructor:tyMethodSignatureRef,heap:tyHeapAllocationRef) 
 
 ReifiedConstructor(signature, cat ( cat ("<reified constructor ",signature),">")) :- 
    SimpleNameRef("<init>"),
@@ -859,7 +859,7 @@ ReifiedConstructor(signature, cat ( cat ("<reified constructor ",signature),">")
 // ReifiedMethod
 //
 
-.decl ReifiedMethod(method:MethodSignatureRef,heap:HeapAllocationRef) 
+.decl ReifiedMethod(method:tyMethodSignatureRef,heap:tyHeapAllocationRef) 
 
 ReifiedMethod(signature, cat ( cat ("<reified method ",signature),">")) :- 
    MethodSignatureSimpleName(signature,simplename),
@@ -880,7 +880,7 @@ ReifiedMethod(signature, cat ( cat ("<reified method ",signature),">")) :-
 /* ClassInitializer is a static method that gets executed when the class type is first accessed.
  * JMV specification says the name of this meethod will be <clinit>.
  * <clinit> method's return type must void by the JVM spec. */ 
-.decl ClassInitializer(type:Type,method:MethodSignatureRef) 
+.decl ClassInitializer(type:tyType,method:tyMethodSignatureRef) 
 ClassInitializer(type,method) :- 
    SimpleNameRef("<clinit>"),
    MethodDescriptorRef("()V"),

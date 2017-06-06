@@ -66,7 +66,7 @@
 #ifndef __OPENWORLD_EXTERNAL_LOGIC__
 #define __OPENWORLD_EXTERNAL_LOGIC__
 
-.decl ExternalHeapObject(ctx:Context, h: HeapAllocationRef)
+.decl ExternalHeapObject(ctx:tyContext, h:tyHeapAllocationRef)
 
 ExternalHeapObject(hctx, heap) :-
   ExternalContextForMethod(_, method, [_, o2]),
