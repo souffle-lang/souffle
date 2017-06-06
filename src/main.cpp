@@ -32,6 +32,7 @@
 #include "RamTranslator.h"
 #include "SymbolTable.h"
 #include "Util.h"
+#include "Explain.h"
 
 #include <chrono>
 #include <fstream>
@@ -367,6 +368,7 @@ int main(int argc, char** argv) {
     }
 
     // check if this is code generation only
+    RamEnvironment *env=nullptr;
     if (Global::config().has("generate")) {
         // just generate, no compile, no execute
         static_cast<const RamCompiler*>(executor.get())
@@ -379,7 +381,7 @@ int main(int argc, char** argv) {
                 ->compileToBinary(translationUnit->getSymbolTable(), *ramProg);
     } else {
         // run executor
-        executor->execute(translationUnit->getSymbolTable(), *ramProg);
+        env = executor->execute(translationUnit->getSymbolTable(), *ramProg);
     }
 
     /* Report overall run-time in verbose mode */
@@ -387,6 +389,11 @@ int main(int argc, char** argv) {
         auto souffle_end = std::chrono::high_resolution_clock::now();
         std::cout << "Total Time: " << std::chrono::duration<double>(souffle_end - souffle_start).count()
                   << "sec\n";
+    }
+
+    if(Global::config().has("provenance")){ 
+        // construct SouffleProgram from env
+        // invoke explain
     }
 
     return 0;

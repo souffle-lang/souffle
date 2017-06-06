@@ -13,6 +13,7 @@
 
 namespace souffle {
 
+template <uint32_t id> 
 class RamRelationInterface : public Relation {
 private:
     RamRelation* ramRelation;

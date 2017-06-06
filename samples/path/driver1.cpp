@@ -13,6 +13,15 @@ using namespace souffle;
 
 typedef RamDomain plabel;
 
+class Provenance { 
+SouffleProgram *prog;
+
+std::map<std::pair<std::string, elements>, plabel> values;
+std::map<std::pair<std::string, plabel>, elements> labels;
+std::map<std::pair<std::string, plabel>, std::vector<plabel>> rules;
+std::map<std::string, std::vector<std::string>> info;
+};
+
 // store elements of a tuple
 struct elements {
     std::string order;
@@ -103,12 +112,6 @@ struct elements {
     }
 };
 
-SouffleProgram *prog;
-
-std::map<std::pair<std::string, elements>, plabel> values;
-std::map<std::pair<std::string, plabel>, elements> labels;
-std::map<std::pair<std::string, plabel>, std::vector<plabel>> rules;
-std::map<std::string, std::vector<std::string>> info;
 
 int depthLimit = 4;
 
@@ -264,7 +267,7 @@ std::pair<std::string, std::vector<std::string>> parseRel(std::string rel) {
     return std::make_pair(relName, args);
 }
 
-void commandLine(SouffleProgram *prog) {
+inline void explain(SouffleProgram *prog) {
 
     std::string line;
     while (1) {
@@ -309,7 +312,7 @@ int main(int argc, char **argv) {
 
         // prog->printAll();
         //
-        commandLine(prog);
+       explain(prog);
     } else {
         std::cout << "no program" << std::endl;
     }
