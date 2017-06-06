@@ -65,4 +65,34 @@ public:
     SymbolTable& getSymbolTable() const;
 };
 
+/**
+ * Implementation of SouffleProgram interface for ram programs
+ */
+class SouffleProgramInterface : public SouffleProgram {
+private:
+    SymbolTable& symTable;
+
+public:
+    ~SouffleProgramInterface();
+
+    // running an interpreter program doesn't make sense
+    void run() {
+        std::cerr << "Cannot run interpreter program" << std::endl;
+    }
+
+    // loading facts for interpreter program doesn't make sense
+    void loadAll(std::string dirname = ".") {
+        std::cerr << "Cannot load facts for interpreter program" << std::endl;
+    }
+
+    // print methods
+    void printAll(std::string);
+    void dumpInputs(std::ostream&);
+    void dumpOutputs(std::ostream&);
+        
+    const SymbolTable& getSymbolTable() const {
+        return symTable;
+    }
+};
+
 } // end of namespace souffle
