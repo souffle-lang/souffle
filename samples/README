@@ -57,3 +57,5 @@ The command to compute context-insensitive points-to results is as follows.
 
 souffle -j8 -c -D <pathToOutput> -p <logFile> -F <factFilesDirectory>  fullCIAnalysis.dl
 
+The OpenJDK7 relations are available via the Oracle Labs web-page (search for Data Sets). 
+The names of the fact file are to be renamed with the script rename.sh that is stored in this directory.

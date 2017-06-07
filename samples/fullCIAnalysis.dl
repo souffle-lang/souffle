@@ -70,3 +70,5 @@
 // PointsTo analysis component:
 #include "abstract-pointsto/abstract-pointsto.dl"
 #include "java-ci-pointsto/ci-pointsto.dl"
+
+.printsize VarPointsTo
