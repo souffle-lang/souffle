@@ -13,12 +13,12 @@
 
 namespace souffle {
 
-template <uint32_t id> 
 class RamRelationInterface : public Relation {
 private:
     RamRelation* ramRelation;
     SymbolTable& symTable;
     std::string name;
+    uint32_t id;
 
 protected:
     class iterator_base : public Relation::iterator_base {
@@ -30,9 +30,13 @@ protected:
         iterator_base(uint32_t arg_id, RamRelationInterface* r, RamRelation::iterator i)
                 : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
         ~iterator_base();
-
+        
+        // increments iterator to next relation
         void operator++();
+
+        // gets relation pointed to by iterator
         tuple& operator*();
+
         iterator_base* clone() const;
 
     protected:
@@ -40,7 +44,7 @@ protected:
     };
 
 public:
-    RamRelationInterface(RamRelation* r, SymbolTable& s, std::string n) : ramRelation(r), symTable(s), name(n) {}
+    RamRelationInterface(RamRelation* r, SymbolTable& s, std::string n, uint32_t i) : ramRelation(r), symTable(s), name(n), id(i) {}
     ~RamRelationInterface();
 
     // insert a new tuple into the relation
@@ -71,7 +75,7 @@ public:
  */
 class SouffleProgramInterface : public SouffleProgram {
 private:
-    SymbolTable& symTable;
+    SymbolTable symTable;
 
 public:
     ~SouffleProgramInterface();

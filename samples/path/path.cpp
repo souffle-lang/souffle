@@ -1,4 +1,5 @@
 #include "souffle/CompiledSouffle.h"
+#include "souffle/Explain.h"
 
 namespace souffle {
 using namespace ram;
@@ -298,7 +299,7 @@ IOSystem::getInstance().getWriter(SymbolMask({0, 1, 1}), symTable, ioDirectives)
 }
 public:
 void loadAll(std::string dirname) {
-try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","./edge.facts"},{"name","edge"}});
+try {std::map<std::string, std::string> directiveMap({{"IO","file"},{"filename","facts/edge.facts"},{"name","edge"}});
 if (!dirname.empty() && directiveMap["IO"] == "file" && directiveMap["filename"].front() != '/') {directiveMap["filename"] = dirname + "/" + directiveMap["filename"];}IODirectives ioDirectives(directiveMap);
 IOSystem::getInstance().getReader(SymbolMask({1, 1}), symTable, ioDirectives)->readAll(*rel_1_edge);
 } catch (std::exception& e) {std::cerr << e.what();exit(1);}
@@ -380,6 +381,7 @@ souffle::Sf_path obj;
 obj.loadAll(opt.getInputFileDir());
 obj.run();
 obj.printAll(opt.getOutputFileDir());
+explain(obj);
 return 0;
 }
 #endif
