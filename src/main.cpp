@@ -258,10 +258,14 @@ int main(int argc, char** argv) {
     if (Global::config().get("bddbddb").empty()) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
     }
-    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
+    if (!Global::config().has("provenance")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
+    }
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
-    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
+    if (!Global::config().has("provenance")) {
+        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
+        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
+    }
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
     if (Global::config().has("auto-schedule")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));

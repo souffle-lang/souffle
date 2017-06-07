@@ -2003,6 +2003,7 @@ std::string RamCompiler::generateCode(
     os << "#include \"souffle/CompiledSouffle.h\"\n";
     if(Global::config().has("provenance")){
        os << "#include \"souffle/Explain.h\"\n";
+       os << "#include <ncurses.h>\n";
     }
     os << "\n";
     os << "namespace souffle {\n";
