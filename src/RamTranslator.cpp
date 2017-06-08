@@ -1060,8 +1060,10 @@ std::unique_ptr<RamStatement> RamTranslator::translateProgram(const AstTranslati
 
         /* Drop the tables of all expired relations to save memory */
         for (const auto& rel : step.getExpiredRelations()) {
-            appendStmt(comp, std::unique_ptr<RamStatement>(new RamDrop(getRamRelationIdentifier(
-                                     getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
+            if (rel != nullptr) { 
+                appendStmt(comp, std::unique_ptr<RamStatement>(new RamDrop(getRamRelationIdentifier(
+                                         getRelationName(rel->getName()), rel->getArity(), rel, &typeEnv))));
+            }
         }
     }
 
