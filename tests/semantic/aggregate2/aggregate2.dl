@@ -1,0 +1,8 @@
+.decl A()
+.decl B()
+.decl C(x:number)
+.output C
+A().
+C(y) :- y = count : A().
+C(y) :- y = count : B().
+
