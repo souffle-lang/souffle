@@ -613,6 +613,13 @@ public:
     }
 
     /**
+     * Returns the relation map
+     */
+    relation_map &getRelationMap() {
+        return data;
+    }
+
+    /**
      * Tests whether a relation with the given name is present.
      */
     bool hasRelation(const std::string& name) const {

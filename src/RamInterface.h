@@ -73,12 +73,18 @@ public:
 /**
  * Implementation of SouffleProgram interface for ram programs
  */
-class SouffleProgramInterface : public SouffleProgram {
+class SouffleInterpreterInterface : public SouffleProgram {
 private:
+    RamEnvironment *env;
     SymbolTable symTable;
 
 public:
-    ~SouffleProgramInterface();
+    SouffleInterpreterInterface(RamEnvironment *r, SymbolTable s) : env(r), symTable(s) {
+        for (auto rel : r->getRelationMap()) {
+            addRelation(rel->getName(), new RamRelationInterface(rel, symTable, rel->getName()), rel->isInput(), rel->isOutput());
+        }
+    }
+    ~SouffleInterpreterInterface();
 
     // running an interpreter program doesn't make sense
     void run() {
