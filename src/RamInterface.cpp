@@ -35,11 +35,38 @@ RamRelationInterface::iterator_base* RamRelationInterface::iterator_base::clone(
     return new RamRelationInterface::iterator_base(getId(), ramRelationInterface, it);
 }
 
+/**
+ * Helper function to convert a tuple to a RamDomain pointer
+ */
+RamDomain* convertTupleToNums(const tuple& t) {
+
+    std::vector<RamDomain> tuple;
+
+    // for (size_t i = 0; i < getArity(); i++) {
+    //     RamDomain n;
+    //     if (*(getAttrType(i)) == 's') {
+    //         std::string s;
+    //         t >> s;
+    //         n = getSymbolTable().lookup(s.c_str());
+    //     } else {
+    //         t >> n;
+    //     }
+    //     tuple.push_back(n);
+    // }
+
+    for (size_t i = 0; i < t.size(); i++) {
+        tuple.push_back(t[i]);
+    }
+
+    return tuple.data();
+}
+
 void RamRelationInterface::insert(const tuple& t) {
+    ramRelation.insert(convertTupleToNums(t));
 }
 
 bool RamRelationInterface::contains(const tuple& t) const {
-    return false;
+    return ramRelation.exists(convertTupleToNums(t));
 }
 
 bool RamRelationInterface::iterator_base::equal(const Relation::iterator_base& o) const {
