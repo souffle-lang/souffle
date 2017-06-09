@@ -33,6 +33,7 @@
 #include "SymbolTable.h"
 #include "Util.h"
 #include "Explain.h"
+#include "RamInterface.h"
 
 #include <chrono>
 #include <fstream>
@@ -396,7 +397,7 @@ int main(int argc, char** argv) {
     }
 
     if (Global::config().has("provenance")){ 
-        SouffleInterpreterInterface interface(env, translationUnit->getSymbolTable());
+        SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
         explain(interface);
         // construct SouffleProgram from env
         // invoke explain

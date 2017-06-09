@@ -31,32 +31,39 @@ tuple& RamRelationInterface::iterator_base::operator*() {
     return tup;
 }
 
-typename RamRelationInterface::iterator_base* RamRelationInterface::iterator_base::clone() const {
+RamRelationInterface::iterator_base* RamRelationInterface::iterator_base::clone() const {
     return new RamRelationInterface::iterator_base(getId(), ramRelationInterface, it);
+}
+
+void RamRelationInterface::insert(const tuple& t) {
+}
+
+bool RamRelationInterface::contains(const tuple& t) const {
+    return false;
 }
 
 bool RamRelationInterface::iterator_base::equal(const Relation::iterator_base& o) const {
     return false;
 }
 
-std::size_t RamRelationInterface::size() {
-    return ramRelation->size();
-}
-
 typename RamRelationInterface::iterator RamRelationInterface::begin() {
-    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(id, this, ramRelation->begin()));
+    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(id, this, ramRelation.begin()));
 }
 
 typename RamRelationInterface::iterator RamRelationInterface::end() {
-    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(id, this, ramRelation->end()));
+    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(id, this, ramRelation.end()));
+}
+
+std::size_t RamRelationInterface::size() {
+    return ramRelation.size();
 }
 
 bool RamRelationInterface::isOutput() const {
-    return ramRelation->getID().isOutput();
+    return ramRelation.getID().isOutput();
 }
 
 bool RamRelationInterface::isInput() const {
-    return ramRelation->getID().isInput();
+    return ramRelation.getID().isInput();
 }
 
 std::string RamRelationInterface::getName() const {
@@ -64,19 +71,27 @@ std::string RamRelationInterface::getName() const {
 }
 
 const char* RamRelationInterface::getAttrType(size_t idx) const {
-    return ramRelation->getID().getArgTypeQualifier(idx).c_str();
+    return ramRelation.getID().getArgTypeQualifier(idx).c_str();
 }
 
 const char* RamRelationInterface::getAttrName(size_t idx) const {
-    return ramRelation->getID().getArg(idx).c_str();
+    return ramRelation.getID().getArg(idx).c_str();
 }
 
 size_t RamRelationInterface::getArity() const {
-    return ramRelation->getArity();
+    return ramRelation.getArity();
 }
 
 SymbolTable& RamRelationInterface::getSymbolTable() const {
     return symTable;
 }
 
+void SouffleInterpreterInterface::printAll(std::string s) {
+}
+
+void SouffleInterpreterInterface::dumpInputs(std::ostream& ss) {
+}
+
+void SouffleInterpreterInterface::dumpOutputs(std::ostream& ss) {
+}
 } // end of namespace souffle

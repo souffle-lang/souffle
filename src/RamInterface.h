@@ -15,7 +15,7 @@ namespace souffle {
 
 class RamRelationInterface : public Relation {
 private:
-    RamRelation* ramRelation;
+    RamRelation& ramRelation;
     SymbolTable& symTable;
     std::string name;
     uint32_t id;
@@ -28,8 +28,8 @@ protected:
         tuple tup;
     public:
         iterator_base(uint32_t arg_id, RamRelationInterface* r, RamRelation::iterator i)
-                : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
-        ~iterator_base();
+            : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
+        virtual ~iterator_base() {}
         
         // increments iterator to next relation
         void operator++();
@@ -44,8 +44,9 @@ protected:
     };
 
 public:
-    RamRelationInterface(RamRelation* r, SymbolTable& s, std::string n, uint32_t i) : ramRelation(r), symTable(s), name(n), id(i) {}
-    ~RamRelationInterface();
+    RamRelationInterface(RamRelation& r, SymbolTable& s, std::string n, uint32_t i)
+        : ramRelation(r), symTable(s), name(n), id(i) {}
+    virtual ~RamRelationInterface() {}
 
     // insert a new tuple into the relation
     void insert(const tuple& t);
@@ -75,16 +76,20 @@ public:
  */
 class SouffleInterpreterInterface : public SouffleProgram {
 private:
-    RamEnvironment *env;
+    RamEnvironment& env;
     SymbolTable symTable;
 
 public:
-    SouffleInterpreterInterface(RamEnvironment *r, SymbolTable s) : env(r), symTable(s) {
-        for (auto rel : r->getRelationMap()) {
-            addRelation(rel->getName(), new RamRelationInterface(rel, symTable, rel->getName()), rel->isInput(), rel->isOutput());
+    SouffleInterpreterInterface(RamEnvironment& r, SymbolTable s) : env(r), symTable(s) {
+        uint32_t id = 0;
+        for (auto& rel_pair : r.getRelationMap()) {
+            auto& rel = rel_pair.second;
+            addRelation(rel.getID().getName(), new RamRelationInterface(rel, symTable, rel.getID().getName(), id), rel.getID().isInput(), rel.getID().isOutput());
+            id++;
         }
     }
-    ~SouffleInterpreterInterface();
+    virtual ~SouffleInterpreterInterface() {}
+
 
     // running an interpreter program doesn't make sense
     void run() {
