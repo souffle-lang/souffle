@@ -20,6 +20,8 @@ private:
     RamRelation& ramRelation;
     SymbolTable& symTable;
     std::string name;
+    std::vector<std::string> types;
+    std::vector<std::string> attrNames;
     uint32_t id;
 
 protected:
@@ -46,8 +48,8 @@ protected:
     };
 
 public:
-    RamRelationInterface(RamRelation& r, SymbolTable& s, std::string n, uint32_t i)
-        : ramRelation(r), symTable(s), name(n), id(i) {}
+    RamRelationInterface(RamRelation& r, SymbolTable& s, std::string n, std::vector<std::string> t, std::vector<std::string> an, uint32_t i)
+        : ramRelation(r), symTable(s), name(n), types(t), attrNames(an), id(i) {}
     virtual ~RamRelationInterface() {}
 
     // insert a new tuple into the relation
@@ -86,7 +88,18 @@ public:
         uint32_t id = 0;
         for (auto& rel_pair : r.getRelationMap()) {
             auto& rel = rel_pair.second;
-            addRelation(rel.getID().getName(), new RamRelationInterface(rel, symTable, rel.getID().getName(), id), rel.getID().isInput(), rel.getID().isOutput());
+
+            // construct types and names vectors
+            std::vector<std::string> types;
+            std::vector<std::string> attrNames;
+            for (size_t i = 0; i < rel.getArity(); i++) {
+                std::string t = rel.getID().getArgTypeQualifier(i);
+                types.push_back(t);
+
+                std::string n = rel.getID().getArg(i);
+                attrNames.push_back(n);
+            }
+            addRelation(rel.getID().getName(), new RamRelationInterface(rel, symTable, rel.getID().getName(), types, attrNames, id), rel.getID().isInput(), rel.getID().isOutput());
             id++;
         }
     }
@@ -107,7 +120,7 @@ public:
     void printAll(std::string);
     void dumpInputs(std::ostream&);
     void dumpOutputs(std::ostream&);
-        
+
     const SymbolTable& getSymbolTable() const {
         return symTable;
     }

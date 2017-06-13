@@ -1,2 +1,0 @@
-edge	path	path(x,y) :- 
-   edge(x,y).

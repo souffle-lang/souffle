@@ -16,17 +16,19 @@ void RamRelationInterface::iterator_base::operator++() {
 tuple& RamRelationInterface::iterator_base::operator*() {
     tup.rewind();
 
-    const RamDomain* num = *it;
+    // const RamDomain* num = *it;
 
     // construct the tuple to return
     for (size_t i = 0; i < ramRelationInterface->getArity(); i++) {
         if (*(ramRelationInterface->getAttrType(i)) == 's') {
-            std::string s = ramRelationInterface->getSymbolTable().resolve(num[i]);
+            std::string s = ramRelationInterface->getSymbolTable().resolve((*it)[i]);
             tup << s;
         } else {
-            tup << num[i];
+            tup << (*it)[i];
         }
     }
+
+    tup.rewind();
 
     return tup;
 }
@@ -35,24 +37,21 @@ RamRelationInterface::iterator_base* RamRelationInterface::iterator_base::clone(
     return new RamRelationInterface::iterator_base(getId(), ramRelationInterface, it);
 }
 
+bool RamRelationInterface::iterator_base::equal(const Relation::iterator_base& o) const {
+    try {
+        auto iter = dynamic_cast<const RamRelationInterface::iterator_base&>(o);
+        return ramRelationInterface == iter.ramRelationInterface && it == iter.it;
+    } catch (const std::bad_cast& e) {
+        return false;
+    }
+}
+
 /**
  * Helper function to convert a tuple to a RamDomain pointer
  */
 RamDomain* convertTupleToNums(const tuple& t) {
 
     std::vector<RamDomain> tuple;
-
-    // for (size_t i = 0; i < getArity(); i++) {
-    //     RamDomain n;
-    //     if (*(getAttrType(i)) == 's') {
-    //         std::string s;
-    //         t >> s;
-    //         n = getSymbolTable().lookup(s.c_str());
-    //     } else {
-    //         t >> n;
-    //     }
-    //     tuple.push_back(n);
-    // }
 
     for (size_t i = 0; i < t.size(); i++) {
         tuple.push_back(t[i]);
@@ -67,10 +66,6 @@ void RamRelationInterface::insert(const tuple& t) {
 
 bool RamRelationInterface::contains(const tuple& t) const {
     return ramRelation.exists(convertTupleToNums(t));
-}
-
-bool RamRelationInterface::iterator_base::equal(const Relation::iterator_base& o) const {
-    return false;
 }
 
 typename RamRelationInterface::iterator RamRelationInterface::begin() {
@@ -98,11 +93,13 @@ std::string RamRelationInterface::getName() const {
 }
 
 const char* RamRelationInterface::getAttrType(size_t idx) const {
-    return ramRelation.getID().getArgTypeQualifier(idx).c_str();
+    assert(0 <= idx && idx < getArity() && "exceeded tuple size");
+    return types[idx].c_str();
 }
 
 const char* RamRelationInterface::getAttrName(size_t idx) const {
-    return ramRelation.getID().getArg(idx).c_str();
+    assert(0 <= idx && idx < getArity() && "exceeded tuple size");
+    return attrNames[idx].c_str();
 }
 
 size_t RamRelationInterface::getArity() const {
@@ -113,7 +110,7 @@ SymbolTable& RamRelationInterface::getSymbolTable() const {
     return symTable;
 }
 
-void SouffleInterpreterInterface::printAll(std::string s) {
+void SouffleInterpreterInterface::printAll(std::string dirname) {
 }
 
 void SouffleInterpreterInterface::dumpInputs(std::ostream& ss) {
@@ -121,4 +118,5 @@ void SouffleInterpreterInterface::dumpInputs(std::ostream& ss) {
 
 void SouffleInterpreterInterface::dumpOutputs(std::ostream& ss) {
 }
+
 } // end of namespace souffle
