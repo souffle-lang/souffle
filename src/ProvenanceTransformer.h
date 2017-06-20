@@ -15,7 +15,6 @@ private:
 
     AstRelation* infoRelation;
     AstRelation* provenanceRelation;
-    AstRelation* outputRelation;
 
 public:
     ProvenanceTransformedClause(AstTranslationUnit transUnit, std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap, AstClause clause, int num);
@@ -45,6 +44,17 @@ public:
         return std::unique_ptr<AstRelation>(outputRelation);
     }
 };
+
+class ProvenanceTransformedRelation {
+private:
+    AstTranslationUnit& translationUnit;
+    AstRelation& originalRelation;
+    AstRelationIdentifier& originalName;
+
+    AstRelation* recordRelation;
+    AstRelation* outputRelation;
+    std::vector<ProvenanceTransformedClause> transformedClauses;
+}
 
 
 } // end of namespace souffle
