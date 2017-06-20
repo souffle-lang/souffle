@@ -17,16 +17,13 @@ private:
     AstRelation* provenanceRelation;
 
 public:
-    ProvenanceTransformedClause(AstTranslationUnit transUnit, std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap, AstClause clause, int num);
-
-    static AstRelationIdentifier makeRelationName(AstRelationIdentifier orig, std::string type, int num = -1) {
-        AstRelationIdentifier newName(orig);
-        newName.append(type);
-        if (num != -1) {
-            newName.append(std::to_string(num));
-        }
-        return newName;
-    }
+    ProvenanceTransformedClause(
+            AstTranslationUnit transUnit,
+            std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap,
+            AstClause clause,
+            AstRelationIdentifier origName,
+            int num
+    );
 
     void makeInfoRelation();
     void makeProvenanceRelation();
@@ -39,21 +36,39 @@ public:
     std::unique_ptr<AstRelation> getProvenanceRelation() {
         return std::unique_ptr<AstRelation>(provenanceRelation);
     }
-
-    std::unique_ptr<AstRelation> getOutputRelation() {
-        return std::unique_ptr<AstRelation>(outputRelation);
-    }
 };
 
 class ProvenanceTransformedRelation {
 private:
     AstTranslationUnit& translationUnit;
+    std::map<AstRelationIdentifier, AstTypeIdentifier>& relationToTypeMap;
+
     AstRelation& originalRelation;
     AstRelationIdentifier& originalName;
 
     AstRelation* recordRelation;
     AstRelation* outputRelation;
     std::vector<ProvenanceTransformedClause> transformedClauses;
+
+public:
+    ProvenanceTransformedRelation(
+            AstTranslationUnit transUnit,
+            std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap,
+            AstRelation origRelation,
+            AstRelationIdentifier origName
+    );
+
+    void makeRecordRelation();
+    void makeOutputRelation();
+
+    // return relations
+    std::unique_ptr<AstRelation> getRecordRelation() {
+        return std::unique_ptr<AstRelation>(recordRelation);
+    }
+
+    std::unique_ptr<AstRelation> getOutputRelation() {
+        return std::unique_ptr<AstRelation>(outputRelation);
+    }
 }
 
 

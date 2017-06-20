@@ -9,6 +9,16 @@ const std::string& identifierToString(const AstRelationIdentifier& name) {
     return *(new std::string(ss.str()));
 }
 
+AstRelationIdentifier& makeRelationName(AstRelationIdentifier orig, std::string type, int num = -1) {
+    AstRelationIdentifier newName(orig);
+    newName.append(type);
+    if (num != -1) {
+        newName.append(std::to_string(num));
+    }
+
+    return newName;
+}
+
 void addAttrAndArg(AstRelation* rel, AstAttribute* attr, AstAtom* head, AstArgument* arg) {
     rel->addAttribute(std::unique_ptr<AstAttribute>(attr));
     head->addArgument(std::unique_ptr<AstArgument>(arg));
@@ -122,13 +132,75 @@ void ProvenanceTransformedClause::makeProvenanceRelation() {
                 // clone constraint and add to body
                 provenanceClause->addToBody(std::unique_ptr<AstConstraint>(constr->clone()));
             }
-                
     });
 
     // add head to clause and add clause to relation
     provenanceClause->setHead(std::unique_ptr<AstAtom>(provenanceClauseHead));
     provenanceRelation->addClause(std::unique_ptr<AstClause>(provenanceClause));
 }
+
+/**
+ * ProvenanceTransformedRelation functions
+ */
+
+/**
+ * Record relation stores the original relation converted to a record
+ * Clauses are created afterwards, using provenance relations
+ */
+void ProvenanceTransformedRelation::makeRecordRelation() {
+    AstRelationIdentifier name = makeRelationName(originalName, "record");
+
+    // initialise record relation
+    recordRelation = new AstRelation();
+    recordRelation->setName(name);
+
+    recordRelation->addAttribute(std::string("x"), relationToTypeMap[originalName]);
+}
+
+void ProvenanceTransformedRelation::makeOutputRelation() {
+    AstRelationIdentifier name = makeRelationName(originalName, "output");
+
+    // initialise record relation
+    outputRelation = new AstRelation();
+    outputRelation->setName(name);
+
+    // get record type
+    auto recordType = std::dynamic_cast<AstRecordType>(translationUnit.getProgram().getType(relationToTypeMap[originalName]));
+    assert(recordType.getFields().size() == originalRelation.getArity() && "record type does not match original relation");
+
+    // create new clause from record relation
+    auto outputClause = new AstClause();
+    auto outputClauseHead = new AstAtom();
+    outputClauseHead->setName(name);
+
+    // create vector to be used to make RecordInit
+    std::vector<AstArgument*> args;
+    for (size_t i = 0; i < originalRelation.getArity(); i++) {
+        args.push_back(new AstVariable("x_" + std::to_string(i)));
+    }
+
+    // add first argument corresponding to the record type
+    addAttrAndArg(
+            outputRelation,
+            new AstAttribute(std::string("result"), relationToTypMap[originalName]),
+            outputClauseHead,
+            makeNewRecordInit(args));
+
+    // add remaining arguments corresponding to elements of record type
+    for (size_t i = 0; i < originalRelation.getArity(); i++) {
+        addAttrAndArg(
+                outputRelation,
+                new AstAttribute(std::string("x_") + std::to_string(i), recordType.getFields()[i].type),
+                outputClauseHead,
+                new AstVariable("x_" + std::to_string(i)));
+    }
+
+    // make body literal
+    auto outputClauseBody = new AstAtom();
+    outputClauseBody->setName(makeRelationName(originalName, "record"));
+
+}
+
 
 bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit) {
     return true;
