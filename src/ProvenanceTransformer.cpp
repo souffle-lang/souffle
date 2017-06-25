@@ -9,7 +9,7 @@ const std::string& identifierToString(const AstRelationIdentifier& name) {
     return *(new std::string(ss.str()));
 }
 
-AstRelationIdentifier& makeRelationName(AstRelationIdentifier orig, std::string type, int num = -1) {
+AstRelationIdentifier makeRelationName(AstRelationIdentifier orig, std::string type, int num = -1) {
     AstRelationIdentifier newName(orig);
     newName.append(type);
     if (num != -1) {
@@ -154,7 +154,7 @@ void ProvenanceTransformedRelation::makeRecordRelation() {
     recordRelation = new AstRelation();
     recordRelation->setName(name);
 
-    recordRelation->addAttribute(std::string("x"), relationToTypeMap[originalName]);
+    recordRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(std::string("x"), relationToTypeMap[originalName])));
 }
 
 void ProvenanceTransformedRelation::makeOutputRelation() {
@@ -165,8 +165,8 @@ void ProvenanceTransformedRelation::makeOutputRelation() {
     outputRelation->setName(name);
 
     // get record type
-    auto recordType = std::dynamic_cast<AstRecordType>(translationUnit.getProgram().getType(relationToTypeMap[originalName]));
-    assert(recordType.getFields().size() == originalRelation.getArity() && "record type does not match original relation");
+    auto recordType = dynamic_cast<const AstRecordType*>(translationUnit.getProgram()->getType(relationToTypeMap[originalName]));
+    assert(recordType->getFields().size() == originalRelation.getArity() && "record type does not match original relation");
 
     // create new clause from record relation
     auto outputClause = new AstClause();
@@ -182,7 +182,7 @@ void ProvenanceTransformedRelation::makeOutputRelation() {
     // add first argument corresponding to the record type
     addAttrAndArg(
             outputRelation,
-            new AstAttribute(std::string("result"), relationToTypMap[originalName]),
+            new AstAttribute(std::string("result"), relationToTypeMap[originalName]),
             outputClauseHead,
             makeNewRecordInit(args));
 
@@ -190,7 +190,7 @@ void ProvenanceTransformedRelation::makeOutputRelation() {
     for (size_t i = 0; i < originalRelation.getArity(); i++) {
         addAttrAndArg(
                 outputRelation,
-                new AstAttribute(std::string("x_") + std::to_string(i), recordType.getFields()[i].type),
+                new AstAttribute(std::string("x_") + std::to_string(i), recordType->getFields()[i].type),
                 outputClauseHead,
                 new AstVariable("x_" + std::to_string(i)));
     }
@@ -198,12 +198,21 @@ void ProvenanceTransformedRelation::makeOutputRelation() {
     // make body literal
     auto outputClauseBody = new AstAtom();
     outputClauseBody->setName(makeRelationName(originalName, "record"));
+    outputClauseBody->addArgument(std::unique_ptr<AstArgument>(makeNewRecordInit(args)));
 
+    // add atoms to clause
+    outputClause->setHead(std::unique_ptr<AstAtom>(outputClauseHead));
+    outputClause->addToBody(std::unique_ptr<AstLiteral>(outputClauseBody));
+
+    // add clause to relation
+    outputRelation->addClause(std::unique_ptr<AstClause>(outputClause));
 }
 
 
 bool ProvenanceRecordTransformer::transform(AstTranslationUnit& translationUnit) {
-    return true;
+    auto program = translationUnit.getProgram();
+
+    return false;
 }
 
 } // end of namespace souffle

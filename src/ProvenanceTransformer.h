@@ -69,7 +69,7 @@ public:
     std::unique_ptr<AstRelation> getOutputRelation() {
         return std::unique_ptr<AstRelation>(outputRelation);
     }
-}
+};
 
 
 } // end of namespace souffle
