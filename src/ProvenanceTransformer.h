@@ -18,15 +18,15 @@ private:
 
 public:
     ProvenanceTransformedClause(
-            AstTranslationUnit transUnit,
+            AstTranslationUnit& transUnit,
             std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap,
-            AstClause clause,
+            AstClause& clause,
             AstRelationIdentifier origName,
             int num
     );
 
     void makeInfoRelation();
-    void makeProvenanceRelation();
+    void makeProvenanceRelation(AstRelation* recordRelation);
 
     // return relations
     std::unique_ptr<AstRelation> getInfoRelation() {
@@ -45,16 +45,17 @@ private:
 
     AstRelation& originalRelation;
     AstRelationIdentifier& originalName;
+    bool isEDB = false;
 
     AstRelation* recordRelation;
     AstRelation* outputRelation;
-    std::vector<ProvenanceTransformedClause> transformedClauses;
+    std::vector<ProvenanceTransformedClause*> transformedClauses;
 
 public:
     ProvenanceTransformedRelation(
-            AstTranslationUnit transUnit,
+            AstTranslationUnit& transUnit,
             std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap,
-            AstRelation origRelation,
+            AstRelation& origRelation,
             AstRelationIdentifier origName
     );
 
@@ -68,6 +69,14 @@ public:
 
     std::unique_ptr<AstRelation> getOutputRelation() {
         return std::unique_ptr<AstRelation>(outputRelation);
+    }
+
+    std::vector<ProvenanceTransformedClause*> getTransformedClauses() {
+        return transformedClauses;
+    }
+
+    bool isEdbRelation() {
+        return isEDB;
     }
 };
 

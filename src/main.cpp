@@ -259,14 +259,10 @@ int main(int argc, char** argv) {
     if (Global::config().get("bddbddb").empty()) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new ResolveAliasesTransformer()));
     }
-    if (!Global::config().has("provenance")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
-    }
+    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRelationCopiesTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new MaterializeAggregationQueriesTransformer()));
-    if (!Global::config().has("provenance")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
-        transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
-    }
+    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveEmptyRelationsTransformer()));
+    transforms.push_back(std::unique_ptr<AstTransformer>(new RemoveRedundantRelationsTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new AstExecutionPlanChecker()));
     if (Global::config().has("auto-schedule")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));
@@ -397,8 +393,8 @@ int main(int argc, char** argv) {
     }
 
     if (Global::config().has("provenance")){ 
-        SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
-        explain(interface);
+        // SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
+        // explain(interface);
         // construct SouffleProgram from env
         // invoke explain
     }
