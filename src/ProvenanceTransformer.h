@@ -7,10 +7,10 @@ namespace souffle {
 class ProvenanceTransformedClause {
 private:
     AstTranslationUnit& translationUnit;
-    std::map<AstRelationIdentifier, AstTypeIdentifier>& relationToTypeMap;
+    std::map<AstRelationIdentifier, AstTypeIdentifier> relationToTypeMap;
 
     AstClause& originalClause;
-    AstRelationIdentifier& originalName;
+    AstRelationIdentifier originalName;
     int clauseNumber;
 
     AstRelation* infoRelation;
@@ -41,10 +41,10 @@ public:
 class ProvenanceTransformedRelation {
 private:
     AstTranslationUnit& translationUnit;
-    std::map<AstRelationIdentifier, AstTypeIdentifier>& relationToTypeMap;
+    std::map<AstRelationIdentifier, AstTypeIdentifier> relationToTypeMap;
 
     AstRelation& originalRelation;
-    AstRelationIdentifier& originalName;
+    AstRelationIdentifier originalName;
     bool isEDB = false;
 
     AstRelation* recordRelation;
