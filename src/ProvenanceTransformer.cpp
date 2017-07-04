@@ -29,7 +29,39 @@ void addAttrAndArg(AstRelation* rel, AstAttribute* attr, AstAtom* head, AstArgum
 
 AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args) {
     auto newRecordInit = new AstRecordInit();
+    
+    /*
+    // replace all unnamed variables with variables
     int numUnnamed = 0;
+    std::map<AstUnnamedVariable*, AstVariable*> unnamedVars;
+    visitDepthFirst(args, [&](const AstUnnamedVariable& var) {
+            unnamedVars.insert(std::make_pair(var, new AstVariable("unnamed_" + std::to_string(numUnnamed))));
+            numUnnamed++;
+    });
+    */
+
+    struct M : public AstNodeMapper {
+        int* numUnnamed = new int(0);
+
+        using AstNodeMapper::operator();
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            // see whether it is a variable to be substituted
+            if (dynamic_cast<AstUnnamedVariable*>(node.get())) {
+                return std::unique_ptr<AstNode>(new AstVariable("unnamed_" + std::to_string((*numUnnamed)++)));
+            }
+
+            // otherwise - apply mapper recursively
+            node->apply(*this);
+            return node;
+        }
+    };
+
+    for (auto arg : args) {
+        newRecordInit->add(M()(std::unique_ptr<AstArgument>(arg->clone())));
+    }
+
+    /*     
     for (auto arg : args) {
         // we need to make names for unnamed variables, otherwise they become ungrounded
         if (dynamic_cast<AstUnnamedVariable*>(arg)) {
@@ -38,7 +70,7 @@ AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args) {
         } else {
             newRecordInit->add(std::unique_ptr<AstArgument>(arg->clone()));
         }
-    }
+    } */
     return newRecordInit;
 }
 
@@ -124,41 +156,14 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
     auto provenanceClauseHead = new AstAtom();
     provenanceClauseHead->setName(name);
 
-    /*
-    if (originalClause.getHead()->getArity() == 0) {
-        addAttrAndArg(
-                provenanceRelation,
-                new AstAttribute(std::string("result"), AstTypeIdentifier("symbol")),
-                provenanceClauseHead,
-                new AstStringConstant(translationUnit.getSymbolTable(), "null"));
-    } else {
-    */
-        auto args = originalClause.getHead()->getArguments();
+    auto args = originalClause.getHead()->getArguments();
 
-        /*
-        // replace functors in atom with variables
-        int numFunctors = 0;
-        for (size_t i = 0; i < args.size(); i++) {
-            if (auto functor = dynamic_cast<AstFunctor*>(args[i])) {
-                auto newVariable = new AstVariable("functor_val_" + std::to_string(numFunctors));
-                args[i] = newVariable;
-
-                // add functor to new clause as a constraint
-                const std::string binaryOp = "=";
-                auto functorConstraint = new AstConstraint(
-                        binaryOp, std::unique_ptr<AstVariable>(newVariable), std::unique_ptr<AstArgument>(functor->clone()));
-                provenanceClause->addToBody(std::unique_ptr<AstConstraint>(functorConstraint));
-            }
-        }
-        */
-
-        // add first argument corresponding to actual result
-        addAttrAndArg(
-                provenanceRelation,
-                new AstAttribute(std::string("result"), relationToTypeMap[originalName]),
-                provenanceClauseHead,
-                makeNewRecordInit(args)); 
-    // }
+    // add first argument corresponding to actual result
+    addAttrAndArg(
+            provenanceRelation,
+            new AstAttribute(std::string("result"), relationToTypeMap[originalName]),
+            provenanceClauseHead,
+            makeNewRecordInit(args)); 
 
     // visit all body literals and add to provenance clause
     for (auto lit : originalClause.getBodyLiterals()) {
@@ -168,47 +173,21 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
                 std::string relName = identifierToString(atom->getName());
                 auto args = atom->getArguments();
 
-                /*
-                // replace functors in atom with variables
-                int numFunctors = 0;
-                for (size_t i = 0; i < args.size(); i++) {
-                    if (dynamic_cast<AstFunctor*>(args[i])) {
-                        auto newVariable = new AstVariable("functor_val_" + std::to_string(numFunctors));
-                        args[i] = newVariable;
+                // add atom to head as a record
+                addAttrAndArg(
+                        provenanceRelation,
+                        new AstAttribute(std::string("prov_") + std::string(relName), relationToTypeMap[atom->getName()]),
+                        provenanceClauseHead,
+                        makeNewRecordInit(args));
+                // add atom converted to record to body
+                auto newBody = std::unique_ptr<AstAtom>(new AstAtom(makeRelationName(atom->getName(), "record")));
+                newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args)));
 
-                        // add functor to new clause as a constraint
-                        const std::string binaryOp = "=";
-                        auto functorConstraint = new AstConstraint(
-                                binaryOp, std::unique_ptr<AstVariable>(newVariable), std::unique_ptr<AstArgument>(functor->clone()));
-                        provenanceClause->addToBody(std::unique_ptr<AstConstraint>(functorConstraint));
-                    }
+                if (dynamic_cast<const AstAtom*>(lit)) {
+                    provenanceClause->addToBody(std::move(newBody));
+                } else if (dynamic_cast<const AstNegation*>(lit)) {
+                    provenanceClause->addToBody(std::unique_ptr<AstNegation>(new AstNegation(std::move(newBody))));
                 }
-
-                if (atom->getArity() == 0) {
-                    addAttrAndArg(
-                            provenanceRelation,
-                            new AstAttribute(std::string("prov_") + std::string(relName), relationToTypeMap[atom->getName()]),
-                            provenanceClauseHead,
-                            new AstStringConstant(translationUnit.getSymbolTable(), "null"));
-                    provenanceClause->addToBody(std::unique_ptr<AstAtom>(atom->clone()));
-                } else {
-                */
-                    // add atom to head as a record
-                    addAttrAndArg(
-                            provenanceRelation,
-                            new AstAttribute(std::string("prov_") + std::string(relName), relationToTypeMap[atom->getName()]),
-                            provenanceClauseHead,
-                            makeNewRecordInit(args));
-                    // add atom converted to record to body
-                    auto newBody = std::unique_ptr<AstAtom>(new AstAtom(makeRelationName(atom->getName(), "record")));
-                    newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args)));
-
-                    if (dynamic_cast<const AstAtom*>(lit)) {
-                        provenanceClause->addToBody(std::move(newBody));
-                    } else if (dynamic_cast<const AstNegation*>(lit)) {
-                        provenanceClause->addToBody(std::unique_ptr<AstNegation>(new AstNegation(std::move(newBody))));
-                    }
-                // }
             } else if (const AstConstraint* constr = dynamic_cast<const AstConstraint*>(lit)) {
 
                 // clone constraint and add to body
@@ -225,7 +204,7 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
     auto newRecordRelationClauseHead = new AstAtom();
     newRecordRelationClauseHead->setName(recordRelation->getName());
 
-    // replace functors in args with variables
+    // replace functors in args with variables for record relation
     int numFunctors = 0;
     for (size_t i = 0; i < args.size(); i++) {
         if (dynamic_cast<AstFunctor*>(args[i])) {
