@@ -317,8 +317,9 @@ public:
     // construct maps storing provenance information
     void load() {
         for (Relation *rel : prog.getAllRelations()) {
+            // std::cout << rel->getName() << std::endl;
             // add an output relation
-            if (rel->getName().find(".output") != std::string::npos) {
+            if (rel->getName().find("-output") != std::string::npos) {
                 for (auto &tuple : *rel) {
                     plabel label;
                     elements tuple_elements;
@@ -338,13 +339,15 @@ public:
                         }
                     }
 
+                    // std::cout << "OUTPUT: " << rel->getName() << std::endl;
+
                     // insert into maps
                     valuesToLabel.insert({std::make_pair(rel->getName(), tuple_elements), label});
                     labelToValue.insert({std::make_pair(rel->getName(), label), tuple_elements});
                 }
                 
             // add a provenance relation
-            } else if (rel->getName().find(".provenance.") != std::string::npos) {
+            } else if (rel->getName().find("-provenance-") != std::string::npos && rel->getName().find("-info") == std::string::npos) {
                 for (auto &tuple : *rel) {
                     plabel label;
                     std::vector<plabel> refs;
@@ -358,11 +361,13 @@ public:
                         refs.push_back(l);
                     }
 
+                    // std::cout << "PROVENANCE: " << rel->getName() << std::endl;
+
                     labelToProof.insert({std::make_pair(rel->getName(), label), refs});
                 }
             
             // add an info relation
-            } else if (rel->getName().find(".info.") != std::string::npos) {
+            } else if (rel->getName().find("-info") != std::string::npos) {
                 for (auto &tuple : *rel) {
                     // vector storing relations in body of rule
                     std::vector<std::string> rels;
@@ -381,7 +386,9 @@ public:
                     tuple >> clauseRepr;
 
                     // extract rule number from relation name
-                    int ruleNum = atoi((*(split(rel->getName(), '.').rbegin() + 1)).c_str());
+                    int ruleNum = atoi((*(split(rel->getName(), '-').rbegin() + 1)).c_str());
+
+                    // std::cout << "INFO: " << rel->getName() << std::endl;
 
                     info.insert({rel->getName(), rels});
                     rule.insert({std::make_pair(relName, ruleNum), clauseRepr}); 
@@ -394,7 +401,7 @@ public:
     std::unique_ptr<tree_node> explain(std::string relName, plabel label, int depth) {
         // if EDB relation, make a leaf node in the tree
         if (prog.getRelation(relName) != nullptr && prog.getRelation(relName)->isInput()) {
-            auto key = std::make_pair(relName + ".output", label);
+            auto key = std::make_pair(relName + "-output", label);
             std::string lab = relName + labelToValue[key].getRepresentation();
             std::unique_ptr<tree_node> leaf(new leaf_node(lab));
             return leaf;
@@ -406,7 +413,7 @@ public:
 
                 // find correct relation
                 for (auto rel : prog.getAllRelations()) {
-                    if (rel->getName().find(relName + ".provenance.") != std::string::npos && rel->getName().find(".info") == std::string::npos) {
+                    if (rel->getName().find(relName + "-provenance-") != std::string::npos && rel->getName().find("-info") == std::string::npos) {
                         if (labelToProof.find(std::make_pair(rel->getName(), label)) != labelToProof.end()) {
                             // found the correct relation
                             internalRelName = rel->getName();
@@ -416,22 +423,25 @@ public:
                 }
 
                 // key for labelToValue map
-                auto key = std::make_pair(relName + ".output", label);
+                auto key = std::make_pair(relName + "-output", label);
 
                 // key for labelToProof map
                 auto subProofKey = std::make_pair(internalRelName, label);
 
                 // label and rule number for node
                 auto lab = relName + labelToValue[key].getRepresentation();
-                auto ruleNum = split(internalRelName, '_').back();
+                auto ruleNum = split(internalRelName, '-').back();
 
                 // internal node representing current value
                 auto inner = std::unique_ptr<inner_node>(new inner_node(lab, std::string("(R" + ruleNum + ")")));
 
+                // key for info map
+                std::string infoKey = split(internalRelName, '-').front() + "-info-" + ruleNum;
                 // recursively add all provenance values for this value
-                for (size_t i = 0; i < info[internalRelName + ".info"].size(); i++) {
-                    auto rel = info[internalRelName + ".info"][i];
+                for (size_t i = 0; i < info[infoKey].size(); i++) {
+                    auto rel = info[infoKey][i];
                     auto newLab = labelToProof[subProofKey][i];
+                    // std::cout << "info " << i << " " << rel << std::endl;
                     inner->add_child(explain(rel, newLab, depth - 1));
                 }
                 return std::move(inner);
@@ -446,7 +456,7 @@ public:
 
     // produce explanation for value given elements
     std::unique_ptr<tree_node> explain(std::string relName, elements tuple_elements) {
-        auto key = std::make_pair(relName + ".output", tuple_elements);
+        auto key = std::make_pair(relName + "-output", tuple_elements);
         if (valuesToLabel.find(key) == valuesToLabel.end()) {
             // std::cerr << "no tuple found " << relName << tuple_elements.getRepresentation() << std::endl;
             wprintw(treePad, "no tuple found %s%s\n", relName.c_str(), tuple_elements.getRepresentation().c_str());

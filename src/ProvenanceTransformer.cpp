@@ -27,7 +27,7 @@ void addAttrAndArg(AstRelation* rel, AstAttribute* attr, AstAtom* head, AstArgum
     head->addArgument(std::unique_ptr<AstArgument>(arg));
 }
 
-AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args) {
+AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args, bool negation = false) {
     auto newRecordInit = new AstRecordInit();
     
     /*
@@ -58,7 +58,11 @@ AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args) {
     };
 
     for (auto arg : args) {
-        newRecordInit->add(M()(std::unique_ptr<AstArgument>(arg->clone())));
+        if (negation) {
+            newRecordInit->add(std::unique_ptr<AstArgument>(arg->clone()));
+        } else {
+            newRecordInit->add(M()(std::unique_ptr<AstArgument>(arg->clone())));
+        }
     }
 
     /*     
@@ -173,19 +177,28 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
                 std::string relName = identifierToString(atom->getName());
                 auto args = atom->getArguments();
 
-                // add atom to head as a record
-                addAttrAndArg(
-                        provenanceRelation,
-                        new AstAttribute(std::string("prov_") + std::string(relName), relationToTypeMap[atom->getName()]),
-                        provenanceClauseHead,
-                        makeNewRecordInit(args));
                 // add atom converted to record to body
                 auto newBody = std::unique_ptr<AstAtom>(new AstAtom(makeRelationName(atom->getName(), "record")));
-                newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args)));
 
                 if (dynamic_cast<const AstAtom*>(lit)) {
+                    // add atom to head as a record
+                    addAttrAndArg(
+                            provenanceRelation,
+                            new AstAttribute("prov_" + relName, relationToTypeMap[atom->getName()]),
+                            provenanceClauseHead,
+                            makeNewRecordInit(args));
+
+                    newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args)));
                     provenanceClause->addToBody(std::move(newBody));
                 } else if (dynamic_cast<const AstNegation*>(lit)) {
+                    // add a marker signifying a negation
+                    addAttrAndArg(
+                            provenanceRelation,
+                            new AstAttribute("prov_" + relName, AstTypeIdentifier("symbol")),
+                            provenanceClauseHead,
+                            new AstStringConstant(translationUnit.getSymbolTable(), ("negated_" + relName).c_str()));
+
+                    newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args, true)));
                     provenanceClause->addToBody(std::unique_ptr<AstNegation>(new AstNegation(std::move(newBody))));
                 }
             } else if (const AstConstraint* constr = dynamic_cast<const AstConstraint*>(lit)) {
@@ -316,6 +329,9 @@ void ProvenanceTransformedRelation::makeRecordRelation() {
         recordRelationClause->setHead(std::unique_ptr<AstAtom>(recordRelationClauseHead));
         recordRelationClause->addToBody(std::unique_ptr<AstAtom>(recordRelationClauseBody));
         recordRelation->addClause(std::unique_ptr<AstClause>(recordRelationClause));
+
+        // recordRelationClause->print(std::cout);
+        // std::cout << std::endl;
     }
 
     // std::cout << recordRelation << std::endl;

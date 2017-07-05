@@ -2309,7 +2309,7 @@ std::string RamCompiler::generateCode(
     os << "obj.run();\n";
     os << "obj.printAll(opt.getOutputFileDir());\n";
     if(Global::config().has("provenance")){
-        // os << "explain(obj);\n";
+        os << "explain(obj);\n";
     }
     os << "return 0;\n";
     os << "}\n";

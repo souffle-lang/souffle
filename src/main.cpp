@@ -393,8 +393,8 @@ int main(int argc, char** argv) {
     }
 
     if (Global::config().has("provenance")){ 
-        // SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
-        // explain(interface);
+        SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
+        explain(interface);
         // construct SouffleProgram from env
         // invoke explain
     }
