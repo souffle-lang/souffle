@@ -16,8 +16,6 @@ void RamRelationInterface::iterator_base::operator++() {
 tuple& RamRelationInterface::iterator_base::operator*() {
     tup.rewind();
 
-    // const RamDomain* num = *it;
-
     // construct the tuple to return
     for (size_t i = 0; i < ramRelationInterface->getArity(); i++) {
         if (*(ramRelationInterface->getAttrType(i)) == 's') {

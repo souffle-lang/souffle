@@ -40,10 +40,13 @@ AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args, bool nega
     });
     */
 
+    int* numUnnamed = new int(0);
     struct M : public AstNodeMapper {
-        int* numUnnamed = new int(0);
+        int* numUnnamed;
 
         using AstNodeMapper::operator();
+
+        M(int* nu) : numUnnamed(nu) {}
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // see whether it is a variable to be substituted
@@ -61,7 +64,7 @@ AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args, bool nega
         if (negation) {
             newRecordInit->add(std::unique_ptr<AstArgument>(arg->clone()));
         } else {
-            newRecordInit->add(M()(std::unique_ptr<AstArgument>(arg->clone())));
+            newRecordInit->add(M(numUnnamed)(std::unique_ptr<AstArgument>(arg->clone())));
         }
     }
 
@@ -388,10 +391,12 @@ void ProvenanceTransformedRelation::makeOutputRelation() {
     // add clause to relation
     outputRelation->addClause(std::unique_ptr<AstClause>(outputClause));
 
+    /*
     // set relation to output
     if (originalRelation.isOutput()) {
         outputRelation->setQualifier(OUTPUT_RELATION);
     }
+    */
 
     // outputClause->print(std::cout);
     // std::cout << std::endl;
