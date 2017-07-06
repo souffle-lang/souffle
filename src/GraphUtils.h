@@ -60,9 +60,15 @@ public:
     }
 
     /** Returns the set of nodes the given node has edges to */
-    const std::set<Node, Compare>& getEdges(const Node& from) {
+    const std::set<Node, Compare>& getEdges(const Node& from) const {
         assert(contains(from));
         return forward.find(from)->second;
+    }
+
+    /** Returns the set of nodes the given node has edges from */
+    const std::set<Node, Compare>& getReverseEdges(const Node& to) const {
+        assert(contains(to));
+        return backward.find(to)->second;
     }
 
     /** Determines whether the given node is present */
@@ -98,7 +104,7 @@ public:
     }
 
     /** Obtains the set of all nodes in the same clique than the given node */
-    std::set<Node, Compare> getClique(const Node& node) const {
+    const std::set<Node, Compare> getClique(const Node& node) const {
         std::set<Node, Compare> res;
         res.insert(node);
         for (const auto& cur : getNodes()) {

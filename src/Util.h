@@ -20,9 +20,11 @@
 
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <ostream>
 #include <set>
 #include <sstream>
@@ -405,7 +407,7 @@ private:
     std::vector<std::ostream*> streams;
 
 public:
-    SplitStream(std::vector<std::ostream*> streams) : std::ostream(this), streams(streams) {}
+    SplitStream(std::vector<std::ostream*> streams) : std::ostream(this), streams(std::move(streams)) {}
     SplitStream(std::ostream* stream1, std::ostream* stream2) : std::ostream(this) {
         streams.push_back(stream1);
         streams.push_back(stream2);
@@ -1031,5 +1033,85 @@ inline std::string stringify(const std::string& input) {
     }
     return str;
 }
+
+/* begin reference implementation
+ * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
+// This simply exists as we do not compile using C++17. If we change standard >=C++17,
+// souffle::shared_mutex should be exchanged with std::shared_mutex
+// Slight cosmetic adjustments have been made
+class shared_mutex {
+    std::mutex mut_;
+    std::condition_variable gate1_;
+    std::condition_variable gate2_;
+    unsigned state_;
+
+    static const unsigned write_entered_ = 1U << (sizeof(unsigned) * CHAR_BIT - 1);
+    static const unsigned n_readers_ = ~write_entered_;
+
+public:
+    shared_mutex() : state_(0) {}
+
+    // Exclusive ownership
+    void lock() {
+        std::unique_lock<std::mutex> lk(mut_);
+        while (state_ & write_entered_) gate1_.wait(lk);
+        state_ |= write_entered_;
+        while (state_ & n_readers_) gate2_.wait(lk);
+    }
+
+    bool try_lock() {
+        std::unique_lock<std::mutex> lk(mut_, std::try_to_lock);
+        if (lk.owns_lock() && state_ == 0) {
+            state_ = write_entered_;
+            return true;
+        }
+        return false;
+    }
+
+    void unlock() {
+        {
+            std::lock_guard<std::mutex> _(mut_);
+            state_ = 0;
+        }
+        gate1_.notify_all();
+    }
+
+    // Shared ownership
+    void lock_shared() {
+        std::unique_lock<std::mutex> lk(mut_);
+        while ((state_ & write_entered_) || (state_ & n_readers_) == n_readers_) gate1_.wait(lk);
+        unsigned num_readers = (state_ & n_readers_) + 1;
+        state_ &= ~n_readers_;
+        state_ |= num_readers;
+    }
+
+    bool try_lock_shared() {
+        std::unique_lock<std::mutex> lk(mut_, std::try_to_lock);
+        unsigned num_readers = state_ & n_readers_;
+
+        if (lk.owns_lock() && !(state_ & write_entered_) && num_readers != n_readers_) {
+            ++num_readers;
+            state_ &= ~n_readers_;
+            state_ |= num_readers;
+            return true;
+        }
+        return false;
+    }
+
+    void unlock_shared() {
+        std::lock_guard<std::mutex> _(mut_);
+        unsigned num_readers = (state_ & n_readers_) - 1;
+        state_ &= ~n_readers_;
+        state_ |= num_readers;
+
+        if (state_ & write_entered_) {
+            if (num_readers == 0) gate2_.notify_one();
+        } else {
+            if (num_readers == n_readers_ - 1) gate1_.notify_one();
+        }
+    }
+};
+
+/* end http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2406.html#shared_mutex */
 
 }  // end namespace souffle

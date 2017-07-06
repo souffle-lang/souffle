@@ -19,6 +19,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace souffle {
 
@@ -30,9 +34,9 @@ private:
 
 public:
     DiagnosticMessage(std::string message, AstSrcLocation location)
-            : message(message), hasLoc(true), location(location) {}
+            : message(std::move(message)), hasLoc(true), location(std::move(location)) {}
 
-    DiagnosticMessage(std::string message) : message(message), hasLoc(false) {}
+    DiagnosticMessage(std::string message) : message(std::move(message)), hasLoc(false) {}
 
     const std::string& getMessage() const {
         return message;
@@ -72,9 +76,11 @@ private:
 
 public:
     Diagnostic(Type type, DiagnosticMessage primaryMessage, std::vector<DiagnosticMessage> additionalMessages)
-            : type(type), primaryMessage(primaryMessage), additionalMessages(additionalMessages) {}
+            : type(type), primaryMessage(std::move(primaryMessage)),
+              additionalMessages(std::move(additionalMessages)) {}
 
-    Diagnostic(Type type, DiagnosticMessage primaryMessage) : type(type), primaryMessage(primaryMessage) {}
+    Diagnostic(Type type, DiagnosticMessage primaryMessage)
+            : type(type), primaryMessage(std::move(primaryMessage)) {}
 
     Type getType() const {
         return type;

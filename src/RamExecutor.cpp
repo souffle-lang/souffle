@@ -19,6 +19,7 @@
 #include "AstVisitor.h"
 #include "BinaryConstraintOps.h"
 #include "BinaryFunctorOps.h"
+#include "Global.h"
 #include "IOSystem.h"
 #include "RamAutoIndex.h"
 #include "RamData.h"
@@ -26,6 +27,7 @@
 #include "RamTranslator.h"
 #include "RamVisitor.h"
 #include "RuleScheduler.h"
+#include "SignalHandler.h"
 #include "TypeSystem.h"
 #include "UnaryFunctorOps.h"
 
@@ -169,7 +171,6 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                 }
                 case BinaryOp::DIV: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "Unsupported Operand! (division by zero)");
                     return visit(op.getLHS()) / rhs;
                 }
                 case BinaryOp::EXP: {
@@ -177,7 +178,6 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
                 }
                 case BinaryOp::MOD: {
                     RamDomain rhs = visit(op.getRHS());
-                    assert(rhs != 0 && "Unsupported Operand! (modulo by zero)");
                     return visit(op.getLHS()) % rhs;
                 }
                 case BinaryOp::BAND: {
@@ -689,6 +689,11 @@ void run(const QueryExecutionStrategy& executor, std::ostream* report, std::ostr
         bool visitLogTimer(const RamLogTimer& timer) override {
             RamLogger logger(timer.getLabel().c_str(), *profile);
             return visit(timer.getNested());
+        }
+
+        bool visitDebugInfo(const RamDebugInfo& dbg) override {
+            SignalHandler::instance()->setMsg(dbg.getLabel().c_str());
+            return visit(dbg.getNested());
         }
 
         bool visitCreate(const RamCreate& create) override {
@@ -1318,6 +1323,15 @@ public:
         out << "}\n";
     }
 
+    void visitDebugInfo(const RamDebugInfo& dbg, std::ostream& out) override {
+        out << "SignalHandler::instance()->setMsg(R\"_(";
+        out << dbg.getLabel();
+        out << ")_\");\n";
+
+        // insert statements of the rule
+        visit(dbg.getNested(), out);
+    }
+
     // -- operations --
 
     void visitSearch(const RamSearch& search, std::ostream& out) override {
@@ -1344,16 +1358,22 @@ public:
             if (scan.isPureExistenceCheck()) {
                 out << "if(!" << relName << "->"
                     << "empty()) {\n";
+                visitSearch(scan, out);
+                out << "}\n";
             } else if (scan.getLevel() == 0) {
                 // make this loop parallel
                 out << "pfor(auto it = part.begin(); it<part.end(); ++it) \n";
+                out << "try{";
                 out << "for(const auto& env0 : *it) {\n";
+                visitSearch(scan, out);
+                out << "}\n";
+                out << "} catch(std::exception &e) { SignalHandler::instance()->error(e.what());}\n";
             } else {
                 out << "for(const auto& env" << level << " : "
                     << "*" << relName << ") {\n";
+                visitSearch(scan, out);
+                out << "}\n";
             }
-            visitSearch(scan, out);
-            out << "}\n";
             return;
         }
 
@@ -2172,7 +2192,7 @@ std::string RamCompiler::generateCode(
                 os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
                 os << "directiveMap[\"filename\"].front() != '/') {";
                 os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
-                os << "}";
+                os << "}\n";
                 os << "IODirectives ioDirectives(directiveMap);\n";
                 os << "IOSystem::getInstance().getWriter(";
                 os << "SymbolMask({" << store->getRelation().getSymbolMask() << "})";
@@ -2204,7 +2224,7 @@ std::string RamCompiler::generateCode(
         os << "if (!dirname.empty() && directiveMap[\"IO\"] == \"file\" && ";
         os << "directiveMap[\"filename\"].front() != '/') {";
         os << "directiveMap[\"filename\"] = dirname + \"/\" + directiveMap[\"filename\"];";
-        os << "}";
+        os << "}\n";
         os << "IODirectives ioDirectives(directiveMap);\n";
         os << "IOSystem::getInstance().getReader(";
         os << "SymbolMask({" << load.getRelation().getSymbolMask() << "})";
@@ -2276,6 +2296,7 @@ std::string RamCompiler::generateCode(
     os << "#else\n";
     os << "}\n";
     os << "int main(int argc, char** argv)\n{\n";
+    os << "try{\n";
 
     // parse arguments
     os << "souffle::CmdOptions opt(";
@@ -2312,6 +2333,7 @@ std::string RamCompiler::generateCode(
         os << "explain(obj);\n";
     }
     os << "return 0;\n";
+    os << "} catch(std::exception &e) { souffle::SignalHandler::instance()->error(e.what());}\n";
     os << "}\n";
     os << "#endif\n";
 

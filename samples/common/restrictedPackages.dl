@@ -61,8 +61,8 @@
 //
 
 
-.decl IsSecureClass(class:Type) 
-.decl IsSecureMethod(method:MethodSignatureRef) 
+.decl IsSecureClass(class:tyType) 
+.decl IsSecureMethod(method:tyMethodSignatureRef) 
 
 IsSecureMethod(method) :- 
   IsSecureClass(class), 

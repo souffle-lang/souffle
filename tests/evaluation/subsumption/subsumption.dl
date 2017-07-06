@@ -1,0 +1,138 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Subsumption of Interval Sets in Souffle 
+
+// Define a type for Interval and Interval List
+
+.type Interval = [lower:number, upper:number] 
+
+.type IntervalList = [head:Interval, tail:IntervalList]
+
+//////////////////////////////////////////////
+// set of unordered (overlapping) Intervals //
+//////////////////////////////////////////////
+
+.decl A(l:number, u:number) 
+
+A(0,1000).
+A(1, 10).
+A(1, 99).
+A(100, 200).
+A(200, 300). 
+A(1200, 1201). 
+A(1202, 1209). 
+A(1209, 1222). 
+
+////////////////////////////
+// normalize Interval set // 
+////////////////////////////
+
+// define a less relation among intervals 
+// using a lexicographical ordering, i.e., 
+// l1 < l2 \/ (l1 = l2 /\ u1 < u2) 
+// for two intervals (l1,u1) and (l2,u2)
+
+.decl less(x:Interval, y:Interval) 
+less([l1,u1],[l2,u2]) :- 
+  A(l1,u1), 
+  A(l2,u2),
+  l1 < l2.
+
+less([l1,u1],[l2,u2]) :-
+  A(l1,u1),
+  A(l2,u2),
+  l1 = l2,
+  u1 < u2. 
+
+// define simple transitivity between two intervals
+.decl leg(x:Interval, y:Interval) 
+leg(x,z) :- 
+  less(x,y),
+  less(y,z). 
+
+// define a linear order among the intervals
+.decl succ(x:Interval, y:Interval)
+succ(x,y) :- 
+  less(x,y), 
+  !leg(x,y). 
+
+// define first Interval in total order
+.decl first(x: Interval)
+first([l,u]) :- 
+  A(l,u), 
+  !less(_,[l,u]).
+
+// define last Interval in total order
+.decl last(x: Interval)
+last([l,u]) :- 
+  A(l,u), 
+  !less([l,u],_).
+
+// construct normalized interval list
+// assumption that that the tail is 
+// already normalized, and a new interval has
+// a greater or equal lower bound than the previous 
+// interval in the list. 
+
+.decl normalized(x:Interval, l:IntervalList)
+
+// base case
+normalized(x,[x,nil]) :-
+   first(x).
+
+// previous and current interval are disjoint, i.e. no overlap
+normalized(y,[y,list]) :-
+   normalized(x,list),
+   succ(x,y),
+   list = [i, tail],
+   i = [l1, u1],
+   y = [l2, u2],
+   u1 + 1 < l2.
+
+// previous and current interval overlap 
+// but previous interval does not subsume 
+// the current one
+normalized(y,[[l1,u2],tail]) :-
+   normalized(x,list),
+   succ(x,y),
+   list = [i, tail],
+   i = [l1, u1],
+   y = [l2, u2],
+   u1 + 1 >= l2,
+   l1 < l2.
+
+// current interval is subsumed by previous
+normalized(y,list) :-
+   normalized(x,list),
+   succ(x,y),
+   list = [i, tail],
+   i = [l1, u1],
+   y = [l2, u2],
+   u1 + 1 >= l2,
+   l1 >= l2.
+
+// unwind list & dump in a relation 
+
+.decl B(l:number, u:number, list:IntervalList) 
+B(l, u, list) :-
+   last(x),
+   normalized(x, list),
+   list = [i, tail],
+   i = [l, u].
+
+B(l, u, tail) :-
+   B(_, _, list),
+   list = [i, tail],
+   i = [l, u].
+
+// projection of B
+.decl C(l:number, u:number) 
+C(l,u) :- 
+   B(l,u,_).
+
+// output
+.output C

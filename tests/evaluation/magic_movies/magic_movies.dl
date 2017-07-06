@@ -1,0 +1,50 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `movies' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+.type Text
+
+.decl Movie(id:number,title:Text,rating:Text)
+.decl MovieActors(movieid:number,actorsid:number)
+.decl Actors(actorid:number,name:Text)
+
+Movie(1,"Movie a","2.3/10").
+Movie(2,"Movie b","9.3/10").
+Movie(3,"Movie c","8.6/10").
+
+MovieActors(1,1).
+MovieActors(1,2).
+MovieActors(1,3).
+MovieActors(2,2).
+MovieActors(2,3).
+MovieActors(2,4).
+MovieActors(3,1).
+MovieActors(3,4).
+
+Actors(1,"John Smith").
+Actors(2,"Joe Bloggs").
+Actors(3,"Francesca Allsworth").
+Actors(4,"Julia Thebest").
+
+
+
+.decl MovieActorsText(title:Text, actorname:Text)
+.output MovieActorsText()
+
+MovieActorsText(c,d) :- MovieActors(a,b), Movie(a,c,_), Actors(b,d).
+
+.decl JoeBloggsMovies(title:Text)
+.output JoeBloggsMovies()
+
+JoeBloggsMovies(a) :- MovieActorsText(a, b), match("Joe Bloggs", b).
+
+.decl ActorsRatings(name:Text, rating:Text)
+.output ActorsRatings()
+
+ActorsRatings(a,rating) :- MovieActorsText(movie,a), Movie(_,movie_b,rating), match(movie, movie_b).

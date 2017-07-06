@@ -1,0 +1,331 @@
+//
+// Souffle - A Datalog Compiler
+// Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `dfa' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+//
+// Implements  the general data-flow analysis using the following equation:
+//
+// out[S] = gen[S] \/ (in[S] - kill[S])
+//
+// However, in Datalog we can only compute set unions as meet operations. If
+// we have intersection, we need to go to its dual problem. We use the following equations
+// for this purpose:
+//
+//  out[S] = U - d_out[S]
+//
+//  d_out[S] = d_gen[S] \/ (d_in[S] - d_kill[S])
+//
+//  d_gen[S] = kill[S] \ gen[S]
+//
+//  d_kill[S] = gen[S]
+//
+// This code also utilizes component composition to allow the direction of the analysis to be specified.
+//
+
+
+
+.comp Graph<Node>{
+
+      //
+      // input relations
+      //
+
+      //
+      // Set of edges
+      //
+      .decl edge(src:Node,des:Node)
+
+
+      //
+      // Start node
+      //
+      .decl start(node:Node)
+
+
+      //
+      // intermediate relations
+      //
+
+      //
+      // Set of nodes
+      //
+      .decl node(node:Node)
+      node(node) :- edge(node,_).
+      node(node) :- edge(_,node).
+
+}
+
+
+.comp Gen_Kill<Node,InfoLattice>{
+
+      //
+      // input relations
+      //
+
+      //
+      // Gen function
+      //
+      .decl gen(node:Node,inf:InfoLattice)
+
+
+      //
+      // Kill function
+      //
+      .decl kill(node:Node,inf:InfoLattice)
+
+
+      //
+      // start node value
+      //
+      .decl startvalue(inf:InfoLattice)
+
+
+      //
+      // output relations
+      //
+
+      //
+      // Out
+      //
+      .decl out(node:Node,inf:InfoLattice)
+
+}
+
+
+
+
+.comp Gen_Kill_Union<Node,InfoLattice>:  Gen_Kill<Node,InfoLattice>, Graph<Node>{
+
+      //
+      // input relations are inherited
+      //
+
+
+      //
+      // output relations
+      //
+
+      //
+      // Out
+      //
+
+
+      out(node,inf) :- gen(node,inf).
+      out(node,inf) :- start(node),startvalue(inf).
+      out(node,inf) :- out(pred,inf), edge(pred,node), !kill(node,inf).
+
+}
+
+
+
+
+.comp Gen_Kill_Intersection<Node,InfoLattice> : Gen_Kill<Node,InfoLattice>, Graph<Node>{
+
+      //
+      // input relations are inherited
+      //
+
+
+      //
+      // reduce to gen kill union problem
+      //
+
+      .init   gen_kill_union = Gen_Kill_Union<Node,InfoLattice>
+
+      gen_kill_union.start(n) :- start(n).
+
+      gen_kill_union.edge(x,y) :- edge(x,y).
+
+      gen_kill_union.gen(node,inf) :- kill(node,inf), !gen(node,inf).
+
+      gen_kill_union.kill(node,inf) :- gen(node,inf).
+
+      gen_kill_union.startvalue(inf) :- startvalue(inf).
+
+
+      //
+      // output relations
+      //
+
+      //
+      //  out
+      //
+
+      out(node,inf) :- node(node), universe(inf), !gen_kill_union.out(node,inf).
+}
+
+
+
+.comp Gen_Kill_Union_Backward<Node,InfoLattice> : Gen_Kill<Node,InfoLattice>, Graph<Node>{
+
+      //
+      // input relations are inherited
+      //
+
+
+      //
+      //  in
+      //
+
+      .init gen_kill_union = Gen_Kill_Union<Node,InfoLattice>
+
+      gen_kill_union.start(node) :- start(node).
+
+      gen_kill_union.edge(src,des) :- edge(des,src).
+
+      gen_kill_union.gen(node,inf) :- gen(node,inf).
+
+      gen_kill_union.kill(node,inf) :- kill(node,inf).
+
+      gen_kill_union.startvalue(inf) :- startvalue(inf).
+
+
+      //
+      // output relations
+      //
+
+      //
+      //  out
+      //
+
+      out(node,inf) :- gen_kill_union.out(node,inf).
+}
+
+.comp Gen_Kill_Intersection_Backward<Node,InfoLattice> : Gen_Kill<Node,InfoLattice>, Graph<Node>{
+
+
+      //
+      // input relations
+      //
+
+
+      .init gen_kill_intersection = Gen_Kill_Intersection<Node,InfoLattice>
+
+
+      //
+      //  in
+      //
+
+      gen_kill_intersection.start(node) :- start(node).
+
+      gen_kill_intersection.edge(src,des) :- edge(des,src).
+
+      gen_kill_intersection.gen(node,inf) :- gen(node,inf).
+
+      gen_kill_intersection.kill(node,inf) :- kill(node,inf).
+
+      gen_kill_intersection.startvalue(inf) :- startvalue(inf).
+
+
+      //
+      // output relations
+      //
+
+      //
+      //  out
+      //
+
+      out(node,inf) :- gen_kill_intersection.out(node,inf).
+
+}
+
+
+//
+// Set of Edge
+//
+
+.decl edge(x:number, y:number)
+.input edge()
+
+//
+// Gen sets
+//
+
+.decl gen(x:number, i:symbol)
+.input gen()
+
+//
+// Use sets
+//
+
+.decl use(x:number, i:symbol)
+.input use()
+
+//
+// Kill sets
+//
+
+.decl kill(x:number, i:symbol)
+.input kill()
+
+
+
+//
+// Universe  Lattice
+//
+
+.decl universe(inf:symbol)
+
+universe(inf) :- gen(_,inf).
+universe(inf) :- kill(_,inf).
+
+
+//
+// Instantiates data flow analysis  components and tests example 2.5 in
+// "Data Flow Analysis" book authored by P.Khedker et al.
+//
+
+.init Available_Expressions = Gen_Kill_Intersection<number,symbol>
+
+Available_Expressions.edge(x,y) :- edge(x,y).
+Available_Expressions.gen(x,i) :- gen(x,i).
+Available_Expressions.kill(x,i) :- kill(x,i).
+Available_Expressions.startvalue(inf) :-  universe(inf),!kill(1,inf).
+Available_Expressions.start(1).
+
+
+
+.init Reaching_Definitions = Gen_Kill_Union<number,symbol>
+
+Reaching_Definitions.edge(x,y) :- edge(x,y).
+Reaching_Definitions.gen(x,i) :- gen(x,i).
+Reaching_Definitions.kill(x,i) :- kill(x,i).
+Reaching_Definitions.startvalue(i) :- gen(1,i), !kill(1,i).
+Reaching_Definitions.start(1).
+
+
+
+
+.init Live_Variables = Gen_Kill_Union_Backward<number,symbol>
+
+Live_Variables.edge(x,y) :- edge(x,y).
+Live_Variables.gen(x,i) :- use(x,i).
+Live_Variables.kill(x,i) :- kill(x,i).
+Live_Variables.startvalue(i) :- use(8,i), !kill(8,i).
+Live_Variables.start(8).
+
+
+//
+// Output
+//
+
+.decl available_expressions(n:number, i:symbol)
+.output available_expressions()
+available_expressions(x,i) :- Available_Expressions.out(x,i).
+
+
+.decl reaching_definitions(n:number, i:symbol)
+.output reaching_definitions()
+reaching_definitions(x,i) :- Reaching_Definitions.out(x,i).
+
+
+.decl live_variables(n:number, i:symbol)
+.output live_variables()
+live_variables(x,i) :- Live_Variables.out(x,i).

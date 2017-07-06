@@ -61,7 +61,7 @@
 //
 
 
-.decl HardcodedContext(heap:HeapAllocationRef)
+.decl HardcodedContext(heap:tyHeapAllocationRef)
 
 HardcodedContext("<<string-constant>>").
 
@@ -95,7 +95,7 @@ HardcodedContext(heap):-
 // ClassNameStringConstant
 //
 
-.decl ClassNameStringConstant(heap:HeapAllocationRef) 
+.decl ClassNameStringConstant(heap:tyHeapAllocationRef) 
 
 ClassNameStringConstant(heap) :- 
    StringConstant(heap),
@@ -107,7 +107,7 @@ ClassNameStringConstant(heap) :-
 // ClassNameStringConstantType
 //
 
-.decl ClassNameStringConstantType(heap:HeapAllocationRef,type:Type) 
+.decl ClassNameStringConstantType(heap:tyHeapAllocationRef,type:tyType) 
 
 ClassNameStringConstantType(heap,heap) :- 
    StringConstant(heap),
@@ -119,7 +119,7 @@ ClassNameStringConstantType(heap,heap) :-
 // DeclaringClassMethod
 //
 
-.decl DeclaringClassMethod(method:MethodSignatureRef,type:Type) 
+.decl DeclaringClassMethod(method:tyMethodSignatureRef,type:tyType) 
 
 DeclaringClassMethod(method,type) :- 
    MethodDeclaration(signature,method),
@@ -130,7 +130,7 @@ DeclaringClassMethod(method,type) :-
 // FieldDeclaringClass
 //
 
-.decl FieldDeclaringClass(signature:FieldSignatureRef,type:Type) 
+.decl FieldDeclaringClass(signature:tyFieldSignatureRef,type:tyType) 
 
 FieldDeclaringClass(signature,declaringClass) :- 
    FieldSignature(signature,declaringClass,_,_).
@@ -140,7 +140,7 @@ FieldDeclaringClass(signature,declaringClass) :-
 // HeapAllocationContextInsensitive
 //
 
-.decl HeapAllocationContextInsensitive(heap:HeapAllocationRef) 
+.decl HeapAllocationContextInsensitive(heap:tyHeapAllocationRef) 
 
 #ifdef DISTINGUISH_CLASS_CONSTANTS
 HeapAllocationContextInsensitive(heap) :- 
@@ -199,7 +199,7 @@ HeapAllocationMerge(heap,mergeHeap) :-
 // HeapAllocationSpecial
 //
 
-.decl HeapAllocationSpecial(heap:HeapAllocationRef) 
+.decl HeapAllocationSpecial(heap:tyHeapAllocationRef) 
 
 HeapAllocationSpecial(heap) :- 
    HeapAllocationContextInsensitive(heap).
@@ -219,7 +219,7 @@ HeapAllocationSpecial("<null>") :-
 // HeapRepresentative
 //
 
-.decl HeapRepresentative(heap:HeapAllocationRef,mergeHeap:HeapAllocationRef) 
+.decl HeapRepresentative(heap:tyHeapAllocationRef,mergeHeap:tyHeapAllocationRef) 
 
 HeapRepresentative(heap,representativeHeap) :- 
     HeapAllocationType(heap, type), 
@@ -231,7 +231,7 @@ HeapRepresentative(heap,representativeHeap) :-
 // ImmutableHeapValue
 //
 
-.decl ImmutableHeapValue(immHeap:HeapAllocationRef) 
+.decl ImmutableHeapValue(immHeap:tyHeapAllocationRef) 
 
 ImmutableHeapValue("<<immutable>>").
 
@@ -241,7 +241,7 @@ ImmutableHeapValue("<<immutable>>").
 // ReflectiveActualParams
 //
 
-.decl ReflectiveActualParams(caller:MethodInvocationRef,actualParams:VarRef) 
+.decl ReflectiveActualParams(caller:tyMethodInvocationRef,actualParams:tyVarRef) 
 
 ReflectiveActualParams(invocation,argsParam) :- 
    javalangreflectMethodinvoke(invocation,_),
@@ -253,7 +253,7 @@ ReflectiveActualParams(invocation,argsParam) :-
 // ReflectiveAssignReturnValue
 //
 
-.decl ReflectiveAssignReturnValue(caller:MethodInvocationRef,base:VarRef) 
+.decl ReflectiveAssignReturnValue(caller:tyMethodInvocationRef,base:tyVarRef) 
 
 ReflectiveAssignReturnValue(invocation,var) :- 
    javalangreflectMethodinvoke(invocation,_),
@@ -264,7 +264,7 @@ ReflectiveAssignReturnValue(invocation,var) :-
 // ReflectiveBaseVar
 //
 
-.decl ReflectiveBaseVar(caller:MethodInvocationRef,base:VarRef) 
+.decl ReflectiveBaseVar(caller:tyMethodInvocationRef,base:tyVarRef) 
 
 ReflectiveBaseVar(invocation,base) :- 
    javalangreflectMethodinvoke(invocation,_),
@@ -279,7 +279,7 @@ ReflectiveBaseVar(invocation,base) :-
 // SpecialReturnHeap
 //
 
-.decl SpecialReturnHeap(heap:HeapAllocationRef) 
+.decl SpecialReturnHeap(heap:tyHeapAllocationRef) 
 
 SpecialReturnHeap("java.lang.ClassLoader.findLoadedClass(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class") :- 
    InstructionRef("java.lang.ClassLoader.findLoadedClass(Ljava/lang/String;)Ljava/lang/Class;|java.lang.ClassLoader.findLoadedClass0(Ljava/lang/String;)Ljava/lang/Class;|0|java.lang.Class"),
@@ -296,7 +296,7 @@ SpecialReturnHeap("java.lang.ClassLoader.findBootstrapClassOrNull(Ljava/lang/Str
 // TypeToHeap
 //
 
-.decl TypeToHeap(heaptype:Type,heap:HeapAllocationRef)
+.decl TypeToHeap(heaptype:tyType,heap:tyHeapAllocationRef)
 
 TypeToHeap(heaptype, heap) :- 
    HeapAllocationType(heap,heaptype),
@@ -307,7 +307,7 @@ TypeToHeap(heaptype, heap) :-
 // TypeHeapRepresentative
 //
 
-.decl TypeHeapRepresentative(type:Type, heap:HeapAllocationRef)
+.decl TypeHeapRepresentative(type:tyType, heap:tyHeapAllocationRef)
 
 TypeHeapRepresentative(type, representativeHeap) :- 
    TypeToHeap(type, representativeHeap), 

@@ -7,25 +7,26 @@ then
   set -e
   set -x
 
-  echo -n "Version: "
-  git describe --tags --abbrev=0 --always
-
-  # create configure files
-  ./bootstrap
-
   # configure project
+
   if [ "$MAKEPACKAGE" == 1 ]
   then
+    # Ensure we have the tags before attempting to use them
+    # Avoids issues with shallow clones not finding tags.
+    git fetch --tags --unshallow
+    echo -n "Version: "
+    git describe --tags --abbrev=0 --always
+
+    # create configure files
+    ./bootstrap
     ./configure --enable-host-packaging
+
+    # create deployment directory
+    mkdir deploy
   else
+    # create configure files
+    ./bootstrap
     ./configure
-  fi
-
-  # create deployment directory
-  mkdir deploy
-
-  if [ "$MAKEPACKAGE" != 1 ]
-  then
     make -j2
   fi
 fi

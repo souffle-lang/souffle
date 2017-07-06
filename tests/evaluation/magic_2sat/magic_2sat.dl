@@ -1,0 +1,44 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `2sat' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+.type Var
+.type Neg
+.type Val
+.number_type Card
+.type Ans
+
+.decl Clause		(m:Neg, u:Var, n:Neg, v:Var)
+.input Clause
+
+.decl Not			(m:Neg, n:Neg)
+
+Not("Pos", "Neg").
+Not("Neg", "Pos").
+
+.decl Impl			(m:Neg, u:Var, n:Neg, v:Var)
+
+// Translate clauses into implications, (x V y) becomes (not x => y) and (not y => x)
+Impl(m, u, n, v) :- Not(m, p), Clause(p, u, n, v).
+Impl(m, u, n, v) :- Not(m, p), Clause(n, v, p, u).
+
+// Closure under transitivity of implication
+Impl(m, u, n, v) :- Impl(m, u, p, w), Impl(p, w, n, v).
+
+.decl Incon			(u:Var)
+
+// Any inconsistencies?
+Incon(u) :- Impl("Pos", u, "Neg", u), Impl("Neg", u, "Pos", u).
+
+.decl Satisfiable	(s:Ans)
+
+Satisfiable("Yes") :- !Incon(_).
+Satisfiable("No") :- Incon(_).
+
+.output Satisfiable

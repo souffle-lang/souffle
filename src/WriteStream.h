@@ -46,7 +46,7 @@ public:
 };
 
 template <>
-void WriteStream::writeNext(const RamDomain* tuple) {
+inline void WriteStream::writeNext(const RamDomain* tuple) {
     writeNextTuple(tuple);
 }
 

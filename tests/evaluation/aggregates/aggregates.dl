@@ -4,6 +4,8 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
+// Test finding the min, max, count of selections from a relation, and the
+// min/max of a sum from two relations.
 
 .decl a(n:symbol,x:number)
 

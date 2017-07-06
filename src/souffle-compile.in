@@ -85,8 +85,12 @@ error "no input file" $? 1
 test -f "$1"
 error "cannot open source file: '$1'" $?
 
-# Compile
+# Check if the input file has a valid extension
 exe=`basename $1 .cpp`
+test "$1" != "$exe"
+error "source file is not a .cpp file: '$1'" $?
+
+# Compile
 rm -f ./$exe
 $CXX $CXXFLAGS -o./$exe $1 $LIBS -I$HEADER_DIR $OMP_FLAG 2> ./$exe.$$.ccerr
 if test -f ./$exe

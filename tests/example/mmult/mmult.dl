@@ -1,0 +1,41 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl Mat1(row:number,column:number,value:number)
+
+Mat1(1,1,2).
+Mat1(1,2,4).
+Mat1(2,1,3).
+Mat1(2,2,5).
+
+.output Mat1()
+
+
+.decl Mat2(row:number,column:number, value:number)
+
+Mat2(1,1,2).
+Mat2(1,2,4).
+Mat2(1,3,4).
+Mat2(2,1,3).
+Mat2(2,2,5).
+Mat2(2,3,6).
+
+.output Mat2()
+
+
+.decl Product(i:number,j:number, k:number, value:number)
+
+Product(i,j,k,value1*value2) :-
+	Mat1(i,k,value1),Mat2(k,j,value2).
+
+
+.decl Mat3(row:number,column:number, value:number)
+
+Mat3(i,j, value) :-
+	Mat1(i,_,_), Mat2(_,j,_), value = sum x : Product(i,j,_,x). 
+
+.output Mat3()
+

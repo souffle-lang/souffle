@@ -1,0 +1,94 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// test two disjoint set closures
+.decl two_set(x : number, y : number) eqrel
+.output two_set()
+two_set(1, 2).
+two_set(3, 1).
+
+two_set(6, 10).
+two_set(8, 10).
+two_set(10, 8).
+
+// overload transitivity on eqrel
+.decl overload_trans(x : number, y : number)
+.output overload_trans()
+overload_trans(x, z) :- two_set(x, z).
+overload_trans(x, z) :- two_set(x, y), overload_trans(y, z).
+
+// union both two_set sets together into one
+.decl union_two_set(x : number, y : number)
+.output union_two_set()
+union_two_set(x, y) :- two_set(x, x), two_set(y, y).
+
+
+// test creating an eqrel with two unique sets in differing domain works
+.decl unique1(x : number)
+unique1(2).
+unique1(3).
+
+.decl unique2(x : number)
+unique2(1).
+
+.decl merge_unique(x : number, y : number) eqrel
+.output merge_unique()
+merge_unique(x, y) :- unique2(x), unique1(y).
+
+
+// empty rel
+.decl empty(x : number, y : number) eqrel
+.output empty()
+
+// use empty rel in empty rel
+.decl vacuum(x : number, y : number) eqrel
+.output vacuum()
+vacuum(x, y) :- empty(x, y).
+
+
+// custom data types in eqrel
+.type Person
+.decl housemates(x : Person, y : Person) eqrel
+housemates("Michael", "Pete").
+
+.type String
+.decl house_statement(x : Person, r : String, y : Person)
+.output house_statement()
+house_statement(x, r, y) :- housemates(x, y), r = "lives with".
+
+
+// mono binary rel
+.decl t(x : number)
+t(1).
+t(2).
+t(99).
+
+.decl mono(x : number, y : number) eqrel
+.output mono()
+mono(x, x) :- t(x).
+
+
+// comparison of eqrel vs explicit binary relation rules
+.decl gen(x : number)
+gen(1).
+gen(x+1) :- gen(x), !lim(x).
+
+.decl gen2(x : number)
+gen2(1).
+gen2(x+1) :- gen2(x), !lim(x).
+
+.decl lim(x: number)
+lim(10).
+
+.decl transform_eqrel(x : number, y : number) eqrel
+.output transform_eqrel()
+transform_eqrel(x, y) :- gen(x), gen2(y).
+
+.decl transform_explicit_binrel(x : number, y : number)
+.output transform_explicit_binrel()
+transform_explicit_binrel(x, y) :- transform_explicit_binrel(y, x).
+transform_explicit_binrel(x, z) :- transform_explicit_binrel(x, y), transform_explicit_binrel(y, z).
+transform_explicit_binrel(x, y) :- gen(x), gen2(y).

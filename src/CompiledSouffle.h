@@ -22,6 +22,7 @@
 #include "CompiledRamRelation.h"
 #include "ParallelUtils.h"
 #include "RamLogger.h"
+#include "SignalHandler.h"
 #include "SouffleInterface.h"
 #include "SymbolTable.h"
 
@@ -143,4 +144,4 @@ public:
         return symTable;
     }
 };
-}
+}  // namespace souffle

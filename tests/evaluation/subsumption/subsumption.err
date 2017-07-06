@@ -1,0 +1,18 @@
+Warning: Variable tail only occurs once in file subsumption.dl at line 91
+   list = [i, tail],
+--------------^------
+Warning: Variable l1 only occurs once in file subsumption.dl at line 92
+   i = [l1, u1],
+--------^--------
+Warning: Variable u2 only occurs once in file subsumption.dl at line 93
+   y = [l2, u2],
+------------^----
+Warning: Variable tail only occurs once in file subsumption.dl at line 112
+   list = [i, tail],
+--------------^------
+Warning: Variable u2 only occurs once in file subsumption.dl at line 114
+   y = [l2, u2],
+------------^----
+Warning: Variable tail only occurs once in file subsumption.dl at line 124
+   list = [i, tail],
+--------------^------

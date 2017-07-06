@@ -1,3 +1,5 @@
+// Test bitwise operators
+
 .decl A (n:number)
 .decl B (n:number)
 .decl S1 (n:number)

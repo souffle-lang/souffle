@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <iostream>
 
 #include <zlib.h>
@@ -79,7 +80,8 @@ public:
         }
     }
 
-    int overflow(int c = EOF) override {
+protected:
+    int_type overflow(int c = EOF) override {
         if (!(mode & std::ios::out) || !isOpen) {
             return EOF;
         }
@@ -97,12 +99,12 @@ public:
         return c;
     }
 
-    int underflow() override {
+    int_type underflow() override {
         if (!(mode & std::ios::in) || !isOpen) {
             return EOF;
         }
         if (gptr() && (gptr() < egptr())) {
-            return *reinterpret_cast<unsigned char*>(gptr());
+            return traits_type::to_int_type(*gptr());
         }
 
         unsigned charsPutBack = gptr() - eback();
@@ -118,7 +120,7 @@ public:
 
         setg(buffer + reserveSize - charsPutBack, buffer + reserveSize, buffer + reserveSize + charsRead);
 
-        return *reinterpret_cast<unsigned char*>(gptr());
+        return traits_type::to_int_type(*gptr());
     }
 
     int sync() override {
@@ -133,7 +135,6 @@ public:
     }
 
 private:
-    // TODO(mmcgr): Determine optimal sizes for the buffer and putback reserve space.
     static constexpr unsigned int bufferSize = 4096;
     static constexpr unsigned int reserveSize = 16;
 
@@ -186,7 +187,7 @@ protected:
     mutable gzfstreambuf buf;
 };
 
-} /* namespace gzfstream::internal */
+}  // namespace internal
 
 class igzfstream : public internal::gzfstream, public std::istream {
 public:

@@ -72,6 +72,7 @@
 ".number_type"                        { return yy::parser::make_NUMBER_TYPE(yylloc); }
 ".symbol_type"                        { return yy::parser::make_SYMBOL_TYPE(yylloc); }
 ".override"                           { return yy::parser::make_OVERRIDE(yylloc); }
+".pragma"                             { return yy::parser::make_PRAGMA(yylloc); }
 "band"                                { return yy::parser::make_BW_AND(yylloc); }
 "bor"                                 { return yy::parser::make_BW_OR(yylloc); }
 "bxor"                                { return yy::parser::make_BW_XOR(yylloc); }

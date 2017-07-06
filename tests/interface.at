@@ -4,6 +4,6 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-POSITIVE_INTERFACE_TEST([load_print],[interface])
 POSITIVE_INTERFACE_TEST([insert_print],[interface])
 POSITIVE_INTERFACE_TEST([insert_for],[interface])
+POSITIVE_INTERFACE_TEST([load_print],[interface])

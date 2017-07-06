@@ -44,6 +44,9 @@ AstAggregator* AstAggregator::clone() const {
 
 void AstAggregator::print(std::ostream& os) const {
     switch (fun) {
+        case sum:
+            os << "sum";
+            break;
         case min:
             os << "min";
             break;

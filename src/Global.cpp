@@ -150,10 +150,10 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
     }
 
     // obtain the name of the datalog file, and store it in the option with the empty key
-    {
+    if (argc > 1 && !Global::config().has("help")) {
         std::string filename = "";
         // ensure that the optind is less than the total number of arguments
-        if (optind >= argc) {
+        if (argc > 1 && optind >= argc) {
             ERROR("unexpected command line argument", []() { std::cerr << Global::config().help(); });
         }
         // if only one datalog program is allowed
@@ -179,4 +179,4 @@ void MainConfig::processArgs(int argc, char** argv, const std::string header, co
         }
     }
 }
-}  // namespace souffle;
+}  // namespace souffle

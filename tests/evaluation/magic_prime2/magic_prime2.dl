@@ -1,0 +1,55 @@
+// A copy of the `prime2' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+// Computes all prime numbers between 2 and 500
+
+//// ----- declarations -----
+
+// the search range
+.decl nat(x:number)
+
+// the primes within the range
+.decl prime(x:number)
+.output prime()
+
+
+// -- auxiliary relations --
+.decl succ(a:number,b:number)
+.decl add(a:number,b:number,r:number)
+.decl mul(a:number,b:number,r:number)
+
+.decl range(x:number)
+.decl prod(x:number)
+
+
+////////////////////////////////////////////////////
+
+// build up search range
+nat(0).
+nat(x+1) :- nat(x), x<500.
+
+//// --- basic operations ---
+
+// build successor relation
+succ(a,b) :- nat(a), nat(b), b=a+1.
+
+// build addition relation
+add(a,0,a) :- nat(a).
+add(a,b,r) :- succ(pb,b), add(a,pb,pr), succ(pr,r).
+
+// build multiplication relation
+mul(a,0,0) :- nat(a).
+mul(a,b,r) :- succ(pb,b), mul(a,pb,pr), add(a,pr,r).
+
+
+
+// --- compute prime numbers ---
+
+range(x) :- nat(x), x!=0, x!=1.
+
+// build list of products
+prod(x) :- range(a), range(b), mul(a,b,x).
+
+// define prime numbers
+prime(x) :- range(x), !prod(x).

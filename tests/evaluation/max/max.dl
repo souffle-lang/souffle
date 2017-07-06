@@ -1,0 +1,22 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl Element(value:number)
+
+Element(1).
+Element(2).
+Element(7).
+Element(25).
+Element(104).
+
+
+.decl Maximum(value:number)
+
+Maximum(MaxValue) :-	
+	MaxValue = max ElementValue : Element(ElementValue).
+
+.output Maximum()
+				

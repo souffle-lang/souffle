@@ -38,7 +38,7 @@ public:
         return std::vector<const AstNode*>();
     }
 
-    /** Creates a clone if this AST sub-structure */
+    /** Creates a clone of this AST sub-structure */
     AstIODirective* clone() const override {
         auto res = new AstIODirective();
         res->names = names;

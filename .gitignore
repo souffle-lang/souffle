@@ -50,3 +50,5 @@ prof
 *.tgz
 *-pak
 *.deb
+#macosx
+.DS_Store

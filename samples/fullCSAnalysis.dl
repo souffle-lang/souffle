@@ -73,3 +73,5 @@
 #include "abstract-pointsto/abstract-pointsto.dl"
 
 #include "java-cs-pointsto/cs-pointsto.dl"
+
+.printsize VarPointsTo

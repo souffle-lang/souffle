@@ -82,6 +82,10 @@ std::unique_ptr<AstTranslationUnit> ParserDriver::parseTranslationUnit(const std
     return parser.parse(code, nowarn);
 }
 
+void ParserDriver::addPragma(AstPragma* p) {
+    translationUnit->getProgram()->addPragma(std::unique_ptr<AstPragma>(p));
+}
+
 void ParserDriver::addRelation(AstRelation* r) {
     const auto& name = r->getName();
     if (AstRelation* prev = translationUnit->getProgram()->getRelation(name)) {

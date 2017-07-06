@@ -54,6 +54,7 @@ public:
     void addClause(AstClause* c);
     void addComponent(AstComponent* c);
     void addInstantiation(AstComponentInit* ci);
+    void addPragma(AstPragma* p);
 
     souffle::SymbolTable& getSymbolTable();
 

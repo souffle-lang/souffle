@@ -1,0 +1,160 @@
+//
+// Souffle - A Datalog Compiler
+// Copyright (c) 2015, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `magic_dominance' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+//
+// This code computes the dominance relation of a rooted directed graph
+// given via its edge set.
+//
+// The dominance relation is defined as the least fixed-point of
+// the following equations:
+//   dom(start) := {start}
+//   dom(n) := {n} \/ /\_{p in preds(n) dom(p),   for all n <> start
+//
+// To compute the fixed-point in Datalog, we are required to switch
+// to union semantics, hence, the dual problem:
+//   non-dom(start) := node-set \ {start}
+//   non-dom(start) := node-set \ {n} /\ \/_{p in preds(n)}  non-dom(p), for all n <> start
+//
+
+
+// Additionally, this code computes the immediate dominators.
+// The immediate dominator of a node n is the unique node that strictly dominates n but
+// does not strictly dominate any other node that strictly dominates n. Every node,
+// except the entry node, has an immediate dominator.
+//
+// Assume that {d1, ... , dk} are the dominators of node u that are ordered by
+// d1 dom d2 dom d3 ... dk dom u forming an chain. We can equally say that
+// dom(d1) ⊂ dom(d2) ⊂ dom(d3) ⊂ ... ⊂ dom(dk) ⊂ dom(u) or alternatively we can say that
+//
+// |dom(d1)| < |dom(d2)| < |dom(d3)| < ... < |dom(dk)| < |dom(dk)| < |dom(u)|
+
+// which implies that we can build the order of dominators by looking at the size of the dominance set.
+
+
+
+.comp Dominance<N>{
+
+      //
+      // Start node (singleton)
+      //
+      .decl start(s:N)
+
+      //
+      // Set of edges
+      //
+      .decl edge(s:N,d:N)
+
+      //
+      // Set of nodes
+      //
+      .decl node(n:N)
+      node(x) :- edge(x,_).
+      node(x) :- edge(_,x).
+
+      //
+      // Non-dominance of input graph
+      //
+      .decl non_dom(s:N,d:N)
+      non_dom(x,y) :- start(x), node(y), x!=y.
+      non_dom(x,y) :- non_dom(z,y), edge(z,x), !start(x), x!=y .
+
+
+      //
+      // Dominance of input graph
+      //
+      .decl dom(s:N,d:N)
+      dom(x,y) :- node(x), node(y), !non_dom(x,y).
+
+      //
+      // Finds nodes that strictly dominate a node
+      //
+      .decl s_dom(n:N,d:N)
+      s_dom(n,d) :- dom(n,d), n != d.
+
+}
+
+
+.comp ImmediateDominance<N> : Dominance<N>{
+
+      //
+      // Counts the size strictly dominating set
+      //
+      .decl s_domsize(n:N,s:number)
+      s_domsize(n,0) :- start(n).
+      s_domsize(n,s) :- s_dom(n,_), s = count : s_dom(n,_).
+
+
+
+      //
+      // Set of sizes of strictly dominating nodes
+      //
+      .decl s_domsizes(n:N,d:N,m:number)
+      s_domsizes(n,d,s) :- s_dom(n,d), s_domsize(d,s).
+
+
+      //
+      // Max size of strictly dominating nodes.
+      //
+      .decl s_max_domsize(n:N,s:number)
+       s_max_domsize(n,0) :- start(n).
+      s_max_domsize(n,y) :- s_domsizes(n,_,_), y = max s : s_domsizes(n,_,s).
+
+      //
+      // Immediate Dominator
+      //
+      .decl imdom(n:N,i:N)
+      imdom(n,x) :- s_dom(n,x), s_domsize(x,s), s_max_domsize(n,s).
+
+}
+
+//
+// The graph is taken from example 10.30 in
+// "Compilers Principles, Techniques and Tools"
+// by V.Aho et al.
+//
+
+.init ImmDom = ImmediateDominance<number>
+
+ImmDom.edge(1, 2).
+ImmDom.edge(1, 3).
+ImmDom.edge(2, 3).
+ImmDom.edge(4, 3).
+ImmDom.edge(8, 3).
+ImmDom.edge(3, 4).
+ImmDom.edge(8, 4).
+ImmDom.edge(4, 5).
+ImmDom.edge(4, 6).
+ImmDom.edge(5, 7).
+ImmDom.edge(6, 7).
+ImmDom.edge(10, 7).
+ImmDom.edge(7, 8).
+ImmDom.edge(8, 9).
+ImmDom.edge(8, 10).
+ImmDom.edge(9, 1).
+ImmDom.start(1).
+
+
+//
+// Output
+//
+
+.decl dominators(n:number,s:number)
+.output dominators()
+dominators(n,s) :- ImmDom.dom(n,s).
+
+
+//
+// Output
+//
+
+.decl immediate_dom(n:number,s:number)
+.output immediate_dom()
+immediate_dom(n,s) :- ImmDom.imdom(n,s).

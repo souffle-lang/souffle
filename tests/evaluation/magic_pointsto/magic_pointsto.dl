@@ -1,0 +1,44 @@
+// A copy of the `pointsto' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+// simple call-insensitive field-sensitive points-to analysis in Datalog
+.type Variable
+.type Allocation
+.type Field
+
+.decl AssignAlloc(var:Variable, heap:Allocation)
+.output AssignAlloc()
+.decl Assign(source:Variable, destination:Variable)
+.output Assign()
+.decl PrimitiveAssign(source:Variable, dest:Variable)
+.output PrimitiveAssign()
+.decl Load(base:Variable, dest:Variable, field:Field)
+.output Load()
+.decl Store(source:Variable, base:Variable, field:Field)
+.output Store()
+.decl VarPointsTo(var:Variable, heap:Allocation)
+.output VarPointsTo()
+.decl Alias(x:Variable,y:Variable)
+.output Alias()
+
+Assign(var1, var2) :-
+  PrimitiveAssign(var1,var2).
+
+Alias(instanceVar, iVar) :-
+  VarPointsTo(instanceVar, instanceHeap),
+  VarPointsTo(iVar, instanceHeap).
+
+VarPointsTo(var, heap) :-
+  AssignAlloc(var, heap).
+
+VarPointsTo(var1, heap) :-
+  Assign(var2, var1),
+  VarPointsTo(var2, heap).
+
+Assign(var1, var2) :-
+  Store(var1, instanceVar2, field),
+  Alias(instanceVar2, instanceVar1),
+  Load(instanceVar1, var2, field).
+
+#include "edb.dl"

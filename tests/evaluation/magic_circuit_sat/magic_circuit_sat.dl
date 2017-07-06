@@ -1,0 +1,59 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `circuit_sat' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+.type Var
+
+.decl conf(num : number)
+conf(x+1) :- conf(x), !lim(x).
+conf(0).
+
+.decl lim(x : number)
+.input lim()
+
+.decl var_index(var : Var, index : number)
+var_index("a", 0).
+var_index("b", 1).
+var_index("c", 2).
+
+.decl translation(conf : number, var : Var, truthy : number)
+translation(n, var, 1) :- var_index(var, k), conf(n), ((2^k) band n) != 0.
+translation(n, var, 0) :- var_index(var, k), conf(n), ((2^k) band n) = 0.
+
+.decl circuit_and(result: Var, op1: Var, op2: Var)
+.input circuit_and()
+.decl circuit_or(result: Var, op1: Var, op2: Var)
+.input circuit_or()
+.decl circuit_not(result: Var, op1: Var)
+.input circuit_not()
+.decl circuit_result(result: Var)
+.input circuit_result()
+
+.decl evaluate(conf: number, var: Var, truthy: number)
+evaluate(conf, var, value) :-
+ translation(conf, var, value).
+evaluate(conf, var, v1 band v2) :-
+ circuit_and(var, op1, op2),
+ evaluate(conf, op1, v1),
+ evaluate(conf, op2, v2).
+evaluate(conf, var, v1 bor v2) :-
+ circuit_or(var, op1, op2),
+ evaluate(conf, op1, v1),
+ evaluate(conf, op2, v2).
+evaluate(conf, var, lnot v1) :-
+ circuit_not(var, op1),
+ evaluate(conf, op1, v1).
+
+.decl satisfy(conf: number, var : Var)
+.output satisfy()
+satisfy(conf, inputvar) :-
+ circuit_result(var),
+ evaluate(conf, var, 1),
+ var_index(inputvar, _),
+ translation(conf, inputvar, 1).

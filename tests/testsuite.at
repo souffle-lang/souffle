@@ -273,4 +273,9 @@ m4_foreach(current, [CATEGORIES],
     dnl Profile
     m4_include([profile.at])
   ])
+
+  m4_if(current, Example, [
+    dnl Profile
+    m4_include([example.at])
+  ])
 ])

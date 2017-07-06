@@ -9,8 +9,6 @@ SUFFIXES = .cpp .h .yy .ll .cc .hh .hpp
 
 bin_PROGRAMS = souffle souffle-mcpp souffle-profile
 
-BUILT_SOURCES = parser.hh stack.hh
-
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_SOURCES = souffle_prof.cpp profilerlib/Cell.hpp \
@@ -46,14 +44,14 @@ DIR := ${CURDIR}
 souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS) -DMAKEDIR='"$(DIR)"'
 
 nodist_souffle_mcpp_SOURCES = $(BUILT_SOURCES)
- 
+
 souffle_mcpp_SOURCES = mcpp-system.H mcpp-configed.H mcpp-internal.H mcpp-main.c mcpp-directive.c mcpp-eval.c \
                         mcpp-expand.c mcpp-mbchar.c mcpp-support.c mcpp-system.c mcpp_out.h
- 
+
 mcpp-main.o mcpp-directive.o mcpp-eval.o mcpp-expand.o mcpp-mbchar.o mcpp-support.o mcpp-system.o    :    \
      mcpp-system.H mcpp-internal.H mcpp_out.h
 mcpp-system.H    : mcpp-configed.H
- 
+
 
 # ... which should no go to distribution
 nodist_souffle_SOURCES = $(BUILT_SOURCES)
@@ -74,6 +72,7 @@ souffle_sources = \
               AstAttribute.h                            \
               AstClause.cpp         AstClause.h         \
               AstComponent.h                            \
+              AstPragma.cpp         AstPragma.h         \
               AstIODirective.h                          \
               AstLiteral.h                              \
               AstNode.h                                 \
@@ -118,9 +117,11 @@ souffle_sources = \
               RamRelationStats.cpp  RamRelationStats.h  \
               RamVisitor.h                              \
               RuleScheduler.h                           \
+              SignalHandler.h                           \
               StringPool.h                              \
               TypeSystem.cpp        TypeSystem.h        \
               PrecedenceGraph.cpp   PrecedenceGraph.h   \
+              MagicSet.cpp          MagicSet.h          \
               $(sqlite_sources)     $(libz_sources)     \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
@@ -157,10 +158,14 @@ soufflepublic_HEADERS = CompiledRamOptions.h    \
                         CompiledRamTuple.h      \
                         CompiledRamRecord.h     \
                         CompiledSouffle.h       \
+                        SignalHandler.h         \
                         SouffleInterface.h      \
                         ParallelUtils.h         \
                         BTree.h                 \
                         Trie.h                  \
+                        UnionFind.h             \
+                        BinaryRelation.h        \
+                        BlockList.h             \
                         Table.h                 \
                         Util.h                  \
                         Macro.h                 \
@@ -186,17 +191,16 @@ souffle_CPPFLAGS = -DPACKAGE_VERSION="\"${PACKAGE_VERSION}\""
 CLEANFILES = $(BUILT_SOURCES)  parser.cc scanner.cc parser.hh stack.hh
 
 # run Bison
-$(builddir)/parser.hh: $(srcdir)/parser.yy
+$(builddir)/parser.hh $(builddir)/stack.hh: $(srcdir)/parser.yy
 	$(BISON) -Wall -Werror -v -d -o parser.cc $(srcdir)/parser.yy
-
-$(builddir)/parser.cc $(builddir)/stack.hh: $(builddir)/parser.hh
 
 # and FLEX
 $(builddir)/scanner.cc: $(srcdir)/scanner.ll
 	$(FLEX) -o scanner.cc $(srcdir)/scanner.ll
 
 # driver depends on the generated header
-$(builddir)/ParserDriver.cpp: $(builddir)/parser.hh
+$(builddir)/parser.cc $(builddir)/scanner.cc $(builddir)/main.cpp $(builddir)/ParserDriver.cpp: \
+	$(builddir)/parser.hh
 
 ########## Unit Tests
 
@@ -237,11 +241,23 @@ test_btree_multiset_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/
 test_btree_multiset_test_SOURCES = test/btree_multiset_test.cpp
 test_btree_multiset_test_LDADD = libsouffle.la
 
+# binary relation tests
+check_PROGRAMS += test/binary_relation_test
+test_binary_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+test_binary_relation_test_SOURCES = test/binary_relation_test.cpp
+test_binary_relation_test_LDADD = libsouffle.la
+
 # compiled ram tuple test
 check_PROGRAMS += test/compiled_ram_tuple_test
 test_compiled_ram_tuple_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
 test_compiled_ram_tuple_test_SOURCES = test/compiled_ram_tuple_test.cpp
 test_compiled_ram_tuple_test_LDADD = libsouffle.la
+
+# compiled ram index utils test
+check_PROGRAMS += test/compiled_ram_index_utils_test
+test_compiled_ram_index_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
+test_compiled_ram_index_utils_test_SOURCES = test/compiled_ram_index_utils_test.cpp
+test_compiled_ram_index_utils_test_LDADD = libsouffle.la
 
 # compiled ram relation test
 check_PROGRAMS += test/compiled_ram_relation_test
@@ -317,4 +333,3 @@ test_parallel_utils_test_LDADD = libsouffle.la
 
 # make all check-programs tests
 TESTS = $(check_PROGRAMS)
-

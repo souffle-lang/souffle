@@ -1,5 +1,20 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
 
+  * Configurable I/O System with more options and support for new language
+    extensions (mmcgr).
+  * Support of equivalence relation using union/find data-structures (pnappa)
+  * New profiling tool rewritten in C++ with HTML/Javascript output
+    (DominicRomanowski).
+  * Replacing the Boost C-prepocessor wave by mcpp (pnappa)
+  * Adding ternary functors (b-scholz)
+  * JNI interface (psubotic)
+  * Memory optimisations (lyndonhenry)
+  * Numerous bug fixes. 
+
+ -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Wed, 29 Mar 2017 12:00:23 +1100
+
+souffle (1.0.0); urgency=low
+
   * Initial release
 
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Mon, 21 Mar 2016 17:25:32 +0000

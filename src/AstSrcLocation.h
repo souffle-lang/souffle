@@ -56,10 +56,10 @@ public:
     std::string filename;
 
     /** The start location */
-    Point start;
+    Point start = {};
 
     /** The End location */
-    Point end;
+    Point end = {};
 
     /** A comparison for source locations */
     bool operator<(const AstSrcLocation& other) const {

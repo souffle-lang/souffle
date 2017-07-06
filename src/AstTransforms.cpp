@@ -18,6 +18,7 @@
 #include "AstTypeAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
+#include "MagicSet.h"
 #include "PrecedenceGraph.h"
 
 namespace souffle {
@@ -413,6 +414,12 @@ void ResolveAliasesTransformer::removeComplexTermsInAtoms(AstClause& clause) {
 bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram& program) {
     typedef std::map<AstRelationIdentifier, AstRelationIdentifier> alias_map;
 
+    // tests whether something is a variable
+    auto isVar = [&](const AstArgument& arg) { return dynamic_cast<const AstVariable*>(&arg); };
+
+    // tests whether something is a record
+    auto isRec = [&](const AstArgument& arg) { return dynamic_cast<const AstRecordInit*>(&arg); };
+
     // collect aliases
     alias_map isDirectAliasOf;
 
@@ -424,8 +431,30 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstProgram& program) 
             if (!cl->isFact() && cl->getBodySize() == 1u && cl->getAtoms().size() == 1u) {
                 AstAtom* atom = cl->getAtoms()[0];
                 if (equal_targets(cl->getHead()->getArguments(), atom->getArguments())) {
-                    // we have a match
-                    isDirectAliasOf[cl->getHead()->getName()] = atom->getName();
+                    // we have a match but have to check that all arguments are either
+                    // variables or records containing variables
+                    bool onlyVars = true;
+                    auto args = cl->getHead()->getArguments();
+                    while (!args.empty()) {
+                        const auto& cur = args.back();
+                        args.pop_back();
+                        if (!isVar(*cur)) {
+                            if (isRec(*cur)) {
+                                // records are decomposed and their arguments are checked
+                                const auto& rec_args = static_cast<const AstRecordInit&>(*cur).getArguments();
+                                for (size_t i = 0; i < rec_args.size(); ++i) {
+                                    args.push_back(rec_args[i]);
+                                }
+                            } else {
+                                onlyVars = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (onlyVars) {
+                        // all arguments are either variables or records containing variables
+                        isDirectAliasOf[cl->getHead()->getName()] = atom->getName();
+                    }
                 }
             }
         }
@@ -542,6 +571,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             // -- create a new clause --
 
             auto relName = "__agg_rel_" + toString(counter++);
+            while (program.getRelation(relName) != nullptr) {
+                relName = "__agg_rel_" + toString(counter++);
+            }
 
             AstAtom* head = new AstAtom();
             head->setName(relName);
@@ -666,7 +698,18 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& t
         if (rel->clauseSize() == 0 && !rel->isInput()) {
             removeEmptyRelationUses(translationUnit, rel);
 
-            if (!rel->isComputed()) {
+            bool usedInAggregate = false;
+            visitDepthFirst(program, [&](const AstAggregator& agg) {
+                for (const auto lit : agg.getBodyLiterals()) {
+                    visitDepthFirst(*lit, [&](const AstAtom& atom) {
+                        if (getAtomRelation(&atom, &program) == rel) {
+                            usedInAggregate = true;
+                        }
+                    });
+                }
+            });
+
+            if (!usedInAggregate && !rel->isComputed()) {
                 program.removeRelation(rel->getName());
             }
             changed = true;
@@ -749,6 +792,99 @@ bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translat
             changed = true;
         }
     }
+    return changed;
+}
+
+bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationUnit) {
+    bool changed = false;
+
+    // set a prefix for variables bound by magic-set for identification later
+    // prepended by + to avoid conflict with user-defined variables
+    const std::string boundPrefix = "+abdul";
+
+    AstProgram* program = translationUnit.getProgram();
+    std::vector<AstRelation*> relations = program->getRelations();
+
+    int constantCount = 0;    // number of constants seen so far
+    int underscoreCount = 0;  // number of underscores seen so far
+
+    // go through the relations, replacing constants and underscores with constraints and variables
+    for (AstRelation* rel : relations) {
+        std::vector<AstClause*> clauses = rel->getClauses();
+        for (AstClause* clause : clauses) {
+            // create the replacement clause
+            AstClause* newClause = clause->cloneHead();
+
+            for (AstLiteral* lit : clause->getBodyLiterals()) {
+                // if not an atom, just add it immediately
+                if (dynamic_cast<AstAtom*>(lit) == 0) {
+                    newClause->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                    continue;
+                }
+
+                AstAtom* newAtom = lit->getAtom()->clone();
+                std::vector<AstArgument*> args = newAtom->getArguments();
+                for (size_t argNum = 0; argNum < args.size(); argNum++) {
+                    AstArgument* currArg = args[argNum];
+
+                    // check if the argument is constant
+                    if (dynamic_cast<const AstConstant*>(currArg)) {
+                        // constant found
+                        changed = true;
+
+                        // create new variable name (with appropriate suffix)
+                        std::stringstream newVariableName;
+                        std::stringstream currArgName;
+                        currArgName << *currArg;
+
+                        if (dynamic_cast<AstNumberConstant*>(currArg)) {
+                            newVariableName << boundPrefix << constantCount << "_" << currArgName.str()
+                                            << "_n";
+                        } else {
+                            newVariableName << boundPrefix << constantCount << "_"
+                                            << currArgName.str().substr(1, currArgName.str().size() - 2)
+                                            << "_s";
+                        }
+
+                        AstArgument* variable = new AstVariable(newVariableName.str());
+                        AstArgument* constant = currArg->clone();
+
+                        constantCount++;
+
+                        // update argument to be the variable created
+                        newAtom->setArgument(argNum, std::unique_ptr<AstArgument>(variable));
+
+                        // add in constraint (+abdulX = constant)
+                        newClause->addToBody(std::unique_ptr<AstLiteral>(new AstConstraint(
+                                BinaryConstraintOp::EQ, std::unique_ptr<AstArgument>(variable->clone()),
+                                std::unique_ptr<AstArgument>(constant->clone()))));
+                    } else if (dynamic_cast<const AstUnnamedVariable*>(currArg)) {
+                        // underscore found
+                        changed = true;
+
+                        // create new variable name for the underscore (with appropriate suffix)
+                        std::stringstream newVariableName;
+                        newVariableName.str("");
+                        newVariableName << "+underscore" << underscoreCount;
+                        underscoreCount++;
+
+                        AstArgument* variable = new AstVariable(newVariableName.str());
+
+                        // update argument to be a variable
+                        newAtom->setArgument(argNum, std::unique_ptr<AstArgument>(variable));
+                    }
+                }
+
+                // add the new atom to the body
+                newClause->addToBody(std::unique_ptr<AstLiteral>(newAtom));
+            }
+
+            // swap out the old clause with the new one
+            rel->removeClause(clause);
+            rel->addClause(std::unique_ptr<AstClause>(newClause));
+        }
+    }
+
     return changed;
 }
 

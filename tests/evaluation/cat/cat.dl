@@ -5,7 +5,7 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 //
-// Check semantics of binary relations
+// Check nested concatenation
 //
 
 .type A

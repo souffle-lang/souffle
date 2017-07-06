@@ -1,0 +1,53 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests if a conflict occurs if users define relations
+// with a naming style used by the magic set transformer
+.pragma "magic-transform" "*"
+
+// ----- Types -----
+.type Node
+
+// ----- Relations -----
+
+// -- m0_Reachable_ff --
+.decl m0_Reachable_ff()
+
+m0_Reachable_ff().
+
+m0_Reachable_ff() :-
+   m0_Reachable_ff(),
+   Edge(_,_).
+
+// -- Edge --
+.decl Edge(n:Node,m:Node)
+
+Edge("A","B").
+
+Edge("B","C").
+
+Edge("C","D").
+
+Edge("D","B").
+
+// -- Reachable --
+.decl Reachable(n:Node,m:Node)
+.output Reachable
+
+Reachable(arg0,arg1) :-
+   Reachable_ff(arg0,arg1).
+
+// -- Reachable_ff --
+.decl Reachable_ff(n:Node,m:Node)
+
+Reachable_ff(x,y) :-
+   m0_Reachable_ff(),
+   Edge(x,y).
+
+Reachable_ff(x,y) :-
+   m0_Reachable_ff(),
+   Edge(x,z),
+   Reachable_ff(z,y).

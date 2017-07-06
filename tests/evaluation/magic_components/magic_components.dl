@@ -1,0 +1,110 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `components' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+// ---- some type definitions -----
+
+.type node
+
+
+// ---------------------------------
+// Example Component: Directed Graph
+// ---------------------------------
+
+.comp DiGraph {
+
+    .decl node (n:node)             // "member" relation
+    .decl edge (a:node,b:node)      // "member" relation
+
+
+    // rules for node
+    node(X) :- edge(X,_).
+    node(X) :- edge(_,X).
+
+
+    // derived properties
+
+    .decl reachable (a:node,b:node)
+    reachable(X,Y) :- edge(X,Y).
+	reachable(X,Z) :- reachable(X,Y),reachable(Y,Z).
+
+//    .decl empty ()              // 0-ary relation is a comming up feature
+//	empty() :- !node(_).
+
+    .decl roots (n:node)
+	roots(X) :- node(X), !edge(_,X).
+
+    .decl leafs (n:node)
+	leafs(X) :- node(X), !edge(X,_).
+
+    .decl clique (a:node,b:node)
+	clique(X,Y) :- reachable(X,Y), reachable(Y,X).
+}
+
+// ---------------------------------
+// Example Component: Graph
+// ---------------------------------
+
+.comp Graph : DiGraph {         // components can be inherited
+
+    edge(X,Y) :- edge(Y,X).     // and additional clauses can be added
+
+}
+
+
+// also: support nesting of modules
+
+.comp Traffic {
+
+    // 3 nested instances of the directed graph
+	.init train = DiGraph
+	.init ship = DiGraph
+	.init cap = DiGraph
+
+    // reachability is defined over all edges
+    .decl reachable(a:node,b:node)
+	reachable(X,Y) :- train.reachable(X,Y).
+	reachable(X,Y) :- ship.reachable(X,Y).
+	reachable(X,Y) :- cap.reachable(X,Y).
+
+	reachable(X,Z) :- reachable(X,Y), reachable(Y,Z).
+
+}
+
+
+// usage: instantiation
+
+.init SocialNet = DiGraph
+
+SocialNet.edge("luke","leia").
+SocialNet.edge("han","luke").
+
+
+.init Equal = Graph
+
+Equal.edge("5","five").
+Equal.edge("5","V").
+
+
+// some output
+.decl result ( x : symbol )
+.output result ()
+result("Star Wars IV-VI happend!") :- SocialNet.reachable("han","leia").
+result("Luke isn't a good buddy!") :- !SocialNet.reachable("leia","han").
+
+result("V is five") :- Equal.reachable("V","five").
+result("five is V") :- Equal.reachable("five","V").
+
+.init London = Traffic
+
+London.train.edge("Airport","Waterloo").
+London.ship.edge("Waterloo","London Bridge").
+London.cap.edge("London Bridge", "Big Ben").
+
+result("Connected") :- London.reachable("Airport","Big Ben").

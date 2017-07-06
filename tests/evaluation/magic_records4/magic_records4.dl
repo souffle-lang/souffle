@@ -1,0 +1,25 @@
+// A copy of the `records4' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+.number_type N
+
+.decl n( x : N )
+.decl m( x : N )
+
+n(1).
+n(2).
+n(3).
+
+m(4).
+m(5).
+m(6).
+
+.type pair = [ first : N, second : N ]
+
+.decl p ( p1 : pair, x: N, p2:pair, y:N )
+p([x,y], x*y, [x,y], y/x) :- n(x), m(y).
+
+.decl r ( x1 : N, y1 : N, z1:N, x2 : N, y2 : N, z2:N )
+.output r ()
+r(x1,y1,z1, x2, y2, z2) :- p([x1,y1], z1, [x2,y2], z2).

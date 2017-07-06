@@ -1,13 +1,13 @@
-Error: Equivalence relation A is not binary in file qualifiers2.dl at line 1
+Error: Equivalence relation A is not binary in file qualifiers2.dl at line 7
 .decl A(x:number, y:number, z:number) eqrel output
 ^--------------------------------------------------
-Warning: Deprecated output qualifier was used in relation A in file qualifiers2.dl at line 1
+Warning: Deprecated output qualifier was used in relation A in file qualifiers2.dl at line 7
 .decl A(x:number, y:number, z:number) eqrel output
 ^--------------------------------------------------
-Error: Domains of equivalence relation B are different in file qualifiers2.dl at line 4
+Error: Domains of equivalence relation B are different in file qualifiers2.dl at line 10
 .decl B(x:number, y:name) eqrel output
 ^--------------------------------------
-Warning: Deprecated output qualifier was used in relation B in file qualifiers2.dl at line 4
+Warning: Deprecated output qualifier was used in relation B in file qualifiers2.dl at line 10
 .decl B(x:number, y:name) eqrel output
 ^--------------------------------------
 2 errors generated, evaluation aborted

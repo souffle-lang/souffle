@@ -1,6 +1,0 @@
-.type Node
-
-// Quote can not be escaped,
-// thus any quote charcter terminates a string
-.decl R (n:Node)
-R ("Quoted \"quote\"").

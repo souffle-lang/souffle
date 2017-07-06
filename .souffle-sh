@@ -25,6 +25,7 @@ cat << EOF
     souffle_make        Run souffle_setup and then make.
     souffle_reset       Reset hard to last commit, delete untracked files, run souffle_setup.
     souffle_commit      Format with clang, repair permissions, add everything to git and commit.
+    souffle_format      Format codebase with clang, according to .clang-format file.
     souffle_push        Push the current branch to the git remote.
     souffle_pull        Pull the current branch from the git remote.
     souffle_test        Run souffle_make and then the testsuite on the given tests.
@@ -87,11 +88,17 @@ souffle_reset() {
     cd -
 }
 
-souffle_commit() {
+souffle_format() {
     cd $SOUFFLE && \
     clang-format -i -style=file $SOUFFLE/src/*.cpp $SOUFFLE/src/*.h $SOUFFLE/src/test/*.cpp $SOUFFLE/src/test/*.h && \
+    cd -
+}
+
+souffle_commit() {
+    cd $SOUFFLE && \
+    souffle_format && \
     git checkout upstream/master -- src/mcpp*.[chCH] && \
-    chmod 775 .travis/* debian/rules osx/preinstall && \
+    chmod 775 bootstrap .travis/* debian/rules osx/preinstall && \
     git add . && \
     git commit -m "$(date)" && \
     cd -

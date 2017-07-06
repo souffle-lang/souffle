@@ -87,6 +87,7 @@ private:
     static void checkTypes(ErrorReport& report, const AstProgram& program);
 
     static void checkNamespaces(ErrorReport& report, const AstProgram& program);
+    static void checkIODirectives(ErrorReport& report, const AstProgram& program);
 
 public:
     ~AstSemanticChecker() override = default;

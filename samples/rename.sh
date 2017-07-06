@@ -1,0 +1,19 @@
+#!/bin/sh
+mv DirectFieldIndex-Signature.facts DirectFieldIndexSignature.facts
+mv HeapAllocation-Type.facts HeapAllocationType.facts
+mv Instruction-Index.facts InstructionIndex.facts
+mv MethodSignature-Descriptor.facts MethodSignatureDescriptor.facts
+mv MethodSignature-SimpleName.facts MethodSignatureSimpleName.facts
+mv MethodSignature-Type.facts MethodSignatureType.facts
+mv SpecialMethodInvocation-Base.facts SpecialMethodInvocationBase.facts
+mv SpecialMethodInvocation-In.facts SpecialMethodInvocationIn.facts
+mv SpecialMethodInvocation-Signature.facts SpecialMethodInvocationSignature.facts
+mv StaticMethodInvocation-In.facts StaticMethodInvocationIn.facts
+mv StaticMethodInvocation-Signature.facts StaticMethodInvocationSignature.facts
+mv Var-DeclaringMethod.facts VarDeclaringMethod.facts
+mv Var-Type.facts VarType.facts
+mv VirtualMethodInvocation-Base.facts VirtualMethodInvocationBase.facts
+mv VirtualMethodInvocation-In.facts VirtualMethodInvocationIn.facts
+mv VirtualMethodInvocation-Signature.facts VirtualMethodInvocationSignature.facts
+mv LoadInstanceField.facts LoadInstanceFieldIndex.facts
+mv StoreInstanceField.facts StoreInstanceFieldIndex.facts

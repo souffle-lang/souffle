@@ -126,6 +126,17 @@ void AstProgram::addIODirective(std::unique_ptr<AstIODirective> directive) {
     ioDirectives.push_back(std::move(directive));
 }
 
+/* Add a pragma to the program */
+void AstProgram::addPragma(std::unique_ptr<AstPragma> pragma) {
+    ASSERT(pragma && "NULL IO directive");
+    pragmaDirectives.push_back(std::move(pragma));
+}
+
+/* Put all pragma directives of the program into a list */
+const std::vector<std::unique_ptr<AstPragma>>& AstProgram::getPragmaDirectives() const {
+    return pragmaDirectives;
+}
+
 /* Put all relations of the program into a list */
 std::vector<AstRelation*> AstProgram::getRelations() const {
     std::vector<AstRelation*> res;
@@ -186,6 +197,13 @@ void AstProgram::print(std::ostream& os) const {
         os << "\n// ----- Orphan IO directives -----\n";
         os << join(ioDirectives, "\n\n", print_deref<std::unique_ptr<AstIODirective>>()) << "\n";
     }
+
+    if (!pragmaDirectives.empty()) {
+        os << "\n// ----- Pragma -----\n";
+        for (const auto& cur : pragmaDirectives) {
+            os << *cur << "\n";
+        }
+    }
 }
 
 AstProgram* AstProgram::clone() const {
@@ -212,6 +230,11 @@ AstProgram* AstProgram::clone() const {
         res->instantiations.push_back(std::unique_ptr<AstComponentInit>(cur->clone()));
     }
 
+    // move ioDirectives
+    for (const auto& cur : ioDirectives) {
+        res->ioDirectives.push_back(std::unique_ptr<AstIODirective>(cur->clone()));
+    }
+
     ErrorReport errors;
 
     res->finishParsing();
@@ -232,6 +255,12 @@ void AstProgram::apply(const AstNodeMapper& map) {
         cur = map(std::move(cur));
     }
     for (auto& cur : instantiations) {
+        cur = map(std::move(cur));
+    }
+    for (auto& cur : pragmaDirectives) {
+        cur = map(std::move(cur));
+    }
+    for (auto& cur : ioDirectives) {
         cur = map(std::move(cur));
     }
 }

@@ -57,6 +57,7 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
     checkRules(report, typeEnv, program, recursiveClauses);
     checkComponents(report, program, componentLookup);
     checkNamespaces(report, program);
+    checkIODirectives(report, program);
 
     // get the list of components to be checked
     std::vector<const AstNode*> nodes;
@@ -830,6 +831,15 @@ void AstSemanticChecker::checkTypes(ErrorReport& report, const AstProgram& progr
     // check each type individually
     for (const auto& cur : program.getTypes()) {
         checkType(report, program, *cur);
+    }
+}
+
+void AstSemanticChecker::checkIODirectives(ErrorReport& report, const AstProgram& program) {
+    for (const auto& directive : program.getIODirectives()) {
+        auto* r = program.getRelation(directive->getName());
+        if (r == nullptr) {
+            report.addError("Undefined relation " + toString(directive->getName()), directive->getSrcLoc());
+        }
     }
 }
 

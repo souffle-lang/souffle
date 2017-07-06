@@ -1,0 +1,26 @@
+// Note: Made for issue #128 "Aggregate Semantic Check Missing"
+
+.type Node
+.number_type Component
+
+.decl links(A:Node, B:Node) 
+.input links()
+
+.decl id(A:Node, C:Component)
+.input id()
+
+.decl reaches(A:Node, B:Node)
+reaches(A, B) :- 
+  links(A, B).
+reaches(A, B) :- 
+  links(A, C), reaches(C, B).
+
+.decl mutually_reaching(A:Node, B:Node)
+mutually_reaching(A, B) :-
+  reaches(A, B), reaches(B, A).
+
+.decl scc(A:Node, C:Component) 
+.output scc()
+scc(A, C) :- 
+  C = min D : {mutually_reaching(A,B), id(B, D)}.
+

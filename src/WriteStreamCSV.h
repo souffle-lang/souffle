@@ -56,6 +56,30 @@ public:
         out << "\n";
     }
 
+    // optimizing, unsafe version. Doesn't lock, doesn't bound-check.
+    void writeNextTupleUnsafe(const RamDomain* tuple) {
+        size_t arity = symbolMask.getArity();
+        if (arity == 0) {
+            out << "()\n";
+            return;
+        }
+
+        if (symbolMask.isSymbol(0)) {
+            out << symbolTable.unsafeResolve(tuple[0]);
+        } else {
+            out << static_cast<int32_t>(tuple[0]);
+        }
+        for (size_t col = 1; col < arity; ++col) {
+            out << delimiter;
+            if (symbolMask.isSymbol(col)) {
+                out << symbolTable.unsafeResolve(tuple[col]);
+            } else {
+                out << static_cast<int32_t>(tuple[col]);
+            }
+        }
+        out << "\n";
+    }
+
     ~WriteStreamCSV() override = default;
 
 private:
@@ -71,7 +95,7 @@ public:
             char delimiter = '\t')
             : file(filename), writeStream(file, symbolMask, symbolTable, delimiter) {}
     void writeNextTuple(const RamDomain* tuple) override {
-        writeStream.writeNextTuple(tuple);
+        writeStream.writeNextTupleUnsafe(tuple);
     }
 
     ~WriteFileCSV() override = default;
