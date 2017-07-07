@@ -86,6 +86,39 @@ m4_define([TEST_EVAL],[
  SAME_FILES([num.generated],[num.expected])
 ])
 
+dnl Execute a positive test case for a given flag configuration
+dnl $1 -- test case
+dnl $2 -- category
+dnl $3 -- facts directory relative to the test directory
+dnl $4 -- directory with expected output
+dnl       (relative to the test dir, but starting with '/'), or empty string
+m4_define([TEST_EVAL_IN],[
+ m4_define([TESTNAME],[$1])
+ m4_define([CATEGORY],[$2])
+ m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
+ m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
+ m4_define([FACTS],[TESTDIR/$3])
+ m4_define([EXPECTEDDIR], [TESTDIR$4])
+ # invoke souffle
+ AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 0<TESTNAME.in 1>TESTNAME.out 2>TESTNAME.err], [0])
+ # sort the expected and the generated CSV files
+ # and compare whether both files are the same.
+ for i in *.csv
+ do
+  sort "$i" > "$i.sorted.generated"
+  sort EXPECTEDDIR/"$i" > "$i.sorted.expected"
+  SAME_FILES(["$i.sorted.generated"],["$i.sorted.expected"])
+ done
+ # validate whether the number of generated CSV files
+ # is equal to the number of expected CSV files.
+ ls *.csv|wc -l >"num.generated"
+ ls EXPECTEDDIR/*.csv|wc -l >"num.expected"
+ # validate stdout and stderr
+ SAME_FILES([TESTNAME.out],[EXPECTEDDIR/TESTNAME.out])
+ SAME_FILES([TESTNAME.err],[EXPECTEDDIR/TESTNAME.err])
+ SAME_FILES([num.generated],[num.expected])
+])
+
 dnl Define all possible souffle-profile commands for testing
 m4_define([PROFILE_COMMANDS],[dnl
 ["rel"],dnl
@@ -145,6 +178,20 @@ m4_define([TEST_EVAL_ERROR],[
  SAME_FILES([TESTNAME.err],[TESTDIR/TESTNAME.err])
 ])
 
+dnl Execute a negative test case for a given flag configuration
+dnl $1 -- test case
+dnl $2 -- category
+m4_define([TEST_EVAL_ERROR_IN],[
+ m4_define([TESTNAME],[$1])
+ m4_define([CATEGORY],[$2])
+ m4_define([TESTDIR],["$TESTS"/CATEGORY/TESTNAME])
+ m4_define([PROGRAM],[TESTDIR/TESTNAME.dl])
+ m4_define([FACTS],[TESTDIR/facts])
+ AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 0<TESTNAME.in 1>TESTNAME.out 2>TESTNAME.err], [1])
+ SAME_FILES([TESTNAME.out],[TESTDIR/TESTNAME.out])
+ SAME_FILES([TESTNAME.err],[TESTDIR/TESTNAME.err])
+])
+
 dnl Execute a positive interface test case
 dnl $1 -- test case
 dnl $2 -- category
@@ -169,6 +216,15 @@ dnl $2 -- category
 m4_define([POSITIVE_TEST],[
     TEST_GROUP([$1],[
         TEST_EVAL([$1],[$2], facts)
+    ])
+])
+
+dnl Positive testcase for Souffle
+dnl $1 -- test name
+dnl $2 -- category
+m4_define([POSITIVE_TEST_IN],[
+    TEST_GROUP([$1],[
+        TEST_EVAL_IN([$1],[$2], facts)
     ])
 ])
 
@@ -202,15 +258,24 @@ m4_define([NEGATIVE_TEST],[
     ])
 ])
 
+dnl Negative testcase for Souffle
+dnl $1 -- test name
+dnl $2 -- category
+m4_define([NEGATIVE_TEST_IN],[
+    TEST_GROUP([$1],[
+        TEST_EVAL_ERROR_IN([$1],[$2])
+    ])
+])
+
 ##########################################################################
 
 dnl Defines all possible Souffle flag configurations for testing.
 dnl NOTE: This is the default configuration that can be overridden
 dnl using SOUFFLE_CONFS environment variable.
 m4_define([DEFAULT_CONFS], [[], dnl interpreter
- [-t],
  [-c],                  dnl compilation
- [-c -t],
+ [-t],                  dnl provenance transformation
+ [-c -t],               dnl provenance transformation / compilation
  [-j8],                 dnl interpreter / parallel execution
  [-c -j8],              dnl compilation & parallel execution
  [--auto-schedule -o testprog],  dnl auto-scheduling & compilation

@@ -700,8 +700,8 @@ public:
     /**
      * Returns the relation map
      */
-    relation_map &getRelationMap() {
-        return data;
+    relation_map &getRelationMap() const {
+        return const_cast<relation_map&>(data);
     }
 
     /**

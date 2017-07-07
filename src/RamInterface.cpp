@@ -1,9 +1,19 @@
-/* * Souffle - A Datalog Compiler
-* Copyright (c) 2016, The Souffle Developers. All rights reserved
-* Licensed under the Universal Permissive License v 1.0 as shown at:
-* - https://opensource.org/licenses/UPL
-* - <souffle root>/licenses/SOUFFLE-UPL.txt
-*/
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2017, The Souffle Developers. All rights reserved.
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+
+/************************************************************************
+ *
+ * @file RamInterface.cpp
+ *
+ * Defines classes that implement the SouffleInterface abstract class
+ *
+ ***********************************************************************/
+
 
 #include "RamInterface.h"
 
@@ -48,14 +58,13 @@ bool RamRelationInterface::iterator_base::equal(const Relation::iterator_base& o
  * Helper function to convert a tuple to a RamDomain pointer
  */
 RamDomain* convertTupleToNums(const tuple& t) {
-
-    std::vector<RamDomain> tuple;
+    RamDomain* newTuple = new RamDomain[t.size()];
 
     for (size_t i = 0; i < t.size(); i++) {
-        tuple.push_back(t[i]);
+        newTuple[i] = t[i];
     }
 
-    return tuple.data();
+    return newTuple;
 }
 
 void RamRelationInterface::insert(const tuple& t) {
@@ -106,15 +115,6 @@ size_t RamRelationInterface::getArity() const {
 
 SymbolTable& RamRelationInterface::getSymbolTable() const {
     return symTable;
-}
-
-void SouffleInterpreterInterface::printAll(std::string dirname) {
-}
-
-void SouffleInterpreterInterface::dumpInputs(std::ostream& ss) {
-}
-
-void SouffleInterpreterInterface::dumpOutputs(std::ostream& ss) {
 }
 
 } // end of namespace souffle

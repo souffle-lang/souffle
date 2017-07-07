@@ -181,7 +181,7 @@ public:
 /**
  * Transformation pass to add provenance information via records
  */
-class ProvenanceRecordTransformer : public AstTransformer {
+class NaiveProvenanceTransformer : public AstTransformer {
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 

@@ -129,8 +129,8 @@ souffle_sources = \
               IODirectives.h                            \
               WriteStreamCSV.h                          \
               IOSystem.h                                \
-			  RamInterface.cpp		RamInterface.h		\
-			  ProvenanceTransformer.cpp	ProvenanceTransformer.h	\
+              RamInterface.cpp      RamInterface.h      \
+              ProvenanceTransformer.cpp ProvenanceTransformer.h \
               Global.cpp            Global.h
 
 # -- build souffle as a library so it can be reused in testing

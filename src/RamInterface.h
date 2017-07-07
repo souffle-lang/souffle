@@ -1,10 +1,18 @@
 /*
-* Souffle - A Datalog Compiler
-* Copyright (c) 2016, The Souffle Developers. All rights reserved
-* Licensed under the Universal Permissive License v 1.0 as shown at:
-* - https://opensource.org/licenses/UPL
-* - <souffle root>/licenses/SOUFFLE-UPL.txt
-*/
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2017, The Souffle Developers. All rights reserved.
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+
+/************************************************************************
+ *
+ * @file RamInterface.h
+ *
+ * Defines classes that implement the SouffleInterface abstract class
+ *
+ ***********************************************************************/
 
 #pragma once
 
@@ -117,9 +125,9 @@ public:
     }
 
     // print methods
-    void printAll(std::string);
-    void dumpInputs(std::ostream&);
-    void dumpOutputs(std::ostream&);
+    void printAll(std::string) {}
+    void dumpInputs(std::ostream&) {}
+    void dumpOutputs(std::ostream&) {}
 
     const SymbolTable& getSymbolTable() const {
         return symTable;

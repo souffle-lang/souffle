@@ -1,3 +1,19 @@
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2017, The Souffle Developers. All rights reserved.
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - <souffle root>/licenses/SOUFFLE-UPL.txt
+ */
+
+/************************************************************************
+ *
+ * @file ProvenanceTransformer.h
+ *
+ * Defines classes which store relations transformed for provenance
+ *
+ ***********************************************************************/
+
 #pragma once
 
 #include "AstTransforms.h"
@@ -17,13 +33,9 @@ private:
     AstRelation* provenanceRelation;
 
 public:
-    ProvenanceTransformedClause(
-            AstTranslationUnit& transUnit,
-            std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap,
-            AstClause& clause,
-            AstRelationIdentifier origName,
-            int num
-    );
+    ProvenanceTransformedClause(AstTranslationUnit& transUnit,
+            std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap, AstClause& clause,
+            AstRelationIdentifier origName, int num);
 
     void makeInfoRelation();
     void makeProvenanceRelation(AstRelation* recordRelation);
@@ -52,12 +64,9 @@ private:
     std::vector<ProvenanceTransformedClause*> transformedClauses;
 
 public:
-    ProvenanceTransformedRelation(
-            AstTranslationUnit& transUnit,
-            std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap,
-            AstRelation& origRelation,
-            AstRelationIdentifier origName
-    );
+    ProvenanceTransformedRelation(AstTranslationUnit& transUnit,
+            std::map<AstRelationIdentifier, AstTypeIdentifier> relTypeMap, AstRelation& origRelation,
+            AstRelationIdentifier origName);
 
     void makeRecordRelation();
     void makeOutputRelation();
@@ -80,5 +89,4 @@ public:
     }
 };
 
-
-} // end of namespace souffle
+}  // end of namespace souffle

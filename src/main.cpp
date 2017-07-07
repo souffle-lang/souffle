@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
                             {"bddbddb", 'b', "FILE", "", false, "Convert input into bddbddb file format."},
                             {"debug-report", 'r', "FILE", "", false,
                                     "Write debugging output to HTML report."},
-                            {"provenance", 't', "", "", false, "Enable provenance information."},
+                            {"provenance", 't', "EXPLAIN", "0", false, "Enable provenance information."},
                             {"verbose", 'v', "", "", false, "Verbose output."},
                             {"help", 'h', "", "", false, "Display this help message."}};
                     return std::vector<MainOption>(std::begin(opts), std::end(opts));
@@ -256,9 +256,7 @@ int main(int argc, char** argv) {
 
     /* set up additional global options based on pragma declaratives */
     (std::unique_ptr<AstTransformer>(new AstPragmaChecker()))->apply(*translationUnit);
-
     std::vector<std::unique_ptr<AstTransformer>> transforms;
-    // Add provenance information by transforming to records
 
     transforms.push_back(std::unique_ptr<AstTransformer>(new ComponentInstantiationTransformer()));
     transforms.push_back(std::unique_ptr<AstTransformer>(new UniqueAggregationVariablesTransformer()));
@@ -288,8 +286,10 @@ int main(int argc, char** argv) {
     if (Global::config().has("auto-schedule")) {
         transforms.push_back(std::unique_ptr<AstTransformer>(new AutoScheduleTransformer()));
     }
+
+    // Add provenance information by transforming to records
     if (Global::config().has("provenance")) {
-        transforms.push_back(std::unique_ptr<AstTransformer>(new ProvenanceRecordTransformer()));
+        transforms.push_back(std::unique_ptr<AstTransformer>(new NaiveProvenanceTransformer()));
     }
     if (!Global::config().get("debug-report").empty()) {
         auto parser_end = std::chrono::high_resolution_clock::now();
@@ -413,7 +413,7 @@ int main(int argc, char** argv) {
                   << "sec\n";
     }
 
-    if (Global::config().has("provenance")){ 
+    if (Global::config().get("provenance") == "1"){ 
         // construct SouffleProgram from env
         SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
         // invoke explain
