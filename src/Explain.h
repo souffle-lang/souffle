@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <csignal>
 #include <iostream>
 #include <regex>
 #include <ncurses.h>
@@ -49,13 +50,13 @@ inline std::vector<std::string> split(std::string s, char delim, int times = -1)
 
 class ScreenBuffer {
 private:
-    int width;     // width of the screen buffer
-    int height;    // height of the screen buffer
-    char* buffer;  // screen contents
+    uint32_t width;   // width of the screen buffer
+    uint32_t height;  // height of the screen buffer
+    char* buffer;     // screen contents
 
 public:
     // constructor
-    ScreenBuffer(int w, int h) : width(w), height(h), buffer(nullptr) {
+    ScreenBuffer(uint32_t w, uint32_t h) : width(w), height(h), buffer(nullptr) {
         assert(width > 0 && height > 0 && "wrong dimensions");
         buffer = new char[width * height];
         memset(buffer, ' ', width * height);
@@ -66,11 +67,11 @@ public:
     }
 
     // write into screen buffer at a specific location
-    void write(int x, int y, const std::string& s) {
+    void write(uint32_t x, uint32_t y, const std::string& s) {
         assert(x >= 0 && x < width && "wrong x dimension");
         assert(y >= 0 && y < height && "wrong y dimension");
         assert(x + s.length() <= width && "string too long");
-        for (int i = 0; i < s.length(); i++) {
+        for (size_t i = 0; i < s.length(); i++) {
             buffer[y * width + x + i] = s[i];
         }
     }
@@ -85,7 +86,7 @@ public:
     void print(std::ostream& os) {
         if (height > 0 && width > 0) {
             for (int i = height - 1; i >= 0; i--) {
-                for (int j = 0; j < width; j++) {
+                for (size_t j = 0; j < width; j++) {
                     os << buffer[width * i + j];
                 }
                 os << std::endl;
@@ -101,8 +102,8 @@ public:
 class TreeNode {
 protected:
     std::string txt;  // text of tree node
-    int width;        // width of node (including sub-trees)
-    int height;       // height of node (including sub-trees)
+    uint32_t width;   // width of node (including sub-trees)
+    uint32_t height;  // height of node (including sub-trees)
     int xpos;         // x-position of text
     int ypos;         // y-position of text
 
@@ -111,17 +112,17 @@ public:
     virtual ~TreeNode() {}
 
     // get width
-    int getWidth() const {
+    uint32_t getWidth() const {
         return width;
     }
 
     // get height
-    int getHeight() const {
+    uint32_t getHeight() const {
         return height;
     }
 
     // place the node
-    virtual void place(int xpos, int ypos) = 0;
+    virtual void place(uint32_t xpos, uint32_t ypos) = 0;
 
     // render node in screen buffer
     virtual void render(ScreenBuffer& s) = 0;
@@ -144,7 +145,7 @@ public:
     }
 
     // place node and its sub-trees
-    void place(int x, int y) {
+    void place(uint32_t x, uint32_t y) {
         // there must exist at least one kid
         assert(children.size() > 0 && "no children");
 
@@ -190,7 +191,7 @@ public:
     leaf_node(const std::string& t = "") : TreeNode(t) {}
 
     // place leaf node
-    void place(int x, int y) {
+    void place(uint32_t x, uint32_t y) {
         xpos = x;
         ypos = y;
         width = txt.length();
@@ -526,12 +527,23 @@ public:
     std::string getRule(std::string relName, int ruleNum) {
         return provInfo.getRule(relName, ruleNum);
     }
+
+    void setDepth(int d) {
+        if (d > 0) {
+            depthLimit = d;
+        }
+    }
 };
 
 class ProvenanceDisplay {
 private:
     SouffleProgram& prog;
+
+    bool ncurses;
     WINDOW* treePad;
+    WINDOW* queryWindow;
+    int maxx, maxy;
+
     int depthLimit;
 
     // parse relation, split into relation name and values
@@ -560,13 +572,8 @@ private:
 
     // initialise ncurses window
     WINDOW* makeQueryWindow() {
-        int y, x;
-        getmaxyx(stdscr, y, x);
-
-        WINDOW* w = newwin(3, x, y - 2, 0);
-
+        WINDOW* w = newwin(3, maxx, maxy - 2, 0);
         wrefresh(w);
-
         return w;
     }
 
@@ -576,7 +583,20 @@ private:
             t->place(0, 0);
             ScreenBuffer* s = new ScreenBuffer(t->getWidth(), t->getHeight());
             t->render(*s);
-            wprintw(treePad, s->getString().c_str());
+            if (ncurses) {
+                wprintw(treePad, s->getString().c_str());
+            } else {
+                std::cout << s->getString();
+            }
+        }
+    }
+
+    // print string
+    void printStr(std::string s) {
+        if (ncurses) {
+            wprintw(treePad, s.c_str());
+        } else {
+            std::cout << s;
         }
     }
 
@@ -604,42 +624,58 @@ private:
         }
     }
 
-public:
-    ProvenanceDisplay(SouffleProgram& p, int d = 4) : prog(p), depthLimit(d) {}
-
-    void explain() {
-        // Create ncurses window
+    // initialise ncurses window
+    void initialiseWindow() {
         initscr();
 
-        int maxx, maxy;
+        // get size of window
         getmaxyx(stdscr, maxy, maxx);
 
-        // Create windows for query and tree display
-        WINDOW* queryWindow = makeQueryWindow();
+        // create windows for query and tree display
+        queryWindow = makeQueryWindow();
         treePad = newpad(MAX_TREE_HEIGHT, MAX_TREE_WIDTH);
 
         keypad(treePad, true);
+    }
+
+public:
+    ProvenanceDisplay(SouffleProgram& p, bool ncurses, int d = 4)
+            : prog(p), ncurses(ncurses), depthLimit(d) {}
+
+    void explain() {
+        if (ncurses) {
+            initialiseWindow();
+            std::signal(SIGWINCH, NULL);
+        }
 
         // process commands
         char buf[100];
         std::string line;
+
+        ProvenanceTree provTree(prog, depthLimit);
+
         while (1) {
-            // reset command line on each loop
-            werase(queryWindow);
-            wrefresh(queryWindow);
-            mvwprintw(queryWindow, 1, 0, "Enter command > ");
-            curs_set(1);
-            echo();
+            if (ncurses) {
+                // reset command line on each loop
+                werase(queryWindow);
+                wrefresh(queryWindow);
+                mvwprintw(queryWindow, 1, 0, "Enter command > ");
+                curs_set(1);
+                echo();
 
-            // get next command
-            wgetnstr(queryWindow, buf, 100);
-            noecho();
-            curs_set(0);
-            line = buf;
+                // get next command
+                wgetnstr(queryWindow, buf, 100);
+                noecho();
+                curs_set(0);
+                line = buf;
 
-            // reset tree display on each loop
-            werase(treePad);
-            prefresh(treePad, 0, 0, 0, 0, maxy - 3, maxx - 1);
+                // reset tree display on each loop
+                werase(treePad);
+                prefresh(treePad, 0, 0, 0, 0, maxy - 3, maxx - 1);
+            } else {
+                std::cout << "Enter command > ";
+                getline(std::cin, line);
+            }
 
             std::vector<std::string> command = split(line, ' ', 1);
 
@@ -647,21 +683,20 @@ public:
                 try {
                     depthLimit = atoi(command[1].c_str());
                 } catch (std::exception& e) {
-                    wprintw(treePad, "Usage: setdepth <depth>");
+                    printStr("Usage: setdepth <depth>\n");
                     continue;
                 }
-                wprintw(treePad, "Depth is now %d\n", depthLimit);
+                printStr("Depth is now " + std::to_string(depthLimit) + "\n");
             } else if (command[0] == "explain") {
                 std::pair<std::string, std::vector<std::string>> query;
                 if (command.size() > 1) {
                     query = parseRel(command[1]);
                 } else {
-                    wprintw(treePad, "Usage: explain relation_name(<element1>, <element2>, ...)");
+                    printStr("Usage: explain relation_name(<element1>, <element2>, ...)\n");
                     continue;
                 }
                 elements tuple_elements(query.second);
-                std::unique_ptr<TreeNode> t =
-                        ProvenanceTree(prog, depthLimit).getTree(query.first, tuple_elements);
+                std::unique_ptr<TreeNode> t = provTree.getTree(query.first, tuple_elements);
                 printTree(std::move(t));
             } else if (command[0] == "subproof") {
                 std::pair<std::string, std::vector<std::string>> query;
@@ -670,34 +705,39 @@ public:
                     query = parseRel(command[1]);
                     label = atoi(query.second[0].c_str());
                 } else {
-                    wprintw(treePad, "Usage: subproof relation_name(<label>)");
+                    printStr("Usage: subproof relation_name(<label>)\n");
                     continue;
                 }
-                std::unique_ptr<TreeNode> t = ProvenanceTree(prog, depthLimit).getTree(query.first, label);
+                std::unique_ptr<TreeNode> t = provTree.getTree(query.first, label);
                 printTree(std::move(t));
             } else if (command[0] == "rule") {
                 try {
                     auto query = split(command[1], ' ');
-                    wprintw(treePad, "%s\n",
-                            ProvenanceTree(prog, depthLimit).getRule(query[0], atoi(query[1].c_str())));
+                    printStr(provTree.getRule(query[0], atoi(query[1].c_str())));
                 } catch (std::exception& e) {
-                    wprintw(treePad, "Usage: rule <rule number>");
+                    printStr("Usage: rule <rule number>\n");
                     continue;
                 }
             } else if (command[0] == "exit") {
                 break;
             }
-            prefresh(treePad, 0, 0, 0, 0, maxy - 3, maxx - 1);
-            scrollTree(maxx, maxy);
+
+            // refresh treePad and allow scrolling
+            if (ncurses) {
+                prefresh(treePad, 0, 0, 0, 0, maxy - 3, maxx - 1);
+                scrollTree(maxx, maxy);
+            }
         }
-        endwin();
+        if (ncurses) {
+            endwin();
+        }
     }
 };
 
-inline void explain(SouffleProgram& prog) {
+inline void explain(SouffleProgram& prog, bool ncurses = true) {
     std::cout << "Explain is invoked.\n";
 
-    ProvenanceDisplay prov(prog);
+    ProvenanceDisplay prov(prog, ncurses);
     prov.explain();
 }
 }

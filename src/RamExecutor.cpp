@@ -198,10 +198,10 @@ RamDomain eval(const RamValue& value, RamEnvironment& env, const EvalContext& ct
 
                 // strings
                 case BinaryOp::CAT: {
-                    return env.getSymbolTable().lookup(
-                            (std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
-                                    std::string(env.getSymbolTable().resolve(visit(op.getRHS()))))
-                                    .c_str());
+                    return env.getSymbolTable().lookup((
+                            std::string(env.getSymbolTable().resolve(visit(op.getLHS()))) +
+                            std::string(env.getSymbolTable().resolve(
+                                    visit(op.getRHS())))).c_str());
                 }
                 default:
                     assert(0 && "unsupported operator");
@@ -2021,9 +2021,9 @@ std::string RamCompiler::generateCode(
 
     // generate C++ program
     os << "#include \"souffle/CompiledSouffle.h\"\n";
-    if(Global::config().has("provenance")){
-       os << "#include \"souffle/Explain.h\"\n";
-       os << "#include <ncurses.h>\n";
+    if (Global::config().has("provenance")) {
+        os << "#include \"souffle/Explain.h\"\n";
+        os << "#include <ncurses.h>\n";
     }
     os << "\n";
     os << "namespace souffle {\n";
@@ -2329,8 +2329,10 @@ std::string RamCompiler::generateCode(
     os << "obj.loadAll(opt.getInputFileDir());\n";
     os << "obj.run();\n";
     os << "obj.printAll(opt.getOutputFileDir());\n";
-    if(Global::config().get("provenance") == "1"){
-        os << "explain(obj);\n";
+    if (Global::config().get("provenance") == "1") {
+        os << "explain(obj, true);\n";
+    } else if (Global::config().get("provenance") == "2") {
+        os << "explain(obj, false);\n";
     }
     os << "return 0;\n";
     os << "} catch(std::exception &e) { souffle::SignalHandler::instance()->error(e.what());}\n";

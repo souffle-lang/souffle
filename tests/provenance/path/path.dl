@@ -1,0 +1,11 @@
+.pragma "provenance" "1"
+
+.decl edge(x:symbol, y:symbol)
+edge("a", "b").
+edge("b", "c").
+edge("c", "d").
+
+.decl path(x:symbol, y:symbol)
+path(x, y) :- edge(x, y).
+path(x, z) :- edge(x, y), path(y, z).
+.output path()

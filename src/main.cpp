@@ -25,16 +25,16 @@
 #include "AstUtils.h"
 #include "BddbddbBackend.h"
 #include "ComponentModel.h"
+#include "Explain.h"
 #include "Global.h"
 #include "ParserDriver.h"
 #include "PrecedenceGraph.h"
 #include "RamExecutor.h"
+#include "RamInterface.h"
 #include "RamStatement.h"
 #include "RamTranslator.h"
 #include "SymbolTable.h"
 #include "Util.h"
-#include "Explain.h"
-#include "RamInterface.h"
 
 #include <chrono>
 #include <fstream>
@@ -124,7 +124,9 @@ int main(int argc, char** argv) {
                             {"bddbddb", 'b', "FILE", "", false, "Convert input into bddbddb file format."},
                             {"debug-report", 'r', "FILE", "", false,
                                     "Write debugging output to HTML report."},
-                            {"provenance", 't', "EXPLAIN", "0", false, "Enable provenance information."},
+                            {"provenance", 't', "EXPLAIN", "0", false,
+                                    "Enable provenance information (<EXPLAIN> can be 0 for no explain, 1 for "
+                                    "explain with ncurses, 2 for explain with stdout)."},
                             {"verbose", 'v', "", "", false, "Verbose output."},
                             {"help", 'h', "", "", false, "Display this help message."}};
                     return std::vector<MainOption>(std::begin(opts), std::end(opts));
@@ -390,7 +392,7 @@ int main(int argc, char** argv) {
     }
 
     // check if this is code generation only
-    RamEnvironment *env=nullptr;
+    RamEnvironment* env = nullptr;
     if (Global::config().has("generate")) {
         // just generate, no compile, no execute
         static_cast<const RamCompiler*>(executor.get())
@@ -413,11 +415,15 @@ int main(int argc, char** argv) {
                   << "sec\n";
     }
 
-    if (Global::config().get("provenance") == "1"){ 
+    if (Global::config().has("provenance")) {
         // construct SouffleProgram from env
         SouffleInterpreterInterface interface(*env, translationUnit->getSymbolTable());
         // invoke explain
-        explain(interface);
+        if (Global::config().get("provenance") == "1") {
+            explain(interface, true);
+        } else if (Global::config().get("provenance") == "2") {
+            explain(interface, false);
+        }
     }
 
     return 0;
