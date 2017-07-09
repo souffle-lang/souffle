@@ -4,5 +4,5 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-POSITIVE_TEST_IN([test1],[provenance])
-NEGATIVE_TEST_IN([test2],[provenance])
+POSITIVE_TEST_IN([path],[provenance])
+dnl NEGATIVE_TEST_IN([test2],[provenance])

@@ -1,0 +1,9 @@
+Explain is invoked.
+Enter command >                       edge(c, d)               
+                      -----------(R0)          
+           edge(b, c)   path(c, d)             
+           ---------------------------(R1)     
+edge(a, b)           path(b, d)                
+-------------------------------------------(R1)
+                  path(a, d)                   
+Enter command > 
