@@ -187,7 +187,7 @@ private:
 
 public:
     std::string getName() const override {
-        return "ProvenanceRecordTransformer";
+        return "NaiveProvenanceTransformer";
     }
 };
 

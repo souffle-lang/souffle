@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
                             {"bddbddb", 'b', "FILE", "", false, "Convert input into bddbddb file format."},
                             {"debug-report", 'r', "FILE", "", false,
                                     "Write debugging output to HTML report."},
-                            {"provenance", 't', "EXPLAIN", "0", false,
+                            {"provenance", 't', "EXPLAIN", "", false,
                                     "Enable provenance information (<EXPLAIN> can be 0 for no explain, 1 for "
                                     "explain with ncurses, 2 for explain with stdout)."},
                             {"verbose", 'v', "", "", false, "Verbose output."},

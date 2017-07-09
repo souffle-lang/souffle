@@ -19,6 +19,7 @@
 #include <csignal>
 #include <iostream>
 #include <regex>
+#include <string>
 #include <ncurses.h>
 
 #include "SouffleInterface.h"
