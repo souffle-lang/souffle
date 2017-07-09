@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "SouffleInterface.h"
 #include "RamRelation.h"
+#include "SouffleInterface.h"
 
 #include <array>
 
@@ -38,11 +38,12 @@ protected:
         RamRelationInterface* ramRelationInterface;
         RamRelation::iterator it;
         tuple tup;
+
     public:
         iterator_base(uint32_t arg_id, RamRelationInterface* r, RamRelation::iterator i)
-            : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
+                : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
         virtual ~iterator_base() {}
-        
+
         // increments iterator to next relation
         void operator++();
 
@@ -56,8 +57,9 @@ protected:
     };
 
 public:
-    RamRelationInterface(RamRelation& r, SymbolTable& s, std::string n, std::vector<std::string> t, std::vector<std::string> an, uint32_t i)
-        : ramRelation(r), symTable(s), name(n), types(t), attrNames(an), id(i) {}
+    RamRelationInterface(RamRelation& r, SymbolTable& s, std::string n, std::vector<std::string> t,
+            std::vector<std::string> an, uint32_t i)
+            : ramRelation(r), symTable(s), name(n), types(t), attrNames(an), id(i) {}
     virtual ~RamRelationInterface() {}
 
     // insert a new tuple into the relation
@@ -107,12 +109,13 @@ public:
                 std::string n = rel.getID().getArg(i);
                 attrNames.push_back(n);
             }
-            addRelation(rel.getID().getName(), new RamRelationInterface(rel, symTable, rel.getID().getName(), types, attrNames, id), rel.getID().isInput(), rel.getID().isOutput());
+            addRelation(rel.getID().getName(),
+                    new RamRelationInterface(rel, symTable, rel.getID().getName(), types, attrNames, id),
+                    rel.getID().isInput(), rel.getID().isOutput());
             id++;
         }
     }
     virtual ~SouffleInterpreterInterface() {}
-
 
     // running an interpreter program doesn't make sense
     void run() {
@@ -134,4 +137,4 @@ public:
     }
 };
 
-} // end of namespace souffle
+}  // end of namespace souffle

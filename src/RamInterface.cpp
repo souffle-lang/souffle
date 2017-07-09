@@ -14,7 +14,6 @@
  *
  ***********************************************************************/
 
-
 #include "RamInterface.h"
 
 namespace souffle {
@@ -76,11 +75,13 @@ bool RamRelationInterface::contains(const tuple& t) const {
 }
 
 typename RamRelationInterface::iterator RamRelationInterface::begin() {
-    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(id, this, ramRelation.begin()));
+    return RamRelationInterface::iterator(
+            new RamRelationInterface::iterator_base(id, this, ramRelation.begin()));
 }
 
 typename RamRelationInterface::iterator RamRelationInterface::end() {
-    return RamRelationInterface::iterator(new RamRelationInterface::iterator_base(id, this, ramRelation.end()));
+    return RamRelationInterface::iterator(
+            new RamRelationInterface::iterator_base(id, this, ramRelation.end()));
 }
 
 std::size_t RamRelationInterface::size() {
@@ -117,4 +118,4 @@ SymbolTable& RamRelationInterface::getSymbolTable() const {
     return symTable;
 }
 
-} // end of namespace souffle
+}  // end of namespace souffle

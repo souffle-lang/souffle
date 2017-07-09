@@ -381,13 +381,13 @@ bool NaiveProvenanceTransformer::transform(AstTranslationUnit& translationUnit) 
 
         // add relations to program
         for (auto transformedClause : transformedRelation->getTransformedClauses()) {
-            program->addRelation(std::move(transformedClause->getInfoRelation()));
+            program->addRelation(transformedClause->getInfoRelation());
             if (!transformedRelation->isEdbRelation()) {
-                program->addRelation(std::move(transformedClause->getProvenanceRelation()));
+                program->addRelation(transformedClause->getProvenanceRelation());
             }
         }
-        program->addRelation(std::move(transformedRelation->getRecordRelation()));
-        program->addRelation(std::move(transformedRelation->getOutputRelation()));
+        program->addRelation(transformedRelation->getRecordRelation());
+        program->addRelation(transformedRelation->getOutputRelation());
     }
     return changed;
 }

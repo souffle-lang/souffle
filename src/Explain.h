@@ -518,11 +518,11 @@ public:
     ProvenanceTree(SouffleProgram& p, int d = 4) : prog(p), provInfo(p), depthLimit(d) {}
 
     std::unique_ptr<TreeNode> getTree(std::string relName, elements tuple_elements) {
-        return std::move(explain(relName, tuple_elements));
+        return explain(relName, tuple_elements);
     }
 
     std::unique_ptr<TreeNode> getTree(std::string relName, plabel label) {
-        return std::move(explainLabel(relName, label, depthLimit));
+        return explainLabel(relName, label, depthLimit);
     }
 
     std::string getRule(std::string relName, int ruleNum) {
