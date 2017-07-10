@@ -3,7 +3,7 @@ Maintainer: Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>
 Section: misc
 Priority: optional
 Standards-Version: 3.9.5
-Build-Depends: autoconf, automake, bison, debhelper (>= 9), flex, libsqlite3-dev, openjdk-7-jdk | openjdk-8-jdk, zlib1g-dev
+Build-Depends: autoconf, automake, bison, debhelper (>= 9), flex, libsqlite3-dev, openjdk-7-jdk | openjdk-8-jdk, zlib1g-dev, libncurses5-dev
 Homepage: https://github.com/oracle/souffle
 Vcs-Git: https://github.com/souffle-lang/souffle.git
 

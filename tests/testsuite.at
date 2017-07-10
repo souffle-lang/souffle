@@ -274,8 +274,8 @@ dnl NOTE: This is the default configuration that can be overridden
 dnl using SOUFFLE_CONFS environment variable.
 m4_define([DEFAULT_CONFS], [[], dnl interpreter
  [-c],                  dnl compilation
- [-t],                  dnl provenance transformation
- [-c -t],               dnl provenance transformation / compilation
+ [-t0],                 dnl provenance transformation
+ [-c -t0],              dnl provenance transformation / compilation
  [-j8],                 dnl interpreter / parallel execution
  [-c -j8],              dnl compilation & parallel execution
  [--auto-schedule -o testprog],  dnl auto-scheduling & compilation

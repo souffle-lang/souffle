@@ -13,7 +13,7 @@ set -x
 if [ $TRAVIS_OS_NAME == linux ]
 then
   sudo apt-get -qq update # TODO comment this out if the apt repo is up-to-date
-  sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-8-jdk lsb-release libtool
+  sudo apt-get -y install build-essential g++ automake autoconf bison flex openjdk-8-jdk lsb-release libtool libncurses5-dev
 
   if [ "$TEST_FORMAT" == 1 ]
   then
