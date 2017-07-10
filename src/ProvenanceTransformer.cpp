@@ -101,6 +101,11 @@ void ProvenanceTransformedClause::makeInfoRelation() {
 
         const AstAtom* atom = lit.getAtom();
         if (atom != nullptr) {
+            // do not track provenance for nullary relations
+            if (atom->getArity() == 0) {
+                return;
+            }
+
             const char* relName = identifierToString(atom->getName()).c_str();
 
             infoRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(
@@ -155,6 +160,10 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
         if (atom != nullptr) {  // literal is atom or negation
             std::string relName = identifierToString(atom->getName());
             auto args = atom->getArguments();
+
+            if (atom->getArity() == 0) {
+                continue;
+            }
 
             // add atom converted to record to body
             auto newBody = std::unique_ptr<AstAtom>(new AstAtom(makeRelationName(atom->getName(), "record")));
@@ -357,6 +366,10 @@ bool NaiveProvenanceTransformer::transform(AstTranslationUnit& translationUnit) 
     auto relationToTypeMap = std::map<AstRelationIdentifier, AstTypeIdentifier>();
 
     for (auto relation : program->getRelations()) {
+        if (relation->getArity() == 0) {
+            continue;
+        }
+
         std::string relationName = identifierToString(relation->getName());
 
         // create new record type
@@ -373,6 +386,10 @@ bool NaiveProvenanceTransformer::transform(AstTranslationUnit& translationUnit) 
     }
 
     for (auto relation : program->getRelations()) {
+        if (relation->getArity() == 0) {
+            continue;
+        }
+
         changed = true;
 
         // create new ProvenanceTransformedRelation

@@ -65,8 +65,8 @@ public:
      * Runs the given RAM statement on an empty environment and returns
      * this environment after the completion of the execution.
      */
-    RamEnvironment *execute(SymbolTable& table, const RamStatement& stmt) const {
-        RamEnvironment *env = new RamEnvironment(table);
+    RamEnvironment* execute(SymbolTable& table, const RamStatement& stmt) const {
+        RamEnvironment* env = new RamEnvironment(table);
         applyOn(stmt, *env, nullptr);
         return env;
     }
