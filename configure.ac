@@ -43,7 +43,7 @@ AM_CONDITIONAL([JAVAI], [test "x$enable_jni" = "xyes"])
 
 # Enable curses library
 AX_WITH_CURSES
-AS_VAR_APPEND(LDFLAGS, ["$CURSES_LIB"])
+AS_VAR_APPEND(LIBS, ["$CURSES_LIB"])
 
 dnl Do not set default CFLAGS and CXXFLAGS
 CXXFLAGS=" -Wall -std=c++11  $CXXFLAGS"
