@@ -344,9 +344,14 @@ private:
 
                     // construct vector of proof references
                     for (size_t i = 1; i < tuple.size(); i++) {
-                        plabel l;
-                        tuple >> l;
-                        refs.push_back(l);
+                        if (*(rel->getAttrType(i)) == 'i' || *(rel->getAttrType(i)) == 'r') {
+                            plabel n;
+                            tuple >> n;
+                            refs.push_back(n);
+                        } else if (*(rel->getAttrType(i)) == 's') {
+                            std::string s;
+                            tuple >> s;
+                        }
                     }
 
                     labelToProof.insert({std::make_pair(rel->getName(), label), refs});
@@ -492,7 +497,11 @@ private:
                 for (size_t i = 0; i < provInfo.getInfo(infoKey).size(); i++) {
                     auto rel = provInfo.getInfo(infoKey)[i];
                     auto newLab = provInfo.getSubproofs(internalRelName, label)[i];
-                    inner->add_child(explainLabel(rel, newLab, depth - 1));
+                    if (std::regex_match(rel, std::regex("negated_.*"))) {
+                        inner->add_child(std::unique_ptr<TreeNode>(new leaf_node(rel)));
+                    } else {
+                        inner->add_child(explainLabel(rel, newLab, depth - 1));
+                    }
                 }
                 return std::move(inner);
 
