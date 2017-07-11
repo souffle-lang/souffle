@@ -187,9 +187,9 @@ public:
 /***
  * Concrete class for leafs
  */
-class leaf_node : public TreeNode {
+class LeafNode : public TreeNode {
 public:
-    leaf_node(const std::string& t = "") : TreeNode(t) {}
+    LeafNode(const std::string& t = "") : TreeNode(t) {}
 
     // place leaf node
     void place(uint32_t x, uint32_t y) {
@@ -455,15 +455,16 @@ private:
 
         // check that relation is in the program
         if (!found) {
-            return std::unique_ptr<TreeNode>(new leaf_node("Relation " + relName + " not found"));
+            return std::unique_ptr<TreeNode>(new LeafNode("Relation " + relName + " not found"));
         }
 
         // if EDB relation, make a leaf node in the tree
         if (prog.getRelation(relName) != nullptr && isEDB) {
             std::string lab = relName + provInfo.getTuple(relName + "-output", label).getRepresentation();
-            return std::unique_ptr<TreeNode>(new leaf_node(lab));
+            return std::unique_ptr<TreeNode>(new LeafNode(lab));
         } else {
-            if (depth > 0) {
+            std::cout << "depth " << depth << std::endl;
+            if (depth > 1) {
                 std::string internalRelName;
 
                 // find correct relation
@@ -479,7 +480,7 @@ private:
                 }
 
                 if (internalRelName == "") {
-                    return std::unique_ptr<TreeNode>(new leaf_node("Relation " + relName + " not found"));
+                    return std::unique_ptr<TreeNode>(new LeafNode("Relation " + relName + " not found"));
                 }
 
                 // label and rule number for node
@@ -498,7 +499,7 @@ private:
                     auto rel = provInfo.getInfo(infoKey)[i];
                     auto newLab = provInfo.getSubproofs(internalRelName, label)[i];
                     if (std::regex_match(rel, std::regex("negated_.*"))) {
-                        inner->add_child(std::unique_ptr<TreeNode>(new leaf_node(rel)));
+                        inner->add_child(std::unique_ptr<TreeNode>(new LeafNode(rel)));
                     } else {
                         inner->add_child(explainLabel(rel, newLab, depth - 1));
                     }
@@ -508,7 +509,7 @@ private:
                 // add subproof label if depth limit is exceeded
             } else {
                 std::string lab = "subproof " + relName + "(" + std::to_string(label) + ")";
-                return std::unique_ptr<TreeNode>(new leaf_node(lab));
+                return std::unique_ptr<TreeNode>(new LeafNode(lab));
             }
         }
     }
@@ -517,7 +518,7 @@ private:
         auto lab = provInfo.getLabel(relName + "-output", tuple_elements);
         if (lab == -1) {
             return std::unique_ptr<TreeNode>(
-                    new leaf_node("Tuple " + relName + tuple_elements.getRepresentation() + " not found"));
+                    new LeafNode("Tuple " + relName + tuple_elements.getRepresentation() + " not found"));
         }
 
         return explainLabel(relName, lab, depthLimit);
@@ -697,6 +698,7 @@ public:
                     continue;
                 }
                 printStr("Depth is now " + std::to_string(depthLimit) + "\n");
+                provTree.setDepth(depthLimit);
             } else if (command[0] == "explain") {
                 std::pair<std::string, std::vector<std::string>> query;
                 if (command.size() > 1) {
