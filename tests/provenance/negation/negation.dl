@@ -8,12 +8,16 @@
 
 .pragma "provenance" "2"
 
-.decl edge(x:symbol, y:symbol)
-edge("a", "b").
-edge("b", "c").
-edge("c", "d").
+.decl person(x:symbol)
+person("john").
+person("jim").
+person("tim").
 
-.decl path(x:symbol, y:symbol)
-path(x, y) :- edge(x, y).
-path(x, z) :- edge(x, y), path(y, z).
-.output path()
+.decl being(x:symbol)
+being(x) :- person(x).
+being("tomothy_the_cat").
+being("ollie_the_doggo").
+
+.decl animal(x:symbol)
+animal(x) :- being(x), !person(x).
+.output animal

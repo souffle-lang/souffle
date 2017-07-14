@@ -160,7 +160,8 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
     provenanceClauseHead->addArgument(std::unique_ptr<AstArgument>(makeNewRecordInit(args)));
 
     // visit all body literals and add to provenance clause
-    for (auto lit : originalClause.getBodyLiterals()) {
+    for (size_t i = 0; i < originalClause.getBodyLiterals().size(); i++) {
+        auto lit = originalClause.getBodyLiterals()[i];
         const AstAtom* atom = lit->getAtom();
         if (atom != nullptr) {  // literal is atom or negation
             std::string relName = identifierToString(atom->getName());
@@ -175,8 +176,8 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
 
             if (dynamic_cast<const AstAtom*>(lit)) {
                 // add atom to head as a record
-                provenanceRelation->addAttribute(std::unique_ptr<AstAttribute>(
-                        new AstAttribute("prov_" + relName, relationToTypeMap[atom->getName()])));
+                provenanceRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(
+                        "prov_" + relName + "_" + std::to_string(i), relationToTypeMap[atom->getName()])));
                 provenanceClauseHead->addArgument(std::unique_ptr<AstArgument>(makeNewRecordInit(args)));
 
                 // add argument to body corresponding to provenance info for atom
@@ -184,8 +185,8 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
                 provenanceClause->addToBody(std::move(newBody));
             } else if (dynamic_cast<const AstNegation*>(lit)) {
                 // add a marker signifying a negation
-                provenanceRelation->addAttribute(std::unique_ptr<AstAttribute>(
-                        new AstAttribute("prov_" + relName, AstTypeIdentifier("symbol"))));
+                provenanceRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(
+                        "prov_" + relName + "_" + std::to_string(i), AstTypeIdentifier("symbol"))));
                 provenanceClauseHead->addArgument(std::unique_ptr<AstArgument>(new AstStringConstant(
                         translationUnit.getSymbolTable(), ("negated_" + relName).c_str())));
 
@@ -411,6 +412,7 @@ bool NaiveProvenanceTransformer::transform(AstTranslationUnit& translationUnit) 
         program->addRelation(transformedRelation->getRecordRelation());
         program->addRelation(transformedRelation->getOutputRelation());
     }
+
     return changed;
 }
 
