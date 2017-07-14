@@ -463,7 +463,6 @@ private:
             std::string lab = relName + provInfo.getTuple(relName + "-output", label).getRepresentation();
             return std::unique_ptr<TreeNode>(new LeafNode(lab));
         } else {
-            std::cout << "depth " << depth << std::endl;
             if (depth > 1) {
                 std::string internalRelName;
 
@@ -479,8 +478,14 @@ private:
                     }
                 }
 
+                // must be fact or not found
                 if (internalRelName == "") {
-                    return std::unique_ptr<TreeNode>(new LeafNode("Relation " + relName + " not found"));
+                    auto fact = provInfo.getTuple(relName + "-output", label);
+                    if (fact != defaultElement) {
+                        return std::unique_ptr<TreeNode>(new LeafNode(relName + fact.getRepresentation()));
+                    } else {
+                        return std::unique_ptr<TreeNode>(new LeafNode("Relation " + relName + " not found"));
+                    }
                 }
 
                 // label and rule number for node

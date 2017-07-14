@@ -5,4 +5,6 @@
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 POSITIVE_TEST_IN([path],[provenance])
+POSITIVE_TEST_IN([negation],[provenance])
+
 dnl NEGATIVE_TEST_IN([test2],[provenance])
