@@ -39,22 +39,25 @@ inline AstRelationIdentifier makeRelationName(
     return *newName;
 }
 
-AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args, bool negation = false) {
+AstRecordInit* makeNewRecordInit(
+        const std::vector<AstArgument*> args, int recordInitNum = 0, bool negation = false) {
     auto newRecordInit = new AstRecordInit();
 
     int* numUnnamed = new int(0);
+    int* recordInitNumber = new int(recordInitNum);
     struct M : public AstNodeMapper {
         int* numUnnamed;
+        int* recordInitNum;
 
         using AstNodeMapper::operator();
 
-        M(int* numUnnamed) : numUnnamed(numUnnamed) {}
+        M(int* numUnnamed, int* recordInitNum) : numUnnamed(numUnnamed), recordInitNum(recordInitNum) {}
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             // see whether it is a variable to be substituted
             if (dynamic_cast<AstUnnamedVariable*>(node.get())) {
-                return std::unique_ptr<AstNode>(
-                        new AstVariable("unnamed_" + std::to_string((*numUnnamed)++)));
+                return std::unique_ptr<AstNode>(new AstVariable(
+                        "unnamed_" + std::to_string(*recordInitNum) + "_" + std::to_string((*numUnnamed)++)));
             }
 
             // otherwise - apply mapper recursively
@@ -67,7 +70,7 @@ AstRecordInit* makeNewRecordInit(const std::vector<AstArgument*> args, bool nega
         if (negation) {
             newRecordInit->add(std::unique_ptr<AstArgument>(arg->clone()));
         } else {
-            newRecordInit->add(M(numUnnamed)(std::unique_ptr<AstArgument>(arg->clone())));
+            newRecordInit->add(M(numUnnamed, recordInitNumber)(std::unique_ptr<AstArgument>(arg->clone())));
         }
     }
 
@@ -178,10 +181,10 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
                 // add atom to head as a record
                 provenanceRelation->addAttribute(std::unique_ptr<AstAttribute>(new AstAttribute(
                         "prov_" + relName + "_" + std::to_string(i), relationToTypeMap[atom->getName()])));
-                provenanceClauseHead->addArgument(std::unique_ptr<AstArgument>(makeNewRecordInit(args)));
+                provenanceClauseHead->addArgument(std::unique_ptr<AstArgument>(makeNewRecordInit(args, i)));
 
                 // add argument to body corresponding to provenance info for atom
-                newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args)));
+                newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args, i)));
                 provenanceClause->addToBody(std::move(newBody));
             } else if (dynamic_cast<const AstNegation*>(lit)) {
                 // add a marker signifying a negation
@@ -191,7 +194,7 @@ void ProvenanceTransformedClause::makeProvenanceRelation(AstRelation* recordRela
                         translationUnit.getSymbolTable(), ("negated_" + relName).c_str())));
 
                 // add argument to body corresponding to record form of original atom
-                newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args, true)));
+                newBody->addArgument(std::unique_ptr<AstRecordInit>(makeNewRecordInit(args, i, true)));
                 provenanceClause->addToBody(
                         std::unique_ptr<AstNegation>(new AstNegation(std::move(newBody))));
             }
