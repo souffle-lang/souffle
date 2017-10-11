@@ -6,6 +6,7 @@ set -e
 set -x
 
 # Install requirements of MAC OS X
+brew update
 brew install md5sha1sum bison libtool
 brew link bison --force
 
