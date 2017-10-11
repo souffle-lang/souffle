@@ -26,6 +26,7 @@
 #include "SouffleInterface.h"
 #include "SymbolTable.h"
 
+#include <fstream>
 #include <array>
 #include <cmath>
 #include <iostream>
