@@ -1,5 +1,5 @@
 
-# [Soufflé](https://souffle-lang.gitio.com)
+# [Soufflé](https://souffle-lang.github.io)
 
 [![Build Status](https://travis-ci.org/souffle-lang/souffle.svg?branch=master)](https://travis-ci.org/souffle-lang/souffle)
 
