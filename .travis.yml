@@ -38,6 +38,7 @@ aliases:
         - *linux_deps
         - clang-4.0
         - gdb
+        - g++-7
     #install: ".travis/linux/clang_install.sh"
     before_script: ".travis/init_test.sh"
     script: ".travis/run_test.sh"
