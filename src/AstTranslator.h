@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file RamTranslator.h
+ * @file AstTranslator.h
  *
  * Defines utilities for translating AST structures into RAM constructs.
  *
@@ -39,7 +39,7 @@ class RecursiveClauses;
  * A utility class capable of conducting the conversion between AST
  * and RAM structures.
  */
-class RamTranslator {
+class AstTranslator {
     /** If true, created constructs will be annotated with logging information */
     bool logging;
 
@@ -49,7 +49,7 @@ public:
      *
      * @param logging if generated clauses should be annotated with logging operations
      */
-    RamTranslator(bool logging = false) : logging(logging) {}
+    AstTranslator(bool logging = false) : logging(logging) {}
 
     /**
      * Converts the given relation identifier into a relation name.

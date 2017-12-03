@@ -16,10 +16,10 @@
 
 #include "AstTuner.h"
 #include "AstProgram.h"
+#include "AstTranslator.h"
 #include "AstVisitor.h"
-#include "RamExecutor.h"
+#include "RamInterpreter.h"
 #include "RamStatement.h"
-#include "RamTranslator.h"
 
 namespace souffle {
 
@@ -91,7 +91,7 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, std:
         std::cout << "[ Converting to RAM Program ...                           ]\n";
     }
 
-    std::unique_ptr<RamProgram> prog = RamTranslator().translateProgram(translationUnit);
+    std::unique_ptr<RamProgram> prog = AstTranslator().translateProgram(translationUnit);
     const RamStatement* stmt = prog->getMain();
 
     // check whether there is something to tune
@@ -119,7 +119,7 @@ bool AutoScheduleTransformer::autotune(AstTranslationUnit& translationUnit, std:
     souffle::SymbolTable table = translationUnit.getSymbolTable();
 
     // create interpreter instance
-    RamGuidedInterpreter interpreter(profiler);
+    RamInterpreter interpreter(profiler);
 
     if (report && verbose) {
         SplitStream splitStream(report, &std::cout);

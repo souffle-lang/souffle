@@ -28,13 +28,14 @@
 #ifdef USE_PROVENANCE
 #include "Explain.h"
 #endif
+#include "AstTranslator.h"
 #include "Global.h"
 #include "ParserDriver.h"
 #include "PrecedenceGraph.h"
-#include "RamExecutor.h"
 #include "RamInterface.h"
+#include "RamInterpreter.h"
 #include "RamStatement.h"
-#include "RamTranslator.h"
+#include "RamSynthesiser.h"
 #include "SymbolTable.h"
 #include "Util.h"
 
@@ -370,7 +371,7 @@ int main(int argc, char** argv) {
 
     /* translate AST to RAM */
     std::unique_ptr<RamProgram> ramProg =
-            RamTranslator(Global::config().has("profile")).translateProgram(*translationUnit);
+            AstTranslator(Global::config().has("profile")).translateProgram(*translationUnit);
 
     if (!Global::config().get("debug-report").empty()) {
         if (ramProg) {
@@ -400,8 +401,8 @@ int main(int argc, char** argv) {
         // configure interpreter
         std::unique_ptr<RamExecutor> executor =
                 (Global::config().has("auto-schedule"))
-                        ? std::unique_ptr<RamExecutor>(new RamGuidedInterpreter())
-                        : std::unique_ptr<RamExecutor>(new RamInterpreter());
+                        ? std::unique_ptr<RamExecutor>(new RamInterpreter(ScheduledExecution))
+                        : std::unique_ptr<RamExecutor>(new RamInterpreter(DirectExecution));
         std::unique_ptr<RamEnvironment> env = executor->execute(translationUnit->getSymbolTable(), *ramProg);
 
 #ifdef USE_PROVENANCE
@@ -465,7 +466,7 @@ int main(int argc, char** argv) {
             if (Global::config().has("stratify")) index++;
 
             // configure compiler
-            executor = std::unique_ptr<RamExecutor>(new RamCompiler(compileCmd));
+            executor = std::unique_ptr<RamExecutor>(new RamSynthesiser(compileCmd));
             if (Global::config().has("verbose")) {
                 executor->setReportTarget(std::cout);
             }
@@ -473,14 +474,14 @@ int main(int argc, char** argv) {
                 // check if this is code generation only
                 if (Global::config().has("generate")) {
                     // just generate, no compile, no execute
-                    static_cast<const RamCompiler*>(executor.get())
+                    static_cast<const RamSynthesiser*>(executor.get())
                             ->generateCode(translationUnit->getSymbolTable(), *stratum,
                                     Global::config().get("generate"), index);
 
                     // check if this is a compile only
                 } else if (Global::config().has("compile") && Global::config().has("dl-program")) {
                     // just compile, no execute
-                    static_cast<const RamCompiler*>(executor.get())
+                    static_cast<const RamSynthesiser*>(executor.get())
                             ->compileToBinary(translationUnit->getSymbolTable(), *stratum,
                                     Global::config().get("dl-program"), index);
                 } else {

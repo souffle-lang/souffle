@@ -8,13 +8,13 @@
 
 /************************************************************************
  *
- * @file RamTranslator.cpp
+ * @file AstTranslator.cpp
  *
  * Implementations of a translator from AST to RAM structures.
  *
  ***********************************************************************/
 
-#include "RamTranslator.h"
+#include "AstTranslator.h"
 #include "AstClause.h"
 #include "AstIODirective.h"
 #include "AstProgram.h"
@@ -154,7 +154,7 @@ RamRelationIdentifier getRamRelationIdentifier(const AstRelation* rel, const Typ
 }
 }  // namespace
 
-std::string RamTranslator::translateRelationName(const AstRelationIdentifier& id) {
+std::string AstTranslator::translateRelationName(const AstRelationIdentifier& id) {
     return getRelationName(id);
 }
 
@@ -401,7 +401,7 @@ std::unique_ptr<RamValue> translateValue(const AstArgument& arg, const ValueInde
 }  // namespace
 
 /** generate RAM code for a clause */
-std::unique_ptr<RamStatement> RamTranslator::translateClause(const AstClause& clause,
+std::unique_ptr<RamStatement> AstTranslator::translateClause(const AstClause& clause,
         const AstProgram* program, const TypeEnvironment* typeEnv, int version, bool ret) {
     // check whether there is an imposed order constraint
     if (clause.getExecutionPlan() && clause.getExecutionPlan()->hasOrderFor(version)) {
@@ -808,7 +808,7 @@ static void appendStmt(std::unique_ptr<RamStatement>& stmtList, std::unique_ptr<
 };
 
 /** generate RAM code for a non-recursive relation */
-std::unique_ptr<RamStatement> RamTranslator::translateNonRecursiveRelation(const AstRelation& rel,
+std::unique_ptr<RamStatement> AstTranslator::translateNonRecursiveRelation(const AstRelation& rel,
         const AstProgram* program, const RecursiveClauses* recursiveClauses, const TypeEnvironment& typeEnv) {
     /* start with an empty sequence */
     std::unique_ptr<RamStatement> res;
@@ -911,7 +911,7 @@ void nameUnnamedVariables(AstClause* clause) {
 }  // namespace
 
 /** generate RAM code for recursive relations in a strongly-connected component */
-std::unique_ptr<RamStatement> RamTranslator::translateRecursiveRelation(
+std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
         const std::set<const AstRelation*>& scc, const AstProgram* program,
         const RecursiveClauses* recursiveClauses, const TypeEnvironment& typeEnv) {
     // initialize sections
@@ -1171,7 +1171,7 @@ void printSizeStore(std::unique_ptr<RamStatement>& current, const AstRelation* r
 }
 
 /** make a subroutine to search for subproofs */
-std::unique_ptr<RamStatement> RamTranslator::makeSubproofSubroutine(
+std::unique_ptr<RamStatement> AstTranslator::makeSubproofSubroutine(
         const AstClause& clause, const AstProgram* program, const TypeEnvironment& typeEnv) {
     // make intermediate clause with constraints
     std::unique_ptr<AstClause> intermediateClause(clause.clone());
@@ -1216,7 +1216,7 @@ std::unique_ptr<RamStatement> RamTranslator::makeSubproofSubroutine(
 }
 
 /** translates the given datalog program into an equivalent RAM program  */
-std::unique_ptr<RamProgram> RamTranslator::translateProgram(const AstTranslationUnit& translationUnit) {
+std::unique_ptr<RamProgram> AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) {
     const TypeEnvironment& typeEnv =
             translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
