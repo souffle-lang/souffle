@@ -8,9 +8,9 @@
 
 /************************************************************************
  *
- * @file AstAnalysis.h
+ * @file RamAnalysis.h
  *
- * Defines an interface for AST analysis
+ * Defines an interface for RAM analysis
  *
  ***********************************************************************/
 #pragma once
@@ -19,23 +19,23 @@
 
 namespace souffle {
 
-class AstTranslationUnit;
+class RamTranslationUnit;
 
 /**
- * Abstract class for a AST Analysis.
+ * Abstract class for a RAM Analysis.
  */
-class AstAnalysis {
+class RamAnalysis {
 public:
-    virtual ~AstAnalysis() = default;
+    virtual ~RamAnalysis() = default;
 
     /** run analysis for a RAM translation unit */
-    virtual void run(const AstTranslationUnit& translationUnit) = 0;
+    virtual void run(const RamTranslationUnit& translationUnit) = 0;
 
     /** print the analysis result in HTML format */
     virtual void print(std::ostream& os) const {}
 
     /** define output stream operator */
-    friend std::ostream& operator<<(std::ostream& out, const AstAnalysis& other) {
+    friend std::ostream& operator<<(std::ostream& out, const RamAnalysis& other) {
         other.print(out);
         return out;
     }

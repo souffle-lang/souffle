@@ -39,7 +39,7 @@ class AstVariable;
 class AstLiteral;
 
 /**
- * Intermediate representation of an argument of a Literal (e.g., a variable or a constant)
+ * Intermediate representation of an argument
  */
 class AstArgument : public AstNode {
 public:
@@ -50,7 +50,7 @@ public:
         return std::vector<const AstNode*>();  // type is just cached, not essential
     }
 
-    /** Creates a clone if this AST sub-structure */
+    /** Create clone */
     AstArgument* clone() const override = 0;
 };
 

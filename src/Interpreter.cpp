@@ -270,7 +270,7 @@ RamDomain eval(const RamValue& value, InterpreterEnvironment& env, const EvalCon
         // -- subroutine argument
 
         RamDomain visitArgument(const RamArgument& arg) override {
-            return ctxt.getArgument(arg.getNumber());
+            return ctxt.getArgument(arg.getArgNumber());
         }
 
         // -- safety net --
@@ -731,13 +731,13 @@ void run(const QueryExecutionStrategy& strategy, std::ostream* report, std::ostr
         }
 
         bool visitLogTimer(const RamLogTimer& timer) override {
-            Logger logger(timer.getLabel().c_str(), *profile);
-            return visit(timer.getNested());
+            Logger logger(timer.getMessage().c_str(), *profile);
+            return visit(timer.getStatement());
         }
 
         bool visitDebugInfo(const RamDebugInfo& dbg) override {
-            SignalHandler::instance()->setMsg(dbg.getLabel().c_str());
-            return visit(dbg.getNested());
+            SignalHandler::instance()->setMsg(dbg.getMessage().c_str());
+            return visit(dbg.getStatement());
         }
 
         bool visitCreate(const RamCreate& create) override {
@@ -758,14 +758,14 @@ void run(const QueryExecutionStrategy& strategy, std::ostream* report, std::ostr
         bool visitPrintSize(const RamPrintSize& print) override {
             auto lease = getOutputLock().acquire();
             (void)lease;
-            std::cout << print.getLabel() << env.getRelation(print.getRelation()).size() << "\n";
+            std::cout << print.getMessage() << env.getRelation(print.getRelation()).size() << "\n";
             return true;
         }
 
         bool visitLogSize(const RamLogSize& print) override {
             auto lease = getOutputLock().acquire();
             (void)lease;
-            *profile << print.getLabel() << env.getRelation(print.getRelation()).size() << "\n";
+            *profile << print.getMessage() << env.getRelation(print.getRelation()).size() << "\n";
             return true;
         }
 

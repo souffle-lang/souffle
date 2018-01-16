@@ -454,7 +454,7 @@ public:
         out << "if (performIO) {\n";
         out << "{ auto lease = getOutputLock().acquire(); \n";
         out << "(void)lease;\n";
-        out << "std::cout << R\"(" << print.getLabel() << ")\" <<  ";
+        out << "std::cout << R\"(" << print.getMessage() << ")\" <<  ";
         out << getRelationName(print.getRelation()) << "->"
             << "size() << std::endl;\n";
         out << "}";
@@ -466,7 +466,7 @@ public:
         PRINT_BEGIN_COMMENT(out);
         out << "{ auto lease = getOutputLock().acquire(); \n";
         out << "(void)lease;\n";
-        out << "profile << R\"(" << print.getLabel() << ")\" <<  ";
+        out << "profile << R\"(" << print.getMessage() << ")\" <<  ";
         out << getRelationName(print.getRelation());
         out << "->"
             << "size() << std::endl;\n"
@@ -550,10 +550,10 @@ public:
         out << "{\n";
 
         // create local timer
-        out << "\tLogger logger(R\"(" << timer.getLabel() << ")\",profile);\n";
+        out << "\tLogger logger(R\"(" << timer.getMessage() << ")\",profile);\n";
 
         // insert statement to be measured
-        visit(timer.getNested(), out);
+        visit(timer.getStatement(), out);
 
         // done
         out << "}\n";
@@ -563,11 +563,11 @@ public:
     void visitDebugInfo(const RamDebugInfo& dbg, std::ostream& out) override {
         PRINT_BEGIN_COMMENT(out);
         out << "SignalHandler::instance()->setMsg(R\"_(";
-        out << dbg.getLabel();
+        out << dbg.getMessage();
         out << ")_\");\n";
 
         // insert statements of the rule
-        visit(dbg.getNested(), out);
+        visit(dbg.getStatement(), out);
         PRINT_END_COMMENT(out);
     }
 
@@ -1192,7 +1192,7 @@ public:
     // -- subroutine argument --
 
     void visitArgument(const RamArgument& arg, std::ostream& out) override {
-        out << "(args)[" << arg.getNumber() << "]";
+        out << "(args)[" << arg.getArgNumber() << "]";
     }
 
     // -- subroutine return --
@@ -1510,7 +1510,7 @@ std::string Synthesiser::generateCode(const SymbolTable& symTable, const RamProg
         } else if (auto print = dynamic_cast<const RamPrintSize*>(&node)) {
             os << "{ auto lease = getOutputLock().acquire(); \n";
             os << "(void)lease;\n";
-            os << "std::cout << R\"(" << print->getLabel() << ")\" <<  ";
+            os << "std::cout << R\"(" << print->getMessage() << ")\" <<  ";
             os << getRelationName(print->getRelation()) << "->"
                << "size() << std::endl;\n";
             os << "}";

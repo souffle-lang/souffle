@@ -447,7 +447,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(const AstClause& cl
     // handle facts
     if (clause.isFact()) {
         // translate arguments
-        std::vector<std::unique_ptr<const RamValue>> values;
+        std::vector<std::unique_ptr<RamValue>> values;
         for (auto& arg : clause.getHead()->getArguments()) {
             values.push_back(translateValue(*arg));
         }
