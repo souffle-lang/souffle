@@ -25,9 +25,9 @@
 #include "BinaryConstraintOps.h"
 #include "Global.h"
 #include "PrecedenceGraph.h"
+#include "RamRelation.h"
 #include "RamStatement.h"
 #include "RamVisitor.h"
-#include "RamRelation.h"
 
 namespace souffle {
 
@@ -49,7 +49,7 @@ std::string getRelationName(const AstRelationIdentifier& id) {
     return toString(join(id.getNames(), "-"));
 }
 
-RamRelation *getRamRelation(const AstRelation* rel, const TypeEnvironment* typeEnv, std::string name,
+RamRelation* getRamRelation(const AstRelation* rel, const TypeEnvironment* typeEnv, std::string name,
         size_t arity, const bool istemp = false, std::string filePath = std::string(),
         std::string fileExt = std::string()) {
     // avoid name conflicts for temporary identifiers
@@ -153,12 +153,12 @@ RamRelation *getRamRelation(const AstRelation* rel, const TypeEnvironment* typeE
             }
         }
     }
-    return new RamRelation(name, arity, attributeNames, attributeTypeQualifiers, getSymbolMask(*rel, *typeEnv),
-            rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(), rel->isBrie(), rel->isEqRel(),
-            rel->isData(), directives, outputDirectives, istemp);
+    return new RamRelation(name, arity, attributeNames, attributeTypeQualifiers,
+            getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
+            rel->isBrie(), rel->isEqRel(), rel->isData(), directives, outputDirectives, istemp);
 }
 
-RamRelation *getRamRelation(const AstRelation* rel, const TypeEnvironment* typeEnv) {
+RamRelation* getRamRelation(const AstRelation* rel, const TypeEnvironment* typeEnv) {
     return getRamRelation(rel, typeEnv, getRelationName(rel->getName()), rel->getArity());
 }
 }  // namespace
@@ -930,9 +930,9 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
     // --- create preamble ---
 
     // mappings for temporary relations
-    std::map<const AstRelation*, const RamRelation *> rrel;
-    std::map<const AstRelation*, const RamRelation *> relDelta;
-    std::map<const AstRelation*, const RamRelation *> relNew;
+    std::map<const AstRelation*, const RamRelation*> rrel;
+    std::map<const AstRelation*, const RamRelation*> relDelta;
+    std::map<const AstRelation*, const RamRelation*> relNew;
 
     /* Compute non-recursive clauses for relations in scc and push
        the results in their delta tables. */

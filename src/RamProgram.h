@@ -45,8 +45,8 @@ public:
     /** Print */
     void print(std::ostream& out) const override {
         out << "DECLARATION " << std::endl;
-        for (const auto &rel : relations) {
-            rel.second->print(out);    
+        for (const auto& rel : relations) {
+            rel.second->print(out);
         }
         out << "END DECLARATION " << std::endl;
         out << "PROGRAM" << std::endl;
@@ -88,7 +88,6 @@ public:
         }
         return subroutineRefs;
     }
-
 
     /** Get subroutine */
     const RamStatement& getSubroutine(std::string name) const {

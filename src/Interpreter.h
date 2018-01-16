@@ -46,7 +46,7 @@ class InterpreterRelation {
     };
 
     /** The name / arity of this relation */
-    const RamRelation *id;
+    const RamRelation* id;
 
     size_t num_tuples;
 
@@ -71,8 +71,7 @@ public:
     InterpreterRelation(const InterpreterRelation& other) = delete;
 
     InterpreterRelation(InterpreterRelation&& other)
-            : id(other.id), num_tuples(other.num_tuples), tail(other.tail),
-              totalIndex(other.totalIndex) {
+            : id(other.id), num_tuples(other.num_tuples), tail(other.tail), totalIndex(other.totalIndex) {
         // take over ownership
         head.swap(other.head);
         indices.swap(other.indices);

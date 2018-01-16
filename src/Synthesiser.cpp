@@ -24,8 +24,8 @@
 #include "IOSystem.h"
 #include "Logger.h"
 #include "Macro.h"
-#include "RamVisitor.h"
 #include "RamRelation.h"
+#include "RamVisitor.h"
 #include "RuleScheduler.h"
 #include "SignalHandler.h"
 #include "TypeSystem.h"
@@ -396,12 +396,8 @@ public:
         }
         if (Global::config().has("profile")) {
             // get target relation
-            const RamRelation *rel = nullptr;
-            visitDepthFirst(insert, 
-                [&](const RamProject& project) { 
-                    rel = &project.getRelation(); 
-                }
-            );
+            const RamRelation* rel = nullptr;
+            visitDepthFirst(insert, [&](const RamProject& project) { rel = &project.getRelation(); });
 
             // build log message
             auto& clause = insert.getOrigin();

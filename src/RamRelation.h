@@ -71,8 +71,8 @@ protected:
 
 public:
     RamRelation()
-            : RamNode(RN_Relation), arity(0), mask(arity), input(false), output(false), computed(false), btree(false), brie(false),
-              eqrel(false), isdata(false), istemp(false) {}
+            : RamNode(RN_Relation), arity(0), mask(arity), input(false), output(false), computed(false),
+              btree(false), brie(false), eqrel(false), isdata(false), istemp(false) {}
 
     RamRelation(const std::string& name, unsigned arity, const bool istemp) : RamRelation(name, arity) {
         this->istemp = istemp;
@@ -170,7 +170,7 @@ public:
         return name < other.name;
     }
 
-    /* Print */ 
+    /* Print */
     void print(std::ostream& out) const override {
         out << name << "(";
         out << getArg(0);
@@ -193,8 +193,7 @@ public:
     }
 
     /** Apply mapper */
-    void apply(const RamNodeMapper& map) override {
-    }
+    void apply(const RamNodeMapper& map) override {}
 
 protected:
     /** Check equality */
@@ -216,17 +215,16 @@ protected:
     std::string name;
 
 public:
-    RamRelationRef(const std::string& n) : RamNode(RN_RelationRef), name(n) {  
-    }
+    RamRelationRef(const std::string& n) : RamNode(RN_RelationRef), name(n) {}
 
     /** Get name */
     const std::string& getName() const {
         return name;
     }
 
-    /* Print */ 
+    /* Print */
     void print(std::ostream& out) const override {
-        out << name ; 
+        out << name;
     }
 
     /** Obtain list of child nodes */
@@ -241,8 +239,7 @@ public:
     }
 
     /** Apply mapper */
-    void apply(const RamNodeMapper& map) override {
-    }
+    void apply(const RamNodeMapper& map) override {}
 
 protected:
     /** Check equality */
