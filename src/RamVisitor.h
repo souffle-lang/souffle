@@ -20,6 +20,7 @@
 #include "RamCondition.h"
 #include "RamNode.h"
 #include "RamOperation.h"
+#include "RamRelation.h"
 #include "RamStatement.h"
 #include "RamValue.h"
 
@@ -71,6 +72,9 @@ struct RamVisitor : public ram_visitor_tag {
 #define FORWARD(Kind) \
     case (RN_##Kind): \
         return visit##Kind(static_cast<const Ram##Kind&>(node), args...);
+            // Relation
+            FORWARD(Relation);
+            FORWARD(RelationRef);
 
             // values
             FORWARD(ElementAccess);
@@ -195,6 +199,10 @@ protected:
 
     // -- program --
     LINK(Program, Node)
+
+    // -- relation
+    LINK(Relation, Node)
+    LINK(RelationRef, Node)
 
 #undef LINK
 

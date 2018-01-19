@@ -9,8 +9,7 @@
  *
  * @file AstNode.h
  *
- * Top level syntactic element of intermediate representation,
- * i.e., a node of abstract syntax tree
+ * Abstract class definitions for AST nodes
  *
  ***********************************************************************/
 
@@ -31,13 +30,11 @@
 
 namespace souffle {
 
-// forward declaration -- see below
 class AstNodeMapper;
 
 /**
  *  @class AstNode
- *  @brief AstNode is a superclass for all elements of IR that
- *         correspond to syntactic elements of a datalog program.
+ *  @brief Abstract class for syntactic elements in a Datalog program.
  */
 class AstNode {
     /** Source location of a syntactic element */
@@ -56,64 +53,62 @@ public:
         location = l;
     }
 
-    /** Return extended location associated with this
-      AstNode (redirect from SrcLoc). */
+    /** Return source location of the syntactic element */
     std::string extloc() const {
         return location.extloc();
     }
 
-    /** Enables the comparison of AST nodes */
+    /** Equivalence check for two AST nodes */
     bool operator==(const AstNode& other) const {
         return this == &other || (typeid(*this) == typeid(other) && equal(other));
     }
 
-    /** Enables the comparison of AST nodes */
+    /** Inequality check for two AST nodes */
     bool operator!=(const AstNode& other) const {
         return !(*this == other);
     }
 
-    /** Requests an independent, deep copy of this node */
+    /** Create a clone (i.e. deep copy) of this node */
     virtual AstNode* clone() const = 0;
 
-    /** Applies the node mapper to all child nodes and conducts the corresponding replacements */
+    /** Apply the mapper to all child nodes */
     virtual void apply(const AstNodeMapper& mapper) = 0;
 
-    /** Obtains a list of all embedded child nodes */
+    /** Obtain a list of all embedded AST child nodes */
     virtual std::vector<const AstNode*> getChildNodes() const = 0;
 
     /** Output to a given output stream */
     virtual void print(std::ostream& os) const = 0;
 
-    /** Enables all nodes to be printed to some output stream */
+    /** Print node onto an output stream */
     friend std::ostream& operator<<(std::ostream& out, const AstNode& node) {
         node.print(out);
         return out;
     }
 
 protected:
-    /** An internal function to determine equality to another node */
+    /** Abstract equality check for two AST nodes */
     virtual bool equal(const AstNode& other) const = 0;
 };
 
 /**
- * An abstract base class for AST node manipulation operations mapping
- * a AST nodes to substitutions.
+ * An abstract class for manipulating AST Nodes by substitution
  */
 class AstNodeMapper {
 public:
-    /** A virtual destructor for this abstract type */
     virtual ~AstNodeMapper() = default;
 
     /**
-     * Computes a replacement for the given node. If the given nodes
-     * is to be replaced, the handed in node will be destroyed by the mapper
-     * and the returned node will become owned by the caller.
+     * Abstract replacement method for a node.
+     *
+     * If the given nodes is to be replaced, the handed in node
+     * will be destroyed by the mapper and the returned node
+     * will become owned by the caller.
      */
     virtual std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const = 0;
 
     /**
-     * A generic wrapper over the map function above to avoid unnecessary
-     * casting operations.
+     * Wrapper for any subclass of the AST node hierarchy performing type casts.
      */
     template <typename T>
     std::unique_ptr<T> operator()(std::unique_ptr<T> node) const {

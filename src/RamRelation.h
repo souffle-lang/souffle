@@ -32,30 +32,47 @@ namespace souffle {
 
 /**
  * A RAM Relation in the RAM intermediate representation.
+ * TODO (#541): Make RamRelation a sub-class of RAM node.
+ * TODO (#541): Tidy-up interface and attributes
  */
-class RamRelation {
+class RamRelation : public RamNode {
+protected:
+    /** Name of relation */
     std::string name;
+
+    /** Arity, i.e., number of attributes */
     unsigned arity;
+
+    /** Name of attributes */
     std::vector<std::string> attributeNames;
+
+    /** Type of attributes */
     std::vector<std::string> attributeTypeQualifiers;
+
+    /** TODO (#541): legacy, i.e., duplicated information */
     SymbolMask mask;
-    bool input;
-    bool computed;
-    bool output;
-    bool btree;
-    bool brie;
-    bool eqrel;
 
-    bool isdata;
-    bool istemp;
+    /** Relation qualifiers */
+    // TODO: Simplify interface
+    bool input;     // input relation
+    bool output;    // output relation
+    bool computed;  // either output or printed
 
+    bool btree;  // btree data-structure
+    bool brie;   // brie data-structure
+    bool eqrel;  // equivalence relation
+
+    bool isdata;  // Datalog relation in the program
+    bool istemp;  // Temporary relation for semi-naive evaluation
+
+    /** I/O directives */
     IODirectives inputDirectives;
     std::vector<IODirectives> outputDirectives;
 
 public:
     RamRelation()
-            : arity(0), mask(arity), input(false), computed(false), output(false), btree(false), brie(false),
-              eqrel(false), isdata(false), istemp(false) {}
+            : RamNode(RN_Relation), arity(0), mask(arity), input(false), output(false), computed(false),
+              btree(false), brie(false), eqrel(false), isdata(false), istemp(false) {}
 
     RamRelation(const std::string& name, unsigned arity, const bool istemp) : RamRelation(name, arity) {
         this->istemp = istemp;
@@ -67,9 +84,9 @@ public:
             const bool btree = false, const bool brie = false, const bool eqrel = false,
             const bool isdata = false, const IODirectives inputDirectives = IODirectives(),
             const std::vector<IODirectives> outputDirectives = {}, const bool istemp = false)
-            : name(name), arity(arity), attributeNames(attributeNames),
-              attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), computed(computed),
-              output(output), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp),
+            : RamNode(RN_Relation), name(name), arity(arity), attributeNames(attributeNames),
+              attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), output(output),
+              computed(computed), btree(btree), brie(brie), eqrel(eqrel), isdata(isdata), istemp(istemp),
               inputDirectives(inputDirectives), outputDirectives(outputDirectives) {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
@@ -153,7 +170,8 @@ public:
         return name < other.name;
     }
 
-    void print(std::ostream& out) const {
+    /* Print */
+    void print(std::ostream& out) const override {
         out << name << "(";
         out << getArg(0);
         for (unsigned i = 1; i < arity; i++) {
@@ -163,9 +181,74 @@ public:
         out << ")";
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const RamRelation& rel) {
-        rel.print(out);
-        return out;
+    /** Obtain list of child nodes */
+    std::vector<const RamNode*> getChildNodes() const override {
+        return std::vector<const RamNode*>();  // no child nodes
+    }
+
+    /** Create clone */
+    RamRelation* clone() const override {
+        RamRelation* res = new RamRelation(name, arity, attributeNames, attributeTypeQualifiers ,  mask ,
+            input, computed, output , btree , brie , eqrel , isdata, inputDirectives, 
+            outputDirectives, istemp);
+        return res;
+    }
+
+    /** Apply mapper */
+    void apply(const RamNodeMapper& map) override {}
+
+protected:
+    /** Check equality */
+    bool equal(const RamNode& node) const override {
+        assert(dynamic_cast<const RamRelation*>(&node));
+        const RamRelation& other = static_cast<const RamRelation&>(node);
+        return getName() == other.getName();
+    }
+};
+
+/**
+ * A RAM Relation in the RAM intermediate representation.
+ * TODO: Make RamRelation a sub-class of RAM node.
+ * TODO: Tidy-up interface and attributes
+ */
+class RamRelationRef : public RamNode {
+protected:
+    /** Name of relation */
+    std::string name;
+
+public:
+    RamRelationRef(const std::string& n) : RamNode(RN_RelationRef), name(n) {}
+
+    /** Get name */
+    const std::string& getName() const {
+        return name;
+    }
+
+    /* Print */
+    void print(std::ostream& out) const override {
+        out << name;
+    }
+
+    /** Obtain list of child nodes */
+    std::vector<const RamNode*> getChildNodes() const override {
+        return std::vector<const RamNode*>();  // no child nodes
+    }
+
+    /** Create clone */
+    RamRelationRef* clone() const override {
+        RamRelationRef* res = new RamRelationRef(getName());
+        return res;
+    }
+
+    /** Apply mapper */
+    void apply(const RamNodeMapper& map) override {}
+
+protected:
+    /** Check equality */
+    bool equal(const RamNode& node) const override {
+        assert(dynamic_cast<const RamRelation*>(&node));
+        const RamRelation& other = static_cast<const RamRelation&>(node);
+        return getName() == other.getName();
     }
 };
 

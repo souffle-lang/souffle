@@ -8,108 +8,93 @@
 
 /************************************************************************
  *
- * @file AstTranslationUnit.h
+ * @file RamTranslationUnit.h
  *
- * Define AST translation unit class consisting of
- * an symbol table, AST program, error reports, and
- * cached analysis results.
+ * Define a class that represents a Datalog translation unit, consisting
+ * of a datalog program, error reports and cached analysis results.
  *
  ***********************************************************************/
 #pragma once
 
-#include "AstAnalysis.h"
-#include "AstProgram.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
+#include "RamAnalysis.h"
+#include "RamProgram.h"
 #include "SymbolTable.h"
 
 #include <map>
 #include <memory>
+#include <string>
 
 namespace souffle {
 
 /**
- * AstTranslationUnit class
+ * Class for RamTranslationUnit
  */
-
-class AstTranslationUnit {
+class RamTranslationUnit {
 private:
-    /** cached analyses */
-    mutable std::map<std::string, std::unique_ptr<AstAnalysis>> analyses;
+    mutable std::map<std::string, std::unique_ptr<RamAnalysis>> analyses;
 
-    /** AST program */
-    std::unique_ptr<AstProgram> program;
+    /* Program RAM */
+    std::unique_ptr<RamProgram> program;
 
-    /** Symbol table of AST program */
-    SymbolTable& symbolTable;
+    /* The table of symbols encountered in the input program */
+    souffle::SymbolTable& symbolTable;
 
-    /** Error report capturing errors while compiling */
     ErrorReport& errorReport;
 
-    /** HTML debug report */
     DebugReport& debugReport;
 
 public:
-    AstTranslationUnit(std::unique_ptr<AstProgram> program, SymbolTable& s, ErrorReport& e, DebugReport& d,
-            bool nowarn = false)
-            : program(std::move(program)), symbolTable(s), errorReport(e), debugReport(d) {}
+    RamTranslationUnit(std::unique_ptr<RamProgram> program, SymbolTable& sym, ErrorReport& e, DebugReport& d)
+            : program(std::move(program)), symbolTable(sym), errorReport(e), debugReport(d) {}
 
-    virtual ~AstTranslationUnit() = default;
+    virtual ~RamTranslationUnit() = default;
 
-    /** get analysis: analysis is generated on the fly if not present */
     template <class Analysis>
     Analysis* getAnalysis() const {
         std::string name = Analysis::name;
         auto it = analyses.find(name);
         if (it == analyses.end()) {
             // analysis does not exist yet, create instance and run it.
-            analyses[name] = std::unique_ptr<AstAnalysis>(new Analysis());
+            analyses[name] = std::unique_ptr<RamAnalysis>(new Analysis());
             analyses[name]->run(*this);
         }
         return dynamic_cast<Analysis*>(analyses[name].get());
     }
 
-    /** get the AST program */
-    AstProgram* getProgram() {
+    RamProgram* getProgram() {
         return program.get();
     }
 
-    /** get the AST program */
-    const AstProgram* getProgram() const {
+    const RamProgram* getProgram() const {
         return program.get();
     }
 
-    /** get symbol table */
     souffle::SymbolTable& getSymbolTable() {
         return symbolTable;
     }
 
-    /** get symbol table */
     const souffle::SymbolTable& getSymbolTable() const {
         return symbolTable;
     }
 
-    /** get error report */
     ErrorReport& getErrorReport() {
         return errorReport;
     }
 
-    /** get error report */
     const ErrorReport& getErrorReport() const {
         return errorReport;
     }
 
-    /** destroy all cached analyses of translation unit */
     void invalidateAnalyses() {
         analyses.clear();
     }
 
-    /** get debug report */
     DebugReport& getDebugReport() {
         return debugReport;
     }
 
-    /** get debug report */
     const DebugReport& getDebugReport() const {
         return debugReport;
     }
