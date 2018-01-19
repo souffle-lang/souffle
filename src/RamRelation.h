@@ -188,7 +188,9 @@ public:
 
     /** Create clone */
     RamRelation* clone() const override {
-        RamRelation* res = new RamRelation();
+        RamRelation* res = new RamRelation(name, arity, attributeNames, attributeTypeQualifiers ,  mask ,
+            input, computed, output , btree , brie , eqrel , isdata, inputDirectives, 
+            outputDirectives, istemp);
         return res;
     }
 
