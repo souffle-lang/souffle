@@ -104,13 +104,13 @@ jobs:
     env:
     - *clang_environment
     - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-j8,-c -j8"
-  - <<: *osxclang
-    env:
-    - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-j8,-c -j8"
-  - <<: *osxgcc
-    env:
-    - *gcc_environment
-    - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-j8,-c -j8"
+      #  - <<: *osxclang
+      #    env:
+      #    - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-j8,-c -j8"
+      #  - <<: *osxgcc
+      #    env:
+      #    - *gcc_environment
+      #    - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-j8,-c -j8"
 
 # Testing stage (-j8,-c -j8)
   - <<: *linuxgcc
@@ -121,9 +121,9 @@ jobs:
     env:
     - *clang_environment
     - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j8,-c -j8"
-  - <<: *osxclang
-    env:
-    - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j8,-c -j8"
+      #  - <<: *osxclang
+      #    env:
+      #    - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-j8,-c -j8"
 
 # Testing stage (-c -j8 -s-,-c -f -j8 -s-)
   - <<: *linuxgcc
@@ -134,9 +134,9 @@ jobs:
     env:
     - *clang_environment
     - SOUFFLE_CATEGORY=FastEvaluation SOUFFLE_CONFS="-c -j8 -s-,-c -f -j8 -s-"
-  - <<: *osxclang
-    env:
-    - SOUFFLE_CATEGORY=FastEvaluation SOUFFLE_CONFS="-c -j8 -s-,-c -f -j8 -s-"
+      #  - <<: *osxclang
+      #    env:
+      #    - SOUFFLE_CATEGORY=FastEvaluation SOUFFLE_CONFS="-c -j8 -s-,-c -f -j8 -s-"
 
 # Testing stage (-f -j8,-c -f -j8)
   - <<: *linuxgcc
@@ -147,9 +147,9 @@ jobs:
     env:
     - *clang_environment
     - SOUFFLE_CATEGORY=FastEvaluation SOUFFLE_CONFS="-f -j8,-c -f -j8"
-  - <<: *osxclang
-    env:
-    - SOUFFLE_CATEGORY=FastEvaluation SOUFFLE_CONFS="-f -j8,-c -f -j8"
+      #  - <<: *osxclang
+      #    env:
+      #    - SOUFFLE_CATEGORY=FastEvaluation SOUFFLE_CONFS="-f -j8,-c -f -j8"
 
 # Packaging stage
   # Make the linux deb packages.
@@ -157,7 +157,7 @@ jobs:
     env:
     - *gcc_environment
   # Make the OSX packages.
-  - <<: *osxpackage
+  #  - <<: *osxpackage
 
 after_failure:
   - ".travis/after_failure.sh"
