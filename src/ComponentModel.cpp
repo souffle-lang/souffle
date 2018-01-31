@@ -456,6 +456,10 @@ bool ComponentInstantiationTransformer::transform(AstTranslationUnit& translatio
     program.ioDirectives.clear();
     program.ioDirectives.swap(unboundDirectives);
 
+    // delete components and instantiations
+    program.instantiations.clear();
+    program.components.clear();
+
     return true;
 }
 

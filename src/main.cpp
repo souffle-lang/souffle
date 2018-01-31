@@ -408,7 +408,7 @@ int main(int argc, char** argv) {
             std::string runtimeStr =
                     "(" + std::to_string(std::chrono::duration<double>(ram_end - ram_start).count()) + "s)";
             std::stringstream ramProgStr;
-            ramProgStr << ramTranslationUnit->getProgram();
+            ramProgStr << *ramTranslationUnit->getProgram();
             astTranslationUnit->getDebugReport().addSection(DebugReporter::getCodeSection(
                     "ram-program", "RAM Program " + runtimeStr, ramProgStr.str()));
         }
