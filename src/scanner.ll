@@ -16,6 +16,11 @@
 %option reentrant
 %option extra-type="struct scanner_data *"
 %{
+
+#if defined(__clang__)
+# pragma clang diagnostic ignored "-Wunneeded-internal-declaration"
+#endif
+
     #include <stdio.h>
     #include <libgen.h>
     #include <ctype.h>
