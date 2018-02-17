@@ -17,11 +17,11 @@
 #include "Synthesiser.h"
 #include "AstRelation.h"
 #include "AstVisitor.h"
-#include "AutoIndex.h"
 #include "BinaryConstraintOps.h"
 #include "BinaryFunctorOps.h"
 #include "Global.h"
 #include "IOSystem.h"
+#include "IndexSetAnalysis.h"
 #include "Logger.h"
 #include "Macro.h"
 #include "RamRelation.h"
@@ -125,7 +125,7 @@ bool useNoIndex() {
     static bool flag = std::getenv(ENV_NO_INDEX);
     static bool first = true;
     if (first && flag) {
-        std::cout << "WARNING: indices are ignored!\n";
+        std::cout << "WARNING: indexes are ignored!\n";
         first = false;
     }
     return flag;
@@ -141,33 +141,7 @@ static const std::string getOpContextName(const RamRelation& rel) {
     return getRelationName(rel) + "_op_ctxt";
 }
 
-class IndexMap {
-    typedef std::map<RamRelation, AutoIndex> data_t;
-    typedef typename data_t::iterator iterator;
-
-    std::map<RamRelation, AutoIndex> data;
-
-public:
-    AutoIndex& operator[](const RamRelation& rel) {
-        return data[rel];
-    }
-
-    const AutoIndex& operator[](const RamRelation& rel) const {
-        const static AutoIndex empty;
-        auto pos = data.find(rel);
-        return (pos != data.end()) ? pos->second : empty;
-    }
-
-    iterator begin() {
-        return data.begin();
-    }
-
-    iterator end() {
-        return data.end();
-    }
-};
-
-std::string getRelationType(const RamRelation& rel, std::size_t arity, const AutoIndex& indices) {
+std::string getRelationType(const RamRelation& rel, std::size_t arity, const IndexSet& indexes) {
     std::stringstream res;
     res << "ram::Relation";
     res << "<";
@@ -197,7 +171,7 @@ std::string getRelationType(const RamRelation& rel, std::size_t arity, const Aut
 
     res << arity;
     if (!useNoIndex()) {
-        for (auto& cur : indices.getAllOrders()) {
+        for (auto& cur : indexes.getAllOrders()) {
             res << ", ram::index<";
             res << join(cur, ",");
             res << ">";
@@ -245,7 +219,7 @@ std::set<RamRelation> getReferencedRelations(const RamOperation& op) {
     return res;
 }
 
-class Printer : public RamVisitor<void, std::ostream&> {
+class CodeEmitter : public RamVisitor<void, std::ostream&> {
 // macros to add comments to generated code for debugging
 #ifndef PRINT_BEGIN_COMMENT
 #define PRINT_BEGIN_COMMENT(os)                                                  \
@@ -259,15 +233,13 @@ class Printer : public RamVisitor<void, std::ostream&> {
     os << "/* END " << __FUNCTION__ << " @" << __FILE__ << ":" << __LINE__ << " */\n"
 #endif
 
-    // const IndexMap& indices;
-
     std::function<void(std::ostream&, const RamNode*)> rec;
 
     struct printer {
-        Printer& p;
+        CodeEmitter& p;
         const RamNode& node;
 
-        printer(Printer& p, const RamNode& n) : p(p), node(n) {}
+        printer(CodeEmitter& p, const RamNode& n) : p(p), node(n) {}
 
         printer(const printer& other) = default;
 
@@ -278,7 +250,7 @@ class Printer : public RamVisitor<void, std::ostream&> {
     };
 
 public:
-    Printer(const IndexMap& /*indexMap*/) {
+    CodeEmitter() {
         rec = [&](std::ostream& out, const RamNode* node) { this->visit(*node, out); };
     }
 
@@ -1240,9 +1212,9 @@ private:
     }
 };
 
-void genCode(std::ostream& out, const RamStatement& stmt, const IndexMap& indices) {
+void genCode(std::ostream& out, const RamStatement& stmt) {
     // use printer
-    Printer(indices).visit(stmt, out);
+    CodeEmitter().visit(stmt, out);
 }
 }  // namespace
 
@@ -1253,53 +1225,7 @@ void Synthesiser::generateCode(
     // ---------------------------------------------------------------
     const SymbolTable& symTable = unit.getSymbolTable();
     const RamProgram& prog = unit.getP();
-
-    // collect all used indices
-    IndexMap indices;
-    visitDepthFirst(prog, [&](const RamNode& node) {
-        if (const RamScan* scan = dynamic_cast<const RamScan*>(&node)) {
-            indices[scan->getRelation()].setHashmap(scan->getRelation().isHashmap());
-            indices[scan->getRelation()].addSearch(scan->getRangeQueryColumns());
-        }
-        if (const RamAggregate* agg = dynamic_cast<const RamAggregate*>(&node)) {
-            indices[agg->getRelation()].setHashmap(agg->getRelation().isHashmap());
-            indices[agg->getRelation()].addSearch(agg->getRangeQueryColumns());
-        }
-        if (const RamNotExists* ne = dynamic_cast<const RamNotExists*>(&node)) {
-            indices[ne->getRelation()].setHashmap(ne->getRelation().isHashmap());
-            indices[ne->getRelation()].addSearch(ne->getKey());
-        }
-    });
-
-    // compute smallest number of indices (and report)
-    if (report) {
-        *report << "------ Auto-Index-Generation Report -------\n";
-    }
-    for (auto& cur : indices) {
-        cur.second.solve();
-        if (report) {
-            *report << "Relation " << cur.first.getName() << "\n";
-            *report << "\tNumber of Scan Patterns: " << cur.second.getSearches().size() << "\n";
-            for (auto& cols : cur.second.getSearches()) {
-                *report << "\t\t";
-                for (uint32_t i = 0; i < cur.first.getArity(); i++) {
-                    if ((1UL << i) & cols) {
-                        *report << cur.first.getArg(i) << " ";
-                    }
-                }
-                *report << "\n";
-            }
-            *report << "\tNumber of Indexes: " << cur.second.getAllOrders().size() << "\n";
-            for (auto& order : cur.second.getAllOrders()) {
-                *report << "\t\t";
-                for (auto& i : order) {
-                    *report << cur.first.getArg(i) << " ";
-                }
-                *report << "\n";
-            }
-            *report << "------ End of Auto-Index-Generation Report -------\n";
-        }
-    }
+    IndexSetAnalysis* idxAnalysis = unit.getAnalysis<IndexSetAnalysis>();
 
     // ---------------------------------------------------------------
     //                      Code Generation
@@ -1360,10 +1286,10 @@ void Synthesiser::generateCode(
 
         // ensure that the type of the new knowledge is the same as that of the delta knowledge
         tempType = (rel.isTemp() && raw_name.find("@delta") != std::string::npos)
-                           ? getRelationType(rel, rel.getArity(), indices[rel])
+                           ? getRelationType(rel, rel.getArity(), idxAnalysis->getIndexes(rel))
                            : tempType;
-        const std::string& type =
-                (rel.isTemp()) ? tempType : getRelationType(rel, rel.getArity(), indices[rel]);
+        const std::string& type = (rel.isTemp()) ? tempType : getRelationType(rel, rel.getArity(),
+                                                                      idxAnalysis->getIndexes(rel));
 
         // defining table
         os << "// -- Table: " << raw_name << "\n";
@@ -1469,9 +1395,9 @@ void Synthesiser::generateCode(
     if (Global::config().has("profile")) {
         os << "std::ofstream profile(profiling_fname);\n";
         os << "profile << \"@start-debug\\n\";\n";
-        genCode(os, *(prog.getMain()), indices);
+        genCode(os, *(prog.getMain()));
     } else {
-        genCode(os, *(prog.getMain()), indices);
+        genCode(os, *(prog.getMain()));
     }
     // add code printing hint statistics
     os << "\n// -- relation hint statistics --\n";
@@ -1616,7 +1542,7 @@ void Synthesiser::generateCode(
                                                   "std::vector<RamDomain>& ret, std::vector<bool>& err) {\n";
 
             // generate code for body
-            genCode(os, *sub.second, indices);
+            genCode(os, *sub.second);
 
             os << "return;\n";
             os << "}\n";  // end of subroutine

@@ -497,10 +497,6 @@ int main(int argc, char** argv) {
 
         std::unique_ptr<Synthesiser> synthesiser = std::make_unique<Synthesiser>();
 
-        // configure compiler
-        if (Global::config().has("verbose")) {
-            synthesiser->setReportTarget(std::cout);
-        }
         try {
             // Find the base filename for code generation and execution
             std::string baseFilename;

@@ -20,6 +20,7 @@
 #include <memory>
 #include <typeinfo>
 #include <vector>
+#include <assert.h>
 
 namespace souffle {
 

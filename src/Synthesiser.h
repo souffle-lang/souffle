@@ -33,21 +33,9 @@ namespace souffle {
  * A RAM synthesiser: synthesises a C++ program from a RAM program.
  */
 class Synthesiser {
-private:
-    /** An optional stream to print logging information to an output stream */
-    std::ostream* report;
-
 public:
-    /**
-     * Updates logging stream
-     */
-    void setReportTarget(std::ostream& report) {
-        this->report = &report;
-    }
-
-public:
-    /** A simple constructor */
-    Synthesiser() : report(nullptr) {}
+    Synthesiser() = default;
+    virtual ~Synthesiser() = default;
 
     /**
      * Generates the code for a given ram translation unit.
@@ -58,5 +46,4 @@ public:
      */
     void generateCode(const RamTranslationUnit& tu, std::ostream& os, const std::string& id) const;
 };
-
 }  // end of namespace souffle

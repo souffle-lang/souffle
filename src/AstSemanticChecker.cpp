@@ -711,7 +711,7 @@ static const std::vector<AstSrcLocation> usesInvalidWitness(const std::vector<As
 
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             static int numReplaced = 0;
-            if (AstAggregator* aggr = dynamic_cast<AstAggregator*>(node.get())) {
+            if (dynamic_cast<AstAggregator*>(node.get())) {
                 // Replace the aggregator with a variable
                 std::stringstream newVariableName;
                 newVariableName << "+aggr_var_" << numReplaced++;
@@ -752,7 +752,7 @@ static const std::vector<AstSrcLocation> usesInvalidWitness(const std::vector<As
         std::vector<const AstArgument*> secondCloneArguments;
         visitDepthFirst(*secondClone, [&](const AstArgument& arg) { secondCloneArguments.push_back(&arg); });
 
-        for (int i = 0; i < firstCloneArguments.size(); i++) {
+        for (size_t i = 0; i < firstCloneArguments.size(); i++) {
             identicalSubnodeMap[secondCloneArguments[i]] = firstCloneArguments[i];
         }
 

@@ -96,8 +96,6 @@ souffle_sources = \
               GraphUtils.h                              \
               AstTranslator.cpp     AstTranslator.h     \
               Synthesiser.cpp       Synthesiser.h       \
-              MaxMatching.cpp       MaxMatching.h       \
-              AutoIndex.cpp         AutoIndex.h         \
               RamAnalysis.h                             \
               RamCondition.h                            \
               RamNode.h                                 \
@@ -129,6 +127,7 @@ souffle_sources = \
               InterpreterInterface.h                    \
               InterpreterIndex.h                        \
               InterpreterRecords.cpp InterpreterRecords.h \
+			  IndexSetAnalysis.cpp   IndexSetAnalysis.h \
               ProvenanceTransformer.cpp                 \
               Global.cpp            Global.h
 

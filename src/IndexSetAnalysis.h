@@ -8,31 +8,98 @@
 
 /***************************************************************************
  *
- * @file AutoIndex.h
+ * @file IndexSetAnalysis.h
  *
- * Defines classes to automatically compute the minimal indexes for a table
+ * Computes indexes for relations in a translation unit
  *
  ***************************************************************************/
 
 #pragma once
 
-#include "MaxMatching.h"
+#include "RamAnalysis.h"
+#include "RamRelation.h"
 #include "RamTypes.h"
+#include "Util.h"
 
+#include <cstring>
+#include <functional>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <queue>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
-
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
 
+#define NIL 0
+#define INF -1
+
+// define if enable unit tests
+#define M_UNIT_TEST
+
 namespace souffle {
 
-class AutoIndex {
+/**
+ * Computes a maximum matching with Hopcroft-Karp algorithm
+ * Source: http://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm#Pseudocode
+ */
+class MaxMatching {
+public:
+    typedef std::map<SearchColumns, SearchColumns, std::greater<SearchColumns>> Matchings;
+    typedef std::set<SearchColumns, std::greater<SearchColumns>> Nodes;
+
+private:
+    typedef std::set<SearchColumns> Edges;
+    typedef std::map<SearchColumns, Edges> Graph;
+    typedef std::map<SearchColumns, int> Distance;
+
+public:
+    /** Solve */
+    const Matchings& solve();
+
+    /** Get number of matches */
+    int getNumMatchings() const {
+        return match.size() / 2;
+    }
+
+    /** Add edge */
+    void addEdge(SearchColumns u, SearchColumns v);
+
+protected:
+    /** Get match */
+    SearchColumns getMatch(SearchColumns v);
+
+    /** Get distance */
+    int getDistance(int v);
+
+    /** breadth first search */
+    bool bfSearch();
+
+    /** depth first search */
+    bool dfSearch(SearchColumns u);
+
+private:
+    Matchings match;
+    Graph graph;
+    Distance distance;
+};
+
+/**
+ * Computes the index set for a relation
+ *
+ * If the indexes of a relation can cover several searches, the minimal
+ * set of indexes is computed by Dilworth's problem. See
+ *
+ * "Optimal On The Fly Index Selection in Polynomial Time"
+ * https://arxiv.org/abs/1709.03685
+ *
+ */
+
+class IndexSet {
 public:
     typedef std::vector<int> LexicographicalOrder;
     typedef std::vector<LexicographicalOrder> OrderCollection;
@@ -46,33 +113,36 @@ protected:
     OrderCollection orders;      // collection of lexicographical orders
     ChainOrderMap chainToOrder;  // maps order index to set of searches covered by chain
 
-    MaxMatching matching;  // matching problem for finding minimal number of orders
-    bool isHashmap;
+    MaxMatching matching;         // matching problem for finding minimal number of orders
+    const RamRelation& relation;  // relation
 
 public:
-    AutoIndex() : isHashmap(false) {}
-    /** add new key to an Index Set */
+    IndexSet(const RamRelation& rel) : relation(rel) {}
+
+    /** Add new key to an Index Set */
     inline void addSearch(SearchColumns cols) {
         if (cols != 0) {
             searches.insert(cols);
         }
     }
 
-    /** Set Hashmap */
-    void setHashmap(bool flag) {
-        isHashmap = flag;
+    /** Get relation */
+    const RamRelation& getRelation() const {
+        return relation;
     }
 
-    /** obtains access to the internally stored keys **/
+    /** Get searches **/
     const SearchSet& getSearches() const {
         return searches;
     }
 
+    /** Get index for a search */
     const LexicographicalOrder getLexOrder(SearchColumns cols) const {
         int idx = map(cols);
         return orders[idx];
     }
 
+    /** Get all indexes */
     const OrderCollection getAllOrders() const {
         return orders;
     }
@@ -168,6 +238,37 @@ protected:
             }
         }
         return unmatched;
+    }
+};
+
+/**
+ * Analysis pass computing the index sets of RAM relations
+ */
+class IndexSetAnalysis : public RamAnalysis {
+private:
+    typedef std::map<std::string, IndexSet> data_t;
+    typedef typename data_t::iterator iterator;
+    std::map<std::string, IndexSet> data;
+
+public:
+    static constexpr const char* name = "index-analysis";
+
+    /** run analysis */
+    void run(const RamTranslationUnit& translationUnit) override;
+
+    /** print analysis */
+    void print(std::ostream& os) const override;
+
+    /** get indexes */
+    IndexSet& getIndexes(const RamRelation& rel) {
+        auto pos = data.find(rel.getName());
+        if (pos != data.end()) {
+            return pos->second;
+        } else {
+            auto ret = data.insert(make_pair(rel.getName(), IndexSet(rel)));
+            assert(ret.second);
+            return ret.first->second;
+        }
     }
 };
 
