@@ -17,6 +17,7 @@
 #pragma once
 
 #include "CompiledTuple.h"
+#include "RecordWriteStream.h"
 #include "ParallelUtils.h"
 #include "Util.h"
 
@@ -55,6 +56,9 @@ RamDomain getNull();
  */
 template <typename TupleType>
 bool isNull(RamDomain ref);
+
+template <typename Tuple>
+void printRecords(const std::unique_ptr<RecordWriteStream>& writer);
 
 // ----------------------------------------------------------------------------
 //                              Definitions
@@ -100,6 +104,24 @@ class RecordMap {
 
 public:
     RecordMap() {}
+
+    void printRecords(const std::unique_ptr<RecordWriteStream>& writer) {
+	std::string delimiter = writer->getDelimiter();
+    RamDomain n = r2i.size();
+	for (RamDomain i = 0; i < n; ++i) {
+	    tuple_type tuple = unpack(i);
+	    std::string str = std::to_string(i) + delimiter + tuple.printRaw(delimiter);
+	    writer->writeNextLine(str);
+	}
+    }
+
+    void printRecords() {
+	for (RamDomain i = 0; i < r2i.size(); ++i) {
+	    tuple_type tuple = unpack(i);
+	    std::string str = std::to_string(i) + "\t" + tuple.printRaw("\t");
+	    std::cout << str << "\n";
+	}
+    }
 
     /**
      * Packs the given tuple -- and may create a new reference if necessary.
@@ -168,6 +190,11 @@ RamDomain pack(const Tuple& tuple) {
 template <typename Tuple>
 const Tuple& unpack(RamDomain ref) {
     return detail::getRecordMap<Tuple>().unpack(ref);
+}
+
+template <typename Tuple>
+void printRecords(const std::unique_ptr<RecordWriteStream>& writer) {
+    return detail::getRecordMap<Tuple>().printRecords(writer);
 }
 
 }  // end of namespace souffle

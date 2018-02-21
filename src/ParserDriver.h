@@ -61,6 +61,7 @@ public:
 
     bool trace_scanning;
 
+    void readSymbolTable(const std::string& symtab_filepath, SymbolTable& symbolTable);
     std::unique_ptr<AstTranslationUnit> parse(const std::string& filename, FILE* in, SymbolTable& symbolTable,
             ErrorReport& errorReport, DebugReport& debugReport);
     std::unique_ptr<AstTranslationUnit> parse(const std::string& code, SymbolTable& symbolTable,

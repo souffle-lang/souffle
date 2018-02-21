@@ -33,7 +33,7 @@ public:
         (void)lease;
         while (const auto next = readNextTuple()) {
             const RamDomain* ramDomain = next.get();
-            relation.insert(ramDomain);
+	    relation.insert(ramDomain);
         }
     }
 

@@ -18,6 +18,9 @@
 #include "AstProgram.h"
 #include "AstTranslationUnit.h"
 #include "ErrorReport.h"
+#include "IODirectives.h"
+#include "IOSystem.h"
+#include "Util.h"
 
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
 extern YY_BUFFER_STATE yy_scan_string(const char*, yyscan_t scanner);
@@ -30,6 +33,25 @@ namespace souffle {
 ParserDriver::ParserDriver() : trace_scanning(false), trace_parsing(false) {}
 
 ParserDriver::~ParserDriver() = default;
+
+void ParserDriver::readSymbolTable(
+        const std::string& symtab_filepath,
+        SymbolTable& symbolTable) {
+    if (fileExists(symtab_filepath)) {
+	std::map<std::string, std::string> readIODirectivesMap = {
+	    {"IO", "file"},
+	    {"filename", symtab_filepath},
+	    {"symtabfilename", symtab_filepath},
+	    {"name", "souffle_records"}
+	};
+	IODirectives readIODirectives(readIODirectivesMap);
+
+	std::unique_ptr<RecordReadStream> reader = IOSystem::getInstance()
+	    .getRecordReader(symbolTable, readIODirectives);
+	reader->readIntoSymbolTable(symbolTable);
+    }
+}
+
 
 std::unique_ptr<AstTranslationUnit> ParserDriver::parse(const std::string& filename, FILE* in,
         SymbolTable& symbolTable, ErrorReport& errorReport, DebugReport& debugReport) {

@@ -185,6 +185,18 @@ public:
         }
     }
 
+    /** Bulk insert symbols into the table, note that this operation is more efficient than repeated inserts
+     * of single symbols. */
+    void insert(std::unique_ptr<std::string[]> symbols, const size_t n) {
+        auto lease = access.acquire();
+        (void)lease;  // avoid warning;
+        strToNum.reserve(size() + n);
+        numToStr.reserve(size() + n);
+        for (size_t idx = 0; idx < n; idx++) {
+            newSymbol(symbols[idx].c_str());
+        }
+    }
+
     /** Insert a single symbol into the table, not that this operation should not be used if inserting symbols
      * in bulk. */
     void insert(const char* symbol) {
@@ -201,6 +213,16 @@ public:
             out << entry.first << "\t => " << entry.second;
         }) << "\n";
         out << "}\n";
+    }
+
+    /** Print the symbol table to the given stream without much
+	formatting. */
+    void printRaw(std::ostream& out) const {
+	out << strToNum.size() << "\n";
+        out << join(strToNum, "\n", [](std::ostream& out,
+                                              const std::pair<std::string, std::size_t>& entry) {
+	    out << entry.first << "\t" << entry.second;
+        }) << "\n";
     }
 
     Lock::Lease acquireLock() const {

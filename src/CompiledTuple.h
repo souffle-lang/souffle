@@ -94,6 +94,20 @@ struct Tuple {
         }
         return out << tuple.data[arity - 1] << "]";
     }
+
+    std::string printRaw(std::string& delimiter) {
+	std::stringstream ss;
+        if (arity == 0) ss << 0;
+	else {
+	    ss << arity << delimiter;
+	    for (std::size_t i = 0; i < (std::size_t)(arity - 1); ++i) {
+		ss << data[i];
+		ss << delimiter;
+	    }
+	    ss << data[arity - 1];
+	}
+	return ss.str();
+    }
 };
 
 }  // end namespace ram

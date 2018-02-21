@@ -293,8 +293,13 @@ int main(int argc, char** argv) {
 
     // ------- parse program -------------
 
-    // parse file
+    // read in symtab, if any
     SymbolTable symTab;
+    ParserDriver parserDriver;
+    std::string symtab_filepath = Global::Global::getSymtabInFilepath();
+    parserDriver.readSymbolTable(symtab_filepath, symTab);
+
+    // parse file
     ErrorReport errReport(Global::config().has("no-warn"));
     DebugReport debugReport;
     std::unique_ptr<AstTranslationUnit> astTranslationUnit =

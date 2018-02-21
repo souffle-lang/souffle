@@ -1220,11 +1220,21 @@ void genCode(std::ostream& out, const RamStatement& stmt) {
 
 void Synthesiser::generateCode(
         const RamTranslationUnit& unit, std::ostream& os, const std::string& id) const {
+
+    const SymbolTable& symTable = unit.getSymbolTable();
+    const RamProgram& prog = unit.getP();
+
+    // compute the set of all record arities
+    std::set<int> recArities;
+    visitDepthFirst(prog, [&](const RamNode& node) {
+        if (const RamPack* pack = dynamic_cast<const RamPack*>(&node)) {
+            recArities.insert(pack->getValues().size());
+        }
+    });
+
     // ---------------------------------------------------------------
     //                      Auto-Index Generation
     // ---------------------------------------------------------------
-    const SymbolTable& symTable = unit.getSymbolTable();
-    const RamProgram& prog = unit.getP();
     IndexSetAnalysis* idxAnalysis = unit.getAnalysis<IndexSetAnalysis>();
 
     // ---------------------------------------------------------------
@@ -1340,12 +1350,12 @@ void Synthesiser::generateCode(
 
     os << classname;
     if (Global::config().has("profile")) {
-        os << "(std::string pf=\"profile.log\") : profiling_fname(pf)";
+        os << "(std::string pf=\"profile.log\", std::string inputDirectory = \".\") : profiling_fname(pf)";
         if (initCons.size() > 0) {
             os << ",\n" << initCons;
         }
     } else {
-        os << "()";
+        os << "(std::string inputDirectory = \".\")";
         if (initCons.size() > 0) {
             os << " : " << initCons;
         }
@@ -1353,8 +1363,22 @@ void Synthesiser::generateCode(
     os << "{\n";
     os << registerRel;
 
+    os << "// -- initialize symbol table --\n";
+    // Read symbol table
+    os << "std::string symtab_filepath = inputDirectory + \"/\" + \"" + Global::getSymtabFilename() + "\";\n";
+    os << "if (fileExists(symtab_filepath)) {\n";
+	os << "std::map<std::string, std::string> readIODirectivesMap = {\n";
+	os << "{\"IO\", \"file\"},\n";
+	    os << "{\"filename\", symtab_filepath},\n";
+	os << "{\"symtabfilename\", symtab_filepath},\n";
+	    os << "{\"name\", \"souffle_records\"}\n";
+	os << "};\n";
+	os << "IODirectives readIODirectives(readIODirectivesMap);\n";
+	os << "std::unique_ptr<RecordReadStream> reader = IOSystem::getInstance()\n";
+	    os << ".getRecordReader(symTable, readIODirectives);\n";
+	os << "reader->readIntoSymbolTable(symTable);\n";
+    os << "}\n";
     if (symTable.size() > 0) {
-        os << "// -- initialize symbol table --\n";
         os << "static const char *symbols[]={\n";
         for (size_t i = 0; i < symTable.size(); i++) {
             os << "\tR\"(" << symTable.resolve(i) << ")\",\n";
@@ -1363,6 +1387,40 @@ void Synthesiser::generateCode(
         os << "symTable.insert(symbols," << symTable.size() << ");\n";
         os << "\n";
     }
+
+    os << "std::string recordsInFilepath = inputDirectory + \"/\" + \"" + Global::getRecordFilename() + "\";\n";
+    os << "if (fileExists(recordsInFilepath)) {\n";
+    os << "std::map<std::string, std::string> readIODirectivesMap = {\n";
+    os << "{\"IO\", \"file\"},\n";
+    os << "{\"filename\", recordsInFilepath},\n";
+    os << "{\"name\", \"souffle_records\"}\n";
+    os << "};\n";
+    os << "IODirectives readIODirectives(readIODirectivesMap);\n";
+    os << "try {\n";
+    os << "std::unique_ptr<RecordReadStream> reader = IOSystem::getInstance()\n";
+    os << ".getRecordReader(symTable, readIODirectives);\n";
+    os << "auto records = reader->readAllRecords();\n";
+    os << "for (auto r_it = records->begin(); r_it != records->end(); ++r_it) {\n";
+    os << "for (RamDomain* record: r_it->second) {\n";
+    os << "switch(r_it->first) {";
+    for (int arity: recArities) {
+	os << "case " << arity << ": \n";
+	os << "ram::Tuple<RamDomain, " << arity << "> tuple" << arity << ";\n";
+	for (int i = 0; i < arity; ++i) {
+	    os << "tuple" << arity << "["<< i << "] = record[" << i << "];\n";
+	}
+	os << "pack<ram::Tuple<RamDomain, " << arity << ">>(tuple" << arity << ");\n";
+	os << "break;\n";
+    }
+    os << "default: ";
+    os << "break;\n"
+    os << "}\n";
+    os << "}\n";
+    os << "}\n";
+    os << "} catch (std::exception& e) {\n";
+    os << "std::cerr << e.what();\n";
+    os << "}\n";
+    os << "}\n";
 
     os << "}\n";
 
@@ -1449,6 +1507,31 @@ void Synthesiser::generateCode(
             os << "}";
         }
     });
+    os << "}\n";  // end of printAll() method
+
+    // Print record tables and symtab
+    // issue printAllRecords method
+    os << "public:\n";
+    os << "void printAllRecords(std::string outputDirectory = \".\") {\n";
+    os << "std::string recordsOutFilepath = outputDirectory + \"/\" + \"" + Global::getRecordFilename() + "\";\n";
+    os << "std::string symtabOutFilepath = outputDirectory + \"/\" + \"" + Global::getSymtabFilename() + "\";\n";
+    os << "std::map<std::string, std::string> writeIODirectivesMap = {\n";
+    os << "{\"IO\", \"file\"},\n";
+    os << "{\"filename\", recordsOutFilepath},\n";
+    os << "{\"symtabfilename\", symtabOutFilepath},\n";
+    os << "{\"name\", \"souffle_records\"}\n";
+    os << "};\n";
+    os << "IODirectives writeIODirectives(writeIODirectivesMap);\n";
+    os << "try {\n";
+    os << "auto writer = IOSystem::getInstance().getRecordWriter(symTable, writeIODirectives);\n";
+    for (int arity: recArities) {
+	os << "printRecords<ram::Tuple<RamDomain," << arity << ">>(writer);\n";
+    }
+    os << "writer->writeSymbolTable();\n";
+    os << "} catch (std::exception& e) {\n";
+    os << "std::cerr << e.what();\n";
+    os << "exit(1);\n";
+    os << "}\n";
     os << "}\n";  // end of printAll() method
 
     // issue loadAll method
@@ -1595,12 +1678,13 @@ void Synthesiser::generateCode(
 
     os << "souffle::";
     if (Global::config().has("profile")) {
-        os << classname + " obj(opt.getProfileName());\n";
+        os << classname + " obj(opt.getProfileName(), opt.getInputFileDir());\n";
     } else {
-        os << classname + " obj;\n";
+        os << classname + " obj(opt.getInputFileDir());\n";
     }
 
     os << "obj.runAll(opt.getInputFileDir(), opt.getOutputFileDir());\n";
+    os << "obj.printAllRecords(opt.getOutputFileDir());\n";
     if (Global::config().get("provenance") == "1") {
         os << "explain(obj, true, false);\n";
     } else if (Global::config().get("provenance") == "2") {

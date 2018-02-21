@@ -32,6 +32,9 @@ using namespace std;
  * A bidirectional mapping between tuples and reference indices.
  */
 class RecordMap {
+    /** Static map holding RecordMaps for different arities */
+    static map<int, RecordMap> maps;
+
     /** The arity of the stored tuples */
     int arity;
 
@@ -43,6 +46,50 @@ class RecordMap {
 
 public:
     RecordMap(int arity) : arity(arity), i2r(1) {}  // note: index 0 element left free
+
+    static RecordMap& getForArity(int arity) {
+	// get container if present
+	auto pos = RecordMap::maps.find(arity);
+	if (pos != RecordMap::maps.end()) {
+	    return pos->second;
+	}
+
+	// create new container if required
+	RecordMap::maps.emplace(arity, arity);
+	return getForArity(arity);
+    }
+
+    static void printRecords(const std::unique_ptr<RecordWriteStream>& writer) {
+	std::string delimiter = writer->getDelimiter();
+	for (auto it = maps.begin(); it != maps.end(); ++it) {
+	    const std::vector<std::vector<RamDomain>> records = it->second.i2r;
+	    for (size_t idx = 0; idx < records.size(); ++idx) {
+		std::vector<RamDomain> record = records[idx];
+		std::string str = std::to_string(idx) + delimiter + std::to_string(record.size()) + delimiter;
+		for (size_t i = 0; i < record.size(); ++i) {
+		    str += std::to_string(record[i]);
+		    if (i < record.size() - 1) str += delimiter;;
+		}
+
+		writer->writeNextLine(str);
+	    }
+	}
+	writer->writeSymbolTable();
+    }
+
+    static void printRecords() {
+	for (auto it = maps.begin(); it != maps.end(); ++it) {
+	    std::cout << "Arity " << it->first << "\n";
+	    RecordMap rm = it->second;
+	    for (vector<RamDomain> record: rm.i2r) {
+		for (RamDomain ele: record) {
+		    std::cout << ele << " ";
+		}
+		std::cout << "\n";
+	    }
+		std::cout << "\n";
+	}
+    }
 
     /**
      * Packs the given tuple -- and may create a new reference if necessary.
@@ -88,33 +135,17 @@ public:
     }
 };
 
-/**
- * The static access function for record maps of certain arities.
- */
-RecordMap& getForArity(int arity) {
-    // the static container -- filled on demand
-    static map<int, RecordMap> maps;
-
-    // get container if present
-    auto pos = maps.find(arity);
-    if (pos != maps.end()) {
-        return pos->second;
-    }
-
-    // create new container if required
-    maps.emplace(arity, arity);
-    return getForArity(arity);
-}
+map<int, RecordMap> souffle::RecordMap::maps = map<int, RecordMap>();
 }  // namespace
 
 RamDomain pack(RamDomain* tuple, int arity) {
     // conduct the packing
-    return getForArity(arity).pack(tuple);
+    return souffle::RecordMap::getForArity(arity).pack(tuple);
 }
 
 RamDomain* unpack(RamDomain ref, int arity) {
     // conduct the unpacking
-    return getForArity(arity).unpack(ref);
+    return souffle::RecordMap::getForArity(arity).unpack(ref);
 }
 
 RamDomain getNull() {
@@ -125,4 +156,11 @@ bool isNull(RamDomain ref) {
     return ref == 0;
 }
 
+void printRecords(const std::unique_ptr<RecordWriteStream>& writer) {
+    souffle::RecordMap::printRecords(writer);
+}
+
+void printRecords() {
+    souffle::RecordMap::printRecords();
+}
 }  // end of namespace souffle

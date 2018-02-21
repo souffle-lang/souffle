@@ -30,6 +30,7 @@
 #include "SignalHandler.h"
 #include "TypeSystem.h"
 #include "UnaryFunctorOps.h"
+#include "Util.h"
 
 #include <algorithm>
 #include <chrono>
@@ -854,6 +855,29 @@ void run(const QueryExecutionStrategy& strategy, std::ostream* report, std::ostr
 
 void Interpreter::invoke(const RamProgram& prog, InterpreterEnvironment& env) const {
     SignalHandler::instance()->set();
+
+    std::string recordsInFilepath = Global::getRecordInFilepath();
+    if (fileExists(recordsInFilepath)) {
+	std::map<std::string, std::string> readIODirectivesMap = {
+	    {"IO", "file"},
+	    {"filename", recordsInFilepath},
+	    {"name", "souffle_records"}
+	};
+	IODirectives readIODirectives(readIODirectivesMap);
+	try {
+	    std::unique_ptr<RecordReadStream> reader = IOSystem::getInstance()
+		.getRecordReader(env.getSymbolTable(), readIODirectives);
+	    auto records = reader->readAllRecords();
+	    for (auto r_it = records->begin(); r_it != records->end(); ++r_it) {
+		for (RamDomain* record: r_it->second) {
+		    pack(record, r_it->first);
+		}
+	    }
+	} catch (std::exception& e) {
+	    std::cerr << e.what();
+	}
+    }
+
     if (Global::config().has("profile")) {
         std::string fname = Global::config().get("profile");
         // open output stream
@@ -865,6 +889,25 @@ void Interpreter::invoke(const RamProgram& prog, InterpreterEnvironment& env) co
         run(queryStrategy, report, &os, *(prog.getMain()), env);
     } else {
         run(queryStrategy, report, nullptr, *(prog.getMain()), env);
+    }
+
+
+    // std::cout << "Printing records now\n";
+    std::string recordsOutFilepath = Global::getRecordOutFilepath();
+    std::string symtabOutFilepath = Global::getSymtabOutFilepath();
+    std::map<std::string, std::string> writeIODirectivesMap = {
+	{"IO", "file"},
+	{"filename", recordsOutFilepath},
+	{"symtabfilename", symtabOutFilepath},
+	{"name", "souffle_records"}
+    };
+    IODirectives writeIODirectives(writeIODirectivesMap);
+    try {
+	printRecords(IOSystem::getInstance()
+		     .getRecordWriter(env.getSymbolTable(), writeIODirectives));
+    } catch (std::exception& e) {
+	std::cerr << e.what();
+	exit(1);
     }
     SignalHandler::instance()->reset();
 }

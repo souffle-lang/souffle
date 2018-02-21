@@ -17,9 +17,10 @@
 #pragma once
 
 #include "RamTypes.h"
+#include "RamValue.h"
+#include "RecordWriteStream.h"
 
 namespace souffle {
-
 /**
  * A function packing a tuple of the given arity into a reference.
  */
@@ -40,5 +41,15 @@ RamDomain getNull();
  * the absence of any nested record.
  */
 bool isNull(RamDomain ref);
+
+/**
+ * A function to print all the records to a given Souffle writer.
+ */
+ void printRecords(const std::unique_ptr<RecordWriteStream>& writer);
+
+/**
+ * A function to print all the records to stdout.
+ */
+void printRecords();
 
 }  // end of namespace souffle

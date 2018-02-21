@@ -470,6 +470,15 @@ public:
     }
 };
 
+
+/**
+ * Check if a file exits at the given file path.
+ */
+inline bool fileExists (const std::string& name) {
+    struct stat buffer;
+    return (stat (name.c_str(), &buffer) == 0);
+}
+
 // -------------------------------------------------------------------------------
 //                           General Print Utilities
 // -------------------------------------------------------------------------------

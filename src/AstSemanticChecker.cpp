@@ -570,31 +570,32 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
         }
 
         /* check whether type is a record type */
-        if (typeEnv.isType(typeName)) {
-            const Type& type = typeEnv.getType(typeName);
-            if (isRecordType(type)) {
-                if (relation.isInput()) {
-                    report.addError(
-                            "Input relations must not have record types. "
-                            "Attribute " +
-                                    attr->getAttributeName() + " has record type " +
-                                    toString(attr->getTypeName()),
-                            attr->getSrcLoc());
-                }
-                if (relation.isOutput()) {
-                    report.addWarning(
-                            "Record types in output relations are not printed verbatim: attribute " +
-                                    attr->getAttributeName() + " has record type " +
-                                    toString(attr->getTypeName()),
-                            attr->getSrcLoc());
-                }
-            }
-        }
+        // if (typeEnv.isType(typeName)) {
+            // const Type& type = typeEnv.getType(typeName);
+            // if (isRecordType(type)) {
+            //     if (relation.isInput()) {
+            //         report.addError(
+            //                 "Input relations must not have record types. "
+            //                 "Attribute " +
+            //                         attr->getAttributeName() + " has record type " +
+            //                         toString(attr->getTypeName()),
+            //                 attr->getSrcLoc());
+            //     }
+            //     if (relation.isOutput()) {
+            //         report.addWarning(
+            //                 "Record types in output relations are not printed verbatim: attribute " +
+            //                         attr->getAttributeName() + " has record type " +
+            //                         toString(attr->getTypeName()),
+            //                 attr->getSrcLoc());
+            //     }
+            // }
+        // }
     }
 }
 
 void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironment& typeEnv,
         const AstProgram& program, const AstRelation& relation, const RecursiveClauses& recursiveClauses) {
+
     if (relation.isEqRel()) {
         if (relation.getArity() == 2) {
             if (relation.getAttribute(0)->getTypeName() != relation.getAttribute(1)->getTypeName()) {
