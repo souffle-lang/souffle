@@ -53,6 +53,14 @@ namespace ram {
 template <typename Setup, unsigned arity, typename... Indices>
 class Relation : public Setup::template relation<arity, Indices...> {};
 
+namespace detail {
+struct std_set_config;
+struct std_unordered_config;
+}
+
+template <typename config>
+struct GenericSetup;
+
 /**
  * A generic, tuned setup, using a combination of direct and indirect
  * b-trees, bries and ordinary tables.
@@ -63,12 +71,6 @@ struct Auto;
  * A setup utilizing direct b-trees for relations exclusively.
  */
 struct BTree;
-
-/**
- * A setup utilizing direct hashmaps for relations exclusively.
- */
-struct Hashmap;
-
 /**
  * A setup utilizing bries for relations exclusively.
  */
@@ -80,9 +82,14 @@ struct Brie;
 struct EqRel;
 
 /**
- * A setup utilizing hash based data structures exclusively.
+ * A setup utilizing hash based data structures exclusively (STL unordered set and multiset).
  */
-struct Hash;
+using Hashset = GenericSetup<detail::std_unordered_config>;
+
+/**
+ * A setup utilizing a std set and multiset based structures exclusively.
+ */
+using Rbtset = GenericSetup<detail::std_set_config>;
 
 // -------------------------------------------------------------
 //                  Auto Setup Implementation
@@ -140,21 +147,6 @@ struct BTree {
     using relation = detail::SingleIndexTypeRelation<btree_index_factory, arity, Indices...>;
 };
 
-/**
- * A setup utilizing direct hashmaps for relations exclusively.
- */
-struct Hashmap {
-    // a index factory selecting in any case a BTree index
-    template <typename Tuple, typename Index, bool>
-    struct btree_index_factory {
-        using type = typename index_utils::DirectIndex<Tuple, Index>;
-    };
-
-    // determines the relation implementation for a given use case
-    template <unsigned arity, typename... Indices>
-    using relation = detail::SingleIndexTypeRelation<btree_index_factory, arity, Indices...>;
-};
-
 // -------------------------------------------------------------
 //                  Brie Setup Implementation
 // -------------------------------------------------------------
@@ -193,26 +185,27 @@ struct EqRel {
 };
 
 // -------------------------------------------------------------
-//                  Hash Setup Implementation
+//                  Generic Setup Implementation
 // -------------------------------------------------------------
 
 namespace detail {
 
 /**
- * The relation type utilized to implement relations only utilizing a hash
- * based data structure.
+ * A generic relation type to customizable by some data structure
+ * configuration struct.
  */
-template <unsigned arity, typename... Indices>
-class HashRelation;
+template <typename config, unsigned arity, typename... Indices>
+class GenericRelation;
 }  // namespace detail
 
 /**
- * A setup utilizing direct b-trees for relations exclusively.
+ * A setup utilizing a configurable relation type.
  */
-struct Hash {
+template <typename config>
+struct GenericSetup {
     // determines the relation implementation for a given use case
     template <unsigned arity, typename... Indices>
-    using relation = detail::HashRelation<arity, Indices...>;
+    using relation = detail::GenericRelation<config, arity, Indices...>;
 };
 
 namespace detail {
@@ -1020,56 +1013,26 @@ template <template <typename Tuple, typename Index, bool direct> class IndexFact
 class SingleIndexTypeRelation<IndexFactory, 0> : public AutoRelation<0> {};
 
 // ------------------------------------------------------------------------------------------
-//                                     HashRelation
+//                                     GenericRelation
 // ------------------------------------------------------------------------------------------
 
-template <typename Index>
-struct tuple_hasher;
+template <typename config, unsigned arity, typename... Indices>
+class GenericRelationGroup;
 
-template <unsigned Pos>
-struct tuple_hasher<index<Pos>> {
-    template <std::size_t S>
-    std::size_t operator()(const Tuple<RamDomain, S>& a) const {
-        return a[Pos];
-    }
-};
-
-template <unsigned First, unsigned... Rest>
-struct tuple_hasher<index<First, Rest...>> {
-    template <std::size_t S>
-    std::size_t operator()(const Tuple<RamDomain, S>& a) const {
-        auto h = tuple_hasher<index<Rest...>>()(a);
-        return a[First] + 0x9e3779b9 + (h << 6) + (h >> 2);
-    }
-};
-
-template <typename Index>
-struct tuple_equal;
-
-template <>
-struct tuple_equal<index<>> {
-    template <std::size_t S>
-    bool operator()(const Tuple<RamDomain, S>&, const Tuple<RamDomain, S>&) const {
-        return true;
-    }
-};
-
-template <unsigned First, unsigned... Rest>
-struct tuple_equal<index<First, Rest...>> {
-    template <std::size_t S>
-    bool operator()(const Tuple<RamDomain, S>& a, const Tuple<RamDomain, S>& b) const {
-        return a[First] == b[First] && tuple_equal<index<Rest...>>()(a, b);
-    }
-};
-
-template <unsigned arity, typename... Indices>
-class HashRelationGroup;
-
-template <unsigned arity>
-class HashRelationGroup<arity> {
+template <typename config, unsigned arity>
+class GenericRelationGroup<config, arity> {
     using tuple_type = Tuple<RamDomain, arity>;
 
 public:
+    template <typename Index>
+    void get() {}
+
+    template <typename Index>
+    void get() const {}
+
+    template <typename Index>
+    void equal_range(const tuple_type&) const {}
+
     void insert(const tuple_type&) {
         // nothing to do here
     }
@@ -1084,17 +1047,15 @@ public:
     }
 };
 
-template <unsigned arity, typename First, typename... Rest>
-class HashRelationGroup<arity, First, Rest...> {
-    using this_type = HashRelationGroup<arity, First, Rest...>;
+template <typename config, unsigned arity, typename First, typename... Rest>
+class GenericRelationGroup<config, arity, First, Rest...> {
+    using this_type = GenericRelationGroup<config, arity, First, Rest...>;
 
     using tuple_type = Tuple<RamDomain, arity>;
 
-    using data_type = typename std::conditional<index_utils::is_full_index<arity, First>::value,
-            std::unordered_set<tuple_type>,
-            std::unordered_multiset<tuple_type, tuple_hasher<First>, tuple_equal<First>>>::type;
+    using data_type = typename config::template set_type<arity, First>;
 
-    using nested_group = HashRelationGroup<arity, Rest...>;
+    using nested_group = GenericRelationGroup<config, arity, Rest...>;
 
     using iterator = typename data_type::const_iterator;
 
@@ -1106,39 +1067,60 @@ class HashRelationGroup<arity, First, Rest...> {
 
 public:
     template <typename Index>
-    typename std::enable_if<index_utils::is_permutation<First, Index>::value, this_type&>::type get() {
+    typename std::enable_if<config::template covers_query<Index, First>::value, this_type&>::type get() {
         return *this;
     }
 
     template <typename Index>
-    const typename std::enable_if<index_utils::is_permutation<First, Index>::value, this_type>::type& get()
+    const typename std::enable_if<config::template covers_query<Index, First>::value, this_type>::type& get()
             const {
         return *this;
     }
 
     template <typename Index>
-    typename std::enable_if<!index_utils::is_permutation<First, Index>::value,
+    typename std::enable_if<!config::template covers_query<Index, First>::value,
             typename std::remove_reference<decltype(nested.template get<Index>())>::type>::type&
     get() {
         return nested.template get<Index>();
     }
 
     template <typename Index>
-    const typename std::enable_if<!index_utils::is_permutation<First, Index>::value,
+    const typename std::enable_if<!config::template covers_query<Index, First>::value,
             typename std::remove_reference<decltype(nested.template get<Index>())>::type>::type&
     get() const {
         return nested.template get<Index>();
     }
 
+    /*
     template <typename Index>
-    typename std::enable_if<index_utils::is_permutation<First, Index>::value, range<iterator>>::type
+    typename std::enable_if<config::template covers_query<Index, First>::value, range<iterator>>::type
     equal_range(const tuple_type& t) const {
+        return make_range(data.lower_bound(index_utils::lower<First, Index>(t)),
+                data.upper_bound(index_utils::raise<First, Index>(t)));
+    }*/
+
+    template <typename Index>
+    typename std::enable_if<config::template covers_query<Index, First>::value &&
+                                    config::template use_equal_range<Index, First>::value,
+            range<iterator>>::type
+    equal_range(const tuple_type& t) const {
+        // get lower and upper bounds in one step
         auto pair = data.equal_range(t);
         return make_range(pair.first, pair.second);
     }
 
     template <typename Index>
-    typename std::enable_if<!index_utils::is_permutation<First, Index>::value,
+    typename std::enable_if<config::template covers_query<Index, First>::value &&
+                                    !config::template use_equal_range<Index, First>::value,
+            range<iterator>>::type
+    equal_range(const tuple_type& t) const {
+        // compute lower and upper bounds in two steps
+        return make_range(data.lower_bound(index_utils::lower<First, Index>(t)),
+                data.upper_bound(index_utils::raise<First, Index>(t)));
+    }
+
+    template <typename Index>
+    typename std::enable_if<!config::template covers_query<Index, First>::value,
             decltype(nested.template equal_range<Index>(tuple_type()))>::type
     equal_range(const tuple_type& t) const {
         return nested.template equal_range<Index>(t);
@@ -1179,16 +1161,17 @@ public:
  * The relation type utilized to implement relations only utilizing a hash
  * based data structure.
  */
-template <unsigned arity, typename... Indices>
-class HashRelation : public RelationBase<arity, HashRelation<arity, Indices...>> {
-    using base = RelationBase<arity, HashRelation<arity, Indices...>>;
+template <typename config, unsigned arity, typename... Indices>
+class GenericRelation : public RelationBase<arity, GenericRelation<config, arity, Indices...>> {
+    using base = RelationBase<arity, GenericRelation<config, arity, Indices...>>;
 
     using tuple_type = typename base::tuple_type;
 
     // the indices group type
     using group_type = typename std::conditional<index_utils::contains_full_index<arity, Indices...>::value,
-            HashRelationGroup<arity, Indices...>,
-            HashRelationGroup<arity, typename index_utils::get_full_index<arity>::type, Indices...>>::type;
+            GenericRelationGroup<config, arity, Indices...>,
+            GenericRelationGroup<config, arity, typename index_utils::get_full_index<arity>::type,
+                    Indices...>>::type;
 
     // the full index to be utilized
     using full_index = typename index_utils::get_first_full_index<arity, Indices...,
@@ -1252,7 +1235,7 @@ public:
     }
 
     template <typename I>
-    auto equalRange(const tuple_type& value, operation_context& ctxt) const
+    auto equalRange(const tuple_type& value, operation_context&) const
             -> decltype(indices.template equal_range<I>(value)) {
         return indices.template equal_range<I>(value);
     }
@@ -1310,7 +1293,7 @@ public:
 
     /* Prints a description of the inner organization of this relation. */
     std::ostream& printDescription(std::ostream& out = std::cout) const {
-        out << "Hash-based Relation of arity=" << arity;
+        out << config::getName() << "-based relaton of arity=" << arity;
         return out;
     }
 
@@ -1321,6 +1304,106 @@ private:
 
     const main_index_type& getMainIndex() const {
         return indices.template get<full_index>();
+    }
+};
+
+// ------------------------------------------------------------------------------------------
+//                                     StdOrderedRelation
+// ------------------------------------------------------------------------------------------
+
+template <typename Index>
+struct tuple_less;
+
+template <>
+struct tuple_less<index<>> {
+    template <std::size_t S>
+    bool operator()(const Tuple<RamDomain, S>&, const Tuple<RamDomain, S>&) const {
+        return false;
+    }
+};
+
+template <unsigned First, unsigned... Rest>
+struct tuple_less<index<First, Rest...>> {
+    template <std::size_t S>
+    bool operator()(const Tuple<RamDomain, S>& a, const Tuple<RamDomain, S>& b) const {
+        return a[First] < b[First] || (a[First] == b[First] && tuple_less<index<Rest...>>()(a, b));
+    }
+};
+
+struct std_set_config {
+    template <unsigned arity, typename Index>
+    using set_type = typename std::conditional<index_utils::is_full_index<arity, Index>::value,
+            std::set<Tuple<RamDomain, arity>, tuple_less<Index>>,
+            std::multiset<Tuple<RamDomain, arity>, tuple_less<Index>>>::type;
+
+    template <typename Query, typename Index>
+    using covers_query = index_utils::is_compatible_with<Query, Index>;
+
+    template <typename Query, typename Index>
+    using use_equal_range = std::false_type;  // index_utils::is_permutation<Query,Index>;
+
+    const char* getName() {
+        return "std::set";
+    }
+};
+
+// ------------------------------------------------------------------------------------------
+//                                  StdUnorderedRelation
+// ------------------------------------------------------------------------------------------
+
+template <typename Index>
+struct tuple_hasher;
+
+template <unsigned Pos>
+struct tuple_hasher<index<Pos>> {
+    template <std::size_t S>
+    std::size_t operator()(const Tuple<RamDomain, S>& a) const {
+        return a[Pos];
+    }
+};
+
+template <unsigned First, unsigned... Rest>
+struct tuple_hasher<index<First, Rest...>> {
+    template <std::size_t S>
+    std::size_t operator()(const Tuple<RamDomain, S>& a) const {
+        auto h = tuple_hasher<index<Rest...>>()(a);
+        return a[First] + 0x9e3779b9 + (h << 6) + (h >> 2);
+    }
+};
+
+template <typename Index>
+struct tuple_equal;
+
+template <>
+struct tuple_equal<index<>> {
+    template <std::size_t S>
+    bool operator()(const Tuple<RamDomain, S>&, const Tuple<RamDomain, S>&) const {
+        return true;
+    }
+};
+
+template <unsigned First, unsigned... Rest>
+struct tuple_equal<index<First, Rest...>> {
+    template <std::size_t S>
+    bool operator()(const Tuple<RamDomain, S>& a, const Tuple<RamDomain, S>& b) const {
+        return a[First] == b[First] && tuple_equal<index<Rest...>>()(a, b);
+    }
+};
+
+struct std_unordered_config {
+    template <unsigned arity, typename Index>
+    using set_type = typename std::conditional<index_utils::is_full_index<arity, Index>::value,
+            std::unordered_set<Tuple<RamDomain, arity>, tuple_hasher<Index>, tuple_equal<Index>>,
+            std::unordered_multiset<Tuple<RamDomain, arity>, tuple_hasher<Index>, tuple_equal<Index>>>::type;
+
+    template <typename Query, typename Index>
+    using covers_query = index_utils::is_permutation<Query, Index>;
+
+    template <typename Query, typename Index>
+    using use_equal_range = std::true_type;
+
+    const char* getName() {
+        return "std::unordered_set";
     }
 };
 

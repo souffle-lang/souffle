@@ -54,18 +54,33 @@ class Logger {
     // an output stream to report to
     std::ostream& out;
 
+    // extension of log file determining message format
+    const std::string ext;
+
 public:
-    Logger(const char* label, std::ostream& out = std::cout) : label(label), out(out) {
+    Logger(const char* label, std::ostream& out = std::cout, const std::string ext = "")
+            : label(label), out(out), ext(ext) {
         start = clock::now();
     }
 
     ~Logger() {
         auto duration = clock::now() - start;
 
-        auto leas = getOutputLock().acquire();
-        (void)leas;  // avoid warning
-        out << label << std::chrono::duration_cast<std::chrono::duration<double>>(duration).count()
-            << std::endl;
+        auto lease = getOutputLock().acquire();
+        (void)lease;  // avoid warning
+
+        out << label << std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
+
+        if (ext == "json") {
+            out << "}";
+            if (std::string(label).find("@runtime") != std::string::npos) {
+                out << "\n]";
+            } else {
+                out << ",";
+            }
+        }
+
+        out << "\n";
     }
 };
 

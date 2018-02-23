@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+//
+// profile_default.dl
+//
+// Example for logging in default format.
+//
+
+// The '.foo' extension here is arbitrary, it will not be recognised,
+// and so logging will be produced in the default format.
+.pragma "profile" "profile_default.foo"
+
+.decl p(x:number, y:number)
+.input p
+
+.decl q(x:number, y:number)
+.output q
+
+q(x, y) :- p(x, y).
+q(x, z) :- p(x, y), q(y, z).

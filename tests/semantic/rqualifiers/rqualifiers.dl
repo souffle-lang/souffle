@@ -7,9 +7,12 @@
 .decl C(x:number, y:number) eqrel
 .output C()
 .input C()
-.decl D(x:number, y:number) hashmap
+.decl D(x:number, y:number) rbtset
 .output D()
 .input D()
-.decl E(x:number, y:number)
+.decl E(x:number, y:number) hashset
 .output E()
 .input E()
+.decl F(x:number, y:number)
+.output F()
+.input F()

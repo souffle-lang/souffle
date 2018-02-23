@@ -100,10 +100,9 @@ protected:
     typedef std::vector<Chain> ChainOrderMap;
     typedef std::set<SearchColumns> SearchSet;
 
-    SearchSet searches;          // set of search patterns on table
-    OrderCollection orders;      // collection of lexicographical orders
-    ChainOrderMap chainToOrder;  // maps order index to set of searches covered by chain
-
+    SearchSet searches;           // set of search patterns on table
+    OrderCollection orders;       // collection of lexicographical orders
+    ChainOrderMap chainToOrder;   // maps order index to set of searches covered by chain
     MaxMatching matching;         // matching problem for finding minimal number of orders
     const RamRelation& relation;  // relation
 
@@ -116,7 +115,6 @@ public:
             searches.insert(cols);
         }
     }
-
     /** Get relation */
     const RamRelation& getRelation() const {
         return relation;
@@ -136,6 +134,10 @@ public:
     /** Get all indexes */
     const OrderCollection getAllOrders() const {
         return orders;
+    }
+
+    const ChainOrderMap getAllChains() const {
+        return chainToOrder;
     }
 
     /** check whether number of bits in k is not equal

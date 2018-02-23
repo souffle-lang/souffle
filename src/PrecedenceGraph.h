@@ -239,8 +239,6 @@ public:
         return isRecursive(scc(relation));
     }
 
-    void print(std::ostream& os, const std::string& format) const;
-
     /** Output strongly connected component graph in graphviz format */
     void print(std::ostream& os) const override;
 };

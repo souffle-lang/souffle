@@ -60,8 +60,11 @@
 /* Relation uses a union relation */
 #define EQREL_RELATION (0x100)
 
-/* Relation uses a hashmap */
-#define HASHMAP_RELATION (0x200)
+/* Relation uses a red-black tree set */
+#define RBTSET_RELATION (0x200)
+
+/* Relation uses a hash set */
+#define HASHSET_RELATION (0x400)
 
 namespace souffle {
 
@@ -170,9 +173,14 @@ public:
         return (qualifier & EQREL_RELATION) != 0;
     }
 
-    /** Check whether relation is a equivalence relation */
-    bool isHashmap() const {
-        return (qualifier & HASHMAP_RELATION) != 0;
+    /** Check whether relation is a red-black tree set relation */
+    bool isRbtset() const {
+        return (qualifier & RBTSET_RELATION) != 0;
+    }
+
+    /** Check whether relation is a hash set relation */
+    bool isHashset() const {
+        return (qualifier & HASHSET_RELATION) != 0;
     }
 
     /** Check whether relation is an input relation */
@@ -254,8 +262,11 @@ public:
         if (isBrie()) {
             os << "brie ";
         }
-        if (isHashmap()) {
-            os << "hashmap ";
+        if (isRbtset()) {
+            os << "rbtset ";
+        }
+        if (isHashset()) {
+            os << "hashset ";
         }
         if (isEqRel()) {
             os << "eqrel ";

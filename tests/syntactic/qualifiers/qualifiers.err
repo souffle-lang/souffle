@@ -1,49 +1,76 @@
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 14
-.decl E(x:number, y:number) brie brie 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 17
+.decl F(x:number, y:number) brie brie 
 ---------------------------------^-----
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 15
-.decl F(x:number, y:number) brie btree 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 18
+.decl G(x:number, y:number) brie btree 
 ---------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 16
-.decl G(x:number, y:number) brie eqrel
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 19
+.decl H(x:number, y:number) brie eqrel
 ---------------------------------^-----
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 17
-.decl H(x:number, y:number) brie hashmap 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 20
+.decl I(x:number, y:number) brie rbtset 
+---------------------------------^-------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 21
+.decl J(x:number, y:number) brie hashset 
 ---------------------------------^--------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 18
-.decl I(x:number, y:number) btree brie 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 22
+.decl K(x:number, y:number) btree brie 
 ----------------------------------^-----
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 19
-.decl J(x:number, y:number) btree btree 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 23
+.decl L(x:number, y:number) btree btree 
 ----------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 20
-.decl K(x:number, y:number) btree eqrel 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 24
+.decl M(x:number, y:number) btree eqrel 
 ----------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 21
-.decl M(x:number, y:number) btree hashmap 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 25
+.decl N(x:number, y:number) btree rbtset
+----------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 26
+.decl O(x:number, y:number) btree hashset 
 ----------------------------------^--------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 22
-.decl N(x:number, y:number) eqrel brie 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 27
+.decl P(x:number, y:number) eqrel brie 
 ----------------------------------^-----
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 23
-.decl O(x:number, y:number) eqrel btree 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 28
+.decl Q(x:number, y:number) eqrel btree 
 ----------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 24
-.decl P(x:number, y:number) eqrel eqrel 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 29
+.decl R(x:number, y:number) eqrel eqrel 
 ----------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 25
-.decl Q(x:number, y:number) eqrel hashmap 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 30
+.decl S(x:number, y:number) eqrel rbtset
+----------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 31
+.decl T(x:number, y:number) eqrel hashset 
 ----------------------------------^--------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 26
-.decl R(x:number, y:number) hashmap brie 
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 32
+.decl U(x:number, y:number) rbtset brie
+-----------------------------------^----
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 33
+.decl V(x:number, y:number) rbtset btree 
+-----------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 34
+.decl W(x:number, y:number) rbtset eqrel
+-----------------------------------^-----
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 35
+.decl X(x:number, y:number) rbtset rbtset
+-----------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 36
+.decl Y(x:number, y:number) rbtset hashset
+-----------------------------------^-------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 37
+.decl Z(x:number, y:number) hashset brie 
 ------------------------------------^-----
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 27
-.decl S(x:number, y:number) hashmap btree 
-------------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 28
-.decl T(x:number, y:number) hashmap eqrel 
-------------------------------------^------
-Error: btree/brie/eqrel/hashmap qualifier already set in file qualifiers.dl at line 29
-.decl U(x:number, y:number) hashmap hashmap 
-------------------------------------^--------
-16 errors generated, evaluation aborted
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 38
+.decl AA(x:number, y:number) hashset btree 
+-------------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 39
+.decl AB(x:number, y:number) hashset eqrel 
+-------------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 40
+.decl AC(x:number, y:number) hashset rbtset
+-------------------------------------^------
+Error: btree/brie/eqrel/rbtset/hashset qualifier already set in file qualifiers.dl at line 41
+.decl AD(x:number, y:number) hashset hashset 
+-------------------------------------^--------
+25 errors generated, evaluation aborted

@@ -254,10 +254,6 @@ void SCCGraph::scR(const AstRelation* w, std::map<const AstRelation*, int>& preO
 }
 
 void SCCGraph::print(std::ostream& os) const {
-    print(os, "dot");
-}
-
-void SCCGraph::printDot(std::ostream& os) const {
     const std::string& name = Global::config().get("name");
     /* Print SCC graph */
     os << "digraph {" << std::endl;
@@ -274,104 +270,6 @@ void SCCGraph::printDot(std::ostream& os) const {
         }
     }
     os << "}";
-}
-
-void SCCGraph::printJson(std::ostream& os) const {
-    // prefix the vertices by the 'name' of the program
-    std::string name;
-    if (Global::config().has("dl-program"))
-        name = Global::config().get("dl-program");
-    else if (Global::config().has("generate"))
-        name = Global::config().get("generate");
-    else
-        name = Global::config().get("");
-    name = simpleName(baseName(name));
-
-    /*
-     * {
-     */
-    os << "{" << std::endl;
-
-    /*
-     *  vertices: {
-     *   scc_1: { on: [rel_1, rel_2, ..., rel_m1], out: ..., in: ... },
-     *   scc_2: { on: [rel_1, rel_2, ..., rel_m2], out: ..., in: ... },
-     *   ...
-     *   scc_n: { on: [rel_1, rel_2, ..., rel_mn], out: ..., in: ... }
-     *  }
-     */
-    os << "\t\"vertices\": {\n";
-    for (unsigned scc = 0; scc < size(); scc++) {
-        os << "\t\t\"" << name << "_" << scc << "\": {\n";
-
-        std::map<std::string, std::set<const AstRelation*>> relSets;
-
-        // "on" is all relations for this scc
-        relSets["on"] = relations(scc);
-        // "in" is all inbound relations + all input relations
-        relSets["in"] = getIns(scc);
-        // "out" is all outbound relations + all output relations
-        relSets["out"] = getOuts(scc);
-
-        size_t relCount = relSets.size();
-        for (const auto& rels : relSets) {
-            os << "\t\t\t\"" << rels.first << "\": [";
-            if (!rels.second.empty()) {
-                os << "\n\t\t\t\t\"";
-                os << join(rels.second, "\",\n\t\t\t\t\"",
-                        [](std::ostream& out, const AstRelation* rel) { out << rel->getName(); });
-                os << "\"\n";
-                os << "\t\t\t]";
-            } else {
-                os << "]";
-            }
-            if (--relCount != 0) os << ",";
-            os << "\n";
-        }
-
-        os << "\t\t}";
-        if (scc != size() - 1) os << ",";
-        os << "\n";
-    }
-    os << "\t},\n";
-
-    /*
-     *  edges: {
-     *   scc_1: { scc_1-1, scc_1-2, ..., scc_1-k },
-     *   scc_2: { scc_2-1, scc_2-2, ..., rel_2-k' },
-     *   ...
-     *   scc_n: { scc_n-1, scc_n-2, ..., scc_n-k'' }
-     *  }
-     */
-    os << "\t\"edges\": {\n";
-    for (unsigned scc = 0; scc < size(); scc++) {
-        os << "\t\t\"" << name << "_" << scc << "\": [\n";
-        const auto& succs = successorSCCs(scc);
-        if (!succs.empty()) {
-            os << "\t\t\t\"" + name + "_";
-            os << join(succs, "\",\n\t\t\t\"" + name + "_",
-                    [](std::ostream& out, const unsigned succ) { out << succ; });
-            os << "\"\n";
-        }
-        os << "\t\t]";
-        if (scc != size() - 1) os << ",";
-        os << "\n";
-    }
-    os << "\t}\n";
-
-    /*
-     * }
-     */
-    os << "}" << std::endl;
-}
-
-void SCCGraph::print(std::ostream& os, const std::string& format) const {
-    if (format == "dot")
-        printDot(os);
-    else if (format == "json")
-        printJson(os);
-    else
-        ERROR("unrecognised file format.");
 }
 
 unsigned TopologicallySortedSCCGraph::topologicalOrderingCost(

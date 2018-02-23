@@ -99,7 +99,8 @@
 %token BRIE_QUALIFIER            "BRIE datastructure qualifier"
 %token BTREE_QUALIFIER           "BTREE datastructure qualifier"
 %token EQREL_QUALIFIER           "equivalence relation qualifier"
-%token HASHMAP_QUALIFIER         "hashmap relation qualifier"
+%token RBTSET_QUALIFIER          "red-black tree set relation qualifier"
+%token HASHSET_QUALIFIER         "hashset relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token INLINE_QUALIFIER          "relation qualifier inline"
 %token TMATCH                    "match predicate"
@@ -383,20 +384,24 @@ qualifiers
         $$ = $1 | INLINE_RELATION;
     }
   | qualifiers BRIE_QUALIFIER {
-        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|HASHMAP_RELATION)) driver.error(@2, "btree/brie/eqrel/hashmap qualifier already set");
+        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|RBTSET_RELATION|HASHSET_RELATION)) driver.error(@2, "btree/brie/eqrel/rbtset/hashset qualifier already set");
         $$ = $1 | BRIE_RELATION;
     }
   | qualifiers BTREE_QUALIFIER {
-        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|HASHMAP_RELATION)) driver.error(@2, "btree/brie/eqrel/hashmap qualifier already set");
+        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|RBTSET_RELATION|HASHSET_RELATION)) driver.error(@2, "btree/brie/eqrel/rbtset/hashset qualifier already set");
         $$ = $1 | BTREE_RELATION;
     }
   | qualifiers EQREL_QUALIFIER {
-        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|HASHMAP_RELATION)) driver.error(@2, "btree/brie/eqrel/hashmap qualifier already set");
+        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|RBTSET_RELATION|HASHSET_RELATION)) driver.error(@2, "btree/brie/eqrel/rbtset/hashset qualifier already set");
         $$ = $1 | EQREL_RELATION;
     }
-  | qualifiers HASHMAP_QUALIFIER {
-        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|HASHMAP_RELATION)) driver.error(@2, "btree/brie/eqrel/hashmap qualifier already set");
-        $$ = $1 | HASHMAP_RELATION;
+  | qualifiers RBTSET_QUALIFIER {
+        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|RBTSET_RELATION|HASHSET_RELATION)) driver.error(@2, "btree/brie/eqrel/rbtset/hashset qualifier already set");
+        $$ = $1 | RBTSET_RELATION;
+    }
+  | qualifiers HASHSET_QUALIFIER {
+        if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|RBTSET_RELATION|HASHSET_RELATION)) driver.error(@2, "btree/brie/eqrel/rbtset/hashset qualifier already set");
+        $$ = $1 | HASHSET_RELATION;
     }
   | %empty {
         $$ = 0;

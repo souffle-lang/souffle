@@ -17,6 +17,7 @@
 #include "AstTranslator.h"
 #include "AstClause.h"
 #include "AstIODirective.h"
+#include "AstLogStatement.h"
 #include "AstProgram.h"
 #include "AstRelation.h"
 #include "AstTypeAnalysis.h"
@@ -149,15 +150,15 @@ std::vector<IODirectives> getOutputIODirectives(const AstRelation* rel, const Ty
 }
 
 std::unique_ptr<RamRelation> getRamRelation(const AstRelation* rel, const TypeEnvironment* typeEnv,
-        std::string name, size_t arity, const bool istemp = false, std::string filePath = std::string(),
-        std::string fileExt = std::string()) {
+        std::string name, size_t arity, const bool istemp = false, const bool hashset = false,
+        std::string filePath = std::string(), std::string fileExt = std::string()) {
     // avoid name conflicts for temporary identifiers
     if (istemp) {
         name.insert(0, "@");
     }
 
     if (!rel) {
-        return std::make_unique<RamRelation>(name, arity, istemp);
+        return std::make_unique<RamRelation>(name, arity, istemp, hashset);
     }
 
     assert(arity == rel->getArity());
@@ -173,11 +174,12 @@ std::unique_ptr<RamRelation> getRamRelation(const AstRelation* rel, const TypeEn
 
     return std::unique_ptr<RamRelation>(new RamRelation(name, arity, attributeNames, attributeTypeQualifiers,
             getSymbolMask(*rel, *typeEnv), rel->isInput(), rel->isComputed(), rel->isOutput(), rel->isBTree(),
-            rel->isHashmap(), rel->isBrie(), rel->isEqRel(), rel->isData(), istemp));
+            rel->isRbtset(), rel->isHashset(), rel->isBrie(), rel->isEqRel(), rel->isData(), istemp));
 }
 
 std::unique_ptr<RamRelation> getRamRelation(const AstRelation* rel, const TypeEnvironment* typeEnv) {
-    return getRamRelation(rel, typeEnv, getRelationName(rel->getName()), rel->getArity());
+    return getRamRelation(
+            rel, typeEnv, getRelationName(rel->getName()), rel->getArity(), false, rel->isHashset());
 }
 }  // namespace
 
@@ -429,7 +431,7 @@ std::unique_ptr<RamValue> translateValue(const AstArgument& arg, const ValueInde
 
 /** generate RAM code for a clause */
 std::unique_ptr<RamStatement> AstTranslator::translateClause(const AstClause& clause,
-        const AstProgram* program, const TypeEnvironment* typeEnv, int version, bool ret) {
+        const AstProgram* program, const TypeEnvironment* typeEnv, int version, bool ret, bool hashset) {
     // check whether there is an imposed order constraint
     if (clause.getExecutionPlan() && clause.getExecutionPlan()->hasOrderFor(version)) {
         // get the imposed order
@@ -451,7 +453,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(const AstClause& cl
         copy->setFixedExecutionPlan();
 
         // translate reordered clause
-        return translateClause(*copy, program, typeEnv, version);
+        return translateClause(*copy, program, typeEnv, version, false, hashset);
     }
 
     // get extract some details
@@ -460,7 +462,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(const AstClause& cl
     // a utility to translate atoms to relations
     auto getRelation = [&](const AstAtom* atom) {
         return getRamRelation((program ? getAtomRelation(atom, program) : nullptr), typeEnv,
-                getRelationName(atom->getName()), atom->getArity());
+                getRelationName(atom->getName()), atom->getArity(), false, hashset);
     };
 
     // handle facts
@@ -855,16 +857,17 @@ std::unique_ptr<RamStatement> AstTranslator::translateNonRecursiveRelation(const
 
         // add logging
         if (Global::config().has("profile")) {
-            std::string clauseText = stringify(toString(*clause));
-            std::ostringstream line;
-            line << "nonrecursive-rule;" << rel.getName() << ";";
-            line << clause->getSrcLoc() << ";";
-            line << clauseText << ";";
-            std::string label = line.str();
+            const std::string& relationName = toString(rel.getName());
+            const AstSrcLocation& srcLocation = clause->getSrcLoc();
+            const std::string clauseText = stringify(toString(*clause));
+            const std::string logTimerStatement =
+                    AstLogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
+            const std::string logSizeStatement =
+                    AstLogStatement::nNonrecursiveRule(relationName, srcLocation, clauseText);
             rule = std::unique_ptr<RamStatement>(new RamSequence(
-                    std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule), "@t-" + label)),
+                    std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule), logTimerStatement)),
                     std::make_unique<RamLogSize>(
-                            std::unique_ptr<RamRelation>(rrel->clone()), "@n-" + label)));
+                            std::unique_ptr<RamRelation>(rrel->clone()), logSizeStatement)));
         }
 
         // add debug info
@@ -884,18 +887,19 @@ std::unique_ptr<RamStatement> AstTranslator::translateNonRecursiveRelation(const
 
     // add logging for entire relation
     if (Global::config().has("profile")) {
-        // compute label
-        std::ostringstream line;
-        line << "nonrecursive-relation;" << rel.getName() << ";";
-        line << rel.getSrcLoc() << ";";
-        std::string label = line.str();
+        const std::string& relationName = toString(rel.getName());
+        const AstSrcLocation& srcLocation = rel.getSrcLoc();
+        const std::string logTimerStatement =
+                AstLogStatement::tNonrecursiveRelation(relationName, srcLocation);
+        const std::string logSizeStatement =
+                AstLogStatement::nNonrecursiveRelation(relationName, srcLocation);
 
         // add timer
-        res = std::make_unique<RamLogTimer>(std::move(res), "@t-" + label);
+        res = std::make_unique<RamLogTimer>(std::move(res), logTimerStatement);
 
         // add table size printer
         appendStmt(res,
-                std::make_unique<RamLogSize>(std::unique_ptr<RamRelation>(rrel->clone()), "@n-" + label));
+                std::make_unique<RamLogSize>(std::unique_ptr<RamRelation>(rrel->clone()), logSizeStatement));
     }
 
     // done
@@ -961,10 +965,11 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
 
         /* create two temporary tables for relaxed semi-naive evaluation */
         auto relName = getRelationName(rel->getName());
-        rrel[rel] = getRamRelation(rel, &typeEnv, relName, rel->getArity());
-        relDelta[rel] = getRamRelation(rel, &typeEnv, "delta_" + relName, rel->getArity(), true);
-        relNew[rel] = getRamRelation(rel, &typeEnv, "new_" + relName, rel->getArity(), true);
-
+        rrel[rel] = getRamRelation(rel, &typeEnv, relName, rel->getArity(), false, rel->isHashset());
+        relDelta[rel] =
+                getRamRelation(rel, &typeEnv, "delta_" + relName, rel->getArity(), true, rel->isHashset());
+        relNew[rel] =
+                getRamRelation(rel, &typeEnv, "new_" + relName, rel->getArity(), true, rel->isHashset());
         /* create update statements for fixpoint (even iteration) */
         appendStmt(updateRelTable,
                 std::unique_ptr<RamStatement>(new RamSequence(
@@ -978,9 +983,8 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
 
         /* measure update time for each relation */
         if (Global::config().has("profile")) {
-            std::ostringstream ost, osn;
-            ost << "@c-recursive-relation;" << rel->getName() << ";" << rel->getSrcLoc() << ";";
-            updateRelTable = std::make_unique<RamLogTimer>(std::move(updateRelTable), ost.str());
+            updateRelTable = std::make_unique<RamLogTimer>(std::move(updateRelTable),
+                    AstLogStatement::cRecursiveRelation(toString(rel->getName()), rel->getSrcLoc()));
         }
 
         /* drop temporary tables after recursion */
@@ -1055,21 +1059,23 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
                     }
                 }
 
-                std::unique_ptr<RamStatement> rule = translateClause(*r1, program, &typeEnv, version);
+                std::unique_ptr<RamStatement> rule =
+                        translateClause(*r1, program, &typeEnv, version, false, rel->isHashset());
 
                 /* add logging */
                 if (Global::config().has("profile")) {
-                    std::string clauseText = stringify(toString(*cl));
-                    std::ostringstream line;
-                    line << "recursive-rule;" << rel->getName() << ";";
-                    line << version << ";";
-                    line << cl->getSrcLoc() << ";";
-                    line << clauseText << ";";
-                    std::string label = line.str();
+                    const std::string& relationName = toString(rel->getName());
+                    const AstSrcLocation& srcLocation = cl->getSrcLoc();
+                    const std::string clauseText = stringify(toString(*cl));
+                    const std::string logTimerStatement =
+                            AstLogStatement::tRecursiveRule(relationName, version, srcLocation, clauseText);
+                    const std::string logSizeStatement =
+                            AstLogStatement::nRecursiveRule(relationName, version, srcLocation, clauseText);
                     rule = std::unique_ptr<RamStatement>(new RamSequence(
-                            std::unique_ptr<RamStatement>(new RamLogTimer(std::move(rule), "@t-" + label)),
+                            std::unique_ptr<RamStatement>(
+                                    new RamLogTimer(std::move(rule), logTimerStatement)),
                             std::unique_ptr<RamLogSize>(new RamLogSize(
-                                    std::unique_ptr<RamRelation>(relNew[rel]->clone()), "@n-" + label))));
+                                    std::unique_ptr<RamRelation>(relNew[rel]->clone()), logSizeStatement))));
                 }
 
                 // add debug info
@@ -1094,13 +1100,16 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
 
         // label all versions
         if (Global::config().has("profile")) {
-            std::ostringstream line;
-            line << "recursive-relation;" << rel->getName() << ";" << rel->getSrcLoc() << ";";
-            std::string label = line.str();
-            loopRelSeq = std::make_unique<RamLogTimer>(std::move(loopRelSeq), "@t-" + label);
-            appendStmt(
-                    loopRelSeq, std::make_unique<RamLogSize>(
-                                        std::unique_ptr<RamRelation>(relNew[rel]->clone()), "@n-" + label));
+            const std::string& relationName = toString(rel->getName());
+            const AstSrcLocation& srcLocation = rel->getSrcLoc();
+            const std::string logTimerStatement =
+                    AstLogStatement::tRecursiveRelation(relationName, srcLocation);
+            const std::string logSizeStatement =
+                    AstLogStatement::nRecursiveRelation(relationName, srcLocation);
+            loopRelSeq = std::make_unique<RamLogTimer>(std::move(loopRelSeq), logTimerStatement);
+            appendStmt(loopRelSeq,
+                    std::make_unique<RamLogSize>(
+                            std::unique_ptr<RamRelation>(relNew[rel]->clone()), logSizeStatement));
         }
 
         /* add rule computations of a relation to parallel statement */
@@ -1148,8 +1157,8 @@ void createAndLoad(std::unique_ptr<RamStatement>& current, const AstRelation* re
         directive->addKVP("intermediate", "true");
         mrel->addIODirectives(std::move(directive));
     }
-    std::unique_ptr<RamRelation> rrel = getRamRelation(
-            mrel, &typeEnv, getRelationName(mrel->getName()), mrel->getArity(), false, dir, ext);
+    std::unique_ptr<RamRelation> rrel = getRamRelation(mrel, &typeEnv, getRelationName(mrel->getName()),
+            mrel->getArity(), false, mrel->isHashset(), dir, ext);
     // create and load the relation at the start
     appendStmt(current, std::make_unique<RamCreate>(std::unique_ptr<RamRelation>(rrel->clone())));
 
@@ -1178,8 +1187,8 @@ void printSizeStore(std::unique_ptr<RamStatement>& current, const AstRelation* r
         directive->setAsOutput();
         mrel->addIODirectives(std::move(directive));
     }
-    std::unique_ptr<RamRelation> rrel = getRamRelation(
-            mrel, &typeEnv, getRelationName(mrel->getName()), mrel->getArity(), false, dir, ext);
+    std::unique_ptr<RamRelation> rrel = getRamRelation(mrel, &typeEnv, getRelationName(mrel->getName()),
+            mrel->getArity(), false, mrel->isHashset(), dir, ext);
     if (rel->isPrintSize()) {
         appendStmt(current, std::make_unique<RamPrintSize>(std::unique_ptr<RamRelation>(rrel->clone())));
     }
@@ -1306,7 +1315,7 @@ std::unique_ptr<RamProgram> AstTranslator::translateProgram(const AstTranslation
     }
 
     if (res && Global::config().has("profile")) {
-        res = std::make_unique<RamLogTimer>(std::move(res), "@runtime;");
+        res = std::make_unique<RamLogTimer>(std::move(res), AstLogStatement::runtime());
     }
 
     // done for main prog

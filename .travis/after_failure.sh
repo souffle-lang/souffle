@@ -25,7 +25,7 @@ pretty_print () {
 }
 
 TEST_ROOT=`find . -type d -name "testsuite.dir" | head -1`
-RELEVANT_EXTENSIONS=".out .err .log"
+RELEVANT_EXTENSIONS=".out .err .log .ccerr"
 MAXIMUM_LINES="200"
 
 # Show the current directory, and the contents of each direct subdirectory

@@ -95,7 +95,7 @@ public:
     iterator end() const override {
         return iterator(new iterator_wrapper(id, this, relation.end()));
     }
-    void insert(const tuple& arg) {
+    void insert(const tuple& arg) override {
         TupleType t;
         assert(arg.size() == Arity && "wrong tuple arity");
         for (size_t i = 0; i < Arity; i++) {
@@ -103,7 +103,7 @@ public:
         }
         relation.insert(t);
     }
-    bool contains(const tuple& arg) const {
+    bool contains(const tuple& arg) const override {
         TupleType t;
         assert(arg.size() == Arity && "wrong tuple arity");
         for (size_t i = 0; i < Arity; i++) {
@@ -111,23 +111,23 @@ public:
         }
         return relation.contains(t);
     }
-    bool isInput() const {
+    bool isInput() const override {
         return IsInputRel;
     }
-    bool isOutput() const {
+    bool isOutput() const override {
         return IsOutputRel;
     }
-    std::size_t size() {
+    std::size_t size() override {
         return relation.size();
     }
-    std::string getName() const {
+    std::string getName() const override {
         return name;
     }
-    const char* getAttrType(size_t arg) const {
+    const char* getAttrType(size_t arg) const override {
         assert(0 <= arg && arg < Arity && "attribute out of bound");
         return tupleType[arg];
     }
-    const char* getAttrName(size_t arg) const {
+    const char* getAttrName(size_t arg) const override {
         assert(0 <= arg && arg < Arity && "attribute out of bound");
         return tupleName[arg];
     }
