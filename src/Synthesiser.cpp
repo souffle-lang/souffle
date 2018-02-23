@@ -1412,8 +1412,7 @@ void Synthesiser::generateCode(
 	os << "pack<ram::Tuple<RamDomain, " << arity << ">>(tuple" << arity << ");\n";
 	os << "break;\n";
     }
-    os << "default: ";
-    os << "break;\n"
+    os << "default: break; \n";
     os << "}\n";
     os << "}\n";
     os << "}\n";
