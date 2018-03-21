@@ -344,7 +344,7 @@ int main(int argc, char** argv) {
     if (Global::config().get("bddbddb").empty()) {
         astTransforms.push_back(std::make_unique<ResolveAliasesTransformer>());
     }
-    astTransforms.push_back(std::make_unique<RemoveRelationCopiesTransformer>());
+    //astTransforms.push_back(std::make_unique<RemoveRelationCopiesTransformer>());
     astTransforms.push_back(std::make_unique<MaterializeAggregationQueriesTransformer>());
     astTransforms.push_back(std::make_unique<RemoveEmptyRelationsTransformer>());
     astTransforms.push_back(std::make_unique<RemoveRedundantRelationsTransformer>());
@@ -356,7 +356,7 @@ int main(int argc, char** argv) {
         if (Global::config().get("bddbddb").empty()) {
             astTransforms.push_back(std::make_unique<ResolveAliasesTransformer>());
         }
-        astTransforms.push_back(std::make_unique<RemoveRelationCopiesTransformer>());
+        //astTransforms.push_back(std::make_unique<RemoveRelationCopiesTransformer>());
         astTransforms.push_back(std::make_unique<RemoveEmptyRelationsTransformer>());
         astTransforms.push_back(std::make_unique<RemoveRedundantRelationsTransformer>());
     }
