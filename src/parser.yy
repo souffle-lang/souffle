@@ -103,6 +103,7 @@
 %token HASHSET_QUALIFIER         "hashset relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token INLINE_QUALIFIER          "relation qualifier inline"
+%token NONSTRAT_QUALIFIER        "relation qualifier nonstrat"
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of two strings"
@@ -402,6 +403,10 @@ qualifiers
   | qualifiers HASHSET_QUALIFIER {
         if($1 & (BRIE_RELATION|BTREE_RELATION|EQREL_RELATION|RBTSET_RELATION|HASHSET_RELATION)) driver.error(@2, "btree/brie/eqrel/rbtset/hashset qualifier already set");
         $$ = $1 | HASHSET_RELATION;
+    }
+  | qualifiers NONSTRAT_QUALIFIER {
+        if ($1 & INLINE_RELATION) driver.error(@2, "nonstrat qualifier already set");
+        $$ = $1 | NONSTRAT_RELATION;
     }
   | %empty {
         $$ = 0;

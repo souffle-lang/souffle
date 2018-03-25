@@ -66,6 +66,9 @@
 /* Relation uses a hash set */
 #define HASHSET_RELATION (0x400)
 
+/* Relation allows non-stratifiable negation */
+#define NONSTRAT_RELATION (0x800)
+
 namespace souffle {
 
 /*!
@@ -203,6 +206,10 @@ public:
         return (qualifier & INLINE_RELATION) != 0;
     }
 
+    bool isNonStratifiable() const {
+	return (qualifier & NONSTRAT_RELATION) != 0;
+    }
+
     /** Check whether relation has a record in its head */
     bool hasRecordInHead() const {
         for (auto& cur : clauses) {
@@ -271,6 +278,9 @@ public:
         if (isEqRel()) {
             os << "eqrel ";
         }
+	if (isNonStratifiable()) {
+	    os << "nonstrat ";
+	}
     }
 
     /** Creates a clone if this AST sub-structure */

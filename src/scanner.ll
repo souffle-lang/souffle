@@ -114,6 +114,7 @@
 "rbtset"                              { return yy::parser::make_RBTSET_QUALIFIER(yylloc); }
 "hashset"                             { return yy::parser::make_HASHSET_QUALIFIER(yylloc); }
 "inline"                              { return yy::parser::make_INLINE_QUALIFIER(yylloc); }
+"nonstrat"			      { return yy::parser::make_NONSTRAT_QUALIFIER(yylloc); }
 "brie"                                { return yy::parser::make_BRIE_QUALIFIER(yylloc); }
 "btree"                               { return yy::parser::make_BTREE_QUALIFIER(yylloc); }
 "min"                                 { return yy::parser::make_MIN(yylloc); }
