@@ -274,7 +274,7 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
     // check for cyclic dependencies
     const Graph<const AstRelation*, AstNameComparison>& depGraph = precedenceGraph.graph();
     for (const AstRelation* cur : depGraph.vertices()) {
-	if (cur->isNonStratifiable()) {
+	if (cur && cur->isNonStratifiable()) {
 	    continue;
 	}
         if (depGraph.reaches(cur, cur)) {
