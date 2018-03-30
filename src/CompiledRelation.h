@@ -20,6 +20,7 @@
 #include "BTree.h"
 #include "CompiledIndexUtils.h"
 #include "CompiledTuple.h"
+#include "Forall.h"
 #include "IOSystem.h"
 #include "IterUtils.h"
 #include "ParallelUtils.h"
@@ -182,6 +183,26 @@ struct EqRel {
     // determines the relation implementation for a given use case
     template <unsigned arity, typename... Indices>
     using relation = detail::SingleIndexTypeRelation<eqrel_index_factory, arity, Indices...>;
+};
+
+// -------------------------------------------------------------
+//                  Forall Setup Implementation
+// -------------------------------------------------------------
+
+namespace detail {
+    template <template <typename Tuple, typename Index, bool direct> class IndexFactory, unsigned arity,
+        typename... Indices>
+    class ForallRelation;
+}  // namespace detail
+
+struct Forall {
+    template <typename Tuple, typename Index, bool>
+    struct forall_index_factory {
+        using type = typename index_utils::DirectIndex<Tuple, Index>;
+    };
+
+    template <unsigned arity, typename... Indices>
+    using relation = detail::ForallRelation<forall_index_factory, arity, Indices...>;
 };
 
 // -------------------------------------------------------------
@@ -1011,6 +1032,47 @@ class SingleIndexTypeRelation<IndexFactory, arity>
  */
 template <template <typename Tuple, typename Index, bool direct> class IndexFactory>
 class SingleIndexTypeRelation<IndexFactory, 0> : public AutoRelation<0> {};
+
+// ------------------------------------------------------------------------------------------
+//                              ForallRelation
+// ------------------------------------------------------------------------------------------
+
+template <template <typename Tuple, typename Index, bool direct> class IndexFactory, unsigned arity,
+        typename... Indices>
+class ForallRelation : public AutoRelation<arity, Indices...> {
+    typedef AutoRelation<arity, Indices...> Super;
+    typedef typename Super::tuple_type tuple_type;
+    typedef typename Super::operation_context operation_context;
+
+    ForallIndex index;
+
+public:
+    // Insert: modify tuple first, adding forall index, then insert in superclass.
+    bool insert(const tuple_type& tuple) {
+	tuple_type copy = tuple;
+	if (arity >= 3) {
+	    copy[2] = index.insert(copy[0], copy[1]);
+	}
+	operation_context ctxt;
+	return this->Super::insert(copy, ctxt);
+    }
+
+    template <typename... Args>
+    bool insert(Args... args) {
+        RamDomain data[arity] = {RamDomain(args)...};
+	return insert(reinterpret_cast<const tuple_type&>(data));
+    }
+
+
+    // Re-override insertAll to ensure all inserts go through insert() above.
+    template <typename Setup, typename... Idxs>
+    void insertAll(const Relation<Setup, arity, Idxs...>& other) {
+        for (const tuple_type& cur : other) {
+            insert(cur);
+        }
+    }
+};
+
 
 // ------------------------------------------------------------------------------------------
 //                                     GenericRelation

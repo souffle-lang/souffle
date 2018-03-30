@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "Forall.h"
 #include "InterpreterIndex.h"
 #include "RamProgram.h"
 #include "RamRelation.h"
@@ -75,19 +76,23 @@ private:
     /** Total index for existence checks */
     mutable InterpreterIndex* totalIndex;
 
+    /** Forall-relation index */
+    mutable ForallIndex forall;
+    bool is_forall;
+
     /** Lock for parallel execution */
     mutable Lock lock;
 
 public:
     InterpreterRelation(size_t relArity)
             : arity(relArity), num_tuples(0), head(std::make_unique<Block>()), tail(head.get()),
-              totalIndex(nullptr) {}
+              totalIndex(nullptr), is_forall(false) {}
 
     InterpreterRelation(const InterpreterRelation& other) = delete;
 
     InterpreterRelation(InterpreterRelation&& other)
             : arity(other.arity), num_tuples(other.num_tuples), tail(other.tail),
-              totalIndex(other.totalIndex) {
+              totalIndex(other.totalIndex), forall(other.forall), is_forall(other.is_forall) {
         // take over ownership
         head.swap(other.head);
         indices.swap(other.indices);
@@ -97,6 +102,10 @@ public:
 
     virtual ~InterpreterRelation() {
         for (auto x : allocatedBlocks) delete[] x;
+    }
+
+    void setForall() {
+	is_forall = true;
     }
 
     // TODO (#421): check whether still required
@@ -142,8 +151,19 @@ public:
 
         ASSERT(tuple);
 
+	// add forall index, if needed
+	const RamDomain* t = tuple;
+	if (is_forall && arity >= 3) {
+	    RamDomain *newT = reinterpret_cast<RamDomain*>(alloca(sizeof(RamDomain)*arity));
+	    for (size_t i = 0; i < arity; i++) {
+		newT[i] = tuple[i];
+	    }
+	    newT[2] = forall.insert(tuple[0], tuple[1]);
+	    t = newT;
+	}
+
         // make existence check
-        if (exists(tuple)) {
+        if (exists(t)) {
             return;
         }
 
@@ -156,7 +176,7 @@ public:
         // insert element into tail
         RamDomain* newTuple = &tail->data[tail->used];
         for (size_t i = 0; i < arity; ++i) {
-            newTuple[i] = tuple[i];
+            newTuple[i] = t[i];
         }
         tail->used += arity;
 
@@ -508,6 +528,9 @@ public:
             } else {
                 res = new InterpreterEqRelation(id.getArity());
             }
+	    if (id.isForall()) {
+		res->setForall();
+	    }
             data[id.getName()] = res;
         }
         // return result

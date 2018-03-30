@@ -64,6 +64,7 @@ protected:
     bool hashset;  // hash set data-structure
     bool brie;     // brie data-structure
     bool eqrel;    // equivalence relation
+    bool forall;   // forall relation
 
     bool isdata;  // Datalog relation in the program
     bool istemp;  // Temporary relation for semi-naive evaluation
@@ -71,7 +72,8 @@ protected:
 public:
     RamRelation()
             : RamNode(RN_Relation), arity(0), mask(arity), input(false), output(false), computed(false),
-              btree(false), rbtset(false), hashset(false), brie(false), eqrel(false), isdata(false),
+              btree(false), rbtset(false), hashset(false), brie(false), eqrel(false), forall(false),
+	      isdata(false),
               istemp(false) {}
 
     RamRelation(const std::string& name, unsigned arity, const bool istemp, const bool hashset = false)
@@ -85,11 +87,11 @@ public:
             const bool input = false, const bool computed = false, const bool output = false,
             const bool btree = false, const bool rbtset = false, const bool hashset = false,
             const bool brie = false, const bool eqrel = false, const bool isdata = false,
-            const bool istemp = false)
+	    const bool istemp = false, const bool forall = false)
             : RamNode(RN_Relation), name(name), arity(arity), attributeNames(attributeNames),
               attributeTypeQualifiers(attributeTypeQualifiers), mask(mask), input(input), output(output),
               computed(computed), btree(btree), rbtset(rbtset), hashset(hashset), brie(brie), eqrel(eqrel),
-              isdata(isdata), istemp(istemp) {
+              forall(forall), isdata(isdata), istemp(istemp) {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -148,6 +150,10 @@ public:
         return eqrel;
     }
 
+    const bool isForall() const {
+	return forall;
+    }
+
     // data-structures that can server various searches
     const bool isCoverable() const {
         return !isHashset();
@@ -184,6 +190,7 @@ public:
         if (isHashset()) out << " hashset";
         if (isBrie()) out << " brie";
         if (isEqRel()) out << " eqrel";
+	if (isForall()) out << " forall";
     }
 
     /** Obtain list of child nodes */
@@ -194,7 +201,7 @@ public:
     /** Create clone */
     RamRelation* clone() const override {
         RamRelation* res = new RamRelation(name, arity, attributeNames, attributeTypeQualifiers, mask, input,
-                computed, output, btree, rbtset, hashset, brie, eqrel, isdata, istemp);
+					   computed, output, btree, rbtset, hashset, brie, eqrel, isdata, istemp, forall);
         return res;
     }
 
@@ -211,7 +218,9 @@ protected:
                isInput() == other.isInput() && isOutput() == other.isOutput() &&
                isComputed() == other.isComputed() && isBTree() == other.isBTree() &&
                isRbtset() == other.isRbtset() && isHashset() == other.isHashset() &&
-               isBrie() == other.isBrie() && isEqRel() == other.isEqRel() && isData() == other.isData() &&
+               isBrie() == other.isBrie() && isEqRel() == other.isEqRel() &&
+	       isForall() == other.isForall() &&
+	       isData() == other.isData() &&
                isTemp() == other.isTemp();
     }
 };
