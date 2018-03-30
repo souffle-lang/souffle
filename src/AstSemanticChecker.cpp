@@ -274,11 +274,22 @@ void AstSemanticChecker::checkProgram(ErrorReport& report, const AstProgram& pro
     // check for cyclic dependencies
     const Graph<const AstRelation*, AstNameComparison>& depGraph = precedenceGraph.graph();
     for (const AstRelation* cur : depGraph.vertices()) {
-	if (cur && cur->isNonStratifiable()) {
+	if (!cur) {
 	    continue;
 	}
         if (depGraph.reaches(cur, cur)) {
             AstRelationSet clique = depGraph.clique(cur);
+	    
+	    bool hasNonStrat = false;
+	    for (const AstRelation* cyclicRelation : clique) {
+		if (cyclicRelation->isNonStratifiable()) {
+		    hasNonStrat = true;
+		}
+	    }
+	    if (hasNonStrat) {
+		continue;
+	    }
+	    
             for (const AstRelation* cyclicRelation : clique) {
                 // Negations and aggregations need to be stratified,
                 // unless this is a "nonstratifiable" relation
