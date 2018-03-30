@@ -1057,10 +1057,23 @@ public:
 	return this->Super::insert(copy, ctxt);
     }
 
+    bool insert(const tuple_type& tuple, operation_context ctxt) {
+	tuple_type copy = tuple;
+	if (arity >= 3) {
+	    copy[2] = index.insert(copy[0], copy[1]);
+	}
+	return this->Super::insert(copy, ctxt);
+    }
+
+    bool insert(RamDomain arg0) {
+        RamDomain data[arity] = {arg0};
+        return insert(reinterpret_cast<const tuple_type&>(data));
+    }
+
     template <typename... Args>
-    bool insert(Args... args) {
-        RamDomain data[arity] = {RamDomain(args)...};
-	return insert(reinterpret_cast<const tuple_type&>(data));
+    bool insert(RamDomain arg0, RamDomain arg1, Args... args) {
+        RamDomain data[arity] = {arg0, RamDomain(args)...};
+        return insert(reinterpret_cast<const tuple_type&>(data));
     }
 
 
