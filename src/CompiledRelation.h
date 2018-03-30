@@ -1051,18 +1051,18 @@ public:
     bool insert(const tuple_type& tuple) {
 	tuple_type copy = tuple;
 	if (arity >= 3) {
-	    copy[2] = index.insert(copy[0], copy[1]);
+	    auto cur_prev = index.insert(copy[0], copy[1]);
+	    copy[2] = cur_prev.first;
+	    if (arity >= 4) {
+		copy[3] = cur_prev.second;
+	    }
 	}
 	operation_context ctxt;
 	return this->Super::insert(copy, ctxt);
     }
 
     bool insert(const tuple_type& tuple, operation_context ctxt) {
-	tuple_type copy = tuple;
-	if (arity >= 3) {
-	    copy[2] = index.insert(copy[0], copy[1]);
-	}
-	return this->Super::insert(copy, ctxt);
+	return insert(tuple);
     }
 
     bool insert(RamDomain arg0) {

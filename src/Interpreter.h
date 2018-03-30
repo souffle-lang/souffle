@@ -158,7 +158,11 @@ public:
 	    for (size_t i = 0; i < arity; i++) {
 		newT[i] = tuple[i];
 	    }
-	    newT[2] = forall.insert(tuple[0], tuple[1]);
+	    auto cur_prev = forall.insert(tuple[0], tuple[1]);
+	    newT[2] = cur_prev.first;
+	    if (arity >= 4) {
+		newT[3] = cur_prev.second;
+	    }
 	    t = newT;
 	}
 
