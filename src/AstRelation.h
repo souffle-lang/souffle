@@ -69,6 +69,9 @@
 /* Relation allows non-stratifiable negation */
 #define NONSTRAT_RELATION (0x800)
 
+/* Relation is a magical forall relatoin */
+#define FORALL_RELATION (0x1000)
+
 namespace souffle {
 
 /*!
@@ -208,6 +211,10 @@ public:
 
     bool isNonStratifiable() const {
 	return (qualifier & NONSTRAT_RELATION) != 0;
+    }
+
+    bool isForall() const {
+	return (qualifier & FORALL_RELATION) != 0;
     }
 
     /** Check whether relation has a record in its head */

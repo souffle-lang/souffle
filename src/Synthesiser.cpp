@@ -157,6 +157,8 @@ std::string getRelationType(const RamRelation& rel, std::size_t arity, const Ind
         res << "Brie,";
     } else if (rel.isEqRel()) {
         res << "EqRel,";
+    } else if (rel.isForall()) {
+	res << "Forall,";
     } else {
         auto data_structure = Global::config().get("data-structure");
         if (data_structure == "btree") {

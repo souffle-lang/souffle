@@ -152,6 +152,7 @@ soufflepublic_HEADERS = CompiledOptions.h       \
                         CompiledTuple.h         \
                         CompiledRecord.h        \
                         CompiledSouffle.h       \
+                        Forall.h                \
                         SignalHandler.h         \
                         SouffleInterface.h      \
                         ParallelUtils.h         \
