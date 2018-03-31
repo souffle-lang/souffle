@@ -60,7 +60,7 @@ public:
 
 protected:
     void writeNext(int ind, const std::vector<RamDomain>& record) override {
-	file << record.size() << delimiter << ind << delimiter;
+	file << ind << delimiter << record.size() << delimiter;
 	for (size_t i = 0; i < record.size(); ++i) {
 	    file << record[i];
 	    if (i < record.size() - 1) file << delimiter;
