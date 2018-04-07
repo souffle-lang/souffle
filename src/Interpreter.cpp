@@ -134,6 +134,8 @@ RamDomain eval(const RamValue& value, InterpreterEnvironment& env, const EvalCon
                     return ~visit(op.getValue());
                 case UnaryOp::LNOT:
                     return !visit(op.getValue());
+                case UnaryOp::STOI:
+                    return std::stoi(env.getSymbolTable().resolve(visit(op.getValue())));
                 case UnaryOp::ORD:
                     return visit(op.getValue());
                 case UnaryOp::STRLEN:

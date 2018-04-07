@@ -24,6 +24,7 @@ namespace souffle {
  */
 enum class UnaryOp {
     __UNDEFINED__,
+    STOI,    // string to integer conversion
     ORD,     // ordinal number of a string
     STRLEN,  // length of a string
     NEG,     // numeric negation
@@ -50,6 +51,8 @@ enum class UnaryOp {
  */
 inline std::string getSymbolForUnaryOp(UnaryOp op) {
     switch (op) {
+        case UnaryOp::STOI:
+            return "stoi";
         case UnaryOp::ORD:
             return "ord";
         case UnaryOp::STRLEN:
@@ -99,6 +102,7 @@ inline std::string getSymbolForUnaryOp(UnaryOp op) {
  * Returns the corresponding operator for the given symbol.
  */
 inline UnaryOp getUnaryOpForSymbol(const std::string& symbol) {
+    if (symbol == "stoi") return UnaryOp::STOI;
     if (symbol == "ord") return UnaryOp::ORD;
     if (symbol == "strlen") return UnaryOp::STRLEN;
     if (symbol == "-") return UnaryOp::NEG;
@@ -128,6 +132,7 @@ inline UnaryOp getUnaryOpForSymbol(const std::string& symbol) {
  */
 inline bool isNumericUnaryOp(const UnaryOp op) {
     switch (op) {
+        case UnaryOp::STOI:
         case UnaryOp::ORD:
         case UnaryOp::STRLEN:
         case UnaryOp::NEG:
@@ -186,6 +191,7 @@ inline bool unaryOpAcceptsNumbers(const UnaryOp op) {
         case UnaryOp::EXP:
             return true;
         case UnaryOp::ORD:
+        case UnaryOp::STOI:
         case UnaryOp::STRLEN:
             return false;
         default:

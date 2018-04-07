@@ -1020,6 +1020,9 @@ public:
     void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) override {
         PRINT_BEGIN_COMMENT(out);
         switch (op.getOperator()) {
+            case UnaryOp::STOI:
+                out << "stoi(symTable.resolve((size_t)" << print(op.getValue()) << "))";
+                break;
             case UnaryOp::ORD:
                 out << print(op.getValue());
                 break;

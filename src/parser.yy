@@ -108,6 +108,7 @@
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token CAT                       "concatenation of two strings"
+%token STOI                      "string to integer conversion operator"
 %token ORD                       "ordinal number of a string"
 %token STRLEN                    "length of a string"
 %token SUBSTR                    "sub-string of a string"
@@ -629,6 +630,10 @@ arg
     }
   | ORD LPAREN arg RPAREN {
         $$ = new AstUnaryFunctor(UnaryOp::ORD, std::unique_ptr<AstArgument>($3));
+        $$->setSrcLoc(@$);
+    }
+  | STOI LPAREN arg RPAREN {
+        $$ = new AstUnaryFunctor(UnaryOp::STOI, std::unique_ptr<AstArgument>($3));
         $$->setSrcLoc(@$);
     }
   | STRLEN LPAREN arg RPAREN {
