@@ -1021,7 +1021,7 @@ public:
         PRINT_BEGIN_COMMENT(out);
         switch (op.getOperator()) {
             case UnaryOp::STOI:
-                out << "stoi(symTable.resolve((size_t)" << print(op.getValue()) << "))";
+                out << "std::stoi(symTable.resolve((size_t)" << print(op.getValue()) << "))";
                 break;
             case UnaryOp::ORD:
                 out << print(op.getValue());
@@ -1263,6 +1263,7 @@ void Synthesiser::generateCode(
 
     // generate C++ program
     os << "#include \"souffle/CompiledSouffle.h\"\n";
+    os << "#include <string>\n";
     if (Global::config().has("provenance")) {
         os << "#include \"souffle/Explain.h\"\n";
         os << "#include <ncurses.h>\n";
