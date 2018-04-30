@@ -96,6 +96,8 @@ souffle_sources = \
               GraphUtils.h                              \
               AstTranslator.cpp     AstTranslator.h     \
               Synthesiser.cpp       Synthesiser.h       \
+              SynthesiserMultiple.cpp                   \
+              SynthesiserMultiple.h                     \
               RamAnalysis.h                             \
               RamCondition.h                            \
               RamNode.h                                 \

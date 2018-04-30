@@ -38,6 +38,7 @@
 #include "RamTranslationUnit.h"
 #include "SymbolTable.h"
 #include "Synthesiser.h"
+#include "SynthesiserMultiple.h"
 #include "Util.h"
 
 #ifdef USE_PROVENANCE
@@ -95,7 +96,7 @@ void executeBinary(const std::string& binaryFilename) {
 /**
  * Compiles the given source file to a binary file.
  */
-void compileToBinary(std::string compileCmd, const std::string& sourceFilename) {
+    void compileToBinary(std::string compileCmd, const std::vector<std::string>* sourceFilenames) {
     // set up number of threads
     auto num_threads = std::stoi(Global::config().get("jobs"));
     if (num_threads == 1) {
@@ -103,7 +104,10 @@ void compileToBinary(std::string compileCmd, const std::string& sourceFilename) 
     }
 
     // add source code
-    compileCmd += sourceFilename;
+    for (unsigned i = 0; i < sourceFilenames->size(); ++i)
+	compileCmd += (*sourceFilenames)[i] + " ";
+
+    std::cerr << compileCmd << std::endl;
 
     // separate souffle output from executable output
     if (Global::config().has("profile")) {
@@ -112,7 +116,7 @@ void compileToBinary(std::string compileCmd, const std::string& sourceFilename) 
 
     // run executable
     if (system(compileCmd.c_str()) != 0) {
-        throw std::invalid_argument("failed to compile C++ source <" + sourceFilename + ">");
+        throw std::invalid_argument("failed to compile C++ sources>");
     }
 }
 
@@ -500,7 +504,7 @@ int main(int argc, char** argv) {
         }
         compileCmd += " ";
 
-        std::unique_ptr<Synthesiser> synthesiser = std::make_unique<Synthesiser>();
+        std::unique_ptr<SynthesiserMultiple> synthesiser = std::make_unique<SynthesiserMultiple>();
 
         try {
             // Find the base filename for code generation and execution
@@ -523,12 +527,11 @@ int main(int argc, char** argv) {
             std::string baseIdentifier = identifier(simpleName(baseFilename));
             std::string sourceFilename = baseFilename + ".cpp";
 
-            std::ofstream os(sourceFilename);
-            synthesiser->generateCode(*ramTranslationUnit, os, baseIdentifier);
-            os.close();
+	    std::vector<std::string>* allCppFiles =
+		synthesiser->generateCode(*ramTranslationUnit, baseIdentifier, baseFilename);
 
             if (Global::config().has("compile")) {
-                compileToBinary(compileCmd, sourceFilename);
+                compileToBinary(compileCmd, allCppFiles);
                 // run compiled C++ program if requested.
                 if (!Global::config().has("dl-program")) {
                     executeBinary(baseFilename);
