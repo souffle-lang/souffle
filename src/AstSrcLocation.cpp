@@ -31,8 +31,7 @@ namespace souffle {
 std::string AstSrcLocation::extloc() const {
     std::ifstream in(filename);
     std::stringstream s;
-    // if (in.is_open()) {
-    if (true) {
+    if (in.is_open()) {
         s << "file " << baseName(filename) << " at line " << start.line << "\n";
         for (int i = 0; i < start.line - 1; ++i) {
             in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
