@@ -256,22 +256,6 @@ class CodeEmitter : public RamVisitor<void, std::ostream&> {
         }
     };
 
-    int indentLevel = 0;
-    int funSize = 0;
-    int funCounter = 0;
-
-#define SplitFunctionHere(stream)                                                        \
-    if (funSize > 3 && indentLevel == 0) {                                               \
-        std::string newFunction = "runFunction" + std::to_string(funCounter++);	         \
-        stream << newFunction << "<performIO>(inputDirectory, outputDirectory);\n";      \
-        stream << "\n}\n";							         \
-        stream << "template <bool performIO> void " << newFunction <<                    \
-            "(std::string inputDirectory = \".\", " << 				         \
-            "std::string outputDirectory = \".\") {\n";				         \
-        funSize = 0;							                 \
-        indentLevel = 0;							         \
-    }                                                                                    \
-
 public:
     CodeEmitter() {
         rec = [&](std::ostream& out, const RamNode* node) { this->visit(*node, out); };
@@ -312,13 +296,6 @@ public:
         out << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
         out << "}\n";
         PRINT_END_COMMENT(out);
-
-	// Code splitting
-	++funSize;
-	out << "// FunSize: " << funSize << "\n";
-	out << "// IndentLevel:  " << indentLevel << "\n";
-	SplitFunctionHere(out)
-	//
     }
 
     void visitStore(const RamStore& store, std::ostream& out) override {
@@ -341,23 +318,10 @@ public:
         }
         out << "}\n";
         PRINT_END_COMMENT(out);
-
-	// Code splitting
-	++funSize;
-	out << "// FunSize: " << funSize << "\n";
-	out << "// IndentLevel:  " << indentLevel << "\n";
-	SplitFunctionHere(out)
-	//
     }
 
     void visitInsert(const RamInsert& insert, std::ostream& out) override {
- 	// Code splitting
-	++indentLevel;
-	out << "// FunSize: " << funSize << "\n";
-	out << "// IndentLevel:  " << indentLevel << "\n";
-	//
-
-	PRINT_BEGIN_COMMENT(out);
+        PRINT_BEGIN_COMMENT(out);
         // enclose operation with a check for an empty relation
         std::set<RamRelation> input_relations;
         visitDepthFirst(insert, [&](const RamScan& scan) { input_relations.insert(scan.getRelation()); });
@@ -451,14 +415,6 @@ public:
         out << "}\n";  // end lambda
         // out << "();";  // call lambda
         PRINT_END_COMMENT(out);
-
-	// Code splitting
-	++funSize;
-	--indentLevel;
-	out << "// FunSize: " << funSize << "\n";
-	out << "// IndentLevel:  " << indentLevel << "\n";
-	SplitFunctionHere(out)
-	//
     }
 
     void visitMerge(const RamMerge& merge, std::ostream& out) override {
@@ -562,21 +518,9 @@ public:
     }
 
     void visitLoop(const RamLoop& loop, std::ostream& out) override {
-	// Code splitting
-	++indentLevel;
-	out << "// FunSize: " << funSize << "\n";
-	out << "// IndentLevel:  " << indentLevel << "\n";
-	//
-
         PRINT_BEGIN_COMMENT(out);
         out << "for(;;) {\n" << print(loop.getBody()) << "}\n";
         PRINT_END_COMMENT(out);
-
-	// Code splitting
-	--indentLevel;
-	out << "// FunSize: " << funSize << "\n";
-	out << "// IndentLevel:  " << indentLevel << "\n";
-	//
     }
 
     void visitSwap(const RamSwap& swap, std::ostream& out) override {
@@ -1076,9 +1020,6 @@ public:
     void visitUnaryOperator(const RamUnaryOperator& op, std::ostream& out) override {
         PRINT_BEGIN_COMMENT(out);
         switch (op.getOperator()) {
-            case UnaryOp::STOI:
-                out << "std::stoi(symTable.resolve((size_t)" << print(op.getValue()) << "))";
-                break;
             case UnaryOp::ORD:
                 out << print(op.getValue());
                 break;
@@ -1319,7 +1260,6 @@ void Synthesiser::generateCode(
 
     // generate C++ program
     os << "#include \"souffle/CompiledSouffle.h\"\n";
-    os << "#include <string>\n";
     if (Global::config().has("provenance")) {
         os << "#include \"souffle/Explain.h\"\n";
         os << "#include <ncurses.h>\n";
