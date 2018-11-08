@@ -1670,7 +1670,7 @@ bool ReorderLiteralsTransformer::transform(AstTranslationUnit& translationUnit) 
         std::vector<unsigned int> nonPropositionIndices;
         std::vector<unsigned int> newOrder;
 
-        bool seenNonProp;
+        bool seenNonProp = false;
         for (unsigned int i = 0; i < atoms.size(); i++) {
             if (isProposition(atoms[i])) {
                 newOrder.push_back(i);
