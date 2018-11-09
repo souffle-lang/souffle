@@ -280,6 +280,7 @@ public:
             ss << row[2]->getDoubleVal() << ", ";
             ss << row[3]->getDoubleVal() << ", ";
             ss << row[4]->getLongVal() << ", ";
+            ss << row[12]->getLongVal() << ", ";
             ss << '"' << Tools::cleanJsonOut(row[7]->toString(0)) << R"_(", [)_";
 
             bool firstCol = true;
@@ -364,7 +365,6 @@ public:
             ss << row[0]->getDoubleVal() << ", ";
             ss << row[1]->getDoubleVal() << ", ";
             ss << row[2]->getDoubleVal() << ", ";
-            ss << row[3]->getDoubleVal() << ", ";
             ss << row[4]->getLongVal() << ", ";
 
             ss << '"' << src << R"_(", )_";
@@ -382,7 +382,6 @@ public:
                 ss << ver_row[0]->getDoubleVal() << ", ";
                 ss << ver_row[1]->getDoubleVal() << ", ";
                 ss << ver_row[2]->getDoubleVal() << ", ";
-                ss << ver_row[3]->getDoubleVal() << ", ";
                 ss << ver_row[4]->getLongVal() << ", ";
                 ss << '"' << src << R"_(", )_";
                 ss << ver_row[8]->getLongVal();
@@ -432,13 +431,6 @@ public:
                     for (auto& row : versionTable.rows) {
                         comma(firstCol);
                         ss << (*row)[0]->getDoubleVal();
-                    }
-                    ss << R"_(], "copy_t": [)_";
-
-                    firstCol = true;
-                    for (auto& row : versionTable.rows) {
-                        comma(firstCol);
-                        ss << (*row)[3]->getDoubleVal();
                     }
                     ss << R"_(], "tuples": [)_";
 

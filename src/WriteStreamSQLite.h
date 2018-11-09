@@ -176,7 +176,7 @@ private:
 
     void prepareInsertStatement() {
         std::stringstream insertSQL;
-        insertSQL << "INSERT INTO _" << relationName << " VALUES ";
+        insertSQL << "INSERT INTO '_" << relationName << "' VALUES ";
         insertSQL << "(@V0";
         for (unsigned int i = 1; i < arity; i++) {
             insertSQL << ",@V" << i;

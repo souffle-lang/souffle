@@ -214,7 +214,7 @@ table td,
 table th {
     position: relative;
     padding: 4px;
-    line-height: 14px;
+    line-height: 15px;
     text-align: left;
     border-top: 1px solid #ddd
 }

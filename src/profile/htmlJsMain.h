@@ -334,28 +334,28 @@ function generate_table(data_format,body_id,data_key) {
 
 function gen_rel_table() {
     generate_table([["text",0],["id",1],["time",2],["time",3],["time",4],
-        ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]],
+        ["time",5],["int",6],["int", 7],["perc","float",2],["perc","int",6],["code_loc",8]],
         "Rel_table_body",
     "rel");
 }
 
 function gen_rul_table() {
     generate_table([["text",0],["id",1],["time",2],["time",3],["time",4],
-            ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]],
+            ["int",5],["perc","float",2],["perc","int",5],["code_loc",6]],
         "Rul_table_body",
         "rul");
 }
 
 function gen_top_rel_table() {
     generate_table([["text",0],["id",1],["time",2],["time",3],["time",4],
-        ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]],
+        ["time",5],["int",6],["int",7],["perc","float",2],["perc","int",6],["code_loc",8]],
         "top_rel_table_body",
     "topRel");
 }
 
 function gen_top_rul_table() {
     generate_table([["text",0],["id",1],["time",2],["time",3],["time",4],
-            ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]],
+            ["int",5],["perc","float",2],["perc","int",5],["code_loc",6]],
         "top_rul_table_body",
         "topRul");
 }
@@ -363,8 +363,8 @@ function gen_top_rul_table() {
 
 function genRulesOfRelations() {
     var data_format = [["text",0],["id",1],["time",2],["time",3],["time",4],
-            ["time",5],["int",6],["perc","float",2],["perc","int",6],["code_loc",7]];
-    var rules = data.rel[selected.rel][8];
+            ["int",5],["perc","float",2],["perc","int",5],["code_loc",6]];
+    var rules = data.rel[selected.rel][9];
     var perc_totals = [];
     var row, cell, perc_counter, table_body, i, j;
     table_body = document.getElementById("rulesofrel_body");
@@ -373,23 +373,19 @@ function genRulesOfRelations() {
     for (i in data_format) {
         if (!data_format.hasOwnProperty(i)) continue;
         if (data_format[i][0] === "perc") {
-            if (!isNaN(data.rel[selected.rel][data_format[i][2]])) {
-                perc_totals.push([data_format[i][1], data_format[i][2], data.rel[selected.rel][data_format[i][2]]]);
-            }
+            perc_totals.push([data_format[i][1],data_format[i][2],0]);
         }
     }
 
-    row = document.createElement("tr");
-    for (i in data_format) {
-        if (!data_format.hasOwnProperty(i)) continue;
-        if (data_format[i][0] === "perc") {
-            cell = create_cell(data_format[i][0], 1, 1);
-        } else {
-            cell = create_cell(data_format[i][0], data.rel[selected.rel][data_format[i][1]]);
+    for (item in rules) {
+        if (data.rul[rules[item]].hasOwnProperty(item)) {
+            for (i in perc_totals) {
+                if (!isNaN(data.rul[rules[item]][perc_totals[i][1]])) {
+                    perc_totals[i][2] += data.rul[rules[item]][perc_totals[i][1]];
+                }
+            }
         }
-        row.appendChild(cell);
     }
-    table_body.appendChild(row);
 
     for (j=0; j<rules.length; j++) {
         row = document.createElement("tr");
@@ -410,9 +406,9 @@ function genRulesOfRelations() {
 }
 
 function genRulVer() {
-    var data_format = [["text",0],["id",1],["time",2],["time",3],["time",4],["time",5],
-        ["int",6],["int",8],["perc","float",2],["perc","int",6],["code_loc",7]];
-    var rules = data.rul[selected.rul][8];
+    var data_format = [["text",0],["id",1],["time",2],["time",3],["time",4],
+        ["int",5],["int",7],["perc","float",2],["perc","int",5],["code_loc",6]];
+    var rules = data.rul[selected.rul][7];
     var perc_totals = [];
     var row, cell, perc_counter, table_body, i, j;
     table_body = document.getElementById("rulver_body");
@@ -430,7 +426,7 @@ function genRulVer() {
     row = document.createElement("tr");
     for (i in data_format) {
         if (!data_format.hasOwnProperty(i)) continue;
-        if (data_format[i][1] == 8) {
+        if (data_format[i][1] == 7) {
             cell = create_cell("text","-")
         } else if (data_format[i][0] === "perc") {
             cell = create_cell(data_format[i][0], 1, 1);
@@ -580,8 +576,7 @@ var came_from = !1;
 var graph_vals = {
     labels:[],
     tot_t:[],
-    tuples:[],
-    copy_t:[]
+    tuples:[]
 };
 
 
