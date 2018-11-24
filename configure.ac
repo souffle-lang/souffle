@@ -257,7 +257,7 @@ m4_define_default([PKG_CHECK_MODULES],
    [AC_MSG_ERROR(required pkg-config not installed)
     $4])
 case $host_os in
-  darwin* )
+  darwin* | linux*)
     PKG_PROG_PKG_CONFIG()
     PKG_CHECK_MODULES(FFI, [libffi])
   ;;
