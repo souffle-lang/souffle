@@ -216,19 +216,24 @@ protected:
 class RamRelationRef : public RamNode {
 protected:
     /** Name of relation */
-    std::string name;
+    const RamRelation* relation;
 
 public:
-    RamRelationRef(std::string n) : RamNode(RN_RelationRef), name(std::move(n)) {}
+    RamRelationRef(const RamRelation* r) : RamNode(RN_RelationRef), relation(r) {}
 
     /** Get name */
     const std::string& getName() const {
-        return name;
+        return relation->getName();
+    }
+
+    /** Get Relation */
+    const RamRelation* getRelation() {
+        return relation;
     }
 
     /* Print */
     void print(std::ostream& out) const override {
-        out << name;
+        out << getName();
     }
 
     /** Obtain list of child nodes */
@@ -238,7 +243,7 @@ public:
 
     /** Create clone */
     RamRelationRef* clone() const override {
-        RamRelationRef* res = new RamRelationRef(getName());
+        RamRelationRef* res = new RamRelationRef(relation);
         return res;
     }
 
@@ -248,9 +253,9 @@ public:
 protected:
     /** Check equality */
     bool equal(const RamNode& node) const override {
-        assert(nullptr != dynamic_cast<const RamRelation*>(&node));
-        const auto& other = static_cast<const RamRelation&>(node);
-        return getName() == other.getName();
+        assert(nullptr != dynamic_cast<const RamRelationRef*>(&node));
+        const auto& other = static_cast<const RamRelationRef&>(node);
+        return relation == other.relation;
     }
 };
 
