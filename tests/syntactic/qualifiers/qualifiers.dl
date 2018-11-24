@@ -10,34 +10,14 @@ A(1,2).
 B(1,2).
 .decl C(x:number, y:number) brie 
 C(1,2).
-.decl D(x:number, y:number) rbtset
-D(1,2).
-.decl E(x:number, y:number) hashset
-E(1,2). 
 .decl F(x:number, y:number) brie brie 
 .decl G(x:number, y:number) brie btree 
 .decl H(x:number, y:number) brie eqrel
-.decl I(x:number, y:number) brie rbtset 
-.decl J(x:number, y:number) brie hashset 
 .decl K(x:number, y:number) btree brie 
 .decl L(x:number, y:number) btree btree 
 .decl M(x:number, y:number) btree eqrel 
-.decl N(x:number, y:number) btree rbtset
-.decl O(x:number, y:number) btree hashset 
 .decl P(x:number, y:number) eqrel brie 
 .decl Q(x:number, y:number) eqrel btree 
 .decl R(x:number, y:number) eqrel eqrel 
-.decl S(x:number, y:number) eqrel rbtset
-.decl T(x:number, y:number) eqrel hashset 
-.decl U(x:number, y:number) rbtset brie
-.decl V(x:number, y:number) rbtset btree 
-.decl W(x:number, y:number) rbtset eqrel
-.decl X(x:number, y:number) rbtset rbtset
-.decl Y(x:number, y:number) rbtset hashset
-.decl Z(x:number, y:number) hashset brie 
-.decl AA(x:number, y:number) hashset btree 
-.decl AB(x:number, y:number) hashset eqrel 
-.decl AC(x:number, y:number) hashset rbtset
-.decl AD(x:number, y:number) hashset hashset 
 
 .output A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD
