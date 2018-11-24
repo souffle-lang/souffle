@@ -137,24 +137,4 @@ public:
     void generateTypeStruct(std::ostream& out) override;
 };
 
-class SynthesiserRbtsetRelation : public SynthesiserRelation {
-public:
-    SynthesiserRbtsetRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
-
-    void computeIndices() override;
-    std::string getTypeName() override;
-    void generateTypeStruct(std::ostream& out) override;
-};
-
-class SynthesiserHashsetRelation : public SynthesiserRelation {
-public:
-    SynthesiserHashsetRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
-
-    void computeIndices() override;
-    std::string getTypeName() override;
-    void generateTypeStruct(std::ostream& out) override;
-};
-
 }  // end of namespace souffle

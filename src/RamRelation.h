@@ -60,33 +60,29 @@ protected:
     bool output = false;    // output relation
     bool computed = false;  // either output or printed
 
-    bool btree = false;    // btree data-structure
-    bool rbtset = false;   // red-black tree set data structure
-    bool hashset = false;  // hash set data-structure
-    bool brie = false;     // brie data-structure
-    bool eqrel = false;    // equivalence relation
+    bool btree = false;  // btree data-structure
+    bool brie = false;   // brie data-structure
+    bool eqrel = false;  // equivalence relation
 
     bool istemp = false;  // Temporary relation for semi-naive evaluation
 
 public:
     RamRelation() : RamNode(RN_Relation), mask(arity) {}
 
-    RamRelation(const std::string& name, unsigned arity, const bool istemp, const bool hashset = false)
-            : RamRelation(name, arity) {
-        this->hashset = hashset;
+    RamRelation(const std::string& name, unsigned arity, const bool istemp)
+            : RamRelation(
+                      name, arity, {}, {}, SymbolMask(0), false, false, false, false, false, false, false) {
         this->istemp = istemp;
     }
 
-    RamRelation(std::string name, unsigned arity, std::vector<std::string> attributeNames = {},
-            std::vector<std::string> attributeTypeQualifiers = {}, SymbolMask mask = SymbolMask(0),
-            const bool input = false, const bool computed = false, const bool output = false,
-            const bool btree = false, const bool rbtset = false, const bool hashset = false,
-            const bool brie = false, const bool eqrel = false, const bool istemp = false)
+    RamRelation(std::string name, unsigned arity, std::vector<std::string> attributeNames,
+            std::vector<std::string> attributeTypeQualifiers, SymbolMask mask, bool input, bool computed,
+            bool output, bool btree, bool brie, bool eqrel, bool istemp)
             : RamNode(RN_Relation), name(std::move(name)), arity(arity),
               attributeNames(std::move(attributeNames)),
               attributeTypeQualifiers(std::move(attributeTypeQualifiers)), mask(std::move(mask)),
-              input(input), output(output), computed(computed), btree(btree), rbtset(rbtset),
-              hashset(hashset), brie(brie), eqrel(eqrel), istemp(istemp) {
+              input(input), output(output), computed(computed), btree(btree), brie(brie), eqrel(eqrel),
+              istemp(istemp) {
         assert(this->attributeNames.size() == arity || this->attributeNames.empty());
         assert(this->attributeTypeQualifiers.size() == arity || this->attributeTypeQualifiers.empty());
     }
@@ -129,14 +125,6 @@ public:
         return btree;
     }
 
-    const bool isRbtset() const {
-        return rbtset;
-    }
-
-    const bool isHashset() const {
-        return hashset;
-    }
-
     const bool isBrie() const {
         return brie;
     }
@@ -147,7 +135,7 @@ public:
 
     // data-structures that can server various searches
     const bool isCoverable() const {
-        return !isHashset();
+        return true;
     }
 
     const bool isTemp() const {
@@ -173,8 +161,6 @@ public:
         out << ")";
 
         if (isBTree()) out << " btree";
-        if (isRbtset()) out << " rbtset";
-        if (isHashset()) out << " hashset";
         if (isBrie()) out << " brie";
         if (isEqRel()) out << " eqrel";
     }
@@ -187,7 +173,7 @@ public:
     /** Create clone */
     RamRelation* clone() const override {
         RamRelation* res = new RamRelation(name, arity, attributeNames, attributeTypeQualifiers, mask, input,
-                computed, output, btree, rbtset, hashset, brie, eqrel, istemp);
+                computed, output, btree, brie, eqrel, istemp);
         return res;
     }
 
@@ -203,7 +189,6 @@ protected:
                attributeTypeQualifiers == other.attributeTypeQualifiers && mask == other.mask &&
                isInput() == other.isInput() && isOutput() == other.isOutput() &&
                isComputed() == other.isComputed() && isBTree() == other.isBTree() &&
-               isRbtset() == other.isRbtset() && isHashset() == other.isHashset() &&
                isBrie() == other.isBrie() && isEqRel() == other.isEqRel() && isTemp() == other.isTemp();
     }
 };
