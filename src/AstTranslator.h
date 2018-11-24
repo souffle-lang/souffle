@@ -261,17 +261,6 @@ private:
         return toString(join(id.getNames(), "-"));
     }
 
-    /** a utility to translate atoms to relations */
-    std::unique_ptr<RamRelation> getRelation(const AstAtom* atom, bool hashset) {
-        std::string name = getRelationName(atom->getName());
-        bool isTemp = name.at(0) == '@';
-        if (isTemp) {
-            name = name.substr(1);
-        }
-        return translateRelation((program ? getAtomRelation(atom, program) : nullptr), name, atom->getArity(),
-                isTemp, hashset);
-    }
-
     void makeIODirective(IODirectives& ioDirective, const AstRelation* rel, const std::string& filePath,
             const std::string& fileExt, const bool isIntermediate);
 
@@ -280,6 +269,18 @@ private:
 
     std::vector<IODirectives> getOutputIODirectives(const AstRelation* rel,
             std::string filePath = std::string(), const std::string& fileExt = std::string());
+
+
+    /** a utility to translate atoms to relations */
+    std::unique_ptr<RamRelation> translateRelation(const AstAtom* atom, bool hashset) {
+        std::string name = getRelationName(atom->getName());
+        bool isTemp = name.at(0) == '@';
+        if (isTemp) {
+            name = name.substr(1);
+        }
+        return translateRelation((program ? getAtomRelation(atom, program) : nullptr), name, atom->getArity(),
+                isTemp, hashset);
+    }
 
     /** translate a AST relation to a RAM relation */
     std::unique_ptr<RamRelation> translateRelation(const AstRelation* rel, std::string name, size_t arity,
