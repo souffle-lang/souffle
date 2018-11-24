@@ -57,10 +57,10 @@ protected:
             return nullptr;
         }
 
-        std::unique_ptr<RamDomain[]> tuple = std::make_unique<RamDomain[]>(symbolMask.getArity());
+        std::unique_ptr<RamDomain[]> tuple = std::make_unique<RamDomain[]>(arity + (isProvenance ? 2 : 0));
 
         uint32_t column;
-        for (column = 0; column < symbolMask.getArity(); column++) {
+        for (column = 0; column < arity; column++) {
             std::string element(reinterpret_cast<const char*>(sqlite3_column_text(selectStatement, column)));
 
             if (element.empty()) {
@@ -81,11 +81,6 @@ protected:
                     throw std::invalid_argument(errorMessage.str());
                 }
             }
-        }
-
-        if (isProvenance) {
-            tuple[symbolMask.getArity() - 2] = 0;
-            tuple[symbolMask.getArity() - 1] = 0;
         }
 
         return tuple;

@@ -308,6 +308,9 @@ bool Interpreter::evalCond(const RamCondition& cond, const InterpreterContext& c
             auto arity = rel.getArity();
             auto values = ne.getValues();
 
+            if (Global::config().has("profile") && !ne.getRelation().isTemp()) {
+                interpreter.reads[ne.getRelation().getName()]++;
+            }
             // for total we use the exists test
             if (ne.isTotal()) {
                 RamDomain tuple[arity];
@@ -931,7 +934,10 @@ void Interpreter::executeMain() {
         // Store count of relations
         size_t relationCount = 0;
         visitDepthFirst(main, [&](const RamCreate& create) {
-            if (create.getRelation().getName()[0] != '@') ++relationCount;
+            if (create.getRelation().getName()[0] != '@') {
+                ++relationCount;
+                reads[create.getRelation().getName()] = 0;
+            }
         });
         ProfileEventSingleton::instance().makeConfigRecord("relationCount", std::to_string(relationCount));
 
@@ -946,6 +952,10 @@ void Interpreter::executeMain() {
             for (auto const& iter : cur.second) {
                 ProfileEventSingleton::instance().makeQuantityEvent(cur.first, iter.second, iter.first);
             }
+        }
+        for (auto const& cur : reads) {
+            ProfileEventSingleton::instance().makeQuantityEvent(
+                    "@relation-reads;" + cur.first, cur.second, 0);
         }
     }
     SignalHandler::instance()->reset();

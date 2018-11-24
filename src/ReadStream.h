@@ -26,7 +26,8 @@ namespace souffle {
 class ReadStream {
 public:
     ReadStream(const SymbolMask& symbolMask, SymbolTable& symbolTable, const bool prov)
-            : symbolMask(symbolMask), symbolTable(symbolTable), isProvenance(prov) {}
+            : symbolMask(symbolMask), symbolTable(symbolTable), isProvenance(prov),
+              arity(symbolMask.getArity() - (prov ? 2 : 0)) {}
     template <typename T>
     void readAll(T& relation) {
         auto lease = symbolTable.acquireLock();
@@ -44,6 +45,7 @@ protected:
     const SymbolMask& symbolMask;
     SymbolTable& symbolTable;
     const bool isProvenance;
+    const uint8_t arity;
 };
 
 class ReadStreamFactory {

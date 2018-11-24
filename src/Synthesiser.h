@@ -42,6 +42,9 @@ private:
     /** Frequency profiling of searches */
     std::map<std::string, unsigned> idxMap;
 
+    /** Frequency profiling of non-existence checks */
+    std::map<std::string, size_t> neIdxMap;
+
     /** Cache for generated types for relations */
     std::set<std::string> typeCache;
 
@@ -75,6 +78,9 @@ protected:
 
     /** Lookup frequency counter */
     unsigned lookupFreqIdx(const std::string& txt);
+
+    /** Lookup read counter */
+    size_t lookupReadIdx(const std::string& txt);
 
 public:
     Synthesiser() = default;

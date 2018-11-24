@@ -25,7 +25,6 @@
 #include "AstRelation.h"
 #include "AstTranslationUnit.h"
 #include "AstTypeAnalysis.h"
-#include "AstUtils.h"
 #include "AstVisitor.h"
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"
@@ -228,6 +227,7 @@ std::unique_ptr<RamValue> AstTranslator::translateValue(const AstArgument* arg, 
     if (arg == nullptr) {
         return std::unique_ptr<RamValue>();
     }
+
     class ValueTranslator : public AstVisitor<std::unique_ptr<RamValue>> {
         AstTranslator& translator;
         const ValueIndex& index;
@@ -304,6 +304,99 @@ std::unique_ptr<RamValue> AstTranslator::translateValue(const AstArgument* arg, 
     return ValueTranslator(*this, index)(*arg);
 }
 
+std::unique_ptr<RamCondition> AstTranslator::translateConstraint(
+        const AstLiteral* lit, const ValueIndex& index, bool hashset) {
+    class ConstraintTranslator : public AstVisitor<std::unique_ptr<RamCondition>> {
+        AstTranslator& translator;
+        const ValueIndex& index;
+        bool hashset;
+
+    public:
+        ConstraintTranslator(AstTranslator& translator, const ValueIndex& index, bool hashset)
+                : translator(translator), index(index), hashset(hashset) {}
+
+        /** for atoms */
+        std::unique_ptr<RamCondition> visitAtom(const AstAtom&) override {
+            return nullptr;  // covered already within the scan/lookup generation step
+        }
+
+        /** for binary relations */
+        std::unique_ptr<RamCondition> visitBinaryConstraint(const AstBinaryConstraint& binRel) override {
+            std::unique_ptr<RamValue> valLHS = translator.translateValue(binRel.getLHS(), index);
+            std::unique_ptr<RamValue> valRHS = translator.translateValue(binRel.getRHS(), index);
+            return std::make_unique<RamBinaryRelation>(binRel.getOperator(),
+                    translator.translateValue(binRel.getLHS(), index),
+                    translator.translateValue(binRel.getRHS(), index));
+        }
+
+        /** for negations */
+        std::unique_ptr<RamCondition> visitNegation(const AstNegation& neg) override {
+            // get contained atom
+            const AstAtom* atom = neg.getAtom();
+
+            // create constraint
+            RamNotExists* notExists = new RamNotExists(translator.getRelation(atom, hashset));
+
+            auto arity = atom->getArity();
+
+            // account for two extra provenance columns
+            if (Global::config().has("provenance")) {
+                arity -= 2;
+            }
+
+            for (size_t i = 0; i < arity; i++) {
+                const auto& arg = atom->getArgument(i);
+                // for (const auto& arg : atom->getArguments()) {
+                notExists->addArg(translator.translateValue(arg, index));
+            }
+
+            // we don't care about the provenance columns when doing the existence check
+            if (Global::config().has("provenance")) {
+                notExists->addArg(nullptr);
+                notExists->addArg(nullptr);
+            }
+
+            // add constraint
+            return std::unique_ptr<RamCondition>(notExists);
+        }
+
+        /** for provenance negation */
+        std::unique_ptr<RamCondition> visitProvenanceNegation(const AstProvenanceNegation& neg) override {
+            // get contained atom
+            const AstAtom* atom = neg.getAtom();
+
+            // create constraint
+            RamProvenanceNotExists* notExists =
+                    new RamProvenanceNotExists(translator.getRelation(atom, hashset));
+
+            auto arity = atom->getArity();
+
+            // account for two extra provenance columns
+            if (Global::config().has("provenance")) {
+                arity -= 2;
+            }
+
+            for (size_t i = 0; i < arity; i++) {
+                const auto& arg = atom->getArgument(i);
+                // for (const auto& arg : atom->getArguments()) {
+                notExists->addArg(translator.translateValue(arg, index));
+            }
+
+            // we don't care about the provenance columns when doing the existence check
+            if (Global::config().has("provenance")) {
+                notExists->addArg(nullptr);
+                // add the height annotation for provenanceNotExists
+                notExists->addArg(translator.translateValue(atom->getArgument(arity + 1), index));
+            }
+
+            // add constraint
+            return std::unique_ptr<RamCondition>(notExists);
+        }
+    };
+
+    return ConstraintTranslator(*this, index, hashset)(*lit);
+}
+
 /** generate RAM code for a clause */
 std::unique_ptr<RamStatement> AstTranslator::translateClause(
         const AstClause& clause, const AstClause& originalClause, int version, bool ret, bool hashset) {
@@ -335,12 +428,6 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
     const AstAtom& head = *clause.getHead();
     const AstAtom& origHead = *originalClause.getHead();
 
-    // a utility to translate atoms to relations
-    auto getRelation = [&](const AstAtom* atom) {
-        return translateRelation((program ? getAtomRelation(atom, program) : nullptr),
-                getRelationName(atom->getName()), atom->getArity(), false, hashset);
-    };
-
     // handle facts
     if (clause.isFact()) {
         // translate arguments
@@ -350,7 +437,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
         }
 
         // create a fact statement
-        return std::make_unique<RamFact>(getRelation(&head), std::move(values));
+        return std::make_unique<RamFact>(getRelation(&head, hashset), std::move(values));
     }
 
     // the rest should be rules
@@ -396,7 +483,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
         level++;
 
         // relation
-        std::unique_ptr<RamRelation> relation = getRelation(atom);
+        std::unique_ptr<RamRelation> relation = getRelation(atom, hashset);
 
         std::function<void(const AstNode*)> indexValues = [&](const AstNode* curNode) {
             arg_list* cur = getArgList(curNode);
@@ -449,7 +536,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
         const AstAtom& atom = static_cast<const AstAtom&>(*cur.getBodyLiterals()[0]);
         for (size_t pos = 0; pos < atom.getArguments().size(); ++pos) {
             if (const auto* var = dynamic_cast<const AstVariable*>(atom.getArgument(pos))) {
-                valueIndex.addVarReference(*var, aggLoc, (int)pos, getRelation(&atom)->getArg(pos));
+                valueIndex.addVarReference(*var, aggLoc, (int)pos, getRelation(&atom, hashset)->getArg(pos));
             }
         };
 
@@ -486,7 +573,8 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
 
         op = std::unique_ptr<RamOperation>(returnValue);
     } else {
-        std::unique_ptr<RamProject> project = std::make_unique<RamProject>(getRelation(&head), level);
+        std::unique_ptr<RamProject> project =
+                std::make_unique<RamProject>(getRelation(&head, hashset), level);
 
         for (AstArgument* arg : head.getArguments()) {
             project->addArg(translateValue(arg, valueIndex));
@@ -497,7 +585,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
         if (Global::config().has("provenance") &&
                 ((!Global::config().has("compile") && !Global::config().has("dl-program") &&
                         !Global::config().has("generate")))) {
-            auto uniquenessEnforcement = std::make_unique<RamNotExists>(getRelation(&head));
+            auto uniquenessEnforcement = std::make_unique<RamNotExists>(getRelation(&head, hashset));
             auto arity = head.getArity() - 2;
 
             bool isVolatile = true;
@@ -554,13 +642,14 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
         assert(atom && "Unsupported complex aggregation body encountered!");
 
         // add Ram-Aggregation layer
-        op = std::make_unique<RamAggregate>(std::move(op), fun, std::move(value), getRelation(atom));
+        op = std::make_unique<RamAggregate>(std::move(op), fun, std::move(value), getRelation(atom, hashset));
 
         // add constant constraints
         for (size_t pos = 0; pos < atom->argSize(); ++pos) {
             if (auto* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                 op->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
-                        std::make_unique<RamElementAccess>(level, pos, getRelation(atom)->getArg(pos)),
+                        std::make_unique<RamElementAccess>(
+                                level, pos, getRelation(atom, hashset)->getArg(pos)),
                         std::make_unique<RamNumber>(c->getIndex())));
             }
         }
@@ -588,35 +677,32 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
             if (Global::config().has("profile")) {
                 std::stringstream ss;
                 ss << clause.getHead()->getName();
-                std::string relName = ss.str();
                 ss.str("");
-
-                if (modifiedIdMap.find(relName) != modifiedIdMap.end()) {
-                    relName = modifiedIdMap[relName];
-                }
-
                 ss << "@frequency-atom" << ';';
-                ss << relName << ';';
+                ss << originalClause.getHead()->getName() << ';';
                 ss << version << ';';
                 ss << stringify(toString(clause)) << ';';
                 ss << stringify(toString(*atom)) << ';';
                 ss << stringify(toString(originalClause)) << ';';
                 ss << level << ';';
-                op = std::make_unique<RamScan>(getRelation(atom), std::move(op), isExistCheck, ss.str());
+                op = std::make_unique<RamScan>(
+                        getRelation(atom, hashset), std::move(op), isExistCheck, ss.str());
             } else {
-                op = std::make_unique<RamScan>(getRelation(atom), std::move(op), isExistCheck);
+                op = std::make_unique<RamScan>(getRelation(atom, hashset), std::move(op), isExistCheck);
             }
 
             // add constraints
             for (size_t pos = 0; pos < atom->argSize(); ++pos) {
                 if (auto* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
                     op->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
-                            std::make_unique<RamElementAccess>(level, pos, getRelation(atom)->getArg(pos)),
+                            std::make_unique<RamElementAccess>(
+                                    level, pos, getRelation(atom, hashset)->getArg(pos)),
                             std::make_unique<RamNumber>(c->getIndex())));
                 } else if (auto* agg = dynamic_cast<AstAggregator*>(atom->getArgument(pos))) {
                     auto loc = valueIndex.getAggregatorLocation(*agg);
                     op->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
-                            std::make_unique<RamElementAccess>(level, pos, getRelation(atom)->getArg(pos)),
+                            std::make_unique<RamElementAccess>(
+                                    level, pos, getRelation(atom, hashset)->getArg(pos)),
                             std::make_unique<RamElementAccess>(loc.level, loc.element, loc.name)));
                 }
             }
@@ -658,81 +744,8 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
 
     /* add conditions caused by atoms, negations, and binary relations */
     for (const auto& lit : clause.getBodyLiterals()) {
-        // for atoms
-        if (dynamic_cast<const AstAtom*>(lit)) {
-            // covered already within the scan/lookup generation step
-
-            // for binary relations
-        } else if (auto binRel = dynamic_cast<const AstBinaryConstraint*>(lit)) {
-            std::unique_ptr<RamValue> valLHS = translateValue(binRel->getLHS(), valueIndex);
-            std::unique_ptr<RamValue> valRHS = translateValue(binRel->getRHS(), valueIndex);
-            op->addCondition(std::make_unique<RamBinaryRelation>(binRel->getOperator(),
-                    translateValue(binRel->getLHS(), valueIndex),
-                    translateValue(binRel->getRHS(), valueIndex)));
-
-            // for negations
-        } else if (auto neg = dynamic_cast<const AstNegation*>(lit)) {
-            // get contained atom
-            const AstAtom* atom = neg->getAtom();
-
-            // create constraint
-            RamNotExists* notExists = new RamNotExists(getRelation(atom));
-
-            auto arity = atom->getArity();
-
-            // account for two extra provenance columns
-            if (Global::config().has("provenance")) {
-                arity -= 2;
-            }
-
-            for (size_t i = 0; i < arity; i++) {
-                const auto& arg = atom->getArgument(i);
-                // for (const auto& arg : atom->getArguments()) {
-                notExists->addArg(translateValue(arg, valueIndex));
-            }
-
-            // we don't care about the provenance columns when doing the existence check
-            if (Global::config().has("provenance")) {
-                notExists->addArg(nullptr);
-                notExists->addArg(nullptr);
-            }
-
-            // add constraint
-            op->addCondition(std::unique_ptr<RamCondition>(notExists));
-
-            // for provenance negation
-        } else if (auto neg = dynamic_cast<const AstProvenanceNegation*>(lit)) {
-            // get contained atom
-            const AstAtom* atom = neg->getAtom();
-
-            // create constraint
-            RamProvenanceNotExists* notExists = new RamProvenanceNotExists(getRelation(atom));
-
-            auto arity = atom->getArity();
-
-            // account for two extra provenance columns
-            if (Global::config().has("provenance")) {
-                arity -= 2;
-            }
-
-            for (size_t i = 0; i < arity; i++) {
-                const auto& arg = atom->getArgument(i);
-                // for (const auto& arg : atom->getArguments()) {
-                notExists->addArg(translateValue(arg, valueIndex));
-            }
-
-            // we don't care about the provenance columns when doing the existence check
-            if (Global::config().has("provenance")) {
-                notExists->addArg(nullptr);
-                // add the height annotation for provenanceNotExists
-                notExists->addArg(translateValue(atom->getArgument(arity + 1), valueIndex));
-            }
-
-            // add constraint
-            op->addCondition(std::unique_ptr<RamCondition>(notExists));
-        } else {
-            std::cout << "Unsupported node type: " << typeid(*lit).name();
-            assert(false && "Unsupported node type!");
+        if (auto condition = translateConstraint(lit, valueIndex, hashset)) {
+            op->addCondition(std::move(condition));
         }
     }
 
@@ -740,7 +753,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateClause(
     // (if it contains already the null tuple, don't re-compute)
     std::unique_ptr<RamCondition> ramInsertCondition;
     if (!ret && head.getArity() == 0) {
-        ramInsertCondition = std::make_unique<RamEmpty>(getRelation(&origHead));
+        ramInsertCondition = std::make_unique<RamEmpty>(getRelation(&origHead, hashset));
     }
     /* generate the final RAM Insert statement */
     return std::make_unique<RamInsert>(std::move(op), std::move(ramInsertCondition));
@@ -886,10 +899,6 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
         rrel[rel] = translateRelation(rel, relName, rel->getArity(), false, rel->isHashset());
         relDelta[rel] = translateRelation(rel, "delta_" + relName, rel->getArity(), true, rel->isHashset());
         relNew[rel] = translateRelation(rel, "new_" + relName, rel->getArity(), true, rel->isHashset());
-
-        modifiedIdMap[relName] = relName;
-        modifiedIdMap[relDelta[rel]->getName()] = relName;
-        modifiedIdMap[relNew[rel]->getName()] = relName;
 
         /* create update statements for fixpoint (even iteration) */
         appendStmt(updateRelTable,
@@ -1146,8 +1155,8 @@ std::unique_ptr<RamProgram> AstTranslator::translateProgram(const AstTranslation
                         relation->getArity(), false, relation->isHashset())),
                 getInputIODirectives(relation, Global::config().get(inputDirectory), fileExtension));
         if (Global::config().has("profile")) {
-            const std::string logTimerStatement = LogStatement::tRelationLoadTime(
-                    getRelationName(relation->getName()), relation->getSrcLoc());
+            const std::string logTimerStatement =
+                    LogStatement::tRelationLoadTime(toString(relation->getName()), relation->getSrcLoc());
             statement = std::make_unique<RamLogTimer>(std::move(statement), logTimerStatement,
                     std::unique_ptr<RamRelation>(
                             translateRelation(relation, getRelationName(relation->getName()),
@@ -1171,8 +1180,8 @@ std::unique_ptr<RamProgram> AstTranslator::translateProgram(const AstTranslation
                         relation->getArity(), false, relation->isHashset())),
                 getOutputIODirectives(relation, Global::config().get(outputDirectory), fileExtension));
         if (Global::config().has("profile")) {
-            const std::string logTimerStatement = LogStatement::tRelationSaveTime(
-                    getRelationName(relation->getName()), relation->getSrcLoc());
+            const std::string logTimerStatement =
+                    LogStatement::tRelationSaveTime(toString(relation->getName()), relation->getSrcLoc());
             statement = std::make_unique<RamLogTimer>(std::move(statement), logTimerStatement,
                     std::unique_ptr<RamRelation>(
                             translateRelation(relation, getRelationName(relation->getName()),

@@ -40,10 +40,10 @@ public:
     ReadStreamCSV(std::istream& file, const SymbolMask& symbolMask, SymbolTable& symbolTable,
             const IODirectives& ioDirectives, const bool provenance = false)
             : ReadStream(symbolMask, symbolTable, provenance), delimiter(getDelimiter(ioDirectives)),
-              file(file), lineNumber(0), inputMap(getInputColumnMap(ioDirectives, symbolMask.getArity())) {
-        while (this->inputMap.size() < symbolMask.getArity()) {
-            int size = this->inputMap.size();
-            this->inputMap[size] = size;
+              file(file), lineNumber(0), inputMap(getInputColumnMap(ioDirectives, arity)) {
+        while (inputMap.size() < arity) {
+            int size = inputMap.size();
+            inputMap[size] = size;
         }
     }
 
@@ -62,7 +62,6 @@ protected:
         }
         std::string line;
         std::unique_ptr<RamDomain[]> tuple = std::make_unique<RamDomain[]>(symbolMask.getArity());
-        bool error = false;
 
         if (!getline(file, line)) {
             return nullptr;
@@ -74,30 +73,18 @@ protected:
         ++lineNumber;
 
         size_t start = 0, end = 0, columnsFilled = 0;
-        for (uint32_t column = 0; end < line.length(); column++) {
-            if (isProvenance && columnsFilled >= symbolMask.getArity() - 2) {
-                end = line.length();
-                break;
-            }
-
+        for (uint32_t column = 0; columnsFilled < arity; column++) {
             end = line.find(delimiter, start);
             if (end == std::string::npos) {
                 end = line.length();
             }
             std::string element;
-            if (start <= end && end <= line.length()) {
+            if (start <= end) {
                 element = line.substr(start, end - start);
-                if (element.empty()) {
-                    element = "n/a";
-                }
             } else {
-                if (!error) {
-                    std::stringstream errorMessage;
-                    errorMessage << "Value missing in column " << column + 1 << " in line " << lineNumber
-                                 << "; ";
-                    throw std::invalid_argument(errorMessage.str());
-                }
-                element = "n/a";
+                std::stringstream errorMessage;
+                errorMessage << "Values missing in line " << lineNumber << "; ";
+                throw std::invalid_argument(errorMessage.str());
             }
             start = end + delimiter.size();
             if (inputMap.count(column) == 0) {
@@ -114,41 +101,12 @@ protected:
                     tuple[inputMap[column]] = std::stoi(element);
 #endif
                 } catch (...) {
-                    if (!error) {
-                        std::stringstream errorMessage;
-                        errorMessage << "Error converting number <" + element + "> in column " << column + 1
-                                     << " in line " << lineNumber << "; ";
-                        throw std::invalid_argument(errorMessage.str());
-                    }
+                    std::stringstream errorMessage;
+                    errorMessage << "Error converting number <" + element + "> in column " << column + 1
+                                 << " in line " << lineNumber << "; ";
+                    throw std::invalid_argument(errorMessage.str());
                 }
             }
-        }
-
-        // add two provenance columns
-        if (isProvenance) {
-            tuple[symbolMask.getArity() - 2] = 0;
-            tuple[symbolMask.getArity() - 1] = 0;
-
-            if (columnsFilled >= symbolMask.getArity() - 2 && columnsFilled <= symbolMask.getArity()) {
-                columnsFilled = symbolMask.getArity();
-            }
-            // columnsFilled += 2;
-        }
-
-        if (columnsFilled != symbolMask.getArity()) {
-            std::stringstream errorMessage;
-            errorMessage << "Values missing in line " << lineNumber << "; ";
-            throw std::invalid_argument(errorMessage.str());
-        }
-        if (end != line.length()) {
-            if (!error) {
-                std::stringstream errorMessage;
-                errorMessage << "Too many cells in line " << lineNumber << "; ";
-                throw std::invalid_argument(errorMessage.str());
-            }
-        }
-        if (error) {
-            throw std::invalid_argument("cannot parse fact file");
         }
 
         return tuple;
@@ -198,7 +156,8 @@ public:
     ReadFileCSV(const SymbolMask& symbolMask, SymbolTable& symbolTable, const IODirectives& ioDirectives,
             const bool provenance = false)
             : ReadStreamCSV(fileHandle, symbolMask, symbolTable, ioDirectives, provenance),
-              baseName(souffle::baseName(getFileName(ioDirectives))), fileHandle(getFileName(ioDirectives)) {
+              baseName(souffle::baseName(getFileName(ioDirectives))),
+              fileHandle(getFileName(ioDirectives), std::ios::in | std::ios::binary) {
         if (!ioDirectives.has("intermediate")) {
             if (!fileHandle.is_open()) {
                 throw std::invalid_argument("Cannot open fact file " + baseName + "\n");

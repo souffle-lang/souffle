@@ -523,6 +523,23 @@ public:
 } frequencyAtomProcessor;
 
 /**
+ * Reads Processor
+ */
+const class RelationReadsProcessor : public EventProcessor {
+public:
+    RelationReadsProcessor() {
+        EventProcessorSingleton::instance().registerEventProcessor("@relation-reads", this);
+    }
+    /** process event input */
+    void process(ProfileDatabase& db, const std::vector<std::string>& signature, va_list& args) override {
+        const std::string& relation = signature[1];
+        size_t reads = va_arg(args, size_t);
+        db.addSizeEntry({"program", "relation", relation, "reads"}, reads);
+    }
+
+} relationReadsProcessor;
+
+/**
  * Config entry processor
  */
 const class ConfigProcessor : public EventProcessor {

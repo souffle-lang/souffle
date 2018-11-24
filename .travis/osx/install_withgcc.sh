@@ -6,7 +6,7 @@ set -e
 set -x
 
 # Install requirements of MAC OS X
-rm /usr/local/include/c++
+rm /usr/local/include/c++ || true
 brew update
 
 # Install gcc instead of gcc-x.x if a current version is preferred

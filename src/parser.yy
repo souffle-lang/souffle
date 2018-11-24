@@ -68,6 +68,7 @@
            (Cur).filename     = YYRHSLOC(Rhs, N).filename;     \
        } else {                                                \
            (Cur).start    = YYRHSLOC(Rhs, 0).end;              \
+           (Cur).end      = YYRHSLOC(Rhs, 0).end;              \
            (Cur).filename = YYRHSLOC(Rhs, 0).filename;         \
        }                                                       \
     } while (0)

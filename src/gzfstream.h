@@ -135,7 +135,7 @@ protected:
     }
 
 private:
-    static constexpr unsigned int bufferSize = 4096;
+    static constexpr unsigned int bufferSize = 65536;
     static constexpr unsigned int reserveSize = 16;
 
     char buffer[bufferSize] = {};

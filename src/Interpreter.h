@@ -59,6 +59,9 @@ private:
     /** counters for atom profiling */
     std::map<std::string, std::map<size_t, size_t>> frequencies;
 
+    /** counters for non-existence checks */
+    std::map<std::string, std::atomic<size_t>> reads;
+
     /** counter for $ operator */
     int counter;
 
