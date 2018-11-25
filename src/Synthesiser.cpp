@@ -889,8 +889,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             if (project.getValues().empty()) {
                 out << "Tuple<RamDomain," << arity << "> tuple({{}});\n";
             } else {
-                out << "Tuple<RamDomain," << arity << "> tuple({{(RamDomain)("
-                    << join(project.getValues(), "),(RamDomain)(", rec) << ")}});\n";
+                out << "Tuple<RamDomain," << arity << "> tuple({{static_cast<RamDomain>("
+                    << join(project.getValues(), "),static_cast<RamDomain>(", rec) << ")}});\n";
             }
 
             // check filter
@@ -1121,9 +1121,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     visit(op.getValue(), out);
                     break;
                 case UnaryOp::STRLEN:
-                    out << "symTable.resolve((size_t)";
+                    out << "static_cast<RamDomain>(symTable.resolve(";
                     visit(op.getValue(), out);
-                    out << ").size()";
+                    out << ").size())";
                     break;
                 case UnaryOp::NEG:
                     out << "(-(";
@@ -1195,9 +1195,11 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     break;
                 }
                 case BinaryOp::EXP: {
-                    out << "(AstDomain)(std::pow((AstDomain)";
+                    // Cast as int64, then back to RamDomain of int32 to avoid wrapping to negative
+                    // when using int32 RamDomains
+                    out << "static_cast<int64_t>(std::pow(";
                     visit(op.getLHS(), out);
-                    out << ",(AstDomain)";
+                    out << ",";
                     visit(op.getRHS(), out);
                     out << "))";
                     break;
@@ -1251,19 +1253,19 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     break;
                 }
                 case BinaryOp::MAX: {
-                    out << "(AstDomain)(std::max((AstDomain)";
+                    out << "std::max(";
                     visit(op.getLHS(), out);
-                    out << ",(AstDomain)";
+                    out << ",";
                     visit(op.getRHS(), out);
-                    out << "))";
+                    out << ")";
                     break;
                 }
                 case BinaryOp::MIN: {
-                    out << "(AstDomain)(std::min((AstDomain)";
+                    out << "std::min(";
                     visit(op.getLHS(), out);
-                    out << ",(AstDomain)";
+                    out << ",";
                     visit(op.getRHS(), out);
-                    out << "))";
+                    out << ")";
                     break;
                 }
 

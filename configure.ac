@@ -288,7 +288,6 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/atlocal
 ])
-AC_CONFIG_LINKS([include/souffle/AstTypes.h:src/AstTypes.h])
 AC_CONFIG_LINKS([include/souffle/BTree.h:src/BTree.h])
 AC_CONFIG_LINKS([include/souffle/BinaryRelation.h:src/BinaryRelation.h])
 AC_CONFIG_LINKS([include/souffle/BlockList.h:src/BlockList.h])
