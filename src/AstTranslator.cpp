@@ -1145,7 +1145,7 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
     std::unique_ptr<RamStatement> res = std::make_unique<RamSequence>();
 
     // start with an empty program
-    ramProg = std::make_unique<RamProgram>();
+    ramProg = std::make_unique<RamProgram>(std::make_unique<RamSequence>());
 
     // handle the case of an empty SCC graph
     if (sccGraph.getNumberOfSCCs() == 0) return;
