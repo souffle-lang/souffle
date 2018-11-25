@@ -198,6 +198,8 @@ std::vector<IODirectives> AstTranslator::getOutputIODirectives(
 
 std::unique_ptr<RamRelationRef> AstTranslator::translateRelation(
         const AstRelation* rel, std::string name, size_t arity, const bool istemp) {
+    assert(ramProg != nullptr);
+
     // avoid name conflicts for temporary identifiers
     if (istemp) {
         name.insert(0, "@");

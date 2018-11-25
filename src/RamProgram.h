@@ -89,7 +89,12 @@ public:
 
     /** Get relation */
     const RamRelation* getRelation(const std::string& name) const {
-        return relations.at(name).get();
+        auto it = relations.find(name);
+        if (it != relations.end()) {
+            return it->second.get();
+        } else {
+            return nullptr;
+        }
     }
 
     /** Add subroutine */
