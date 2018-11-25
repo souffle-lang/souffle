@@ -55,6 +55,9 @@ private:
     /** Type environment */
     const TypeEnvironment* typeEnv;
 
+    /** RAM program */
+    std::unique_ptr<RamProgram> ramProg;
+
     /**
      * Concrete attribute
      */
@@ -271,7 +274,7 @@ private:
             std::string filePath = std::string(), const std::string& fileExt = std::string());
 
     /** a utility to translate atoms to relations */
-    std::unique_ptr<RamRelation> translateRelation(const AstAtom* atom) {
+    std::unique_ptr<RamRelationRef> translateRelation(const AstAtom* atom) {
         std::string name = getRelationName(atom->getName());
         bool isTemp = name.at(0) == '@';
         if (isTemp) {
@@ -282,7 +285,7 @@ private:
     }
 
     /** translate a AST relation to a RAM relation */
-    std::unique_ptr<RamRelation> translateRelation(
+    std::unique_ptr<RamRelationRef> translateRelation(
             const AstRelation* rel, std::string name, size_t arity, const bool istemp = false);
 
     /** translate an AST argument to a RAM value */
@@ -311,7 +314,7 @@ private:
     std::unique_ptr<RamStatement> makeSubproofSubroutine(const AstClause& clause);
 
     /** translate AST to RAM Program */
-    std::unique_ptr<RamProgram> translateProgram(const AstTranslationUnit& translationUnit);
+    void translateProgram(const AstTranslationUnit& translationUnit);
 
 public:
     AstTranslator() : program(nullptr){};

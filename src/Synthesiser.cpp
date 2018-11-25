@@ -121,7 +121,7 @@ bool Synthesiser::areIndexesDisabled() {
 }
 
 /** Get relation name */
-const std::string Synthesiser::getRelationName(const RamRelation& rel) {
+const std::string Synthesiser::getRelationName(const RamRelationRef& rel) {
     return "rel_" + convertRamIdent(rel.getName());
 }
 
@@ -131,7 +131,7 @@ const std::string Synthesiser::getRelationName(const std::string& relName) {
 }
 
 /** Get context name */
-const std::string Synthesiser::getOpContextName(const RamRelation& rel) {
+const std::string Synthesiser::getOpContextName(const RamRelationRef& rel) {
     return getRelationName(rel) + "_op_ctxt";
 }
 
@@ -169,8 +169,8 @@ std::string Synthesiser::toIndex(SearchColumns key) {
 }
 
 /** Get referenced relations */
-std::set<RamRelation> Synthesiser::getReferencedRelations(const RamOperation& op) {
-    std::set<RamRelation> res;
+std::set<RamRelationRef> Synthesiser::getReferencedRelations(const RamOperation& op) {
+    std::set<RamRelationRef> res;
     visitDepthFirst(op, [&](const RamNode& node) {
         if (auto scan = dynamic_cast<const RamScan*>(&node)) {
             res.insert(scan->getRelation());
@@ -371,7 +371,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             }
 
             // create operation contexts for this operation
-            for (const RamRelation& rel : synthesiser.getReferencedRelations(insert.getOperation())) {
+            for (const RamRelationRef& rel : synthesiser.getReferencedRelations(insert.getOperation())) {
                 // TODO (#467): this causes bugs for subprogram compilation for record types if artificial
                 // dependencies are introduces in the precedence graph
                 out << "CREATE_OP_CONTEXT(" << synthesiser.getOpContextName(rel);
@@ -1522,7 +1522,7 @@ void Synthesiser::generateCode(
 
     visitDepthFirst(*(prog.getMain()), [&](const RamCreate& create) {
         // get some table details
-        const auto& rel = create.getRelation();
+        const RamRelationRef& rel = create.getRelation();
         const std::string& raw_name = rel.getName();
 
         bool isProvInfo = raw_name.find("@info") != std::string::npos;

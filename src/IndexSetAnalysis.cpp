@@ -312,7 +312,7 @@ void IndexSetAnalysis::print(std::ostream& os) const {
     for (auto& cur : data) {
         const std::string& relName = cur.first;
         const IndexSet& indexes = cur.second;
-        const RamRelation& rel = indexes.getRelation();
+        const RamRelationRef& rel = indexes.getRelation();
 
         /* Print searches */
         os << "Relation " << relName << "\n";
