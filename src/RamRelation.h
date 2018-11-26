@@ -38,10 +38,10 @@ namespace souffle {
 class RamRelation : public RamNode {
 protected:
     /** Name of relation */
-    std::string name;
+    const std::string name;
 
     /** Arity, i.e., number of attributes */
-    unsigned arity = 0;
+    const unsigned arity = 0;
 
     /** Name of attributes */
     std::vector<std::string> attributeNames;
@@ -54,19 +54,17 @@ protected:
 
     /** Relation qualifiers */
     // TODO: Simplify interface
-    bool input;     // input relation
-    bool output;    // output relation
-    bool computed;  // either output or printed
+    const bool input;     // input relation
+    const bool output;    // output relation
+    const bool computed;  // either output or printed
 
-    bool btree;  // btree data-structure
-    bool brie;   // brie data-structure
-    bool eqrel;  // equivalence relation
+    const bool btree;  // btree data-structure
+    const bool brie;   // brie data-structure
+    const bool eqrel;  // equivalence relation
 
-    bool istemp;  // Temporary relation for semi-naive evaluation
+    const bool istemp;  // Temporary relation for semi-naive evaluation
 
 public:
-    RamRelation() : RamNode(RN_Relation), mask(arity) {}
-
     RamRelation(const std::string& name, unsigned arity, const bool istemp)
             : RamRelation(
                       name, arity, {}, {}, SymbolMask(0), false, false, false, false, false, false, istemp) {}
