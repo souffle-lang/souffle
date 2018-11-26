@@ -210,7 +210,7 @@ protected:
     const RamRelation* relation;
 
 public:
-    RamRelationRef(const RamRelation* r) : RamNode(RN_RelationRef), relation(r) {}
+    RamRelationRef(const RamRelation* relation) : RamNode(RN_RelationRef), relation(relation) {}
 
     /** Get name */
     const std::string& getName() const {
