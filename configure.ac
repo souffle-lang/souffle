@@ -251,22 +251,24 @@ DIST_PACKAGING([osx],[OSX_PACKAGE],[PKGBUILD],[pkgbuild])
 DIST_PACKAGING([bsd],[BSD_PACKAGE],[PKGBUILD],[pkgbuild])
 
 dnl ============================libffi=========================================
-m4_define_default([PKG_PROG_PKG_CONFIG],
-  [AC_MSG_ERROR([required pkg-config not installed])])
+m4_define_default([PKG_PROG_PKG_CONFIG],[])
 m4_define_default([PKG_CHECK_MODULES],
-   [AC_MSG_ERROR(required pkg-config not installed)
-    $4])
-case $host_os in
-  darwin* )
-    PKG_PROG_PKG_CONFIG()
-    PKG_CHECK_MODULES(FFI, [libffi])
-  ;;
-  *)
-    AC_CHECK_LIB(ffi, ffi_call,,
-        [AC_MSG_ERROR([required library ffi missing])])
-    AC_CHECK_HEADER(ffi.h,,[AC_MSG_ERROR([required headers ffi.h missing.])])
-  ;;
-esac
+   [
+  case $2 in
+    libffi )
+      AC_CHECK_LIB(ffi, ffi_call,,
+          [AC_MSG_ERROR([required library ffi missing])])
+      AC_CHECK_HEADER(ffi.h,,[AC_MSG_ERROR([required headers ffi.h missing.])])
+    ;;
+    * )
+      AC_MSG_ERROR([Unsupported library])
+    ;;
+  esac
+])
+
+# Executed if PKG_CONFIG is available
+PKG_PROG_PKG_CONFIG()
+PKG_CHECK_MODULES(FFI, [libffi])
 
 dnl Enable pthread library
 AC_CHECK_LIB(pthread, pthread_create,,
