@@ -76,7 +76,7 @@ struct RamVisitor : public ram_visitor_tag {
         return visit##Kind(static_cast<const Ram##Kind&>(node), args...);
             // Relation
             FORWARD(Relation);
-            FORWARD(RelationRef);
+            FORWARD(RelationReference);
 
             // values
             FORWARD(ElementAccess);
@@ -218,7 +218,7 @@ protected:
 
     // -- relation
     LINK(Relation, Node)
-    LINK(RelationRef, Node)
+    LINK(RelationReference, Node)
 
 #ifdef USE_MPI
     LINK(Send, RelationStatement);

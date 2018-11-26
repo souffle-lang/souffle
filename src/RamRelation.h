@@ -202,13 +202,13 @@ protected:
 /**
  * A RAM Relation in the RAM intermediate representation.
  */
-class RamRelationRef : public RamNode {
+class RamRelationReference : public RamNode {
 protected:
     /** Name of relation */
     const RamRelation* relation;
 
 public:
-    RamRelationRef(const RamRelation* relation) : RamNode(RN_RelationRef), relation(relation) {}
+    RamRelationReference(const RamRelation* relation) : RamNode(RN_RelationReference), relation(relation) {}
 
     /** Get name */
     const std::string& getName() const {
@@ -276,7 +276,7 @@ public:
     }
 
     /** Comparator */
-    bool operator<(const RamRelationRef& other) const {
+    bool operator<(const RamRelationReference& other) const {
         return relation->operator<(*other.getRelation());
     }
 
@@ -291,8 +291,8 @@ public:
     }
 
     /** Create clone */
-    RamRelationRef* clone() const override {
-        RamRelationRef* res = new RamRelationRef(relation);
+    RamRelationReference* clone() const override {
+        RamRelationReference* res = new RamRelationReference(relation);
         return res;
     }
 
@@ -302,8 +302,8 @@ public:
 protected:
     /** Check equality */
     bool equal(const RamNode& node) const override {
-        assert(nullptr != dynamic_cast<const RamRelationRef*>(&node));
-        const auto& other = static_cast<const RamRelationRef&>(node);
+        assert(nullptr != dynamic_cast<const RamRelationReference*>(&node));
+        const auto& other = static_cast<const RamRelationReference&>(node);
         return relation == other.relation;
     }
 };

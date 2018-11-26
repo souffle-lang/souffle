@@ -274,7 +274,7 @@ private:
             std::string filePath = std::string(), const std::string& fileExt = std::string());
 
     /** a utility to translate atoms to relations */
-    std::unique_ptr<RamRelationRef> translateRelation(const AstAtom* atom) {
+    std::unique_ptr<RamRelationReference> translateRelation(const AstAtom* atom) {
         std::string name = getRelationName(atom->getName());
         bool isTemp = name.at(0) == '@';
         if (isTemp) {
@@ -285,7 +285,7 @@ private:
     }
 
     /** translate a AST relation to a RAM relation */
-    std::unique_ptr<RamRelationRef> translateRelation(
+    std::unique_ptr<RamRelationReference> translateRelation(
             const AstRelation* rel, std::string name, size_t arity, const bool istemp = false);
 
     /** translate an AST argument to a RAM value */
