@@ -261,39 +261,6 @@ struct Equation {
 };
 }  // namespace
 
-/**
- * Computes the set of intrinsically grounded variables;
- * that is, all variables appearing functorless in a non-negated atom.
- */
-void getBaseGroundedVariables(const AstNode* node, std::set<std::string>& result) {
-    if (const AstClause* clause = dynamic_cast<const AstClause*>(node)) {
-        // recurse only on the body atoms
-        for (const AstAtom* atom : clause->getAtoms()) {
-            getBaseGroundedVariables(atom, result);
-        }
-    } else if (const AstAtom* atom = dynamic_cast<const AstAtom*>(node)) {
-        // variables appearing as functorless arguments are grounded
-        for (const AstArgument* arg : atom->getArguments()) {
-            if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
-                result.insert(var->getName());
-            }
-        }
-    } else if (dynamic_cast<const AstNegation*>(node)) {
-        // don't bother looking at atoms appearing in negations
-        return;
-    } else {
-        for (const AstNode* child : node->getChildNodes()) {
-            getBaseGroundedVariables(child, result);
-        }
-    }
-}
-
-std::set<std::string> getBaseGroundedVariables(const AstNode* node) {
-    std::set<std::string> baseGroundedVariables;
-    getBaseGroundedVariables(node, baseGroundedVariables);
-    return baseGroundedVariables;
-}
-
 std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
     /**
      * This alias analysis utilizes unification over the equality
@@ -315,8 +282,15 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
         return res;
     };
 
-    // find all variables appearing as arguments in grounding atoms
-    std::set<std::string> baseGroundedVariables = getBaseGroundedVariables(&clause);
+    // find all variables appearing as functorless arguments in grounding atoms
+    std::set<std::string> baseGroundedVariables;
+    for (const AstAtom* atom : clause.getAtoms()) {
+        for (const AstArgument* arg : atom->getArguments()) {
+            if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
+                baseGroundedVariables.insert(var->getName());
+            }
+        }
+    }
 
     // I) extract equations
     std::vector<Equation> equations;
