@@ -187,18 +187,15 @@
 [\?a-zA-Z]|[_\?a-zA-Z][_\?a-zA-Z0-9]+ {
                                         return yy::parser::make_IDENT(SLOOKUP(yytext), yylloc);
                                       }
-\"([^\"]*|\\[^n])*\"                  {
+\"([^\"]*|\\\")*\"                     {
                                         yytext[strlen(yytext)-1]=0;
-                                        if(strlen(&yytext[1]) == 0) {
-                                          driver.error(yylloc, "string literal is empty");
-                                        }
-                                        for(size_t i=1;i<=strlen(&yytext[1]); i++) {
+                                        for(size_t i = 1; i <= strlen(&yytext[1]); i++) {
                                           if(yytext[i] == '\t' || yytext[i] == '\n') {
                                             driver.error(yylloc, "no tabs/newlines in string literals");
                                             break;
                                           }
                                         }
-                                        for(size_t i=1;i<=strlen(&yytext[1]); i++) {
+                                        for(size_t i = 1; i <= strlen(&yytext[1]); i++) {
                                           if(!isascii(yytext[i])) {
                                             driver.error(yylloc, "only ascii characters in string literals");
                                             break;

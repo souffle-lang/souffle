@@ -172,31 +172,6 @@ if test -n "$SOUFFLE_PACKAGING"; then
   echo "Enable packaging for: $DISTRIBUTION"
 fi
 
-# Enable Intel Restricted Transactional Memory
-AC_ARG_ENABLE(
-  [intel-rtm],
-  [AS_HELP_STRING([--enable-intel-rtm], [Enable usage of Intel Restricted Transactional Memory])]
-)
-AS_IF([test "x$enable_intel_rtm" = "xyes"], [
-  case $host_os in
-    darwin* )
-      TSX=[`sysctl machdep.cpu.features | tr A-x a-x | grep -o rtm`]
-    ;;
-    linux*)
-      TSX=[`lscpu | grep -o rtm`]
-    ;;
-    *BSD* |*bsd*)
-      TSX=[`dmesg -a |grep Features | tr A-x a-x | grep -o rtm`]
-    ;;
-    *)
-      TSX=""
-    ;;
-  esac
-
-  AS_IF([test "x$TSX" != "xrtm"], [AC_MSG_ERROR([Intel Restricted Transactional Memory is not supported on this machine.])])
-  AS_VAR_APPEND(CXXFLAGS, [" -mrtm -DHAS_TSX"])
-])
-
 AC_ARG_ENABLE(
   [64bit-domain],
   [AS_HELP_STRING([--enable-64bit-domain], [Enable 64-bit number values in Datalog tuples])]

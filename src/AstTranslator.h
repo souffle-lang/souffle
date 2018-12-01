@@ -302,8 +302,53 @@ private:
     std::unique_ptr<RamCondition> translateConstraint(const AstLiteral* arg, const ValueIndex& index);
 
     /** translate AST clause to RAM code */
-    std::unique_ptr<RamStatement> translateClause(
-            const AstClause& clause, const AstClause& originalClause, int version = 0, bool ret = false);
+    class ClauseTranslator {
+        // index nested variables and records
+        using arg_list = std::vector<AstArgument*>;
+
+        std::vector<const AstAggregator*> aggregators;
+
+        // the order of processed operations
+        std::vector<const AstNode*> op_nesting;
+
+        std::unique_ptr<AstClause> getReorderedClause(const AstClause& clause, const int version) const;
+
+        arg_list* getArgList(
+                const AstNode* curNode, std::map<const AstNode*, std::unique_ptr<arg_list>>& nodeArgs) const;
+
+        void indexValues(const AstNode* curNode,
+                std::map<const AstNode*, std::unique_ptr<arg_list>>& nodeArgs,
+                std::map<const arg_list*, int>& arg_level, RamRelationReference* relation);
+
+        void createValueIndex(const AstClause& clause);
+
+    protected:
+        AstTranslator& translator;
+
+        // create value index
+        ValueIndex valueIndex;
+
+        // current nesting level
+        int level = 0;
+
+        virtual std::unique_ptr<RamOperation> createOperation(const AstClause& clause);
+        virtual std::unique_ptr<RamCondition> createCondition(const AstClause& originalClause);
+
+    public:
+        ClauseTranslator(AstTranslator& translator) : translator(translator) {}
+
+        std::unique_ptr<RamStatement> translateClause(
+                const AstClause& clause, const AstClause& originalClause, const int version = 0);
+    };
+
+    class ProvenanceClauseTranslator : public ClauseTranslator {
+    protected:
+        std::unique_ptr<RamOperation> createOperation(const AstClause& clause) override;
+        std::unique_ptr<RamCondition> createCondition(const AstClause& originalClause) override;
+
+    public:
+        ProvenanceClauseTranslator(AstTranslator& translator) : ClauseTranslator(translator) {}
+    };
 
     /**
      * translate RAM code for the non-recursive clauses of the given relation.
