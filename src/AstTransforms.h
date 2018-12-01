@@ -161,8 +161,9 @@ private:
      *
      * @param translationUnit the program to be processed
      * @param emptyRelation relation that is empty
+     * @return whether the program was modified
      */
-    static void removeEmptyRelationUses(AstTranslationUnit& translationUnit, AstRelation* emptyRelation);
+    static bool removeEmptyRelationUses(AstTranslationUnit& translationUnit, AstRelation* emptyRelation);
 
 public:
     std::string getName() const override {
