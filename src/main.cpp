@@ -448,7 +448,7 @@ int main(int argc, char** argv) {
             std::make_unique<UniqueAggregationVariablesTransformer>(), std::make_unique<AstSemanticChecker>(),
             std::make_unique<RemoveBooleanConstraintsTransformer>(),
             std::make_unique<ResolveAliasesTransformer>(), std::make_unique<MinimiseProgramTransformer>(),
-            std::make_unique<InlineRelationsTransformer>(), // std::make_unique<ResolveAliasesTransformer>(),
+            std::make_unique<InlineRelationsTransformer>(), std::make_unique<ResolveAliasesTransformer>(),
             std::make_unique<RemoveRedundantRelationsTransformer>(),
             std::make_unique<RemoveRelationCopiesTransformer>(),
             std::make_unique<RemoveEmptyRelationsTransformer>(),

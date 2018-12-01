@@ -87,21 +87,18 @@ void ResolveAliasesTransformer::resolveAliases(AstProgram& program) {
     for (const AstClause* cur : clauses) {
         // -- Step 1 --
         // get rid of aliases
-        std::cout << "------" << std::endl;
-        std::cout << "RESOLVING: " << *cur << std::endl;
-        std::cout << "------" << std::endl;
         std::unique_ptr<AstClause> noAlias = resolveAliases(*cur);
 
         // clean up equalities
-        // std::unique_ptr<AstClause> cleaned = removeTrivialEquality(*noAlias);
+        std::unique_ptr<AstClause> cleaned = removeTrivialEquality(*noAlias);
 
         // -- Step 2 --
         // restore simple terms in atoms
-        // removeComplexTermsInAtoms(*cleaned);
+        removeComplexTermsInAtoms(*cleaned);
 
         // exchange rule
         program.removeClause(cur);
-        program.appendClause(std::move(noAlias));
+        program.appendClause(std::move(cleaned));
     }
 }
 
@@ -262,6 +259,29 @@ struct Equation {
 };
 }  // namespace
 
+void getBaseGroundedVariables(const AstNode* node, std::set<std::string>& result) {
+    if (const AstClause* clause = dynamic_cast<const AstClause*>(node)) {
+        // recurse only on the body atoms
+        for (const AstAtom* atom : clause->getAtoms()) {
+            getBaseGroundedVariables(atom, result);
+        }
+    } else if (const AstAtom* atom = dynamic_cast<const AstAtom*>(node)) {
+        // variables appearing as functorless arguments are grounded
+        for (const AstArgument* arg : atom->getArguments()) {
+            if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
+                result.insert(var->getName());
+            }
+        }
+    } else if (dynamic_cast<const AstNegation*>(node)) {
+        // don't bother looking at atoms appearing in negations
+        return;
+    } else {
+        for (const AstNode* child : node->getChildNodes()) {
+            getBaseGroundedVariables(child, result);
+        }
+    }
+}
+
 std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
     /**
      * This alias analysis utilizes unification over the equality
@@ -283,31 +303,9 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
         return res;
     };
 
-    // find all variables appearing as atom arguments
+    // find all variables appearing as arguments in grounding atoms
     std::set<std::string> baseGroundedVariables;
-    std::function<void(const AstNode&)> getFixedVariables = [&](const AstNode& node) {
-        if (const AstAtom* atom = dynamic_cast<const AstAtom*>(&node)) {
-            for (AstArgument* arg : atom->getArguments()) {
-                if (auto var = dynamic_cast<const AstVariable*>(arg)) {
-                    baseGroundedVariables.insert(var->getName());
-                }
-            }
-        } else if (dynamic_cast<const AstNegation*>(&node)) {
-            return;
-        } else if (const AstClause* clause = dynamic_cast<const AstClause*>(&node)) {
-            for (auto child : node.getChildNodes()) {
-                if (child != clause->getHead()) {
-                    getFixedVariables(*child);
-                }
-            }
-        } else {
-            for (auto child : node.getChildNodes()) {
-                getFixedVariables(*child);
-            }
-        }
-    };
-
-    getFixedVariables(clause);
+    getBaseGroundedVariables(&clause, baseGroundedVariables);
 
     // I) extract equations
     std::vector<Equation> equations;
@@ -316,10 +314,6 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
             equations.push_back(Equation(rel.getLHS(), rel.getRHS()));
         }
     });
-
-    std::cout << "STARTING:" << std::endl;
-    std::cout << equations << std::endl;
-    std::cout << std::endl;
 
     // II) compute unifying substitution
     Substitution substitution;
@@ -340,12 +334,8 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
 
     while (!equations.empty()) {
         // get next equation to compute
-        std::cout << "EQUATIONS: " << equations << std::endl;
         Equation cur = equations.back();
         equations.pop_back();
-        std::cout << "CURRENT: " << substitution << std::endl;
-        std::cout << std::endl;
-        std::cout << "WORKING ON " << cur << ""  << std::endl;
 
         // shortcuts for left/right
         const AstArgument& a = *cur.lhs;
@@ -407,7 +397,8 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
 
         // #5:   v is already grounded
         if (baseGroundedVariables.find(v.getName()) != baseGroundedVariables.end()) {
-            std::cout << v << " is grounded in the clause" << std::endl;
+            // x = ..., where x is already intrinsically grounded
+            // should not resolve this constraint here
             continue;
         }
 
@@ -416,13 +407,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     }
 
     // III) compute resulting clause
-    std::cout << "END: " << substitution << std::endl << std::endl;
-    auto blah = substitution(std::unique_ptr<AstClause>(clause.clone()));
-    std::cout << "--- FINAL RESULT ---" << std::endl;
-    std::cout << *blah << std::endl;
-    std::cout << "--------------------" << std::endl;
-    std::cout << std::endl;
-    return blah;
+    return substitution(std::unique_ptr<AstClause>(clause.clone()));
 }
 
 std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(const AstClause& clause) {
