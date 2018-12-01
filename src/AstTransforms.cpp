@@ -74,6 +74,8 @@ bool FixpointTransformer::transform(AstTranslationUnit& translationUnit) {
     return changed;
 }
 
+// TODO (azreika): move out ResolveAliases transformer into separate file
+
 void ResolveAliasesTransformer::resolveAliases(AstProgram& program) {
     // get all clauses
     std::vector<const AstClause*> clauses;
@@ -259,6 +261,10 @@ struct Equation {
 };
 }  // namespace
 
+/**
+ * Computes the set of intrinsically grounded variables;
+ * that is, all variables appearing functorless in a non-negated atom.
+ */
 void getBaseGroundedVariables(const AstNode* node, std::set<std::string>& result) {
     if (const AstClause* clause = dynamic_cast<const AstClause*>(node)) {
         // recurse only on the body atoms
@@ -280,6 +286,12 @@ void getBaseGroundedVariables(const AstNode* node, std::set<std::string>& result
             getBaseGroundedVariables(child, result);
         }
     }
+}
+
+std::set<std::string> getBaseGroundedVariables(const AstNode* node) {
+    std::set<std::string> baseGroundedVariables;
+    getBaseGroundedVariables(node, baseGroundedVariables);
+    return baseGroundedVariables;
 }
 
 std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstClause& clause) {
@@ -304,8 +316,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     };
 
     // find all variables appearing as arguments in grounding atoms
-    std::set<std::string> baseGroundedVariables;
-    getBaseGroundedVariables(&clause, baseGroundedVariables);
+    std::set<std::string> baseGroundedVariables = getBaseGroundedVariables(&clause);
 
     // I) extract equations
     std::vector<Equation> equations;
