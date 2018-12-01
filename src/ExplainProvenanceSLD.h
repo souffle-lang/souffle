@@ -173,6 +173,11 @@ public:
             if (bodyRel[0] == '!') {
                 bodyRelAtomName = bodyRel.substr(1);
             }
+            for (auto& cur : bodyRelAtomName) {
+                if (cur == '.') {
+                    cur = '-';
+                }
+            }
 
             // traverse subroutine return
             size_t arity = prog.getRelation(bodyRelAtomName)->getArity();
