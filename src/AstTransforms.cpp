@@ -382,9 +382,11 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
 
         // #5:   v is already grounded
         if (baseGroundedVariables.find(v.getName()) != baseGroundedVariables.end()) {
-            // x = ..., where x is already intrinsically grounded
-            // should not resolve this constraint here
-            continue;
+            // v = t, where v is already intrinsically grounded
+            // should not resolve this constraint here, unless t is a record type
+            if (!dynamic_cast<const AstRecordInit*>(&t)) {
+                continue;
+            }
         }
 
         // add new maplet
