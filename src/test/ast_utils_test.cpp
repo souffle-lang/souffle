@@ -433,9 +433,7 @@ TEST(AstUtils, ResolveAliasesWithTermsInAtoms) {
 
     ResolveAliasesTransformer::resolveAliases(program);
 
-    EXPECT_EQ(
-            "p(((b+1)+2),(b+1)) :- \n   p( _tmp_0,b),\n   p(b, _tmp_1),\n    _tmp_0 = ((b+1)+2),\n    _tmp_1 "
-            "= (b+1).",
+    EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
             toString(*program.getRelation("p")->getClause(0)));
 }
 
