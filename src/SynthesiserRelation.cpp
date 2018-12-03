@@ -20,7 +20,7 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
     // Handle the qualifier in souffle code
     if (isProvenance) {
         rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
-    } else if (ramRel.getArity() == 0) {
+    } else if (ramRel.isNullary()) {
         rel = new SynthesiserNullaryRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.isBTree()) {
         rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
