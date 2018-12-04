@@ -322,23 +322,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // enclose operation in its own scope
             out << "{\n";
 
-            // check whether loop nest can be parallelized
-            bool parallel = false;
-            if (const auto* scan = dynamic_cast<const RamScan*>(&insert.getOperation())) {
-                if (!scan->getRelation().isNullary()) {
-                    // yes it can!
-                    parallel = true;
-
-                    const auto& rel = scan->getRelation();
-                    const auto& relName = synthesiser.getRelationName(rel);
-                    // partition outermost relation
-                    out << "auto part = " << relName << "->partition();\n";
-
-                    // build a parallel block around this loop nest
-                    out << "PARALLEL_START;\n";
-                }
-            }
-
             // create operation contexts for this operation
             for (const RamRelationReference& rel :
                     synthesiser.getReferencedRelations(insert.getOperation())) {
@@ -350,12 +333,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             }
 
             visit(insert.getOperation(), out);
-
-            if (parallel) {
-                out << "PARALLEL_END;\n";  // end parallel
-
-                // aggregate proof counters
-            }
 
             out << "}\n";
 #ifdef __clang__
@@ -552,12 +529,28 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         }
 
         void visitScan(const RamScan& scan, std::ostream& out) override {
+            auto identifier = scan.getIdentifier();
+
+            // check whether loop nest can be parallelized
+            bool parallel = false;
+            if (identifier == 0 && !scan.getRelation().isNullary()) {
+                // yes it can!
+                parallel = true;
+
+                const auto& rel = scan.getRelation();
+                const auto& relName = synthesiser.getRelationName(rel);
+                // partition outermost relation
+                out << "auto part = " << relName << "->partition();\n";
+
+                // build a parallel block around this loop nest
+                out << "PARALLEL_START;\n";
+            }
+
             PRINT_BEGIN_COMMENT(out);
             // get relation name
             const auto& rel = scan.getRelation();
             auto relName = synthesiser.getRelationName(rel);
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
-            auto identifier = scan.getIdentifier();
 
             // construct empty condition for nullary relations
             std::string nullaryStopStmt;
@@ -601,6 +594,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 out << "}\n";
             }
             PRINT_END_COMMENT(out);
+
+            if (parallel) {
+                out << "PARALLEL_END;\n";  // end parallel
+
+                // aggregate proof counters
+            }
         }
 
         void visitLookup(const RamLookup& lookup, std::ostream& out) override {
@@ -614,7 +613,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "auto ref = env" << lookup.getReferenceLevel() << "[" << lookup.getReferencePosition()
                 << "];\n";
             out << "if (isNull<" << tuple_type << ">(ref)) continue;\n";
-            out << tuple_type << " env" << lookup.getLevel() << " = unpack<" << tuple_type << ">(ref);\n";
+            out << tuple_type << " env" << lookup.getIdentifier() << " = unpack<" << tuple_type
+                << ">(ref);\n";
 
             out << "{\n";
 
