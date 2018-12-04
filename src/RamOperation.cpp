@@ -72,7 +72,7 @@ std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size
 void RamLookup::print(std::ostream& os, int tabpos) const {
     os << times('\t', tabpos);
 
-    os << "UNPACK env(t" << refLevel << ", i" << refPos << ") INTO t" << getLevel();
+    os << "UNPACK env(t" << refLevel << ", i" << refPos << ") INTO t" << getIdentifier();
 
     if (auto condition = getCondition()) {
         os << " WHERE ";

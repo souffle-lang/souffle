@@ -484,7 +484,7 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             const RamDomain* tuple = unpack(ref, arity);
 
             // save reference to temporary value
-            ctxt[lookup.getLevel()] = tuple;
+            ctxt[lookup.getIdentifier()] = tuple;
 
             // run nested part - using base class visitor
             visitSearch(lookup);

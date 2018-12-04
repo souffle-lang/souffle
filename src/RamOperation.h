@@ -366,10 +366,14 @@ class RamLookup : public RamSearch {
     /** Arity of the unpacked tuple */
     std::size_t arity;
 
+    /** identifier for the tuple */
+    std::size_t identifier;
+
 public:
     RamLookup(std::unique_ptr<RamOperation> nested, std::size_t ref_level, std::size_t ref_pos,
-            std::size_t arity)
-            : RamSearch(RN_Lookup, std::move(nested)), refLevel(ref_level), refPos(ref_pos), arity(arity) {}
+            std::size_t arity, std::size_t ident)
+            : RamSearch(RN_Lookup, std::move(nested)), refLevel(ref_level), refPos(ref_pos), arity(arity),
+              identifier(ident) {}
 
     /** Get reference level */
     std::size_t getReferenceLevel() const {
@@ -386,13 +390,18 @@ public:
         return arity;
     }
 
+    /** Get identifier */
+    std::size_t getIdentifier() const {
+        return identifier;
+    }
+
     /** Print */
     void print(std::ostream& os, int tabpos) const override;
 
     /** Create clone */
     RamLookup* clone() const override {
-        RamLookup* res =
-                new RamLookup(std::unique_ptr<RamOperation>(getOperation().clone()), refLevel, refPos, arity);
+        RamLookup* res = new RamLookup(
+                std::unique_ptr<RamOperation>(getOperation().clone()), refLevel, refPos, arity, identifier);
         return res;
     }
 
