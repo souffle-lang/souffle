@@ -131,7 +131,7 @@ public:
     }
 
     /** get nested operation */
-    const RamOperation& getOperation() const {
+    RamOperation& getOperation() const {
         assert(nestedOperation);
         return *nestedOperation;
     }
