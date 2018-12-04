@@ -539,23 +539,14 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
         // -- operations --
 
+        void visitNestedOperation(const RamNestedOperation& nested, std::ostream& out) override {
+            visit(nested.getOperation(), out);
+        }
+
         void visitSearch(const RamSearch& search, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
-            auto condition = search.getCondition();
-            if (condition) {
-                out << "if( ";
-                visit(condition, out);
-                out << ") {\n";
-                visit(search.getOperation(), out);
-                if (Global::config().has("profile") && !search.getProfileText().empty()) {
-                    out << "freqs[" << synthesiser.lookupFreqIdx(search.getProfileText()) << "]++;\n";
-                }
-                out << "}\n";
-            } else {
-                visit(search.getOperation(), out);
-                if (Global::config().has("profile") && !search.getProfileText().empty()) {
-                    out << "freqs[" << synthesiser.lookupFreqIdx(search.getProfileText()) << "]++;\n";
-                }
+            if (Global::config().has("profile") && !search.getProfileText().empty()) {
+                out << "freqs[" << synthesiser.lookupFreqIdx(search.getProfileText()) << "]++;\n";
             }
             PRINT_END_COMMENT(out);
         }
@@ -566,7 +557,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             const auto& rel = scan.getRelation();
             auto relName = synthesiser.getRelationName(rel);
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
-            auto level = scan.getLevel();
+            auto identifier = scan.getIdentifier();
 
             // construct empty condition for nullary relations
             std::string nullaryStopStmt;
@@ -581,7 +572,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             });
 
             // if this search is a full scan
-            if (scan.getLevel() == 0) {
+            if (identifier == 0) {
                 // make this loop parallel
                 // partition outermost relation
                 out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
@@ -599,7 +590,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 }
                 out << "}\n";
             } else {
-                out << "for(const auto& env" << level << " : "
+                out << "for(const auto& env" << identifier << " : "
                     << "*" << relName << ") {\n";
                 out << nullaryStopStmt;
                 visitSearch(scan, out);
@@ -770,6 +761,16 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             if (aggregate.getFunction() != RamAggregate::COUNT) {
                 out << "}\n";
             }
+            PRINT_END_COMMENT(out);
+        }
+
+        void visitFilter(const RamFilter& filter, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            out << "if( ";
+            visit(filter.getCondition(), out);
+            out << ") {\n";
+            visitNestedOperation(filter, out);
+            out << "}\n";
             PRINT_END_COMMENT(out);
         }
 
