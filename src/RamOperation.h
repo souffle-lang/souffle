@@ -533,7 +533,7 @@ public:
     void print(std::ostream& os, int tabpos) const override {
         os << times('\t', tabpos) << "IF ";
         getCondition().print(os);
-        os << "{\n";
+        os << " {\n";
         RamNestedOperation::print(os, tabpos + 1);
         os << times('\t', tabpos) << "}\n";
     }

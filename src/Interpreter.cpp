@@ -447,13 +447,12 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
 
         // -- Operations -----------------------------
 
+        void visitNestedOperation(const RamNestedOperation& nested) override {
+            visit(nested.getOperation());
+        }
+
         void visitSearch(const RamSearch& search) override {
-            // check condition
-            auto condition = search.getCondition();
-            if (!condition || interpreter.evalCond(*condition, ctxt)) {
-                // process nested
-                visit(search.getOperation());
-            }
+            visitNestedOperation(search);
 
             if (Global::config().has("profile") && !search.getProfileText().empty()) {
                 interpreter.frequencies[search.getProfileText()][interpreter.getIterationNumber()]++;
@@ -466,7 +465,7 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
 
             // use simple iterator
             for (const RamDomain* cur : rel) {
-                ctxt[scan.getLevel()] = cur;
+                ctxt[scan.getIdentifier()] = cur;
                 visitSearch(scan);
             }
         }
@@ -589,6 +588,14 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
 
             // run nested part - using base class visitor
             visitSearch(aggregate);
+        }
+
+        void visitFilter(const RamFilter& filter) override {
+            // check condition
+            if (interpreter.evalCond(filter.getCondition(), ctxt)) {
+                // process nested
+                visitNestedOperation(filter);
+            }
         }
 
         void visitProject(const RamProject& project) override {
