@@ -326,44 +326,14 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             bool parallel = false;
             if (const auto* scan = dynamic_cast<const RamScan*>(&insert.getOperation())) {
                 // if this is not a pure existence check
-                if (!scan->isPureExistenceCheck()) {
+                if (true) {
                     // yes it can!
                     parallel = true;
 
                     const auto& rel = scan->getRelation();
                     const auto& relName = synthesiser.getRelationName(rel);
-                    if (scan->getRangeQueryColumns() == 0) {
-                        // partition outermost relation
-                        out << "auto part = " << relName << "->partition();\n";
-                    } else {
-                        // check list of keys
-                        auto arity = rel.getArity();
-                        const auto& rangePattern = scan->getRangePattern();
-
-                        // a lambda for printing boundary key values
-                        auto printKeyTuple = [&]() {
-                            for (size_t i = 0; i < arity; i++) {
-                                if (rangePattern[i] != nullptr) {
-                                    visit(rangePattern[i], out);
-                                } else {
-                                    out << "0";
-                                }
-                                if (i + 1 < arity) {
-                                    out << ",";
-                                }
-                            }
-                        };
-
-                        // get index to be queried
-                        auto keys = scan->getRangeQueryColumns();
-
-                        out << "const Tuple<RamDomain," << arity << "> key({{";
-                        printKeyTuple();
-                        out << "}});\n";
-                        out << "auto range = " << relName << "->"
-                            << "equalRange_" << keys << "(key);\n";
-                        out << "auto part = range.partition();\n";
-                    }
+                    // partition outermost relation
+                    out << "auto part = " << relName << "->partition();\n";
 
                     // build a parallel block around this loop nest
                     out << "PARALLEL_START;\n";
@@ -611,65 +581,10 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             });
 
             // if this search is a full scan
-            if (scan.getRangeQueryColumns() == 0) {
-                if (scan.isPureExistenceCheck()) {
-                    out << "if(!" << relName << "->"
-                        << "empty()) {\n";
-                    visitSearch(scan, out);
-                    out << "}\n";
-                } else if (scan.getLevel() == 0) {
-                    // make this loop parallel
-                    // partition outermost relation
-                    out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
-                    if (nullaryCond.length() > 0) {
-                        out << "if(" << nullaryCond << ") {\n";
-                    }
-                    out << "try{";
-                    out << "for(const auto& env0 : *it) {\n";
-                    out << nullaryStopStmt;
-                    visitSearch(scan, out);
-                    out << "}\n";
-                    out << "} catch(std::exception &e) { SignalHandler::instance()->error(e.what());}\n";
-                    if (nullaryCond.length() > 0) {
-                        out << "}\n";
-                    }
-                    out << "}\n";
-                } else {
-                    out << "for(const auto& env" << level << " : "
-                        << "*" << relName << ") {\n";
-                    out << nullaryStopStmt;
-                    visitSearch(scan, out);
-                    out << "}\n";
-                }
-                return;
-                PRINT_END_COMMENT(out);
-            }
-
-            // check list of keys
-            auto arity = rel.getArity();
-            const auto& rangePattern = scan.getRangePattern();
-
-            // a lambda for printing boundary key values
-            auto printKeyTuple = [&]() {
-                for (size_t i = 0; i < arity; i++) {
-                    if (rangePattern[i] != nullptr) {
-                        visit(rangePattern[i], out);
-                    } else {
-                        out << "0";
-                    }
-                    if (i + 1 < arity) {
-                        out << ",";
-                    }
-                }
-            };
-
-            // get index to be queried
-            auto keys = scan.getRangeQueryColumns();
-
-            // if this is the parallel level
-            if (scan.getLevel() == 0 && !scan.isPureExistenceCheck()) {
+            if (scan.getLevel() == 0) {
                 // make this loop parallel
-                out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
+                // partition outermost relation
+                out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
                 if (nullaryCond.length() > 0) {
                     out << "if(" << nullaryCond << ") {\n";
                 }
@@ -683,22 +598,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     out << "}\n";
                 }
                 out << "}\n";
-                return;
-                PRINT_END_COMMENT(out);
-            }
-
-            // if it is a equality-range query
-            out << "const Tuple<RamDomain," << arity << "> key({{";
-            printKeyTuple();
-            out << "}});\n";
-            out << "auto range = " << relName << "->"
-                << "equalRange_" << keys << "(key," << ctxName << ");\n";
-            if (scan.isPureExistenceCheck()) {
-                out << "if(!range.empty()) {\n";
-                visitSearch(scan, out);
-                out << "}\n";
             } else {
-                out << "for(const auto& env" << level << " : range) {\n";
+                out << "for(const auto& env" << level << " : "
+                    << "*" << relName << ") {\n";
                 out << nullaryStopStmt;
                 visitSearch(scan, out);
                 out << "}\n";

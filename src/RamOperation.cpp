@@ -38,19 +38,6 @@ void RamOperation::addCondition(std::unique_ptr<RamCondition> c, const RamOperat
     }
 }
 
-/** add condition */
-void RamSearch::addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) {
-    assert(c->getLevel() >= level);
-
-    if (c->getLevel() > level) {
-        getOperation().addCondition(std::move(c), root);
-        return;
-    }
-
-    // use base-class implementation
-    RamOperation::addCondition(std::move(c), root);
-}
-
 namespace {
 
 /** get indexable element */
@@ -76,81 +63,6 @@ std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size
     return std::unique_ptr<RamValue>(nullptr);
 }
 }  // namespace
-
-/** add condition */
-void RamScan::addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) {
-    // use condition to narrow scan if possible
-    if (c->getLevel() == level) {
-        size_t element = 0;
-        if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, level)) {
-            keys |= (1 << element);
-            if (queryPattern[element] == nullptr) {
-                queryPattern[element] = std::move(value);
-            } else {
-                std::unique_ptr<RamValue> field = std::make_unique<RamElementAccess>(level, element);
-                RamSearch::addCondition(std::make_unique<RamBinaryRelation>(
-                                                BinaryConstraintOp::EQ, std::move(field), std::move(value)),
-                        root);
-            }
-            return;
-        }
-    }
-
-    // otherwise: use default handling
-    RamSearch::addCondition(std::move(c), root);
-}
-
-void RamScan::print(std::ostream& os, int tabpos) const {
-    os << times('\t', tabpos);
-
-    if (isPureExistenceCheck()) {
-        os << "IF ∃ t" << level << " ∈ " << relation->getName() << " ";
-        if (keys != 0) {
-            os << "WITH ";
-            bool first = true;
-            for (size_t i = 0; i < relation->getArity(); i++) {
-                if (queryPattern[i] != nullptr) {
-                    if (first) {
-                        first = false;
-                    } else {
-                        os << "and ";
-                    }
-                    os << "t" << level << "." << relation->getArg(i) << "=";
-                    queryPattern[i]->print(os);
-                    os << " ";
-                }
-            }
-        }
-    } else {
-        if (keys == 0) {
-            os << "SCAN " << relation->getName() << " AS t" << level << " ";
-        } else {
-            // Keys indicates index search?
-            os << "SEARCH " << relation->getName() << " AS t" << level;
-            os << " ON INDEX ";
-            bool first = true;
-            for (size_t i = 0; i < relation->getArity(); i++) {
-                if (queryPattern[i] != nullptr) {
-                    if (first) {
-                        first = false;
-                    } else {
-                        os << "and ";
-                    }
-                    os << "t" << level << "." << relation->getArg(i) << "=";
-                    queryPattern[i]->print(os);
-                    os << " ";
-                }
-            }
-        }
-    }
-    if (auto condition = getCondition()) {
-        os << "WHERE ";
-        condition->print(os);
-    }
-
-    os << "\n";
-    getOperation().print(os, tabpos + 1);
-}
 
 /*
  * Class Lookup

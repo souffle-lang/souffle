@@ -464,58 +464,9 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             // get the targeted relation
             const InterpreterRelation& rel = interpreter.getRelation(scan.getRelation());
 
-            // process full scan if no index is given
-            if (scan.getRangeQueryColumns() == 0) {
-                // if scan is not binding anything => check for emptiness
-                if (scan.isPureExistenceCheck() && !rel.empty()) {
-                    visitSearch(scan);
-                    return;
-                }
-
-                // if scan is unrestricted => use simple iterator
-                for (const RamDomain* cur : rel) {
-                    ctxt[scan.getLevel()] = cur;
-                    visitSearch(scan);
-                }
-                return;
-            }
-
-            // create pattern tuple for range query
-            auto arity = rel.getArity();
-            RamDomain low[arity];
-            RamDomain hig[arity];
-            auto pattern = scan.getRangePattern();
-            for (size_t i = 0; i < arity; i++) {
-                if (pattern[i] != nullptr) {
-                    low[i] = interpreter.evalVal(*pattern[i], ctxt);
-                    hig[i] = low[i];
-                } else {
-                    low[i] = MIN_RAM_DOMAIN;
-                    hig[i] = MAX_RAM_DOMAIN;
-                }
-            }
-
-            // obtain index
-            auto idx = rel.getIndex(scan.getRangeQueryColumns(), nullptr);
-
-            // get iterator range
-            auto range = idx->lowerUpperBound(low, hig);
-
-            // if this scan is not binding anything ...
-            if (scan.isPureExistenceCheck()) {
-                if (range.first != range.second) {
-                    visitSearch(scan);
-                }
-                if (Global::config().has("profile") && !scan.getProfileText().empty()) {
-                    interpreter.frequencies[scan.getProfileText()][interpreter.getIterationNumber()]++;
-                }
-                return;
-            }
-
-            // conduct range query
-            for (auto ip = range.first; ip != range.second; ++ip) {
-                const RamDomain* data = *(ip);
-                ctxt[scan.getLevel()] = data;
+            // use simple iterator
+            for (const RamDomain* cur : rel) {
+                ctxt[scan.getLevel()] = cur;
                 visitSearch(scan);
             }
         }

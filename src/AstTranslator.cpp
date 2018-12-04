@@ -714,6 +714,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
         auto level = op_nesting.size();
 
         if (const auto* atom = dynamic_cast<const AstAtom*>(cur)) {
+            #if 0
             // find out whether a "search" or "if" should be issued
             bool isExistCheck = !valueIndex.isSomethingDefinedOn(level);
             for (size_t pos = 0; pos < atom->argSize(); ++pos) {
@@ -721,6 +722,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
                     isExistCheck = false;
                 }
             }
+            #endif
 
             // add a scan level
             if (Global::config().has("profile")) {
@@ -735,10 +737,10 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
                 ss << stringify(toString(originalClause)) << ';';
                 ss << level << ';';
                 op = std::make_unique<RamScan>(
-                        translator.translateRelation(atom), std::move(op), isExistCheck, ss.str());
+                        translator.translateRelation(atom), std::move(op), ss.str());
             } else {
                 op = std::make_unique<RamScan>(
-                        translator.translateRelation(atom), std::move(op), isExistCheck);
+                        translator.translateRelation(atom), std::move(op));
             }
 
             // add constraints
