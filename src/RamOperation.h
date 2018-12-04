@@ -191,14 +191,23 @@ class RamRelationSearch : public RamSearch {
     /** Search relation */
     std::unique_ptr<RamRelationReference> relation;
 
+    /** identifier for the tuple */
+    size_t identifier;
+
 public:
-    RamRelationSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r,
+    RamRelationSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r, size_t ident,
             std::unique_ptr<RamOperation> nested, std::string profileText = "")
-            : RamSearch(type, std::move(nested), std::move(profileText)), relation(std::move(r)) {}
+            : RamSearch(type, std::move(nested), std::move(profileText)), relation(std::move(r)),
+              identifier(ident) {}
 
     /** Get search relation */
     const RamRelationReference& getRelation() const {
         return *relation;
+    }
+
+    /** Get identifier */
+    const size_t getIdentifier() const {
+        return identifier;
     }
 
     /** Apply mapper */
@@ -212,7 +221,8 @@ protected:
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamRelationSearch*>(&node));
         const auto& other = static_cast<const RamRelationSearch&>(node);
-        return RamSearch::equal(other) && getRelation() == other.getRelation();
+        return RamSearch::equal(other) && getRelation() == other.getRelation() &&
+               getIdentifier() == other.getIdentifier();
     }
 };
 
@@ -223,20 +233,21 @@ protected:
  */
 class RamScan : public RamRelationSearch {
 public:
-    RamScan(std::unique_ptr<RamRelationReference> r, std::unique_ptr<RamOperation> nested,
+    RamScan(std::unique_ptr<RamRelationReference> r, size_t ident, std::unique_ptr<RamOperation> nested,
             std::string profileText = "")
-            : RamRelationSearch(RN_Scan, std::move(r), std::move(nested), std::move(profileText)) {}
+            : RamRelationSearch(RN_Scan, std::move(r), ident, std::move(nested), std::move(profileText)) {}
 
     /** Print */
     void print(std::ostream& os, int tabpos) const override {
-        os << times('\t', tabpos) << "for t" << identifier << " in " << getRelation().getName() << " {\n";
+        os << times('\t', tabpos) << "for t" << getIdentifier() << " in " << getRelation().getName()
+           << " {\n";
         RamNestedOperation::print(os, tabpos + 1);
         os << times('\t', tabpos) << "}\n";
     }
 
     /** Create clone */
     RamScan* clone() const override {
-        return new RamScan(std::unique_ptr<RamRelationReference>(getRelation().clone()),
+        return new RamScan(std::unique_ptr<RamRelationReference>(getRelation().clone()), getIdentifier(),
                 std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
     }
 };
@@ -253,9 +264,9 @@ protected:
     SearchColumns keys = 0;
 
 public:
-    RamIndexSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r,
+    RamIndexSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r, size_t ident,
             std::unique_ptr<RamOperation> nested, std::string profileText = "")
-            : RamRelationSearch(type, std::move(r), std::move(nested), std::move(profileText)),
+            : RamRelationSearch(type, std::move(r), ident, std::move(nested), std::move(profileText)),
               queryPattern(r->getArity()) {}
 
     /** Get indexable columns of scan */
@@ -301,14 +312,14 @@ protected:
 
 class RamIndexScan : public RamIndexSearch {
 public:
-    RamIndexScan(std::unique_ptr<RamRelationReference> r, std::unique_ptr<RamOperation> nested,
+    RamIndexScan(std::unique_ptr<RamRelationReference> r, size_t ident, std::unique_ptr<RamOperation> nested,
             std::string profileText = "")
-            : RamIndexSearch(RN_IndexScan, std::move(r), std::move(nested), std::move(profileText)) {}
+            : RamIndexSearch(RN_IndexScan, std::move(r), ident, std::move(nested), std::move(profileText)) {}
 
     /** Create clone */
     RamIndexScan* clone() const override {
         RamIndexScan* res = new RamIndexScan(std::unique_ptr<RamRelationReference>(getRelation().clone()),
-                std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
+                getIdentifier(), std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
         res->condition = std::unique_ptr<RamCondition>(condition->clone());
         res->keys = keys;
         for (auto& cur : queryPattern) {
@@ -329,14 +340,15 @@ public:
  */
 class RamExistenceCheck : public RamIndexSearch {
 public:
-    RamExistenceCheck(std::unique_ptr<RamRelationReference> r, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
-            : RamIndexSearch(RN_ExistenceCheck, std::move(r), std::move(nested), std::move(profileText)) {}
+    RamExistenceCheck(std::unique_ptr<RamRelationReference> r, size_t ident,
+            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+            : RamIndexSearch(
+                      RN_ExistenceCheck, std::move(r), ident, std::move(nested), std::move(profileText)) {}
 
     /** Create clone */
     RamExistenceCheck* clone() const override {
         return new RamExistenceCheck(std::unique_ptr<RamRelationReference>(getRelation().clone()),
-                std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
+                getIdentifier(), std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
     }
 };
 
