@@ -97,6 +97,7 @@ struct RamVisitor : public ram_visitor_tag {
             FORWARD(BinaryRelation);
 
             // operations
+            FORWARD(Filter);
             FORWARD(Project);
             FORWARD(Return);
             FORWARD(Lookup);
@@ -182,12 +183,14 @@ protected:
     LINK(Statement, Node);
 
     // -- operations --
-    LINK(Project, Operation)
-    LINK(Lookup, Search)
-    LINK(Scan, Search)
-    LINK(Aggregate, Search)
-    LINK(Search, Operation)
+    LINK(Project, Operation);
     LINK(Return, Operation);
+    LINK(Lookup, Search);
+    LINK(Scan, Search);
+    LINK(Aggregate, Search);
+    LINK(Search, NestedOperation);
+    LINK(Filter, NestedOperation);
+    LINK(NestedOperation, Operation);
 
     LINK(Operation, Node)
 
