@@ -43,7 +43,7 @@ void RamSearch::addCondition(std::unique_ptr<RamCondition> c, const RamOperation
     assert(c->getLevel() >= level);
 
     if (c->getLevel() > level) {
-        getNestedOperation()->addCondition(std::move(c), root);
+        getOperation().addCondition(std::move(c), root);
         return;
     }
 
@@ -149,9 +149,7 @@ void RamScan::print(std::ostream& os, int tabpos) const {
     }
 
     os << "\n";
-    if (getNestedOperation() != nullptr) {
-        getNestedOperation()->print(os, tabpos + 1);
-    }
+    getOperation().print(os, tabpos + 1);
 }
 
 /*
@@ -170,7 +168,7 @@ void RamLookup::print(std::ostream& os, int tabpos) const {
     }
 
     os << " FOR \n";
-    getNestedOperation()->print(os, tabpos + 1);
+    getOperation().print(os, tabpos + 1);
 }
 
 /** add condition */
@@ -245,7 +243,7 @@ void RamAggregate::print(std::ostream& os, int tabpos) const {
     }
 
     os << " FOR \n";
-    getNestedOperation()->print(os, tabpos + 1);
+    getOperation().print(os, tabpos + 1);
 }
 
 /*

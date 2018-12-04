@@ -452,7 +452,7 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             auto condition = search.getCondition();
             if (!condition || interpreter.evalCond(*condition, ctxt)) {
                 // process nested
-                visit(*search.getNestedOperation());
+                visit(search.getOperation());
             }
 
             if (Global::config().has("profile") && !search.getProfileText().empty()) {
