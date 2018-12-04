@@ -325,8 +325,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // check whether loop nest can be parallelized
             bool parallel = false;
             if (const auto* scan = dynamic_cast<const RamScan*>(&insert.getOperation())) {
-                // if this is not a pure existence check
-                if (true) {
+                if (!scan->getRelation().isNullary()) {
                     // yes it can!
                     parallel = true;
 
@@ -545,6 +544,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
         void visitSearch(const RamSearch& search, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
+            visitNestedOperation(search, out);
             if (Global::config().has("profile") && !search.getProfileText().empty()) {
                 out << "freqs[" << synthesiser.lookupFreqIdx(search.getProfileText()) << "]++;\n";
             }
@@ -563,16 +563,20 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             std::string nullaryStopStmt;
             std::string nullaryCond;
             visitDepthFirst(scan, [&](const RamProject& project) {
-                int arity = project.getRelation().getArity();
                 std::string projectRelName = synthesiser.getRelationName(project.getRelation().getName());
-                if (arity == 0) {
+                if (project.getRelation().isNullary()) {
                     nullaryStopStmt = "if(!" + projectRelName + "->empty()) break;";
                     nullaryCond = projectRelName + "->empty()";
                 }
             });
 
             // if this search is a full scan
-            if (identifier == 0) {
+            if (scan.getRelation().isNullary()) {
+                out << "if(!" << relName << "->"
+                    << "empty()) {\n";
+                visitSearch(scan, out);
+                out << "}\n";
+            } else if (identifier == 0) {
                 // make this loop parallel
                 // partition outermost relation
                 out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
