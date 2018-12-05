@@ -546,11 +546,11 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             for (auto ip = range.first; ip != range.second; ++ip) {
                 // link tuple
                 const RamDomain* data = *(ip);
-                ctxt[aggregate.getLevel()] = data;
+                ctxt[aggregate.getIdentifier()] = data;
 
                 // count is easy
                 if (aggregate.getFunction() == RamAggregate::COUNT) {
-                    res++;
+                    ++res;
                     continue;
                 }
 
@@ -578,13 +578,7 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             // write result to environment
             RamDomain tuple[1];
             tuple[0] = res;
-            ctxt[aggregate.getLevel()] = tuple;
-
-            // check whether result is used in a condition
-            auto condition = aggregate.getCondition();
-            if (condition && !interpreter.evalCond(*condition, ctxt)) {
-                return;  // condition not valid => skip nested
-            }
+            ctxt[aggregate.getIdentifier()] = tuple;
 
             // run nested part - using base class visitor
             visitSearch(aggregate);

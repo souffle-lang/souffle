@@ -632,18 +632,18 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto arity = rel.getArity();
             auto relName = synthesiser.getRelationName(rel);
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
-            auto level = aggregate.getLevel();
+            auto identifier = aggregate.getIdentifier();
 
             // get the tuple type working with
             std::string tuple_type = "ram::Tuple<RamDomain," + toString(std::max(1u, arity)) + ">";
 
             // declare environment variable
-            out << tuple_type << " env" << level << ";\n";
+            out << tuple_type << " env" << identifier << ";\n";
 
             // special case: counting of number elements in a full relation
             if (aggregate.getFunction() == RamAggregate::COUNT && aggregate.getRangeQueryColumns() == 0) {
                 // shortcut: use relation size
-                out << "env" << level << "[0] = " << relName << "->"
+                out << "env" << identifier << "[0] = " << relName << "->"
                     << "size();\n";
                 visitSearch(aggregate, out);
                 PRINT_END_COMMENT(out);
@@ -713,7 +713,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 // count is easy
                 out << "++res\n;";
             } else if (aggregate.getFunction() == RamAggregate::SUM) {
-                out << "env" << level << " = cur;\n";
+                out << "env" << identifier << " = cur;\n";
                 out << "res += ";
                 visit(*aggregate.getTargetExpression(), out);
                 out << ";\n";
@@ -733,7 +733,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         assert(false);
                 }
 
-                out << "env" << level << " = cur;\n";
+                out << "env" << identifier << " = cur;\n";
                 out << "res = " << fun << "(res,";
                 visit(*aggregate.getTargetExpression(), out);
                 out << ");\n";
@@ -743,7 +743,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "}\n";
 
             // write result into environment tuple
-            out << "env" << level << "[0] = res;\n";
+            out << "env" << identifier << "[0] = res;\n";
 
             // continue with condition checks and nested body
             out << "{\n";

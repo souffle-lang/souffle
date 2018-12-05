@@ -85,36 +85,32 @@ void RamLookup::print(std::ostream& os, int tabpos) const {
 
 /** add condition */
 void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) {
+    assert(c->getLevel() == identifier);
+
     // use condition to narrow scan if possible
-    if (c->getLevel() == level) {
-        size_t element = 0;
-        if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, level)) {
-            if (element > 0 || relation->getName().find("__agg") == std::string::npos) {
-                keys |= (1 << element);
-                if (pattern[element] == nullptr) {
-                    pattern[element] = std::move(value);
-                } else {
-                    std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
-                    RamSearch::addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
-                                                    std::move(field), std::move(value)),
-                            root);
-                }
+    size_t element = 0;
+    if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, identifier)) {
+        if (element > 0 || relation->getName().find("__agg") == std::string::npos) {
+            keys |= (1 << element);
+            if (pattern[element] == nullptr) {
+                pattern[element] = std::move(value);
             } else {
                 std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
-                std::unique_ptr<RamCondition> eq(
-                        new RamBinaryRelation(BinaryConstraintOp::EQ, std::move(field), std::move(value)));
-                if (condition != nullptr) {
-                    condition = std::make_unique<RamAnd>(std::move(condition), std::move(eq));
-                } else {
-                    condition.swap(eq);
-                }
+                RamSearch::addCondition(std::make_unique<RamBinaryRelation>(
+                                                BinaryConstraintOp::EQ, std::move(field), std::move(value)),
+                        root);
             }
-            return;
+        } else {
+            std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
+            std::unique_ptr<RamCondition> eq(
+                    new RamBinaryRelation(BinaryConstraintOp::EQ, std::move(field), std::move(value)));
+            if (condition != nullptr) {
+                condition = std::make_unique<RamAnd>(std::move(condition), std::move(eq));
+            } else {
+                condition.swap(eq);
+            }
         }
     }
-
-    // otherwise: use default handling
-    RamSearch::addCondition(std::move(c), root);
 }
 
 /** print search */
@@ -140,7 +136,7 @@ void RamAggregate::print(std::ostream& os, int tabpos) const {
         os << *value << " ";
     }
 
-    os << "AS t" << getLevel() << ".0 IN t" << getLevel() << " ∈ " << relation->getName();
+    os << "AS t" << getIdentifier() << ".0 IN t" << getIdentifier() << " ∈ " << relation->getName();
     os << "(" << join(pattern, ",", [&](std::ostream& out, const std::unique_ptr<RamValue>& value) {
         if (!value) {
             out << "_";

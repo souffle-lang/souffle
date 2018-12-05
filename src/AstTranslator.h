@@ -219,6 +219,17 @@ private:
 
         // -- others --
 
+        bool isAggregator(const int level) const {
+            // check for aggregator definitions
+            for (const auto& cur : aggregator_locations) {
+                if (cur.second.level == level) {
+                    return true;
+                }
+            }
+            // nothing defined on this location
+            return false;
+        }
+
         bool isSomethingDefinedOn(int level) const {
             // check for variable definitions
             for (const auto& cur : var_references) {
