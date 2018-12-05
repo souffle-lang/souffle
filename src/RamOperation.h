@@ -443,13 +443,16 @@ private:
     std::vector<std::unique_ptr<RamValue>> pattern;
 
     /** Columns to be matched when using a range query */
-    SearchColumns keys;
+    SearchColumns keys = 0;
+
+    /** identifier for the tuple */
+    size_t identifier;
 
 public:
     RamAggregate(std::unique_ptr<RamOperation> nested, Function fun, std::unique_ptr<RamValue> value,
-            std::unique_ptr<RamRelationReference> rel)
+            std::unique_ptr<RamRelationReference> rel, size_t ident)
             : RamSearch(RN_Aggregate, std::move(nested)), fun(fun), value(std::move(value)),
-              relation(std::move(rel)), pattern(relation->getArity()), keys(0) {}
+              relation(std::move(rel)), pattern(relation->getArity()), identifier(ident) {}
 
     /** Get aggregation function */
     Function getFunction() const {
@@ -481,6 +484,11 @@ public:
         return keys;
     }
 
+    /** Get identifier */
+    size_t getIdentifier() const {
+        return identifier;
+    }
+
     /** Print */
     void print(std::ostream& os, int tabpos) const override;
 
@@ -488,7 +496,7 @@ public:
     RamAggregate* clone() const override {
         RamAggregate* res = new RamAggregate(std::unique_ptr<RamOperation>(getOperation().clone()), fun,
                 std::unique_ptr<RamValue>(value->clone()),
-                std::unique_ptr<RamRelationReference>(relation->clone()));
+                std::unique_ptr<RamRelationReference>(relation->clone()), identifier);
         res->keys = keys;
         for (auto& cur : pattern) {
             if (cur) {
