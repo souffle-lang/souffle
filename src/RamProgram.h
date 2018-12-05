@@ -22,17 +22,31 @@ namespace souffle {
 
 class RamProgram : public RamNode {
 private:
-    std::unique_ptr<RamStatement> main;
-    std::map<std::string, std::unique_ptr<RamStatement>> subroutines;
+    /** Relations of RAM program */
     std::map<std::string, std::unique_ptr<RamRelation>> relations;
 
+    /** Main program */
+    std::unique_ptr<RamStatement> main;
+
+    /** Subroutines for querying computed relations */
+    std::map<std::string, std::unique_ptr<RamStatement>> subroutines;
+
 public:
+    RamProgram() : RamNode(RN_Program) {}
     RamProgram(std::unique_ptr<RamStatement> main) : RamNode(RN_Program), main(std::move(main)) {}
 
     /** Obtain child nodes */
     std::vector<const RamNode*> getChildNodes() const override {
         std::vector<const RamNode*> children;
+
+        // add relations
+        for (auto& r : relations) {
+            children.push_back(r.second.get());
+        }
+
+        // add main program
         children.push_back(main.get());
+
         // add subroutines
         for (auto& s : subroutines) {
             children.push_back(s.second.get());
@@ -57,6 +71,11 @@ public:
         }
     }
 
+    /** Set main program */
+    void setMain(std::unique_ptr<RamStatement> stmt) {
+        main = std::move(stmt);
+    }
+
     /** Get main program */
     RamStatement* getMain() const {
         assert(main);
@@ -64,13 +83,18 @@ public:
     }
 
     /** Add relation */
-    void addRelation(std::string name, std::unique_ptr<RamRelation> rel) {
-        relations.insert(std::make_pair(name, std::move(rel)));
+    void addRelation(std::unique_ptr<RamRelation> rel) {
+        relations.insert(std::make_pair(rel->getName(), std::move(rel)));
     }
 
     /** Get relation */
-    const RamRelation& getRelation(const std::string& name) const {
-        return *relations.at(name);
+    const RamRelation* getRelation(const std::string& name) const {
+        auto it = relations.find(name);
+        if (it != relations.end()) {
+            return it->second.get();
+        } else {
+            return nullptr;
+        }
     }
 
     /** Add subroutine */

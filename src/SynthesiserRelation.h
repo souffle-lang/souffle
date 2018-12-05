@@ -23,7 +23,7 @@ namespace souffle {
 class SynthesiserRelation {
 protected:
     /** Ram relation referred to by this */
-    const RamRelation& relation;
+    const RamRelationReference& relation;
 
     /** Indices used for this relation */
     const IndexSet& indices;
@@ -41,7 +41,8 @@ protected:
     const bool isProvenance;
 
 public:
-    SynthesiserRelation(const RamRelation& rel, const IndexSet& indices, const bool isProvenance = false)
+    SynthesiserRelation(
+            const RamRelationReference& rel, const IndexSet& indices, const bool isProvenance = false)
             : relation(rel), indices(indices), isProvenance(isProvenance) {}
 
     virtual ~SynthesiserRelation() = default;
@@ -72,7 +73,7 @@ public:
     }
 
     /** Get stored RamRelation */
-    const RamRelation& getRamRelation() const {
+    const RamRelationReference& getRamRelation() const {
         return relation;
     }
 
@@ -84,12 +85,13 @@ public:
 
     /** Factory method to generate a SynthesiserRelation */
     static std::unique_ptr<SynthesiserRelation> getSynthesiserRelation(
-            const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance);
+            const RamRelationReference& ramRel, const IndexSet& indexSet, bool isProvenance);
 };
 
 class SynthesiserNullaryRelation : public SynthesiserRelation {
 public:
-    SynthesiserNullaryRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
+    SynthesiserNullaryRelation(
+            const RamRelationReference& ramRel, const IndexSet& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -99,7 +101,7 @@ public:
 
 class SynthesiserDirectRelation : public SynthesiserRelation {
 public:
-    SynthesiserDirectRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
+    SynthesiserDirectRelation(const RamRelationReference& ramRel, const IndexSet& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -109,7 +111,8 @@ public:
 
 class SynthesiserIndirectRelation : public SynthesiserRelation {
 public:
-    SynthesiserIndirectRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
+    SynthesiserIndirectRelation(
+            const RamRelationReference& ramRel, const IndexSet& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -119,7 +122,7 @@ public:
 
 class SynthesiserBrieRelation : public SynthesiserRelation {
 public:
-    SynthesiserBrieRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
+    SynthesiserBrieRelation(const RamRelationReference& ramRel, const IndexSet& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;
@@ -129,27 +132,7 @@ public:
 
 class SynthesiserEqrelRelation : public SynthesiserRelation {
 public:
-    SynthesiserEqrelRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
-
-    void computeIndices() override;
-    std::string getTypeName() override;
-    void generateTypeStruct(std::ostream& out) override;
-};
-
-class SynthesiserRbtsetRelation : public SynthesiserRelation {
-public:
-    SynthesiserRbtsetRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
-            : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
-
-    void computeIndices() override;
-    std::string getTypeName() override;
-    void generateTypeStruct(std::ostream& out) override;
-};
-
-class SynthesiserHashsetRelation : public SynthesiserRelation {
-public:
-    SynthesiserHashsetRelation(const RamRelation& ramRel, const IndexSet& indexSet, bool isProvenance)
+    SynthesiserEqrelRelation(const RamRelationReference& ramRel, const IndexSet& indexSet, bool isProvenance)
             : SynthesiserRelation(ramRel, indexSet, isProvenance) {}
 
     void computeIndices() override;

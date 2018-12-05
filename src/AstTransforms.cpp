@@ -74,6 +74,8 @@ bool FixpointTransformer::transform(AstTranslationUnit& translationUnit) {
     return changed;
 }
 
+// TODO (azreika): move out ResolveAliases transformer into separate file
+
 void ResolveAliasesTransformer::resolveAliases(AstProgram& program) {
     // get all clauses
     std::vector<const AstClause*> clauses;
@@ -267,7 +269,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
 
     // -- utilities --
 
-    // tests whether something is a ungrounded variable
+    // tests whether something is a variable
     auto isVar = [&](const AstArgument& arg) { return dynamic_cast<const AstVariable*>(&arg); };
 
     // tests whether something is a record
@@ -279,6 +281,16 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
         visitDepthFirst(b, [&](const AstArgument& cur) { res = res || cur == a; });
         return res;
     };
+
+    // find all variables appearing as functorless arguments in grounding atoms
+    std::set<std::string> baseGroundedVariables;
+    for (const AstAtom* atom : clause.getAtoms()) {
+        for (const AstArgument* arg : atom->getArguments()) {
+            if (const AstVariable* var = dynamic_cast<const AstVariable*>(arg)) {
+                baseGroundedVariables.insert(var->getName());
+            }
+        }
+    }
 
     // I) extract equations
     std::vector<Equation> equations;
@@ -367,6 +379,15 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
         }
 
         assert(!occurs(v, t));
+
+        // #5:   v is already grounded
+        if (baseGroundedVariables.find(v.getName()) != baseGroundedVariables.end()) {
+            // v = t, where v is already intrinsically grounded
+            // should not resolve this constraint here, unless t is a record type
+            if (!dynamic_cast<const AstRecordInit*>(&t)) {
+                continue;
+            }
+        }
 
         // add new maplet
         newMapping(v.getName(), &t);
@@ -751,7 +772,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& t
     bool changed = false;
     for (auto rel : program.getRelations()) {
         if (rel->clauseSize() == 0 && !rel->isInput()) {
-            removeEmptyRelationUses(translationUnit, rel);
+            changed |= removeEmptyRelationUses(translationUnit, rel);
 
             bool usedInAggregate = false;
             visitDepthFirst(program, [&](const AstAggregator& agg) {
@@ -766,16 +787,17 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& t
 
             if (!usedInAggregate && !rel->isComputed()) {
                 program.removeRelation(rel->getName());
+                changed = true;
             }
-            changed = true;
         }
     }
     return changed;
 }
 
-void RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
+bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
         AstTranslationUnit& translationUnit, AstRelation* emptyRelation) {
     AstProgram& program = *translationUnit.getProgram();
+    bool changed = false;
 
     //
     // (1) drop rules from the program that have empty relations in their bodies.
@@ -790,12 +812,12 @@ void RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
         // check for an atom whose relation is the empty relation
 
         bool removed = false;
-        ;
         for (AstLiteral* lit : cl->getBodyLiterals()) {
             if (auto* arg = dynamic_cast<AstAtom*>(lit)) {
                 if (getAtomRelation(arg, &program) == emptyRelation) {
                     program.removeClause(cl);
                     removed = true;
+                    changed = true;
                     break;
                 }
             }
@@ -831,9 +853,12 @@ void RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
 
                 program.removeClause(cl);
                 program.appendClause(std::move(res));
+                changed = true;
             }
         }
     }
+
+    return changed;
 }
 
 bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translationUnit) {

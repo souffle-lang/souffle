@@ -30,7 +30,7 @@ class RamNodeMapper;
 enum RamNodeType {
     // relation
     RN_Relation,
-    RN_RelationRef,
+    RN_RelationReference,
 
     // values
     RN_ElementAccess,

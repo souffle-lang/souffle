@@ -1,0 +1,90 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Sorts a list of integers using quicksort
+// Due to limitations of input format,
+// repeated values in input are not supported
+
+.number_type value
+.number_type index
+
+.type list = [
+    head : value,
+    tail : list
+]
+
+// Lists that must be sorted
+.decl ToSort(start : list)
+
+// Split a list into the values above and below the head value
+// Input : Split(head:tail, tail, nil, nil)
+// Output : Split(head:tail, nil, below, above)
+.decl Split(start : list, notdone : list, below : list, above : list)
+Split([p,l],l,nil,nil) :- ToSort([p,l]).
+Split([p,l],t,[h,b],a) :- Split([p,l],[h,t],b,a), h < p.
+Split([p,l],t,b,[h,a]) :- Split([p,l],[h,t],b,a), h >= p.
+
+// Recursively sort the partitions
+ToSort(l) :- Split(_,nil,l,_).
+ToSort(l) :- Split(_,nil,_,l).
+
+// Lists that need to be concatenated
+.decl ToCat(a : list, b : list)
+ToCat(t,b) :- ToCat([_,t],b).
+
+// Result of concatenation
+.decl Cat(a : list, b : list, c : list)
+Cat(nil, b, b) :- ToCat(nil, b).
+Cat([h,a], b, [h,c]) :- ToCat([h,a],b), Cat(a,b,c).
+
+// Result of sorting
+.decl Sorted(start : list, end : list)
+Sorted(nil,nil).
+Sorted([h,t],end) :-
+    ToSort([h,t]),
+    Split([h,t],nil,b,a),
+    Sorted(a,s_a),
+    Sorted(b,s_b),
+    Cat(s_b,[h,s_a],end).
+
+ToCat(s_b,[h,s_a]) :-
+    Split([h,_],nil,b,a),
+    Sorted(a,s_a),
+    Sorted(b,s_b).
+
+// -- Input -- //
+
+// Collect values from file
+.decl InputVals(x : value)
+.input InputVals
+
+// Assign each value a unique index; 0,1,2,...
+.decl Indexed(x : value, i : index)
+Indexed(x, $) :- InputVals(x).
+
+// Build the list
+.decl InList(l : list, i : index)
+InList(nil, m) :- m = min x: Indexed(_, x).
+InList([h,t], i+1) :- InList(t, i), Indexed(h, i).
+
+// Input the list to the sorting algorithm
+ToSort(l) :- InList(l, m), m > max x: Indexed(_, x).
+
+// -- Output -- //
+
+// Get the sorted list from the sorting algorithm
+.decl Result(l : list)
+Result(s) :- Sorted(l,s), InList(l,m), m > max x: Indexed(_, x).
+
+// Convert a list to a string representation (only works once)
+.decl ToString(l : list, s : symbol)
+ToString(t, to_string(h)) :- Result([h,t]).
+ToString(t, cat(cat(s, ", "), to_string(h))) :- ToString([h,t], s).
+
+// Write output to file
+.decl SortedVals(s : symbol)
+SortedVals(s) :- ToString(nil, s).
+.output SortedVals

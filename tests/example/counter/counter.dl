@@ -1,0 +1,28 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Subtracts the number of `-` from the number of `+`
+
+.number_type index
+.number_type counter
+.type program
+
+.decl torun(p : program)
+.input torun
+
+.decl progress(i : index, c : counter, p : program)
+progress(0,0,p) :- torun(p).
+progress(i+1,c+1,p) :- progress(i,c,p), "+"=substr(p,i,1).
+progress(i+1,c-1,p) :- progress(i,c,p), "-"=substr(p,i,1).
+progress(i+1,c,p) :-
+    progress(i,c,p),
+    i < strlen(p),
+    "+" != substr(p,i,1),
+    "-" != substr(p,i,1).
+
+.decl result(c : counter, p : program)
+result(c,p) :- progress(strlen(p),c,p).
+.output result

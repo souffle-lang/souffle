@@ -1,0 +1,41 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Simulates a Deterministic Finite Automata to parse strings
+
+.type state
+.type string
+.number_type index
+
+.decl transition(from : state, on : string, to : state)
+.input transition
+
+.decl accepting(x : state)
+.input accepting
+
+.decl start(x : state)
+.input start
+
+.decl toparse(x : string)
+.input toparse
+
+// When parsing `in` we have processed `i` characters and are at state `cur`
+.decl parse(in : string, cur : state, i : index)
+parse(in,cur,0) :- toparse(in), start(cur).
+parse(in,new,i+j) :-
+    parse(in,old,i),
+    transition(old,diff,new),
+    j=strlen(diff),
+    diff=substr(in,i,j).
+// The rule above can cause the AST translator to fail in old versions of Souffle
+
+.decl accept(in : string)
+accept(in) :- parse(in,cur,strlen(in)), accepting(cur).
+
+.decl out(s : string, result : symbol)
+out(s, "Accept") :- accept(s).
+out(s, "Reject") :- toparse(s), !accept(s).
+.output out

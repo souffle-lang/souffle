@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "souffle/AstTypes.h"
 #include "souffle/CompiledIndexUtils.h"
 #include "souffle/CompiledOptions.h"
 #include "souffle/CompiledRecord.h"

@@ -214,7 +214,7 @@ public:
 
         // Retrieve AST Relations and store them in a map
         std::map<std::string, const RamRelation*> map;
-        visitDepthFirst(*(prog.getMain()), [&](const RamRelation& rel) { map[rel.getName()] = &rel; });
+        visitDepthFirst(prog, [&](const RamRelation& rel) { map[rel.getName()] = &rel; });
 
         // Build wrapper relations for Souffle's interface
         for (auto& rel_pair : exec.getRelationMap()) {

@@ -1634,10 +1634,6 @@ public:
             // remember last insertion position
             hints.last_insert.access(cur);
 
-#ifdef HAS_TSX
-            // end hardware transaction
-            TX_END;
-#endif
             return true;
         }
 #endif

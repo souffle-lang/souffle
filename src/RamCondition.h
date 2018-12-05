@@ -208,17 +208,18 @@ protected:
 class RamNotExists : public RamCondition {
 protected:
     /* Relation */
-    std::unique_ptr<RamRelation> relation;
+    std::unique_ptr<RamRelationReference> relation;
 
     /** Pattern -- nullptr if undefined */
     // TODO (#541): rename to argument
     std::vector<std::unique_ptr<RamValue>> values;
 
 public:
-    RamNotExists(std::unique_ptr<RamRelation> rel) : RamCondition(RN_NotExists), relation(std::move(rel)) {}
+    RamNotExists(std::unique_ptr<RamRelationReference> rel)
+            : RamCondition(RN_NotExists), relation(std::move(rel)) {}
 
     /** Get relation */
-    const RamRelation& getRelation() const {
+    const RamRelationReference& getRelation() const {
         return *relation;
     }
 
@@ -289,7 +290,7 @@ public:
 
     /** Create clone */
     RamNotExists* clone() const override {
-        RamNotExists* res = new RamNotExists(std::unique_ptr<RamRelation>(relation->clone()));
+        RamNotExists* res = new RamNotExists(std::unique_ptr<RamRelationReference>(relation->clone()));
         for (auto& cur : values) {
             RamValue* val = nullptr;
             if (cur != nullptr) {
@@ -323,18 +324,18 @@ protected:
 class RamProvenanceNotExists : public RamCondition {
 protected:
     /* Relation */
-    std::unique_ptr<RamRelation> relation;
+    std::unique_ptr<RamRelationReference> relation;
 
     /** Pattern -- nullptr if undefined */
     // TODO (#541): rename to argument
     std::vector<std::unique_ptr<RamValue>> values;
 
 public:
-    RamProvenanceNotExists(std::unique_ptr<RamRelation> rel)
+    RamProvenanceNotExists(std::unique_ptr<RamRelationReference> rel)
             : RamCondition(RN_ProvenanceNotExists), relation(std::move(rel)) {}
 
     /** Get relation */
-    const RamRelation& getRelation() const {
+    const RamRelationReference& getRelation() const {
         return *relation;
     }
 
@@ -407,7 +408,7 @@ public:
     /** Create clone */
     RamProvenanceNotExists* clone() const override {
         RamProvenanceNotExists* res =
-                new RamProvenanceNotExists(std::unique_ptr<RamRelation>(relation->clone()));
+                new RamProvenanceNotExists(std::unique_ptr<RamRelationReference>(relation->clone()));
         for (auto& cur : values) {
             RamValue* val = nullptr;
             if (cur != nullptr) {
@@ -443,13 +444,13 @@ protected:
 // TODO (#541): Rename to RamEmptyCheck
 class RamEmpty : public RamCondition {
     /** Relation */
-    std::unique_ptr<RamRelation> relation;
+    std::unique_ptr<RamRelationReference> relation;
 
 public:
-    RamEmpty(std::unique_ptr<RamRelation> rel) : RamCondition(RN_Empty), relation(std::move(rel)) {}
+    RamEmpty(std::unique_ptr<RamRelationReference> rel) : RamCondition(RN_Empty), relation(std::move(rel)) {}
 
     /** Get relation */
-    const RamRelation& getRelation() const {
+    const RamRelationReference& getRelation() const {
         return *relation;
     }
 
@@ -470,7 +471,7 @@ public:
 
     /** Create clone */
     RamEmpty* clone() const override {
-        RamEmpty* res = new RamEmpty(std::unique_ptr<RamRelation>(relation->clone()));
+        RamEmpty* res = new RamEmpty(std::unique_ptr<RamRelationReference>(relation->clone()));
         return res;
     }
 

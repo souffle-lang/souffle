@@ -115,7 +115,7 @@ protected:
     }
 
     /** Create relation */
-    void createRelation(const RamRelation& id) {
+    void createRelation(const RamRelationReference& id) {
         InterpreterRelation* res = nullptr;
         assert(environment.find(id.getName()) == environment.end());
         if (!id.isEqRel()) {
@@ -135,7 +135,7 @@ protected:
     }
 
     /** Get relation */
-    inline InterpreterRelation& getRelation(const RamRelation& id) {
+    inline InterpreterRelation& getRelation(const RamRelationReference& id) {
         return getRelation(id.getName());
     }
 
@@ -145,14 +145,14 @@ protected:
     }
 
     /** Drop relation */
-    void dropRelation(const RamRelation& id) {
+    void dropRelation(const RamRelationReference& id) {
         InterpreterRelation& rel = getRelation(id);
         environment.erase(id.getName());
         delete &rel;
     }
 
     /** Swap relation */
-    void swapRelation(const RamRelation& ramRel1, const RamRelation& ramRel2) {
+    void swapRelation(const RamRelationReference& ramRel1, const RamRelationReference& ramRel2) {
         InterpreterRelation* rel1 = &getRelation(ramRel1);
         InterpreterRelation* rel2 = &getRelation(ramRel2);
         environment[ramRel1.getName()] = rel2;

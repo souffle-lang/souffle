@@ -16,25 +16,15 @@ B(1,2).
 B(2,3).
 B(1,2).
 B(2,3).
-.decl C(x:number, y:number) rbtset
+.decl C(x:number, y:number) brie 
 C(1,2).
 C(2,3).
 C(1,2).
 C(2,3).
-.decl D(x:number, y:number) hashset 
+.decl D(x:number, y:number) eqrel 
 D(1,2).
 D(2,3).
 D(1,2).
 D(2,3).
-.decl E(x:number, y:number) brie 
-E(1,2).
-E(2,3).
-E(1,2).
-E(2,3).
-.decl F(x:number, y:number) eqrel 
-F(1,2).
-F(2,3).
-F(1,2).
-F(2,3).
 
-.output A,B,C,D,E,F
+.output A,B,C,D

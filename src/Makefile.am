@@ -81,6 +81,7 @@ souffle_sources = \
               AstTranslator.cpp     AstTranslator.h     \
               AstType.h                                 \
               AstTypeAnalysis.cpp   AstTypeAnalysis.h   \
+              AstTypes.h                                \
               AstUtils.cpp          AstUtils.h          \
               AstVisitor.h                              \
               BinaryConstraintOps.h                     \
@@ -165,7 +166,6 @@ soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = \
 						CompiledOptions.h       \
-                        AstTypes.h              \
                         BTree.h                 \
                         BinaryRelation.h        \
                         BlockList.h             \
@@ -199,7 +199,6 @@ soufflepublic_HEADERS = \
                         Util.h                  \
                         WriteStream.h           \
                         WriteStreamCSV.h        \
-                        htmx86.h                \
                         json11.h                \
                         $(libz_sources)         \
                         $(sqlite_sources)       \

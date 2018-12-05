@@ -107,14 +107,14 @@ protected:
     using ChainOrderMap = std::vector<Chain>;
     using SearchSet = std::set<SearchColumns>;
 
-    SearchSet searches;           // set of search patterns on table
-    OrderCollection orders;       // collection of lexicographical orders
-    ChainOrderMap chainToOrder;   // maps order index to set of searches covered by chain
-    MaxMatching matching;         // matching problem for finding minimal number of orders
-    const RamRelation& relation;  // relation
+    SearchSet searches;                    // set of search patterns on table
+    OrderCollection orders;                // collection of lexicographical orders
+    ChainOrderMap chainToOrder;            // maps order index to set of searches covered by chain
+    MaxMatching matching;                  // matching problem for finding minimal number of orders
+    const RamRelationReference& relation;  // relation
 
 public:
-    IndexSet(const RamRelation& rel) : relation(rel) {}
+    IndexSet(const RamRelationReference& rel) : relation(rel) {}
 
     /** Add new key to an Index Set */
     inline void addSearch(SearchColumns cols) {
@@ -123,7 +123,7 @@ public:
         }
     }
     /** Get relation */
-    const RamRelation& getRelation() const {
+    const RamRelationReference& getRelation() const {
         return relation;
     }
 
@@ -258,7 +258,7 @@ public:
     void print(std::ostream& os) const override;
 
     /** get indexes */
-    IndexSet& getIndexes(const RamRelation& rel) {
+    IndexSet& getIndexes(const RamRelationReference& rel) {
         auto pos = data.find(rel.getName());
         if (pos != data.end()) {
             return pos->second;

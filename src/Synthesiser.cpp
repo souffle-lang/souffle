@@ -121,7 +121,7 @@ bool Synthesiser::areIndexesDisabled() {
 }
 
 /** Get relation name */
-const std::string Synthesiser::getRelationName(const RamRelation& rel) {
+const std::string Synthesiser::getRelationName(const RamRelationReference& rel) {
     return "rel_" + convertRamIdent(rel.getName());
 }
 
@@ -131,7 +131,7 @@ const std::string Synthesiser::getRelationName(const std::string& relName) {
 }
 
 /** Get context name */
-const std::string Synthesiser::getOpContextName(const RamRelation& rel) {
+const std::string Synthesiser::getOpContextName(const RamRelationReference& rel) {
     return getRelationName(rel) + "_op_ctxt";
 }
 
@@ -169,8 +169,8 @@ std::string Synthesiser::toIndex(SearchColumns key) {
 }
 
 /** Get referenced relations */
-std::set<RamRelation> Synthesiser::getReferencedRelations(const RamOperation& op) {
-    std::set<RamRelation> res;
+std::set<RamRelationReference> Synthesiser::getReferencedRelations(const RamOperation& op) {
+    std::set<RamRelationReference> res;
     visitDepthFirst(op, [&](const RamNode& node) {
         if (auto scan = dynamic_cast<const RamScan*>(&node)) {
             res.insert(scan->getRelation());
@@ -371,7 +371,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             }
 
             // create operation contexts for this operation
-            for (const RamRelation& rel : synthesiser.getReferencedRelations(insert.getOperation())) {
+            for (const RamRelationReference& rel :
+                    synthesiser.getReferencedRelations(insert.getOperation())) {
                 // TODO (#467): this causes bugs for subprogram compilation for record types if artificial
                 // dependencies are introduces in the precedence graph
                 out << "CREATE_OP_CONTEXT(" << synthesiser.getOpContextName(rel);
@@ -889,8 +890,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             if (project.getValues().empty()) {
                 out << "Tuple<RamDomain," << arity << "> tuple({{}});\n";
             } else {
-                out << "Tuple<RamDomain," << arity << "> tuple({{(RamDomain)("
-                    << join(project.getValues(), "),(RamDomain)(", rec) << ")}});\n";
+                out << "Tuple<RamDomain," << arity << "> tuple({{static_cast<RamDomain>("
+                    << join(project.getValues(), "),static_cast<RamDomain>(", rec) << ")}});\n";
             }
 
             // check filter
@@ -1121,9 +1122,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     visit(op.getValue(), out);
                     break;
                 case UnaryOp::STRLEN:
-                    out << "symTable.resolve((size_t)";
+                    out << "static_cast<RamDomain>(symTable.resolve(";
                     visit(op.getValue(), out);
-                    out << ").size()";
+                    out << ").size())";
                     break;
                 case UnaryOp::NEG:
                     out << "(-(";
@@ -1195,9 +1196,11 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     break;
                 }
                 case BinaryOp::EXP: {
-                    out << "(AstDomain)(std::pow((AstDomain)";
+                    // Cast as int64, then back to RamDomain of int32 to avoid wrapping to negative
+                    // when using int32 RamDomains
+                    out << "static_cast<int64_t>(std::pow(";
                     visit(op.getLHS(), out);
-                    out << ",(AstDomain)";
+                    out << ",";
                     visit(op.getRHS(), out);
                     out << "))";
                     break;
@@ -1251,19 +1254,19 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     break;
                 }
                 case BinaryOp::MAX: {
-                    out << "(AstDomain)(std::max((AstDomain)";
+                    out << "std::max(";
                     visit(op.getLHS(), out);
-                    out << ",(AstDomain)";
+                    out << ",";
                     visit(op.getRHS(), out);
-                    out << "))";
+                    out << ")";
                     break;
                 }
                 case BinaryOp::MIN: {
-                    out << "(AstDomain)(std::min((AstDomain)";
+                    out << "std::min(";
                     visit(op.getLHS(), out);
-                    out << ",(AstDomain)";
+                    out << ",";
                     visit(op.getRHS(), out);
-                    out << "))";
+                    out << ")";
                     break;
                 }
 
@@ -1520,7 +1523,7 @@ void Synthesiser::generateCode(
 
     visitDepthFirst(*(prog.getMain()), [&](const RamCreate& create) {
         // get some table details
-        const auto& rel = create.getRelation();
+        const RamRelationReference& rel = create.getRelation();
         const std::string& raw_name = rel.getName();
 
         bool isProvInfo = raw_name.find("@info") != std::string::npos;
