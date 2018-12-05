@@ -200,8 +200,6 @@ int main(int argc, char** argv) {
                             {"provenance", 't', "EXPLAIN", "", false,
                                     "Enable provenance information via guided SLD."},
 #endif
-                            {"data-structure", 'd', "type", "", false,
-                                    "Specify data structure (brie/btree)."},
                             {"engine", 'e', "[ file | mpi ]", "", false,
                                     "Specify communication engine for distributed execution."},
                             {"hostfile", '\1', "FILE", "", false,

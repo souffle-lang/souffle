@@ -30,26 +30,10 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
         rel = new SynthesiserEqrelRelation(ramRel, indexSet, isProvenance);
     } else {
         // Handle the data structure command line flag
-        if (Global::config().has("data-structure")) {
-            if (Global::config().get("data-structure") == "btree") {
-                rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
-            } else if (Global::config().get("data-structure") == "brie") {
-                rel = new SynthesiserBrieRelation(ramRel, indexSet, isProvenance);
-            } else if (Global::config().get("data-structure") == "eqrel") {
-                rel = new SynthesiserEqrelRelation(ramRel, indexSet, isProvenance);
-            } else {
-                // Fallback if no valid -d option
-                rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
-            }
-            // The default case, which is the most common
+        if (ramRel.getArity() > 6) {
+            rel = new SynthesiserIndirectRelation(ramRel, indexSet, isProvenance);
         } else {
-            if (ramRel.getArity() > 6) {
-                rel = new SynthesiserIndirectRelation(ramRel, indexSet, isProvenance);
-            } else if (ramRel.getArity() > 2) {
-                rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
-            } else {
-                rel = new SynthesiserBrieRelation(ramRel, indexSet, isProvenance);
-            }
+            rel = new SynthesiserDirectRelation(ramRel, indexSet, isProvenance);
         }
     }
 
