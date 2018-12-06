@@ -73,7 +73,7 @@ class EventProcessorSingleton {
             }
             ++start_pos;
             if (str[start_pos] == 't' || str[start_pos] == '"' || str[start_pos] == '\\' ||
-                    str[start_pos] == 'n') {
+                    str[start_pos] == 'n' || str[start_pos] == ';') {
                 continue;
             }
             str.replace(start_pos - 1, 1, "\\\\");
@@ -131,17 +131,12 @@ class EventProcessorSingleton {
                 str.erase(i--, 1);
             }
         }
-        bool changed = false;
         std::vector<std::string> result = split(str, ";");
         for (size_t i = 0; i < result.size(); i++) {
             for (size_t j = 0; j < result[i].size(); j++) {
                 if (result[i][j] == '\b') {
                     result[i][j] = ';';
-                    changed = true;
                 }
-            }
-            if (changed) {
-                changed = false;
             }
         }
         return result;
