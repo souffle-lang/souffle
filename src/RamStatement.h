@@ -463,7 +463,9 @@ public:
     /** Apply mapper */
     void apply(const RamNodeMapper& map) override {
         operation = map(std::move(operation));
-        condition = map(std::move(condition));
+        if (condition != nullptr) {
+            condition = map(std::move(condition));
+        }
     }
 
 protected:

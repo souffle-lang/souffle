@@ -94,7 +94,7 @@ public:
 
     /** Apply mapper */
     void apply(const RamNodeMapper& map) override {
-        if (condition) {
+        if (condition != nullptr) {
             condition = map(std::move(condition));
         }
     }
@@ -134,6 +134,11 @@ public:
     RamOperation& getOperation() const {
         assert(nestedOperation);
         return *nestedOperation;
+    }
+
+    /** Sets the nested operation */
+    void setOperation(std::unique_ptr<RamOperation> nested) {
+        nestedOperation = std::move(nested);
     }
 
     /** Get depth of query */
@@ -405,11 +410,6 @@ public:
         return res;
     }
 
-    /** Apply mapper */
-    void apply(const RamNodeMapper& map) override {
-        RamSearch::apply(map);
-    }
-
 protected:
     /** Check equality */
     bool equal(const RamNode& node) const override {
@@ -495,12 +495,12 @@ public:
     /** Create clone */
     RamAggregate* clone() const override {
         RamAggregate* res = new RamAggregate(std::unique_ptr<RamOperation>(getOperation().clone()), fun,
-                std::unique_ptr<RamValue>(value->clone()),
+                value == nullptr ? nullptr : std::unique_ptr<RamValue>(value->clone()),
                 std::unique_ptr<RamRelationReference>(relation->clone()), identifier);
         res->keys = keys;
-        for (auto& cur : pattern) {
-            if (cur) {
-                res->pattern.push_back(std::unique_ptr<RamValue>(cur->clone()));
+        for (size_t i = 0; i < pattern.size(); ++i) {
+            if (pattern[i] != nullptr) {
+                res->pattern[i] = std::unique_ptr<RamValue>(pattern[i]->clone());
             }
         }
         return res;
@@ -510,7 +510,9 @@ public:
     void apply(const RamNodeMapper& map) override {
         RamSearch::apply(map);
         relation = map(std::move(relation));
-        value = map(std::move(value));
+        if (value != nullptr) {
+            value = map(std::move(value));
+        }
         for (auto& cur : pattern) {
             if (cur) {
                 cur = map(std::move(cur));

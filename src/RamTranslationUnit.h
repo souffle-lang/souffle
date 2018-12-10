@@ -64,11 +64,7 @@ public:
         return dynamic_cast<Analysis*>(analyses[name].get());
     }
 
-    std::unique_ptr<RamProgram> getProg() {
-        return std::move(program);
-    }
-
-    const RamProgram* getProgram() {
+    const RamProgram* getProgram() const {
         return program.get();
     }
 
@@ -76,7 +72,7 @@ public:
         return *program.get();
     }
 
-    RamProgram* getProgram() const {
+    RamProgram* getProgram() {
         return program.get();
     }
 
