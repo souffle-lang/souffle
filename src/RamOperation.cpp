@@ -34,7 +34,7 @@ void RamOperation::addCondition(std::unique_ptr<RamCondition> c, const RamOperat
     if (condition) {
         condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
     } else {
-        condition.swap(c);
+        condition = std::move(c);
     }
 }
 
@@ -103,7 +103,7 @@ void RamProject::addCondition(std::unique_ptr<RamCondition> c, const RamOperatio
     if (condition) {
         condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
     } else {
-        condition.swap(c);
+        condition = std::move(c);
     }
 }
 

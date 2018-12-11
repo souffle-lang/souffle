@@ -274,6 +274,12 @@ public:
             : RamRelationSearch(type, std::move(r), ident, std::move(nested), std::move(profileText)),
               queryPattern(r->getArity()) {}
 
+    RamIndexSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r, size_t ident,
+            std::vector<std::unique_ptr<RamValue>> queryPattern, SearchColumns keys,
+            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+            : RamRelationSearch(type, std::move(r), ident, std::move(nested), std::move(profileText)),
+              queryPattern(std::move(queryPattern)), keys(keys) {}
+
     /** Get indexable columns of scan */
     const SearchColumns& getRangeQueryColumns() const {
         return keys;
@@ -320,6 +326,35 @@ public:
     RamIndexScan(std::unique_ptr<RamRelationReference> r, size_t ident, std::unique_ptr<RamOperation> nested,
             std::string profileText = "")
             : RamIndexSearch(RN_IndexScan, std::move(r), ident, std::move(nested), std::move(profileText)) {}
+
+    RamIndexScan(std::unique_ptr<RamRelationReference> r, size_t ident,
+            std::vector<std::unique_ptr<RamValue>> queryPattern, SearchColumns keys,
+            std::unique_ptr<RamOperation> nested, std::string profileText = "")
+            : RamIndexSearch(RN_IndexScan, std::move(r), ident, std::move(queryPattern), keys,
+                      std::move(nested), std::move(profileText)) {}
+
+    /** Print */
+    void print(std::ostream& os, int tabpos) const override {
+        const RamRelationReference& rel = getRelation();
+        // Keys indicates index search?
+        os << times('\t', tabpos) << "SEARCH " << rel.getName() << " AS t" << getIdentifier();
+        os << " ON INDEX ";
+        bool first = true;
+        for (size_t i = 0; i < rel.getArity(); i++) {
+            if (queryPattern[i] != nullptr) {
+                if (first) {
+                    first = false;
+                } else {
+                    os << "and ";
+                }
+                os << "t" << getIdentifier() << "." << rel.getArg(i) << "=";
+                queryPattern[i]->print(os);
+                os << " ";
+            }
+        }
+        os << '\n';
+        RamIndexSearch::print(os, tabpos + 1);
+    }
 
     /** Create clone */
     RamIndexScan* clone() const override {

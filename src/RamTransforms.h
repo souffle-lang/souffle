@@ -56,6 +56,8 @@ public:
         return "CreateIndicesTransformer";
     }
 
+    static std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size_t level);
+
     /**
      * @param program the program to be processed
      * @return whether the program was modified

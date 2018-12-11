@@ -470,6 +470,39 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             }
         }
 
+        void visitIndexScan(const RamIndexScan& scan) override {
+            // get the targeted relation
+            const InterpreterRelation& rel = interpreter.getRelation(scan.getRelation());
+
+            // create pattern tuple for range query
+            auto arity = rel.getArity();
+            RamDomain low[arity];
+            RamDomain hig[arity];
+            auto pattern = scan.getRangePattern();
+            for (size_t i = 0; i < arity; i++) {
+                if (pattern[i] != nullptr) {
+                    low[i] = interpreter.evalVal(*pattern[i], ctxt);
+                    hig[i] = low[i];
+                } else {
+                    low[i] = MIN_RAM_DOMAIN;
+                    hig[i] = MAX_RAM_DOMAIN;
+                }
+            }
+
+            // obtain index
+            auto idx = rel.getIndex(scan.getRangeQueryColumns(), nullptr);
+
+            // get iterator range
+            auto range = idx->lowerUpperBound(low, hig);
+
+            // conduct range query
+            for (auto ip = range.first; ip != range.second; ++ip) {
+                const RamDomain* data = *(ip);
+                ctxt[scan.getIdentifier()] = data;
+                visitSearch(scan);
+            }
+        }
+
         void visitLookup(const RamLookup& lookup) override {
             // get reference
             RamDomain ref = ctxt[lookup.getReferenceLevel()][lookup.getReferencePosition()];
