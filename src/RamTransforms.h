@@ -45,4 +45,22 @@ public:
     static bool levelConditions(RamProgram& program);
 };
 
+class CreateIndicesTransformer : public RamTransformer {
+private:
+    bool transform(RamTranslationUnit& translationUnit) override {
+        return createIndices(*translationUnit.getProgram());
+    }
+
+public:
+    std::string getName() const override {
+        return "CreateIndicesTransformer";
+    }
+
+    /**
+     * @param program the program to be processed
+     * @return whether the program was modified
+     */
+    static bool createIndices(RamProgram& program);
+};
+
 }  // end of namespace souffle

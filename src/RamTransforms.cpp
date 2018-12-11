@@ -125,4 +125,8 @@ bool LevelConditionsTransformer::levelConditions(RamProgram& program) {
     return insertUpdate.getModified();
 }
 
+bool CreateIndicesTransformer::createIndices(RamProgram& program) {
+    return false;
+}
+
 }  // end of namespace souffle
