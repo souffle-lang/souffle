@@ -401,7 +401,19 @@ public:
     }
 
     /** Print */
-    void print(std::ostream& os, int tabpos) const override;
+    void print(std::ostream& os, int tabpos) const override {
+        os << times('\t', tabpos);
+
+        os << "UNPACK env(t" << refLevel << ", i" << refPos << ") INTO t" << getIdentifier();
+
+        if (auto condition = getCondition()) {
+            os << " WHERE ";
+            condition->print(os);
+        }
+
+        os << " FOR \n";
+        getOperation().print(os, tabpos + 1);
+    }
 
     /** Create clone */
     RamLookup* clone() const override {
@@ -490,7 +502,45 @@ public:
     }
 
     /** Print */
-    void print(std::ostream& os, int tabpos) const override;
+    void print(std::ostream& os, int tabpos) const override {
+        os << times('\t', tabpos);
+
+        switch (fun) {
+            case MIN:
+                os << "MIN ";
+                break;
+            case MAX:
+                os << "MAX ";
+                break;
+            case COUNT:
+                os << "COUNT ";
+                break;
+            case SUM:
+                os << "SUM ";
+                break;
+        }
+
+        if (fun != COUNT) {
+            os << *value << " ";
+        }
+
+        os << "AS t" << getIdentifier() << ".0 IN t" << getIdentifier() << " ∈ " << relation->getName();
+        os << "(" << join(pattern, ",", [&](std::ostream& out, const std::unique_ptr<RamValue>& value) {
+            if (!value) {
+                out << "_";
+            } else {
+                out << *value;
+            }
+        }) << ")";
+
+        if (auto condition = getCondition()) {
+            os << " WHERE ";
+            condition->print(os);
+        }
+
+        os << " FOR \n";
+        getOperation().print(os, tabpos + 1);
+    }
 
     /** Create clone */
     RamAggregate* clone() const override {
@@ -639,7 +689,18 @@ public:
     }
 
     /** Print */
-    void print(std::ostream& os, int tabpos) const override;
+    void print(std::ostream& os, int tabpos) const override {
+        const std::string tabs(tabpos, '\t');
+
+        os << tabs << "PROJECT (" << join(values, ", ", print_deref<std::unique_ptr<RamValue>>()) << ") INTO "
+           << relation->getName();
+
+        // support table-less options
+        if (auto condition = getCondition()) {
+            os << " IF ";
+            condition->print(os);
+        }
+    }
 
     /** Obtain list of child nodes */
     std::vector<const RamNode*> getChildNodes() const override {
@@ -696,7 +757,26 @@ protected:
 public:
     RamReturn(size_t level) : RamOperation(RN_Return, level) {}
 
-    void print(std::ostream& out, int tabpos) const override;
+    void print(std::ostream& os, int tabpos) const override {
+        const std::string tabs(tabpos, '\t');
+
+        // return
+        os << tabs << "RETURN (";
+
+        for (auto val : getValues()) {
+            if (val == nullptr) {
+                os << "_";
+            } else {
+                val->print(os);
+            }
+
+            if (val != *(getValues().end() - 1)) {
+                os << ", ";
+            }
+        }
+
+        os << ")";
+    }
 
     size_t getDepth() const override {
         return 1;
