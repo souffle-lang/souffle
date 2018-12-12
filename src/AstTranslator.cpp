@@ -575,7 +575,7 @@ std::unique_ptr<RamOperation> AstTranslator::ClauseTranslator::createOperation(c
         uniquenessEnforcement->addArg(nullptr);
 
         if (isVolatile) {
-            project->addCondition(std::move(uniquenessEnforcement), *project);
+            return std::make_unique<RamFilter>(std::move(uniquenessEnforcement), std::move(project));
         }
     }
 

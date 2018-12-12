@@ -694,9 +694,6 @@ public:
         values.push_back(std::move(v));
     }
 
-    /** Add condition to project, needed for different level check */
-    void addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) override;
-
     /** Get relation */
     const RamRelationReference& getRelation() const {
         return *relation;

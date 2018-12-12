@@ -94,17 +94,4 @@ void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, const RamOperat
     }
 }
 
-/* add condition */
-void RamProject::addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) {
-    // we can have condition arguments from lower levels, since the values we project are also from lower
-    // levels
-    assert(c->getLevel() <= level);
-
-    if (condition) {
-        condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
-    } else {
-        condition = std::move(c);
-    }
-}
-
 }  // end of namespace souffle
