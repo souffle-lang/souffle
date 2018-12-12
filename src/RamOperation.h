@@ -260,7 +260,7 @@ public:
 /**
  * Abstract class for relation scans with index
  */
-class RamIndexSearch : public RamRelationSearch {
+class RamIndexScan : public RamRelationSearch {
 protected:
     /** Values of index per column of table (if indexable) */
     std::vector<std::unique_ptr<RamValue>> queryPattern;
@@ -269,15 +269,10 @@ protected:
     SearchColumns keys = 0;
 
 public:
-    RamIndexSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r, size_t ident,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
-            : RamRelationSearch(type, std::move(r), ident, std::move(nested), std::move(profileText)),
-              queryPattern(r->getArity()) {}
-
-    RamIndexSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r, size_t ident,
+    RamIndexScan(std::unique_ptr<RamRelationReference> r, size_t ident,
             std::vector<std::unique_ptr<RamValue>> queryPattern, SearchColumns keys,
             std::unique_ptr<RamOperation> nested, std::string profileText = "")
-            : RamRelationSearch(type, std::move(r), ident, std::move(nested), std::move(profileText)),
+            : RamRelationSearch(RN_IndexScan, std::move(r), ident, std::move(nested), std::move(profileText)),
               queryPattern(std::move(queryPattern)), keys(keys) {}
 
     /** Get indexable columns of scan */
@@ -311,28 +306,6 @@ public:
         }
     }
 
-protected:
-    /** Check equality */
-    bool equal(const RamNode& node) const override {
-        assert(nullptr != dynamic_cast<const RamIndexSearch*>(&node));
-        const auto& other = static_cast<const RamIndexSearch&>(node);
-        return RamRelationSearch::equal(other) && equal_targets(queryPattern, other.queryPattern) &&
-               keys == other.keys;
-    }
-};
-
-class RamIndexScan : public RamIndexSearch {
-public:
-    RamIndexScan(std::unique_ptr<RamRelationReference> r, size_t ident, std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
-            : RamIndexSearch(RN_IndexScan, std::move(r), ident, std::move(nested), std::move(profileText)) {}
-
-    RamIndexScan(std::unique_ptr<RamRelationReference> r, size_t ident,
-            std::vector<std::unique_ptr<RamValue>> queryPattern, SearchColumns keys,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
-            : RamIndexSearch(RN_IndexScan, std::move(r), ident, std::move(queryPattern), keys,
-                      std::move(nested), std::move(profileText)) {}
-
     /** Print */
     void print(std::ostream& os, int tabpos) const override {
         const RamRelationReference& rel = getRelation();
@@ -353,42 +326,30 @@ public:
             }
         }
         os << '\n';
-        RamIndexSearch::print(os, tabpos + 1);
+        RamRelationSearch::print(os, tabpos + 1);
     }
 
     /** Create clone */
     RamIndexScan* clone() const override {
-        RamIndexScan* res = new RamIndexScan(std::unique_ptr<RamRelationReference>(getRelation().clone()),
-                getIdentifier(), std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
-        res->condition = std::unique_ptr<RamCondition>(condition->clone());
-        res->keys = keys;
+        std::vector<std::unique_ptr<RamValue>> resQueryPattern;
         for (auto& cur : queryPattern) {
             if (cur) {
-                res->queryPattern.push_back(std::unique_ptr<RamValue>(cur->clone()));
+                resQueryPattern.push_back(std::unique_ptr<RamValue>(cur->clone()));
             }
         }
+        RamIndexScan* res = new RamIndexScan(std::unique_ptr<RamRelationReference>(getRelation().clone()),
+                getIdentifier(), std::move(resQueryPattern), keys,
+                std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
         return res;
     }
-};
 
-/**
- * Determines whether this scan operation is merely verifying the existence
- * of a value (e.g. rel(_,_), rel(1,2), rel(1,_) or rel(X,Y) where X and Y are bound)
- * or actually contributing new variable bindings (X or Y are not bound).
- *
- * The exists-only can be check much more efficient than the other case.
- */
-class RamExistenceCheck : public RamIndexSearch {
-public:
-    RamExistenceCheck(std::unique_ptr<RamRelationReference> r, size_t ident,
-            std::unique_ptr<RamOperation> nested, std::string profileText = "")
-            : RamIndexSearch(
-                      RN_ExistenceCheck, std::move(r), ident, std::move(nested), std::move(profileText)) {}
-
-    /** Create clone */
-    RamExistenceCheck* clone() const override {
-        return new RamExistenceCheck(std::unique_ptr<RamRelationReference>(getRelation().clone()),
-                getIdentifier(), std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
+protected:
+    /** Check equality */
+    bool equal(const RamNode& node) const override {
+        assert(nullptr != dynamic_cast<const RamIndexScan*>(&node));
+        const auto& other = static_cast<const RamIndexScan&>(node);
+        return RamRelationSearch::equal(other) && equal_targets(queryPattern, other.queryPattern) &&
+               keys == other.keys;
     }
 };
 
