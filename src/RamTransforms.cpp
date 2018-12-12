@@ -19,6 +19,24 @@
 
 namespace souffle {
 
+namespace {
+
+std::vector<RamCondition*> getConditions(const RamCondition* condition) {
+    std::vector<RamCondition*> conditions;
+    while (condition != nullptr) {
+        if (const RamAnd* ramAnd = dynamic_cast<const RamAnd*>(condition)) {
+            conditions.push_back(ramAnd->getLHS().clone());
+            condition = &ramAnd->getRHS();
+        } else {
+            conditions.push_back(condition->clone());
+            break;
+        }
+    }
+    return conditions;
+}
+
+}  // namespace
+
 bool LevelConditionsTransformer::levelConditions(RamProgram& program) {
     // Node-mapper that collects nested conditions which apply to a given scan level
     // TODO: Change these to LambdaRamNodeMapper lambdas
@@ -149,6 +167,56 @@ std::unique_ptr<RamValue> CreateIndicesTransformer::getIndexElement(
     return nullptr;
 }
 
+std::unique_ptr<RamOperation> CreateIndicesTransformer::rewriteScan(const RamScan* scan) {
+    if (const RamFilter* filter = dynamic_cast<const RamFilter*>(&scan->getOperation())) {
+        const RamRelationReference& rel = scan->getRelation();
+        const size_t identifier = scan->getIdentifier();
+
+        // Values of index per column of table (if indexable)
+        std::vector<std::unique_ptr<RamValue>> queryPattern(rel.getArity());
+
+        // Indexable columns for a range query
+        SearchColumns keys = 0;
+
+        // Remaining conditions which weren't handled by an index
+        std::unique_ptr<RamCondition> condition;
+
+        auto addCondition = [&](std::unique_ptr<RamCondition> c) {
+            if (condition != nullptr) {
+                condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
+            } else {
+                condition = std::move(c);
+            }
+        };
+
+        for (RamCondition* c : getConditions(filter->getCondition().clone())) {
+            size_t element = 0;
+            if (std::unique_ptr<RamValue> value = getIndexElement(c, element, identifier)) {
+                keys |= (1 << element);
+                if (queryPattern[element] == nullptr) {
+                    queryPattern[element] = std::move(value);
+                } else {
+                    addCondition(std::unique_ptr<RamCondition>(c));
+                }
+            } else {
+                addCondition(std::unique_ptr<RamCondition>(c));
+            }
+        }
+
+        if (keys != 0) {
+            // replace scan by index scan
+            return std::make_unique<RamIndexScan>(std::unique_ptr<RamRelationReference>(rel.clone()),
+                    identifier, std::move(queryPattern), keys,
+                    condition == nullptr
+                            ? std::unique_ptr<RamOperation>(filter->getOperation().clone())
+                            : std::make_unique<RamFilter>(std::move(condition),
+                                      std::unique_ptr<RamOperation>(filter->getOperation().clone())));
+        }
+    }
+
+    return nullptr;
+}
+
 bool CreateIndicesTransformer::createIndices(RamProgram& program) {
     // TODO: Change these to LambdaRamNodeMapper lambdas
     // Node-mapper that searches for and updates RAM scans nested in RAM inserts
@@ -159,73 +227,127 @@ bool CreateIndicesTransformer::createIndices(RamProgram& program) {
             return modified;
         }
 
-        std::vector<RamCondition*> getConditions(const RamCondition* condition) const {
-            std::vector<RamCondition*> conditions;
-            while (condition != nullptr) {
-                if (const RamAnd* ramAnd = dynamic_cast<const RamAnd*>(condition)) {
-                    conditions.push_back(ramAnd->getLHS().clone());
-                    condition = &ramAnd->getRHS();
-                } else {
-                    conditions.push_back(condition->clone());
-                    break;
-                }
-            }
-            return conditions;
-        }
-
         std::unique_ptr<RamNode> operator()(std::unique_ptr<RamNode> node) const override {
             if (RamNestedOperation* nested = dynamic_cast<RamNestedOperation*>(node.get())) {
                 if (const RamScan* scan = dynamic_cast<const RamScan*>(&nested->getOperation())) {
-                    if (const RamFilter* filter = dynamic_cast<const RamFilter*>(&scan->getOperation())) {
-                        const RamRelationReference& rel = scan->getRelation();
-                        const size_t identifier = scan->getIdentifier();
-
-                        // Values of index per column of table (if indexable)
-                        std::vector<std::unique_ptr<RamValue>> queryPattern(rel.getArity());
-
-                        // Indexable columns for a range query
-                        SearchColumns keys = 0;
-
-                        // Remaining conditions which weren't handled by an index
-                        std::unique_ptr<RamCondition> condition;
-
-                        auto addCondition = [&](std::unique_ptr<RamCondition> c) {
-                            if (condition != nullptr) {
-                                condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
-                            } else {
-                                condition = std::move(c);
-                            }
-                        };
-
-                        for (RamCondition* c : getConditions(filter->getCondition().clone())) {
-                            size_t element = 0;
-                            if (std::unique_ptr<RamValue> value = getIndexElement(c, element, identifier)) {
-                                keys |= (1 << element);
-                                if (queryPattern[element] == nullptr) {
-                                    queryPattern[element] = std::move(value);
-                                } else {
-                                    addCondition(std::unique_ptr<RamCondition>(c));
-                                }
-                            } else {
-                                addCondition(std::unique_ptr<RamCondition>(c));
-                            }
-                        }
-
-                        if (keys != 0) {
-                            modified = true;
-
-                            // replace scan by index scan
-                            nested->setOperation(std::make_unique<RamIndexScan>(
-                                    std::unique_ptr<RamRelationReference>(rel.clone()), identifier,
-                                    std::move(queryPattern), keys,
-                                    condition == nullptr
-                                            ? std::unique_ptr<RamOperation>(filter->getOperation().clone())
-                                            : std::make_unique<RamFilter>(std::move(condition),
-                                                      std::unique_ptr<RamOperation>(
-                                                              filter->getOperation().clone()))));
-                        }
+                    if (std::unique_ptr<RamOperation> op = rewriteScan(scan)) {
+                        modified = true;
+                        nested->setOperation(std::move(op));
                     }
                 }
+            }
+
+            node->apply(*this);
+            return node;
+        }
+    };
+
+    // Node-mapper that searches for and updates RAM inserts
+    struct RamInsertCapturer : public RamNodeMapper {
+        mutable bool modified = false;
+
+        bool getModified() const {
+            return modified;
+        }
+
+        std::unique_ptr<RamNode> operator()(std::unique_ptr<RamNode> node) const override {
+            // get all RAM inserts
+            if (RamInsert* insert = dynamic_cast<RamInsert*>(node.get())) {
+                // TODO: better way to modify the child of a RAM insert
+                if (const RamScan* scan = dynamic_cast<const RamScan*>(&insert->getOperation())) {
+                    if (std::unique_ptr<RamOperation> op = rewriteScan(scan)) {
+                        modified = true;
+                        insert->setOperation(std::move(op));
+                    }
+                }
+
+                RamScanCapturer scanUpdate;
+                insert->apply(scanUpdate);
+
+                if (!modified && scanUpdate.getModified()) {
+                    modified = true;
+                }
+            } else {
+                // no need to search for nested RAM inserts
+                node->apply(*this);
+            }
+
+            return node;
+        }
+    };
+
+    // level all RAM inserts
+    RamInsertCapturer insertUpdate;
+    program.getMain()->apply(insertUpdate);
+
+    return insertUpdate.getModified();
+}
+
+bool ConvertExistenceChecksTransformer::convertExistenceChecks(RamProgram& program) {
+    // TODO: Change these to LambdaRamNodeMapper lambdas
+    // Node-mapper that searches for and updates RAM scans nested in RAM inserts
+    struct RamScanCapturer : public RamNodeMapper {
+        mutable bool modified = false;
+
+        bool getModified() const {
+            return modified;
+        }
+
+        bool dependsOn(const RamCondition* condition, const size_t identifier) const {
+            if (const RamBinaryRelation* binRelOp = dynamic_cast<const RamBinaryRelation*>(condition)) {
+                if (const RamValue* lhs = dynamic_cast<RamElementAccess*>(binRelOp->getLHS())) {
+                    if (!lhs->isConstant() && lhs->getLevel() == identifier) {
+                        return true;
+                    }
+                }
+                if (const RamValue* rhs = dynamic_cast<RamElementAccess*>(binRelOp->getRHS())) {
+                    if (!rhs->isConstant() && rhs->getLevel() == identifier) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        std::unique_ptr<RamNode> operator()(std::unique_ptr<RamNode> node) const override {
+            if (RamRelationSearch* scan = dynamic_cast<RamRelationSearch*>(node.get())) {
+                const size_t identifier = scan->getIdentifier();
+                bool isExistCheck = true;
+                visitDepthFirst(scan->getOperation(), [&](const RamFilter& filter) {
+                    if (isExistCheck) {
+                        for (const RamCondition* c : getConditions(filter.getCondition().clone())) {
+                            if (dependsOn(c, identifier)) {
+                                isExistCheck = false;
+                                break;
+                            }
+                        }
+                    }
+                });
+                if (isExistCheck) {
+                    visitDepthFirst(scan->getOperation(), [&](const RamIndexScan& indexScan) {
+                        if (isExistCheck) {
+                            for (const RamValue* value : indexScan.getRangePattern()) {
+                                if (!value->isConstant() && value->getLevel() == identifier) {
+                                    isExistCheck = false;
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+                if (isExistCheck) {
+                    visitDepthFirst(scan->getOperation(), [&](const RamProject& project) {
+                        if (isExistCheck) {
+                            for (const RamValue* value : project.getValues()) {
+                                if (!value->isConstant() && value->getLevel() == identifier) {
+                                    isExistCheck = false;
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+                scan->setIsPureExistenceCheck(isExistCheck);
             }
 
             node->apply(*this);

@@ -58,11 +58,31 @@ public:
 
     static std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size_t level);
 
+    static std::unique_ptr<RamOperation> rewriteScan(const RamScan* scan);
+
     /**
      * @param program the program to be processed
      * @return whether the program was modified
      */
     static bool createIndices(RamProgram& program);
+};
+
+class ConvertExistenceChecksTransformer : public RamTransformer {
+private:
+    bool transform(RamTranslationUnit& translationUnit) override {
+        return convertExistenceChecks(*translationUnit.getProgram());
+    }
+
+public:
+    std::string getName() const override {
+        return "ConvertExistenceChecksTransformer";
+    }
+
+    /**
+     * @param program the program to be processed
+     * @return whether the program was modified
+     */
+    static bool convertExistenceChecks(RamProgram& program);
 };
 
 }  // end of namespace souffle

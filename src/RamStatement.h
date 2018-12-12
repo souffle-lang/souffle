@@ -426,6 +426,11 @@ public:
         return *operation;
     }
 
+    /** Sets the nested operation */
+    void setOperation(std::unique_ptr<RamOperation> nested) {
+        operation = std::move(nested);
+    }
+
     /** Get RAM condition */
     const RamCondition* getCondition() const {
         return condition.get();

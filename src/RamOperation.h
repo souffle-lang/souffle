@@ -199,6 +199,15 @@ class RamRelationSearch : public RamSearch {
     /** identifier for the tuple */
     size_t identifier;
 
+    /**
+     * Determines whether this scan operation is merely verifying the existence
+     * of a value (e.g. rel(_,_), rel(1,2), rel(1,_) or rel(X,Y) where X and Y are bound)
+     * or actually contributing new variable bindings (X or Y are not bound).
+     *
+     * The exists-only can be check much more efficient than the other case.
+     */
+    bool pureExistenceCheck = false;
+
 public:
     RamRelationSearch(RamNodeType type, std::unique_ptr<RamRelationReference> r, size_t ident,
             std::unique_ptr<RamOperation> nested, std::string profileText = "")
@@ -213,6 +222,16 @@ public:
     /** Get identifier */
     const size_t getIdentifier() const {
         return identifier;
+    }
+
+    /** Check for pure existence check */
+    // TODO (#541): rename pure existence check to complete/whole etc.
+    bool isPureExistenceCheck() const {
+        return pureExistenceCheck;
+    }
+
+    void setIsPureExistenceCheck(const bool isExistCheck) {
+        pureExistenceCheck = isExistCheck;
     }
 
     /** Apply mapper */
@@ -244,8 +263,13 @@ public:
 
     /** Print */
     void print(std::ostream& os, int tabpos) const override {
-        os << times('\t', tabpos) << "for t" << getIdentifier() << " in " << getRelation().getName()
-           << " {\n";
+        os << times('\t', tabpos);
+        if (isPureExistenceCheck()) {
+            os << "if ∃ t" << getIdentifier() << " ∈ " << getRelation().getName();
+        } else {
+            os << "for t" << getIdentifier() << " in " << getRelation().getName();
+        }
+        os << " {\n";
         RamNestedOperation::print(os, tabpos + 1);
         os << times('\t', tabpos) << "}\n";
     }
@@ -310,8 +334,12 @@ public:
     void print(std::ostream& os, int tabpos) const override {
         const RamRelationReference& rel = getRelation();
         // Keys indicates index search?
-        os << times('\t', tabpos) << "SEARCH " << rel.getName() << " AS t" << getIdentifier();
-        os << " ON INDEX ";
+        os << times('\t', tabpos);
+        if (isPureExistenceCheck()) {
+            os << "if ∃ t" << getIdentifier() << " ∈ " << getRelation().getName() << " WITH ";
+        } else {
+            os << "SEARCH " << rel.getName() << " AS t" << getIdentifier() << " ON INDEX ";
+        }
         bool first = true;
         for (size_t i = 0; i < rel.getArity(); i++) {
             if (queryPattern[i] != nullptr) {
