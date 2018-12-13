@@ -564,7 +564,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             });
 
             // if this search is a full scan
-            if (scan.getRelation().isNullary()) {
+            if (scan.isPureExistenceCheck() || scan.getRelation().isNullary()) {
                 out << "if(!" << relName << "->"
                     << "empty()) {\n";
                 visitSearch(scan, out);
@@ -662,7 +662,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             });
 
             // if this is the parallel level
-            if (parallel) {
+            if (parallel && !scan.isPureExistenceCheck()) {
                 // make this loop parallel
                 out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
                 if (nullaryCond.length() > 0) {
@@ -689,10 +689,16 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "}});\n";
             out << "auto range = " << relName << "->"
                 << "equalRange_" << keys << "(key," << ctxName << ");\n";
-            out << "for(const auto& env" << identifier << " : range) {\n";
-            out << nullaryStopStmt;
-            visitSearch(scan, out);
-            out << "}\n";
+            if (scan.isPureExistenceCheck()) {
+                out << "if(!range.empty()) {\n";
+                visitSearch(scan, out);
+                out << "}\n";
+            } else {
+                out << "for(const auto& env" << identifier << " : range) {\n";
+                out << nullaryStopStmt;
+                visitSearch(scan, out);
+                out << "}\n";
+            }
             PRINT_END_COMMENT(out);
         }
 

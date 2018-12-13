@@ -210,7 +210,8 @@ std::unique_ptr<RamOperation> CreateIndicesTransformer::rewriteScan(const RamSca
                     condition == nullptr
                             ? std::unique_ptr<RamOperation>(filter->getOperation().clone())
                             : std::make_unique<RamFilter>(std::move(condition),
-                                      std::unique_ptr<RamOperation>(filter->getOperation().clone())));
+                                      std::unique_ptr<RamOperation>(filter->getOperation().clone())),
+                    scan->getProfileText());
         }
     }
 
