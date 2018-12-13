@@ -296,12 +296,12 @@ bool ConvertExistenceChecksTransformer::convertExistenceChecks(RamProgram& progr
         bool dependsOn(const RamCondition* condition, const size_t identifier) const {
             if (const RamBinaryRelation* binRelOp = dynamic_cast<const RamBinaryRelation*>(condition)) {
                 if (const RamValue* lhs = dynamic_cast<RamElementAccess*>(binRelOp->getLHS())) {
-                    if (!lhs->isConstant() && lhs->getLevel() == identifier) {
+                    if (lhs->getLevel() == identifier) {
                         return true;
                     }
                 }
                 if (const RamValue* rhs = dynamic_cast<RamElementAccess*>(binRelOp->getRHS())) {
-                    if (!rhs->isConstant() && rhs->getLevel() == identifier) {
+                    if (rhs->getLevel() == identifier) {
                         return true;
                     }
                 }
@@ -327,7 +327,8 @@ bool ConvertExistenceChecksTransformer::convertExistenceChecks(RamProgram& progr
                     visitDepthFirst(scan->getOperation(), [&](const RamIndexScan& indexScan) {
                         if (isExistCheck) {
                             for (const RamValue* value : indexScan.getRangePattern()) {
-                                if (!value->isConstant() && value->getLevel() == identifier) {
+                                if (value != nullptr && !value->isConstant() &&
+                                        value->getLevel() == identifier) {
                                     isExistCheck = false;
                                     break;
                                 }
@@ -339,7 +340,8 @@ bool ConvertExistenceChecksTransformer::convertExistenceChecks(RamProgram& progr
                     visitDepthFirst(scan->getOperation(), [&](const RamProject& project) {
                         if (isExistCheck) {
                             for (const RamValue* value : project.getValues()) {
-                                if (!value->isConstant() && value->getLevel() == identifier) {
+                                if (value != nullptr && !value->isConstant() &&
+                                        value->getLevel() == identifier) {
                                     isExistCheck = false;
                                     break;
                                 }
