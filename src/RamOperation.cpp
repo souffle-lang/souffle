@@ -27,17 +27,6 @@
 
 namespace souffle {
 
-/** add condition */
-void RamOperation::addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) {
-    assert(c->getLevel() == level);
-
-    if (condition) {
-        condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
-    } else {
-        condition = std::move(c);
-    }
-}
-
 namespace {
 
 /** get indexable element */
@@ -62,27 +51,37 @@ std::unique_ptr<RamValue> getIndexElement(RamCondition* c, size_t& element, size
     }
     return std::unique_ptr<RamValue>(nullptr);
 }
+
 }  // namespace
 
 /** add condition */
 void RamAggregate::addCondition(std::unique_ptr<RamCondition> c, const RamOperation& root) {
-    assert(c->getLevel() == identifier);
+    assert(c->getLevel() == getIdentifier());
 
     // use condition to narrow scan if possible
     size_t element = 0;
-    if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, identifier)) {
+    if (std::unique_ptr<RamValue> value = getIndexElement(c.get(), element, getIdentifier())) {
         if (element > 0 || relation->getName().find("__agg") == std::string::npos) {
             keys |= (1 << element);
             if (pattern[element] == nullptr) {
                 pattern[element] = std::move(value);
             } else {
-                std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
-                RamSearch::addCondition(std::make_unique<RamBinaryRelation>(
-                                                BinaryConstraintOp::EQ, std::move(field), std::move(value)),
-                        root);
+                std::unique_ptr<RamValue> field(new RamElementAccess(getIdentifier(), element));
+
+                auto addCondition = [&](std::unique_ptr<RamCondition> c) {
+                    assert(c->getLevel() == getIdentifier());
+                    if (condition != nullptr) {
+                        condition = std::make_unique<RamAnd>(std::move(condition), std::move(c));
+                    } else {
+                        condition = std::move(c);
+                    }
+                };
+
+                addCondition(std::make_unique<RamBinaryRelation>(
+                        BinaryConstraintOp::EQ, std::move(field), std::move(value)));
             }
         } else {
-            std::unique_ptr<RamValue> field(new RamElementAccess(level, element));
+            std::unique_ptr<RamValue> field(new RamElementAccess(getIdentifier(), element));
             std::unique_ptr<RamCondition> eq(
                     new RamBinaryRelation(BinaryConstraintOp::EQ, std::move(field), std::move(value)));
             if (condition != nullptr) {

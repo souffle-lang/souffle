@@ -626,12 +626,6 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
         }
 
         void visitProject(const RamProject& project) override {
-            // check constraints
-            RamCondition* condition = project.getCondition();
-            if (condition && !interpreter.evalCond(*condition, ctxt)) {
-                return;  // condition violated => skip insert
-            }
-
             // create a tuple of the proper arity (also supports arity 0)
             auto arity = project.getRelation().getArity();
             const auto& values = project.getValues();

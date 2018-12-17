@@ -885,14 +885,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto relName = synthesiser.getRelationName(rel);
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
 
-            // check condition
-            auto condition = project.getCondition();
-            if (condition) {
-                out << "if (";
-                visit(condition, out);
-                out << ") {\n";
-            }
-
             // create projected tuple
             if (project.getValues().empty()) {
                 out << "Tuple<RamDomain," << arity << "> tuple({{}});\n";
@@ -917,10 +909,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 out << "}";
             }
 
-            // end condition
-            if (condition) {
-                out << "}\n";
-            }
             PRINT_END_COMMENT(out);
         }
 

@@ -545,8 +545,7 @@ void AstTranslator::ClauseTranslator::createValueIndex(const AstClause& clause) 
 std::unique_ptr<RamOperation> AstTranslator::ClauseTranslator::createOperation(const AstClause& clause) {
     const auto head = clause.getHead();
 
-    std::unique_ptr<RamProject> project =
-            std::make_unique<RamProject>(translator.translateRelation(head), level);
+    std::unique_ptr<RamProject> project = std::make_unique<RamProject>(translator.translateRelation(head));
 
     for (AstArgument* arg : head->getArguments()) {
         project->addArg(translator.translateValue(arg, valueIndex));
@@ -585,7 +584,7 @@ std::unique_ptr<RamOperation> AstTranslator::ClauseTranslator::createOperation(c
 
 std::unique_ptr<RamOperation> AstTranslator::ProvenanceClauseTranslator::createOperation(
         const AstClause& clause) {
-    auto* returnValue = new RamReturn(level);
+    auto* returnValue = new RamReturn();
 
     // get all values in the body
     for (AstLiteral* lit : clause.getBodyLiterals()) {
@@ -734,13 +733,13 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
         assert(atom && "Unsupported complex aggregation body encountered!");
 
         // add Ram-Aggregation layer
-        op = std::make_unique<RamAggregate>(
+        std::unique_ptr<RamAggregate> aggregate = std::make_unique<RamAggregate>(
                 std::move(op), fun, std::move(value), translator.translateRelation(atom), level);
 
         // add constant constraints
         for (size_t pos = 0; pos < atom->argSize(); ++pos) {
             if (auto* c = dynamic_cast<AstConstant*>(atom->getArgument(pos))) {
-                op->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
+                aggregate->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
                         std::make_unique<RamElementAccess>(
                                 level, pos, translator.translateRelation(atom)->getArg(pos)),
                         std::make_unique<RamNumber>(c->getIndex())));
@@ -748,7 +747,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
                 // all other appearances
                 for (const Location& loc : valueIndex.getVariableReferences().find(var->getName())->second) {
                     if (level != loc.level || (int)pos != loc.element) {
-                        op->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
+                        aggregate->addCondition(std::make_unique<RamBinaryRelation>(BinaryConstraintOp::EQ,
                                 std::make_unique<RamElementAccess>(loc.level, loc.element, loc.name),
                                 std::make_unique<RamElementAccess>(
                                         level, pos, translator.translateRelation(atom)->getArg(pos))));
@@ -757,6 +756,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
                 }
             }
         }
+        op = std::move(aggregate);
     }
 
     // build operation bottom-up
@@ -821,7 +821,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
             // add an unpack level
             const Location& loc = valueIndex.getDefinitionPoint(*rec);
             op = std::make_unique<RamLookup>(
-                    std::move(op), loc.level, loc.element, rec->getArguments().size(), level);
+                    std::move(op), level, loc.level, loc.element, rec->getArguments().size());
         } else {
             std::cout << "Unsupported AST node type: " << typeid(*cur).name() << "\n";
             assert(false && "Unsupported AST node for creation of scan-level!");
