@@ -514,10 +514,11 @@ public:
 
     /** Obtain list of child nodes */
     std::vector<const RamNode*> getChildNodes() const override {
-        if (!condition) {
-            return toVector<const RamNode*>();
+        auto res = RamSearch::getChildNodes();
+        if (condition) {
+            res.push_back(condition.get());
         }
-        return {condition.get()};
+        return res;
     }
 
     /** Create clone */
