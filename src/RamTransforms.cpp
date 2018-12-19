@@ -307,6 +307,8 @@ bool ConvertExistenceChecksTransformer::convertExistenceChecks(RamProgram& progr
                     } else if (const RamBinaryOperator* binOp = dynamic_cast<const RamBinaryOperator*>(val)) {
                         queue.push_back(binOp->getLHS());
                         queue.push_back(binOp->getRHS());
+                    } else if (const RamUnaryOperator* unaryOp = dynamic_cast<const RamUnaryOperator*>(val)) {
+                        queue.push_back(unaryOp->getValue());
                     }
                 }
             }
