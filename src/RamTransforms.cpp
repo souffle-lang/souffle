@@ -315,80 +315,78 @@ bool ConvertExistenceChecksTransformer::convertExistenceChecks(RamProgram& progr
 
         std::unique_ptr<RamNode> operator()(std::unique_ptr<RamNode> node) const override {
             if (RamRelationSearch* scan = dynamic_cast<RamRelationSearch*>(node.get())) {
-                if (!scan->getRelation().isNullary()) {
-                    const size_t identifier = scan->getIdentifier();
-                    bool isExistCheck = true;
-                    visitDepthFirst(scan->getOperation(), [&](const RamFilter& filter) {
+                const size_t identifier = scan->getIdentifier();
+                bool isExistCheck = true;
+                visitDepthFirst(scan->getOperation(), [&](const RamFilter& filter) {
+                    if (isExistCheck) {
+                        for (const RamCondition* c : getConditions(filter.getCondition().clone())) {
+                            if (dependsOn(c, identifier)) {
+                                isExistCheck = false;
+                                break;
+                            }
+                        }
+                    }
+                });
+                if (isExistCheck) {
+                    visitDepthFirst(scan->getOperation(), [&](const RamIndexScan& indexScan) {
                         if (isExistCheck) {
-                            for (const RamCondition* c : getConditions(filter.getCondition().clone())) {
-                                if (dependsOn(c, identifier)) {
+                            for (const RamValue* value : indexScan.getRangePattern()) {
+                                if (value != nullptr && !value->isConstant() &&
+                                        value->getLevel() == identifier) {
                                     isExistCheck = false;
                                     break;
                                 }
                             }
                         }
                     });
-                    if (isExistCheck) {
-                        visitDepthFirst(scan->getOperation(), [&](const RamIndexScan& indexScan) {
-                            if (isExistCheck) {
-                                for (const RamValue* value : indexScan.getRangePattern()) {
-                                    if (value != nullptr && !value->isConstant() &&
-                                            value->getLevel() == identifier) {
-                                        isExistCheck = false;
-                                        break;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    if (isExistCheck) {
-                        visitDepthFirst(scan->getOperation(), [&](const RamProject& project) {
-                            if (isExistCheck) {
-                                std::vector<const RamValue*> values;
-                                // TODO: function to extend vectors
-                                const std::vector<RamValue*> initialVals = project.getValues();
-                                values.insert(values.end(), initialVals.begin(), initialVals.end());
-
-                                while (!values.empty()) {
-                                    const RamValue* value = values.back();
-                                    values.pop_back();
-
-                                    if (const RamPack* pack = dynamic_cast<const RamPack*>(value)) {
-                                        const std::vector<RamValue*> args = pack->getArguments();
-                                        values.insert(values.end(), args.begin(), args.end());
-                                    } else if (const RamBinaryOperator* binOp =
-                                                       dynamic_cast<const RamBinaryOperator*>(value)) {
-                                        values.push_back(binOp->getLHS());
-                                        values.push_back(binOp->getRHS());
-                                    } else if (value != nullptr && !value->isConstant() &&
-                                               value->getLevel() == identifier) {
-                                        isExistCheck = false;
-                                        break;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    if (isExistCheck) {
-                        visitDepthFirst(scan->getOperation(), [&](const RamLookup& lookup) {
-                            if (isExistCheck) {
-                                if (lookup.getReferenceLevel() == identifier) {
-                                    isExistCheck = false;
-                                }
-                            }
-                        });
-                    }
-                    if (isExistCheck) {
-                        visitDepthFirst(scan->getOperation(), [&](const RamNotExists& notExists) {
-                            if (isExistCheck) {
-                                if (notExists.getLevel() == identifier) {
-                                    isExistCheck = false;
-                                }
-                            }
-                        });
-                    }
-                    scan->setIsPureExistenceCheck(isExistCheck);
                 }
+                if (isExistCheck) {
+                    visitDepthFirst(scan->getOperation(), [&](const RamProject& project) {
+                        if (isExistCheck) {
+                            std::vector<const RamValue*> values;
+                            // TODO: function to extend vectors
+                            const std::vector<RamValue*> initialVals = project.getValues();
+                            values.insert(values.end(), initialVals.begin(), initialVals.end());
+
+                            while (!values.empty()) {
+                                const RamValue* value = values.back();
+                                values.pop_back();
+
+                                if (const RamPack* pack = dynamic_cast<const RamPack*>(value)) {
+                                    const std::vector<RamValue*> args = pack->getArguments();
+                                    values.insert(values.end(), args.begin(), args.end());
+                                } else if (const RamBinaryOperator* binOp =
+                                                   dynamic_cast<const RamBinaryOperator*>(value)) {
+                                    values.push_back(binOp->getLHS());
+                                    values.push_back(binOp->getRHS());
+                                } else if (value != nullptr && !value->isConstant() &&
+                                           value->getLevel() == identifier) {
+                                    isExistCheck = false;
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+                if (isExistCheck) {
+                    visitDepthFirst(scan->getOperation(), [&](const RamLookup& lookup) {
+                        if (isExistCheck) {
+                            if (lookup.getReferenceLevel() == identifier) {
+                                isExistCheck = false;
+                            }
+                        }
+                    });
+                }
+                if (isExistCheck) {
+                    visitDepthFirst(scan->getOperation(), [&](const RamNotExists& notExists) {
+                        if (isExistCheck) {
+                            if (notExists.getLevel() == identifier) {
+                                isExistCheck = false;
+                            }
+                        }
+                    });
+                }
+                scan->setIsPureExistenceCheck(isExistCheck);
             }
 
             node->apply(*this);

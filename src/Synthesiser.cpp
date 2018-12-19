@@ -532,11 +532,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto identifier = scan.getIdentifier();
 
             // check whether loop nest can be parallelized
-            bool parallel = false;
-            if (identifier == 0 && !scan.getRelation().isNullary()) {
-                // yes it can!
-                parallel = true;
-
+            const bool parallel =
+                    identifier == 0 && !scan.getRelation().isNullary() && !scan.isPureExistenceCheck();
+            if (parallel) {
                 const auto& rel = scan.getRelation();
                 const auto& relName = synthesiser.getRelationName(rel);
                 // partition outermost relation
@@ -629,11 +627,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             };
 
             // check whether loop nest can be parallelized
-            bool parallel = false;
-            if (identifier == 0) {
-                // yes it can!
-                parallel = true;
-
+            const bool parallel = identifier == 0 && !scan.isPureExistenceCheck();
+            if (parallel) {
                 out << "const Tuple<RamDomain," << arity << "> key({{";
                 printKeyTuple();
                 out << "}});\n";
@@ -662,7 +657,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             });
 
             // if this is the parallel level
-            if (parallel && !scan.isPureExistenceCheck()) {
+            if (parallel) {
                 // make this loop parallel
                 out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
                 if (nullaryCond.length() > 0) {
