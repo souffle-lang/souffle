@@ -155,10 +155,13 @@ public:
 class AstPrimitiveType : public AstType {
     /** Indicates whether it is a number (true) or a symbol (false) */
     bool num;
+    /** Indicates if the type (number/symbol) was determined implicitly */
+    bool implicit;
 
 public:
     /** Creates a new primitive type */
-    AstPrimitiveType(const AstTypeIdentifier& name, bool num = false) : AstType(name), num(num) {}
+    AstPrimitiveType(const AstTypeIdentifier& name, bool num = false, bool implicit = false)
+            : AstType(name), num(num), implicit(implicit) {}
 
     /** Tests whether this type is a numeric type */
     bool isNumeric() const {
@@ -170,9 +173,14 @@ public:
         return !num;
     }
 
+    /** Tests if the type (number/symbol) was determined implicitly  */
+    bool isImplicit() const {
+        return implicit;
+    }
+
     /** Prints a summary of this type to the given stream */
     void print(std::ostream& os) const override {
-        os << ".type " << getName() << (num ? "= number" : "");
+        os << "." << (num ? "number" : "symbol") << "_type " << getName();
     }
 
     /** Creates a clone of this AST sub-structure */

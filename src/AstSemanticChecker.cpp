@@ -745,6 +745,14 @@ void AstSemanticChecker::checkRules(ErrorReport& report, const TypeEnvironment& 
 
 // ----- types --------
 
+void AstSemanticChecker::checkPrimitiveType(ErrorReport& report, const AstPrimitiveType& type) {
+    // warn if the type was determined implicitly
+    if (type.isImplicit()) {
+        report.addWarning("Use of .type for primitive types is discouraged, use .symbol_type instead",
+                type.getSrcLoc());
+    }
+}
+
 // check if a union contains a number primitive
 static bool unionContainsNumber(const AstProgram& program, const AstUnionType& type) {
     // check if any of the elements of the union are or contain a number primitive
@@ -849,10 +857,12 @@ void AstSemanticChecker::checkRecordType(
 }
 
 void AstSemanticChecker::checkType(ErrorReport& report, const AstProgram& program, const AstType& type) {
-    if (const auto* u = dynamic_cast<const AstUnionType*>(&type)) {
-        checkUnionType(report, program, *u);
-    } else if (const auto* r = dynamic_cast<const AstRecordType*>(&type)) {
-        checkRecordType(report, program, *r);
+    if (const auto* primitive = dynamic_cast<const AstPrimitiveType*>(&type)) {
+        checkPrimitiveType(report, *primitive);
+    } else if (const auto* unionT = dynamic_cast<const AstUnionType*>(&type)) {
+        checkUnionType(report, program, *unionT);
+    } else if (const auto* record = dynamic_cast<const AstRecordType*>(&type)) {
+        checkRecordType(report, program, *record);
     }
 }
 

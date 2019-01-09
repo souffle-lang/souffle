@@ -280,7 +280,7 @@ type
         $$->setSrcLoc(@$);
     }
   | TYPE IDENT {
-        $$ = new AstPrimitiveType($2);
+        $$ = new AstPrimitiveType($2, false, true);
         $$->setSrcLoc(@$);
     }
   | TYPE IDENT EQUALS uniontype {

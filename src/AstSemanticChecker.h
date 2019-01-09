@@ -26,6 +26,7 @@ class AstArgument;
 class AstAtom;
 class AstClause;
 class AstLiteral;
+class AstPrimitiveType;
 class AstProgram;
 class AstRecordType;
 class AstRelation;
@@ -62,6 +63,7 @@ private:
     static void checkRules(ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program,
             const RecursiveClauses& recursiveClauses);
 
+    static void checkPrimitiveType(ErrorReport& report, const AstPrimitiveType& type);
     static void checkUnionType(ErrorReport& report, const AstProgram& program, const AstUnionType& type);
     static void checkRecordType(ErrorReport& report, const AstProgram& program, const AstRecordType& type);
     static void checkType(ErrorReport& report, const AstProgram& program, const AstType& type);
