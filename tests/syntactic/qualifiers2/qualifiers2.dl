@@ -6,6 +6,6 @@
 
 .decl A(x:number, y:number, z:number) eqrel output
 .input A()
-.type name
+.symbol_type name
 .decl B(x:number, y:name) eqrel output
 .input B()

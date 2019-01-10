@@ -8,7 +8,7 @@
 
 // ---- some type definitions ----
 
-.type node
+.symbol_type node
 
 
 // ---------------------------------

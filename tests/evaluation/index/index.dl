@@ -1,5 +1,4 @@
 // check whether duplicates are filtered out
-.type N
 
 .decl A (x:number, y:number)
 .output A ()

@@ -1,0 +1,9 @@
+Warning: Use of .type for primitive types is discouraged, use .symbol_type instead in file subtype2.dl at line 6
+.type E
+^-------
+Warning: Use of .type for primitive types is discouraged, use .symbol_type instead in file subtype2.dl at line 11
+.type CA
+^--------
+Warning: Use of .type for primitive types is discouraged, use .symbol_type instead in file subtype2.dl at line 12
+.type CB
+^--------

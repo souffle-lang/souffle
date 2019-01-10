@@ -5,7 +5,7 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 // check whether constants in head of rules work correctly
-.type n
+.symbol_type n
 
 .decl N (x:n)
 .output N ()

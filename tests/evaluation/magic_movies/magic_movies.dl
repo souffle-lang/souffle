@@ -8,7 +8,7 @@
 // the magic set transformation
 .pragma "magic-transform" "*"
 
-.type Text
+.symbol_type Text
 
 .decl Movie(id:number,title:Text,rating:Text)
 .decl MovieActors(movieid:number,actorsid:number)

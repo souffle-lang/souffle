@@ -1,4 +1,4 @@
-.type D
+.symbol_type D
 .type C = D
 .type B = C
 .type A = B
@@ -12,4 +12,3 @@ R4(x) :- R2(x,x),R1(x,x).
 
 R1("0","0").
 R2("0","0").
-

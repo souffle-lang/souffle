@@ -1,4 +1,4 @@
-.type Node
+.symbol_type Node
 
 .decl X (node1:Node)
 .output X ()

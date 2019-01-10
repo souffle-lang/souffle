@@ -1,4 +1,4 @@
-.type Node
+.symbol_type Node
 
 .decl F (node1:number, node2:Node)
 .input F ()

@@ -3,7 +3,7 @@
 //
 // Datalog formulation
 
-.type set
+.symbol_type set
 
 .decl p  (node:set)
 .output p  ()

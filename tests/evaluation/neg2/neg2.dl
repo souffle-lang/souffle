@@ -1,4 +1,4 @@
-.type Set
+.symbol_type Set
 
 .decl X(node1:Set, node2:Set)
 .output X()
@@ -15,4 +15,3 @@ Z(a,b) :- !X(a,b), Y(a,b), X(a,b).
 X("a","b").
 X("b","c").
 X("c","d").
-

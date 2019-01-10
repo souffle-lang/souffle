@@ -1,5 +1,5 @@
-.type Var
-.type FieldSignature
+.symbol_type Var
+.symbol_type FieldSignature
 
 .type AccessPathBase = Var | FieldSignature
 .type AccessPathSuffix = [ ?base:AccessPathSuffix, ?fld:FieldSignature ]

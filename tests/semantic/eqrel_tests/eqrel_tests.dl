@@ -50,11 +50,11 @@ vacuum(x, y) :- empty(x, y).
 
 
 // custom data types in eqrel
-.type Person
+.symbol_type Person
 .decl housemates(x : Person, y : Person) eqrel
 housemates("Michael", "Pete").
 
-.type String
+.symbol_type String
 .decl house_statement(x : Person, r : String, y : Person)
 .output house_statement()
 house_statement(x, r, y) :- housemates(x, y), r = "lives with".

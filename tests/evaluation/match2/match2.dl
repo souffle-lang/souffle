@@ -2,7 +2,7 @@
 // Test-case for string matching
 //
 
-.type String
+.symbol_type String
 
 .decl inputData   (t:String)
 .decl pattern   (t:String)

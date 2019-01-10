@@ -1,5 +1,5 @@
 // Check mismatching arity in facts
-.type N
+.symbol_type N
 
 .decl A (x:N, y:N, z:N)
 .decl B (x:N)

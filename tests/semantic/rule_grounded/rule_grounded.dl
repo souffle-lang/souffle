@@ -1,4 +1,4 @@
-.type T
+.symbol_type T
 
 .decl A (a:T, b:T)
 .decl B (a:T, b:T)

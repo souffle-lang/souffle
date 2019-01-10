@@ -1,4 +1,4 @@
-.type S
+.symbol_type S
 
 
 .decl r(x:S,y:S)

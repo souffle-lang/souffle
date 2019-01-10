@@ -1,4 +1,4 @@
-.type Integer
+.symbol_type Integer
 
 .decl check(x:Integer, y:Integer)
 .decl list(x:Integer, y:Integer)

@@ -1,5 +1,5 @@
 
-.type value
+.symbol_type value
 
 
 // define three relations
@@ -124,5 +124,3 @@ res("c subset a") :- a2c_unmapped_a_exist("yes"),!a2c_unmapped_c_exist("yes").
 
 res("b subset c") :- !b2c_unmapped_b_exist("yes"),b2c_unmapped_c_exist("yes").
 res("c subset b") :- b2c_unmapped_b_exist("yes"),!b2c_unmapped_c_exist("yes").
-
-

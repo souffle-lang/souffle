@@ -9,7 +9,7 @@
 .pragma "magic-transform" "*"
 
 // ----- Types -----
-.type Node
+.symbol_type Node
 
 // ----- Relations -----
 

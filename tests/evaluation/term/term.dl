@@ -11,8 +11,8 @@
 // by component.
 
 // Types
-.type Variable
-.type Functor
+.symbol_type Variable
+.symbol_type Functor
 
 // EDB Relations
 .decl fn(v:Variable, f:Functor)

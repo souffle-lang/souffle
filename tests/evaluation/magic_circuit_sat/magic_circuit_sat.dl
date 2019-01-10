@@ -8,7 +8,7 @@
 // the magic set transformation
 .pragma "magic-transform" "*"
 
-.type Var
+.symbol_type Var
 
 .decl conf(num : number)
 conf(x+1) :- conf(x), !lim(x).

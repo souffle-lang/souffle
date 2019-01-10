@@ -1,4 +1,4 @@
-.type N
+.symbol_type N
 .type R = [ f : N ]
 .type L = [ f : N , r : L ]
 
@@ -13,4 +13,3 @@ a("N",nil,["N",["N",nil]]).
 a(nil,nil,nil).
 a("N",nil,[nil,nil]).
 a("N",nil,["N",[nil,nil]]).
-

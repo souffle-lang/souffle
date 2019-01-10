@@ -1,0 +1,3 @@
+Warning: Use of .type for primitive types is discouraged, use .symbol_type instead in file type.dl at line 2
+.type TypeName
+^--------------

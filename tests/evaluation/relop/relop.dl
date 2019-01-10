@@ -5,7 +5,7 @@
 
 // Relations
 
-.type Node
+.symbol_type Node
 
 .decl a  (node1:Node)
 .output a  ()
@@ -42,5 +42,3 @@ cartesian(X,Y) :- a(X), b(Y).
 
 // a |x| b : Natural inner join of relations a and b
 inner_join(X) :- a(X), b(X).
-
-

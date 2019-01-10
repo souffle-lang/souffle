@@ -6,7 +6,7 @@
 
 // Tests inlining with records.
 
-.type Thing
+.symbol_type Thing
 
 .type Conn = [
     first : Thing,

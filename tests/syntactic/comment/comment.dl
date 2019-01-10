@@ -1,7 +1,7 @@
 // Check if comments discarded properly
 
 // Comment
-.type N // Comment
+.symbol_type N // Comment
 
 // Comment
 .decl Path (a:N, b:N) // Comment

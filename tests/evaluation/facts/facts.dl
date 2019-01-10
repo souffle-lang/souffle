@@ -1,5 +1,5 @@
 // check whether duplicates are filtered out
-.type M
+.symbol_type M
 
 .decl N (n:M)
 .output N ()

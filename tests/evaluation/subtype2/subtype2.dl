@@ -149,4 +149,3 @@ R_BA_BB(x,y) :- R_CA(x), R_CB(y).
 //R_BA_BB(x,x) :- R_BB(x).
 //R_BA_BB(x,x) :- R_CA(x).
 //R_BA_BB(x,x) :- R_CB(x).
-

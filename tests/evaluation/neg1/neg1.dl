@@ -1,4 +1,4 @@
-.type set
+.symbol_type set
 
 .decl X(node1:set, node2:set)
 .output X()

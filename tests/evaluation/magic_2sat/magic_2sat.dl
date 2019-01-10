@@ -8,11 +8,11 @@
 // the magic set transformation
 .pragma "magic-transform" "*"
 
-.type Var
-.type Neg
-.type Val
+.symbol_type Var
+.symbol_type Neg
+.symbol_type Val
 .number_type Card
-.type Ans
+.symbol_type Ans
 
 .decl Clause		(m:Neg, u:Var, n:Neg, v:Var)
 .input Clause

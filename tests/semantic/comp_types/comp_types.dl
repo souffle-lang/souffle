@@ -7,8 +7,8 @@
 }
 
 // instantiate the component several times
-.type type1
-.type type2
+.symbol_type type1
+.symbol_type type2
 
 .init x = A<type1>
 .init y = A<type2>
@@ -22,14 +22,14 @@
 
 
 // all relations should have different types
-relX(x) :- relX(x).
-relX(x) :- relY(x).
-relX(x) :- relZ(x).
+relX(x) :- relX(x). // no error
+relX(x) :- relY(x). // error
+relX(x) :- relZ(x). // error
 
-relY(x) :- relX(x).
-relY(x) :- relY(x).
-relY(x) :- relZ(x).
+relY(x) :- relX(x). // error
+relY(x) :- relY(x). // no error
+relY(x) :- relZ(x). // error
 
-relZ(x) :- relX(x).
-relZ(x) :- relY(x).
-relZ(x) :- relZ(x).
+relZ(x) :- relX(x). // error
+relZ(x) :- relY(x). // error
+relZ(x) :- relZ(x). // no error

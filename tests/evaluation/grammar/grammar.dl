@@ -3,12 +3,12 @@
 //// Adopted from DES
 
 // The recognizer is a parser of the following grammar rules.
-// A –> a
-// A –> Ab
-// A –> Aa
+// A ï¿½> a
+// A ï¿½> Ab
+// A ï¿½> Aa
 // It was tested with the output string ababa.
 
-.type Node
+.symbol_type Node
 
 .decl t (node1:Node, node2:Node, node3:Node)
 .output t ()
@@ -24,4 +24,3 @@ t("5","a","6").
 a(F,L) :- t(F,"a",L).
 a(F,L) :- a(F,M), t(M,"b",L).
 a(F,L) :- a(F,M), t(M,"a",L).
-

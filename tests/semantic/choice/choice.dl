@@ -4,7 +4,7 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.type Integer
+.symbol_type Integer
 
 .decl student (a:Integer, b:Integer, c:Integer)
 .decl professor (a:Integer, b:Integer)
@@ -24,5 +24,3 @@ professor("bell", "ee").
 actual_adv(s, p) :- student(s, m, _), professor(p, m), chosen(s, p).
 chosen(s, p) :- student(s, m, _), professor(p, m), !diffchoice(s, p).
 diffchoice(s, p) :- chosen(s, pp), p != pp, professor(p,_).
-
-

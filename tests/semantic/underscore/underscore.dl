@@ -1,5 +1,5 @@
-.type T
-.type R
+.symbol_type T
+.symbol_type R
 
 .decl F (r:R, t:T)
 

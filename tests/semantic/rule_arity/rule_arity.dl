@@ -1,4 +1,4 @@
-.type N
+.symbol_type N
 
 .decl A (x:N, y:N, z:N)
 .decl B (x:N)
@@ -6,4 +6,3 @@
 .decl D (x:N)
 
 A (x, y, z) :- B(x), C(y), D(z), B(x,y).
-

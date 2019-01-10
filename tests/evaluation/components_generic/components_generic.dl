@@ -45,7 +45,7 @@
 
 // -- a simple city map --
 
-.type city
+.symbol_type city
 .init StreetMap = Net<city>
 
 StreetMap.e("A","B").
@@ -75,7 +75,3 @@ SocialNet.e(Ned,Edna).
 .output result()
 result("Map Works") :- StreetMap.r("C","A").
 result("Social Net Works") :- SocialNet.r(Edna,Homer).
-
-
-
-

@@ -8,7 +8,7 @@
 // Check nested concatenation
 //
 
-.type A
+.symbol_type A
 
 .decl Y (a:A, b:A)
 .decl Z (a:A, b:A, c:A)

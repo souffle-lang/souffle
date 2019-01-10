@@ -4,8 +4,8 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.type Dog
-.type Person
+.symbol_type Dog
+.symbol_type Person
 
 .decl bites(x:Dog, y:Person)
 bites("struppi", "josef").

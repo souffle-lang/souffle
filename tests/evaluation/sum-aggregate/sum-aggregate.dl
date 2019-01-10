@@ -1,4 +1,4 @@
-.type String
+.symbol_type String
 
 .decl Benchmark(n : String, query: String, backend: String, trans: String, time: number, mem : number)
 .input Benchmark()

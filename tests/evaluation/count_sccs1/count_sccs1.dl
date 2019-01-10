@@ -4,7 +4,7 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.type Node
+.symbol_type Node
 
 .decl links(A:Node, B:Node)
 .input links()

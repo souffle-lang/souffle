@@ -6,7 +6,7 @@
 
 //// Test-case for string matching
 
-.type String
+.symbol_type String
 
 .decl stringTable (t:String)
 .decl substringTable (t:String)

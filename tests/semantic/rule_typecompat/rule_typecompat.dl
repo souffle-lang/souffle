@@ -1,7 +1,7 @@
-.type T
-.type S
-.type R
-.type Q
+.symbol_type T
+.symbol_type S
+.symbol_type R
+.symbol_type Q
 .decl H (t:T)
 .decl A (t:T)
 .decl B (s:S)
@@ -61,5 +61,3 @@ F(x,y) :- F(x,v), F(w,y), w != v.
 // Undefined type
 F(x,y) :- F(x,y),  x > t.
 F(x,y) :- F(x,y),  t < x.
-
-

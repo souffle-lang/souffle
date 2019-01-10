@@ -1,4 +1,4 @@
-.type N
+.symbol_type N
 
 .decl Path (a:N, b:N)
 .decl Edge (a:N, b:N)
@@ -6,4 +6,3 @@
 Path(a,c) :- Edge(a,b),
 // should be alright
              Path(b,c).
-
