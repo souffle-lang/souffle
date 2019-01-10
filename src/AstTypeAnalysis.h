@@ -53,6 +53,8 @@ public:
 
     void run(const AstTranslationUnit& translationUnit) override;
 
+    void print(std::ostream& os) const override;
+
     const TypeEnvironment& getTypeEnvironment() {
         return env;
     }
@@ -62,6 +64,7 @@ class TypeAnalysis : public AstAnalysis {
 private:
     std::map<const AstArgument*, TypeSet> argumentTypes;
     std::vector<std::unique_ptr<AstClause>> annotatedClauses;
+    std::stringstream analysisLogs;
 
 public:
     static constexpr const char* name = "type-analysis";
@@ -90,7 +93,7 @@ public:
      * @return a map mapping each contained argument to a a set of types
      */
     static std::map<const AstArgument*, TypeSet> analyseTypes(const TypeEnvironment& env,
-            const AstClause& clause, const AstProgram* program, bool verbose = false);
+            const AstClause& clause, const AstProgram* program, std::ostream* logs = nullptr);
 };
 
 }  // end of namespace souffle

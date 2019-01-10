@@ -221,6 +221,11 @@ void DebugReporter::generateDebugReport(
     translationUnit.getAnalysis<TypeAnalysis>()->print(typeAnalysis);
     DebugReportSection typeAnalysisSection = getCodeSection(id + "-ta", "Type Analysis", typeAnalysis.str());
 
+    std::stringstream typeEnvironmentAnalysis;
+    translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->print(typeEnvironmentAnalysis);
+    DebugReportSection typeEnvironmentAnalysisSection =
+            getCodeSection(id + "-tea", "Type Environment Analysis", typeEnvironmentAnalysis.str());
+
     std::stringstream precGraphDot;
     translationUnit.getAnalysis<PrecedenceGraph>()->print(precGraphDot);
     DebugReportSection precedenceGraphSection =
@@ -237,8 +242,8 @@ void DebugReporter::generateDebugReport(
             getCodeSection(id + "-topsort-scc-graph", "SCC Topological Sort Order", topsortSCCGraph.str());
 
     translationUnit.getDebugReport().addSection(DebugReportSection(id, std::move(title),
-            {datalogSection, typeAnalysisSection, precedenceGraphSection, sccGraphSection,
-                    topsortSCCGraphSection},
+            {datalogSection, typeAnalysisSection, typeEnvironmentAnalysisSection, precedenceGraphSection,
+                    sccGraphSection, topsortSCCGraphSection},
             ""));
 }
 

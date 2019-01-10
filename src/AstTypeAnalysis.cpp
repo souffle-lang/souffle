@@ -125,7 +125,7 @@ public:
      * @param debug a flag enabling the printing of debug information
      * @return an assignment mapping a property to each argument in the given clause
      */
-    solution_type analyse(const AstClause& clause, bool debug = false) {
+    solution_type analyse(const AstClause& clause, std::ostream* debugOutput = nullptr) {
         // collect constraints
         visitDepthFirstPreOrder(clause, *this);
 
@@ -133,10 +133,10 @@ public:
         auto ass = constraints.solve();
 
         // print debug information if desired
-        if (debug) {
-            std::cout << "Clause: " << clause << "\n";
-            std::cout << "Problem:\n" << constraints << "\n";
-            std::cout << "Solution:\n" << ass << "\n";
+        if (debugOutput != nullptr) {
+            *debugOutput << "Clause: " << clause << "\n";
+            *debugOutput << "Problem:\n" << constraints << "\n";
+            *debugOutput << "Solution:\n" << ass << "\n";
         }
 
         // convert assignment to result
@@ -596,6 +596,10 @@ void TypeEnvironmentAnalysis::run(const AstTranslationUnit& translationUnit) {
     updateTypeEnvironment(*translationUnit.getProgram());
 }
 
+void TypeEnvironmentAnalysis::print(std::ostream& os) const {
+    env.print(os);
+}
+
 /**
  * A utility function utilized by the finishParsing member function to update a type environment
  * out of a given list of types in the AST
@@ -737,15 +741,21 @@ AstClause* createAnnotatedClause(
 }
 
 void TypeAnalysis::run(const AstTranslationUnit& translationUnit) {
+    // Check if debugging information is being generated and note where logs should be sent
+    std::ostream* debugStream = nullptr;
+    if (!Global::config().get("debug-report").empty()) {
+        debugStream = &analysisLogs;
+    }
     auto* typeEnvAnalysis = translationUnit.getAnalysis<TypeEnvironmentAnalysis>();
     for (const AstRelation* rel : translationUnit.getProgram()->getRelations()) {
         for (const AstClause* clause : rel->getClauses()) {
             // Perform the type analysis
-            std::map<const AstArgument*, TypeSet> clauseArgumentTypes = analyseTypes(
-                    typeEnvAnalysis->getTypeEnvironment(), *clause, translationUnit.getProgram());
+            std::map<const AstArgument*, TypeSet> clauseArgumentTypes =
+                    analyseTypes(typeEnvAnalysis->getTypeEnvironment(), *clause, translationUnit.getProgram(),
+                            debugStream);
             argumentTypes.insert(clauseArgumentTypes.begin(), clauseArgumentTypes.end());
 
-            if (!Global::config().get("debug-report").empty()) {
+            if (debugStream != nullptr) {
                 // Store an annotated clause for printing purposes
                 AstClause* annotatedClause = createAnnotatedClause(clause, clauseArgumentTypes);
                 annotatedClauses.push_back(std::unique_ptr<AstClause>(annotatedClause));
@@ -755,6 +765,9 @@ void TypeAnalysis::run(const AstTranslationUnit& translationUnit) {
 }
 
 void TypeAnalysis::print(std::ostream& os) const {
+    os << "-- Analysis logs --" << std::endl;
+    os << analysisLogs.str() << std::endl;
+    os << "-- Result --" << std::endl;
     for (const auto& curr : annotatedClauses) {
         os << *curr << std::endl;
     }
@@ -765,7 +778,7 @@ void TypeAnalysis::print(std::ostream& os) const {
  */
 
 std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
-        const TypeEnvironment& env, const AstClause& clause, const AstProgram* program, bool verbose) {
+        const TypeEnvironment& env, const AstClause& clause, const AstProgram* program, std::ostream* logs) {
     struct Analysis : public AstConstraintAnalysis<TypeVar> {
         const TypeEnvironment& env;
         const AstProgram* program;
@@ -986,7 +999,7 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
     };
 
     // run analysis
-    return Analysis(env, program).analyse(clause, verbose);
+    return Analysis(env, program).analyse(clause, logs);
 }
 
 }  // end of namespace souffle
