@@ -28,7 +28,6 @@ dnl Define all possible souffle-profile commands for testing
 m4_define([PROFILE_COMMANDS],[["rel"],
   ["rel R2"],
   ["rul"],
-  ["rul C2.1"],
   ["rul id N2.1"],
   ["graph R2 copy_t"],
   ["graph C2.1 tot_t"],
