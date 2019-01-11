@@ -23,6 +23,7 @@
 #include "AstRelation.h"
 #include "AstRelationIdentifier.h"
 #include "AstTypeAnalysis.h"
+#include "AstTypeEnvironmentAnalysis.h"
 #include "AstTypes.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"

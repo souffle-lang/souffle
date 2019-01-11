@@ -24,7 +24,7 @@
 #include "AstProgram.h"
 #include "AstRelation.h"
 #include "AstTranslationUnit.h"
-#include "AstTypeAnalysis.h"
+#include "AstTypeEnvironmentAnalysis.h"
 #include "AstVisitor.h"
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"

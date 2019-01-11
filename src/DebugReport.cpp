@@ -17,6 +17,7 @@
 #include "DebugReport.h"
 #include "AstTranslationUnit.h"
 #include "AstTypeAnalysis.h"
+#include "AstTypeEnvironmentAnalysis.h"
 #include "PrecedenceGraph.h"
 #include <chrono>
 #include <cstdio>

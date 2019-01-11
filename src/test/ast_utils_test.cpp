@@ -14,9 +14,11 @@
  *
  ***********************************************************************/
 
+#include "AstGroundAnalysis.h"
 #include "AstTransforms.h"
 #include "AstTranslationUnit.h"
 #include "AstTypeAnalysis.h"
+#include "AstTypeEnvironmentAnalysis.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
 #include "ParserDriver.h"
@@ -36,7 +38,7 @@ TEST(Ast, CloneAndEquals) {
     std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
             R"(
                  .decl r(a:number,b:number,c:number,d:number)
-                 r(X,Y,Z,W) :- a(X), 10 = Y, Y = Z, 8 + W = 12 + 14. 
+                 r(X,Y,Z,W) :- a(X), 10 = Y, Y = Z, 8 + W = 12 + 14.
             )",
             sym, e, d);
     AstProgram& program = *tu->getProgram();
@@ -108,7 +110,7 @@ TEST(AstUtils, GroundedRecords) {
                  .decl r ( r : R )
                  .decl s ( r : N )
 
-                 s(x) :- r([x,y]). 
+                 s(x) :- r([x,y]).
 
             )",
             sym, e, d);
@@ -148,7 +150,7 @@ TEST(AstUtils, SimpleTypes) {
                  .decl a ( x : A )
                  .decl b ( x : B )
                  .decl u ( x : U )
-                 
+
                  a(X) :- u(X).
                  b(X) :- u(X).
                  u(X) :- u(X).
@@ -195,7 +197,7 @@ TEST(AstUtils, NumericTypes) {
                  .decl a ( x : A )
                  .decl b ( x : B )
                  .decl u ( x : U )
-                 
+
                  a(X) :- X < 10.
                  b(X) :- X < 10.
                  u(X) :- X < 10.
@@ -230,11 +232,11 @@ TEST(AstUtils, SubtypeChain) {
                 .type C = D
                 .type B = C
                 .type A = B
-            
+
                 .decl R1(x:A,y:B)
                 .decl R2(x:C,y:D)
                 .decl R4(x:A) output
-            
+
                 R4(x) :- R2(x,x),R1(x,x).
             )",
             sym, e, d);
@@ -279,7 +281,7 @@ TEST(AstUtils, FactTypes) {
                  .decl a ( x : A )
                  .decl b ( x : B )
                  .decl u ( x : U )
-                 
+
                  a("Hello").
                  b(10).
                  u("World").
@@ -312,7 +314,7 @@ TEST(AstUtils, NestedFunctions) {
             R"(
                 .type D
                 .decl r(x:D)
-            
+
                 r(x) :- r(y), x=cat(cat(x,x),x).
             )",
             sym, e, d);
