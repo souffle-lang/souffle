@@ -409,7 +409,7 @@ TEST(AstUtils, ResolveGroundedAliases) {
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
             toString(*program.getRelation("p")->getClause(0)));
 
-    ResolveAliasesTransformer::resolveAliases(program);
+    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
 
     EXPECT_EQ("p(x,y) :- \n   p(x,y).", toString(*program.getRelation("p")->getClause(0)));
 }
@@ -433,7 +433,7 @@ TEST(AstUtils, ResolveAliasesWithTermsInAtoms) {
     EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
             toString(*program.getRelation("p")->getClause(0)));
 
-    ResolveAliasesTransformer::resolveAliases(program);
+    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
 
     EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
             toString(*program.getRelation("p")->getClause(0)));

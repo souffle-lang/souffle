@@ -127,6 +127,7 @@ souffle_sources = \
               ReadStream.h                              \
               ReadStreamCSV.h                           \
               ReorderLiteralsTransformer.cpp            \
+              ResolveAliasesTransformer.cpp	            \
               SignalHandler.h                           \
               SrcLocation.cpp    SrcLocation.h          \
               StringPool.h                              \

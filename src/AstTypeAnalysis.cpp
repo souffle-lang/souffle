@@ -350,8 +350,8 @@ void TypeAnalysis::print(std::ostream& os) const {
     os << "-- Analysis logs --" << std::endl;
     os << analysisLogs.str() << std::endl;
     os << "-- Result --" << std::endl;
-    for (const auto& curr : annotatedClauses) {
-        os << *curr << std::endl;
+    for (const auto& cur : annotatedClauses) {
+        os << *cur << std::endl;
     }
 }
 

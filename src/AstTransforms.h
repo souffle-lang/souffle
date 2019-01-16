@@ -35,15 +35,12 @@ class AstRelation;
 
 /**
  * Transformation pass to eliminate grounded aliases.
- * e.g. resolve  a(r) , r = [x,y]    =>    a(x,y)
+ * e.g. resolve: a(r) , r = [x,y]       => a(x,y)
+ * e.g. resolve: a(x) , !b(y) , y = x   => a(x) , !b(x)
  */
 class ResolveAliasesTransformer : public AstTransformer {
 private:
-    bool transform(AstTranslationUnit& translationUnit) override {
-        resolveAliases(*translationUnit.getProgram());
-        return true;
-    }
-    static void removeComplexTermsInAtoms(AstClause& clause);
+    bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
     std::string getName() const override {
@@ -55,7 +52,7 @@ public:
      * grounded variables.
      *
      * @param clause the clause to be processed
-     * @return a clone of the processed clause
+     * @return a modified clone of the processed clause
      */
     static std::unique_ptr<AstClause> resolveAliases(const AstClause& clause);
 
@@ -68,11 +65,12 @@ public:
     static std::unique_ptr<AstClause> removeTrivialEquality(const AstClause& clause);
 
     /**
-     * Eliminate grounded aliases in the given program.
+     * Removes complex terms in atoms, replacing them with constrained variables.
      *
-     * @param program the program to be processed
+     * @param clause the clause to be processed
+     * @return a modified clone of the processed clause
      */
-    static void resolveAliases(AstProgram& program);
+    static std::unique_ptr<AstClause> removeComplexTermsInAtoms(const AstClause& clause);
 };
 
 /**
