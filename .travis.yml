@@ -197,8 +197,7 @@ jobs:
           tags: true
       - provider: releases
         skip_cleanup: true
-        api_key:
-          secure: rWSbE68NuY6ULn7moKvbH1WmOGWljm2R5DwIO6HXmBa8yP3SVk5zSIL/cFoWB5cvqEqIvvRqypRcZuR75lMYefhUq93S/uk8/Sh420g0u3Hcav6wvOmEaQIs/1lkIkIV5GitLKIIXzTgfJ28jnTrrHrVuD6b4bcNJhXcMOxhMG8yeCxgi9DCc3sugBdFPMIOCDU9nb4SCjTq0YluWcTfFzpkD+QtgZzeLyopjldOAAAWx7ZqbpzHxTHJHH/9UZEI8OVDAEhPOawygZaGonUDfVSk04YdPl+Y5pRMXcC2MRVjwaDZVmuHKzJ2QSPwDkr199aONbJLJEpDTBv/ABLIjl+W/js5+hO8jFMdZopFvhOBAhYMka+AQQg860TJhgiXs00Kp/UPGr9OXZnEHWRjdo8KuWz/akOhAvWfnxeoxaBY32V0H1RKIwVvdCE5rekMmJDqgqTJTivIU9w/tDID7I7uvJaZ2bxygMwec+Jfnwlw8iPndWLrU8kVpPkGLVmnllrNAoUvH0wURc9kqwW8pzVyU660yqPNslcFjLIJWWyPgSxI4FcEySu7HaEFy/ukNmLpI+XSpQu8SYofK+xiklkd5fNq7LDn28AvVd8AyZnuBSA3PqzR3Yma1isAsiObcNLtTh6yvx7Nu3GcfcYkmjqFjcpRfww27F+6P0w5Rbk=
+        api_key: $GHRELEASES_TOKEN
         file_glob: true
         file: deploy/*
         on:
@@ -265,8 +264,7 @@ jobs:
     deploy:
       - provider: releases
         skip_cleanup: true
-        api_key:
-          secure: rWSbE68NuY6ULn7moKvbH1WmOGWljm2R5DwIO6HXmBa8yP3SVk5zSIL/cFoWB5cvqEqIvvRqypRcZuR75lMYefhUq93S/uk8/Sh420g0u3Hcav6wvOmEaQIs/1lkIkIV5GitLKIIXzTgfJ28jnTrrHrVuD6b4bcNJhXcMOxhMG8yeCxgi9DCc3sugBdFPMIOCDU9nb4SCjTq0YluWcTfFzpkD+QtgZzeLyopjldOAAAWx7ZqbpzHxTHJHH/9UZEI8OVDAEhPOawygZaGonUDfVSk04YdPl+Y5pRMXcC2MRVjwaDZVmuHKzJ2QSPwDkr199aONbJLJEpDTBv/ABLIjl+W/js5+hO8jFMdZopFvhOBAhYMka+AQQg860TJhgiXs00Kp/UPGr9OXZnEHWRjdo8KuWz/akOhAvWfnxeoxaBY32V0H1RKIwVvdCE5rekMmJDqgqTJTivIU9w/tDID7I7uvJaZ2bxygMwec+Jfnwlw8iPndWLrU8kVpPkGLVmnllrNAoUvH0wURc9kqwW8pzVyU660yqPNslcFjLIJWWyPgSxI4FcEySu7HaEFy/ukNmLpI+XSpQu8SYofK+xiklkd5fNq7LDn28AvVd8AyZnuBSA3PqzR3Yma1isAsiObcNLtTh6yvx7Nu3GcfcYkmjqFjcpRfww27F+6P0w5Rbk=
+        api_key: $GHRELEASES_TOKEN
         file_glob: true
         file: deploy/*
         on:

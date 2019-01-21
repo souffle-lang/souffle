@@ -1,4 +1,23 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
+  * Rewritten code generation (taipan-snake)
+  * Improved Provenance via generated data structures (taipan-snake)
+  * Profile cpu & memory usage (mmcgr)
+  * Enhanced profiler graphs (mmcgr)
+  * Productivity measures in profiler (mmcgr)
+  * General profiler enhancements (mmcgr)
+  * Added support for non-x86 platforms (mmcgr)
+  * Improve compilation speed (mmcgr)
+  * Bash autocompletion (mmcgr)
+  * Extended verbose mode (azreika/mmcgr)
+  * Reorder atoms to optimise evaluation speed (azreika)
+  * Profile-guided atom reordering (azreika)
+  * Various AST optimisations (azreika)
+  * User defined functors (b-scholz)
+  * Bug fixes
+
+ -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Thu, 17 Jan 2019 09:40:23 +1100
+
+souffle (1.4.0); urgency=low
   * improved parallel performance (HerbertJordan)
   * improved operators hints in btree (HerbertJordan)
   * extended progress logging in verbose mode (mmcgr)
