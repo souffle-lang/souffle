@@ -6,7 +6,7 @@
 
 // This code tests the provenance explain interface for a simple path example.
 
-.pragma "provenance" "1"
+.pragma "provenance" "explain"
 
 .decl person(x:symbol)
 person("john").

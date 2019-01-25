@@ -197,8 +197,8 @@ int main(int argc, char** argv) {
                             {"debug-report", 'r', "FILE", "", false, "Write HTML debug report to <FILE>."},
                             {"pragma", 'P', "OPTIONS", "", false, "Set pragma options."},
 #ifdef USE_PROVENANCE
-                            {"provenance", 't', "EXPLAIN", "", false,
-                                    "Enable provenance information via guided SLD."},
+                            {"provenance", 't', "[ none | explain | explore ]", "", false,
+                                    "Enable provenance instrumentation and interaction."},
 #endif
                             {"engine", 'e', "[ file | mpi ]", "", false,
                                     "Specify communication engine for distributed execution."},
@@ -542,9 +542,9 @@ int main(int argc, char** argv) {
         if (Global::config().has("provenance")) {
             // construct SouffleProgram from env
             InterpreterProgInterface interface(*interpreter);
-            if (Global::config().get("provenance") == "1") {
+            if (Global::config().get("provenance") == "explain") {
                 explain(interface, true, false);
-            } else if (Global::config().get("provenance") == "2") {
+            } else if (Global::config().get("provenance") == "explore") {
                 explain(interface, true, true);
             }
         }

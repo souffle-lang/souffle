@@ -269,7 +269,8 @@ protected:
     /** Determines whether this is an internally generated clause resulting from resolving syntactic sugar */
     bool generated = false;
 
-    /** Stores a unique number for each clause in a relation */
+    /** Stores a unique number for each clause in a relation,
+        used for provenance */
     size_t clauseNum = 0;
 
 public:

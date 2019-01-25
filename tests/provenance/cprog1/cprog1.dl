@@ -3,7 +3,7 @@
 //2: while( y < z) { y++; }
 //3: assert(y = 101);
 
-.pragma "provenance" "1"
+.pragma "provenance" "explain"
 
 .decl loop(line: number, x:number, y:number, z:number)
 .decl Res()

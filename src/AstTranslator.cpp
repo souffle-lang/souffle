@@ -597,6 +597,9 @@ std::unique_ptr<RamOperation> AstTranslator::ProvenanceClauseTranslator::createO
             for (AstArgument* arg : neg->getAtom()->getArguments()) {
                 returnValue->addValue(translator.translateValue(arg, valueIndex));
             }
+        } else if (auto con = dynamic_cast<AstBinaryConstraint*>(lit)) {
+            returnValue->addValue(translator.translateValue(con->getLHS(), valueIndex));
+            returnValue->addValue(translator.translateValue(con->getRHS(), valueIndex));
         } else if (auto neg = dynamic_cast<AstProvenanceNegation*>(lit)) {
             for (size_t i = 0; i < neg->getAtom()->getArguments().size() - 2; ++i) {
                 auto arg = neg->getAtom()->getArguments()[i];

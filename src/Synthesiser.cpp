@@ -2087,9 +2087,9 @@ void Synthesiser::generateCode(
         os << "obj.runAll(opt.getInputFileDir(), opt.getOutputFileDir(), opt.getStratumIndex());\n";
     }
 
-    if (Global::config().get("provenance") == "1") {
+    if (Global::config().get("provenance") == "explain") {
         os << "explain(obj, true, false);\n";
-    } else if (Global::config().get("provenance") == "2") {
+    } else if (Global::config().get("provenance") == "explore") {
         os << "explain(obj, true, true);\n";
     }
     os << "return 0;\n";

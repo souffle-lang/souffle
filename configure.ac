@@ -265,6 +265,7 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/atlocal
 ])
+AC_CONFIG_LINKS([include/souffle/BinaryConstraintOps.h:src/BinaryConstraintOps.h])
 AC_CONFIG_LINKS([include/souffle/BTree.h:src/BTree.h])
 AC_CONFIG_LINKS([include/souffle/CompiledIndexUtils.h:src/CompiledIndexUtils.h])
 AC_CONFIG_LINKS([include/souffle/CompiledOptions.h:src/CompiledOptions.h])
