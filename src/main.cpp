@@ -31,6 +31,7 @@
 #include "RamProgram.h"
 #include "RamSemanticChecker.h"
 #include "RamTransformer.h"
+#include "RamTransforms.h"
 #include "RamTranslationUnit.h"
 #include "SymbolTable.h"
 #include "Synthesiser.h"
@@ -495,6 +496,9 @@ int main(int argc, char** argv) {
             AstTranslator().translateUnit(*astTranslationUnit);
 
     std::vector<std::unique_ptr<RamTransformer>> ramTransforms;
+    ramTransforms.push_back(std::make_unique<LevelConditionsTransformer>());
+    ramTransforms.push_back(std::make_unique<CreateIndicesTransformer>());
+    ramTransforms.push_back(std::make_unique<ConvertExistenceChecksTransformer>());
     ramTransforms.push_back(std::make_unique<RamSemanticChecker>());
 
     for (const auto& transform : ramTransforms) {

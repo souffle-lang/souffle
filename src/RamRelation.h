@@ -114,6 +114,11 @@ public:
         return output;
     }
 
+    /** Is nullary relation */
+    const bool isNullary() const {
+        return arity == 0;
+    }
+
     /** Is BTree relation */
     const bool isBTree() const {
         return btree;
@@ -216,6 +221,11 @@ public:
     /** Get arity */
     unsigned getArity() const {
         return relation->getArity();
+    }
+
+    /** Is nullary relation */
+    const bool isNullary() const {
+        return relation->isNullary();
     }
 
     /* Is BTree relation */

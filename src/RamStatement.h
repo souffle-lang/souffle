@@ -426,6 +426,11 @@ public:
         return *operation;
     }
 
+    /** Sets the nested operation */
+    void setOperation(std::unique_ptr<RamOperation> nested) {
+        operation = std::move(nested);
+    }
+
     /** Get RAM condition */
     const RamCondition* getCondition() const {
         return condition.get();
@@ -463,7 +468,9 @@ public:
     /** Apply mapper */
     void apply(const RamNodeMapper& map) override {
         operation = map(std::move(operation));
-        condition = map(std::move(condition));
+        if (condition != nullptr) {
+            condition = map(std::move(condition));
+        }
     }
 
 protected:

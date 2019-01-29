@@ -284,9 +284,9 @@ const IndexSet::ChainOrderMap IndexSet::getChainsFromMatching(
 void IndexSetAnalysis::run(const RamTranslationUnit& translationUnit) {
     // visit all nodes to collect searches of each relation
     visitDepthFirst(translationUnit.getP(), [&](const RamNode& node) {
-        if (const auto* scan = dynamic_cast<const RamScan*>(&node)) {
-            IndexSet& indexes = getIndexes(scan->getRelation());
-            indexes.addSearch(scan->getRangeQueryColumns());
+        if (const auto* indexScan = dynamic_cast<const RamIndexScan*>(&node)) {
+            IndexSet& indexes = getIndexes(indexScan->getRelation());
+            indexes.addSearch(indexScan->getRangeQueryColumns());
         } else if (const auto* agg = dynamic_cast<const RamAggregate*>(&node)) {
             IndexSet& indexes = getIndexes(agg->getRelation());
             indexes.addSearch(agg->getRangeQueryColumns());

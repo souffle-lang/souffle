@@ -447,13 +447,12 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
 
         // -- Operations -----------------------------
 
+        void visitNestedOperation(const RamNestedOperation& nested) override {
+            visit(nested.getOperation());
+        }
+
         void visitSearch(const RamSearch& search) override {
-            // check condition
-            auto condition = search.getCondition();
-            if (!condition || interpreter.evalCond(*condition, ctxt)) {
-                // process nested
-                visit(*search.getNestedOperation());
-            }
+            visitNestedOperation(search);
 
             if (Global::config().has("profile") && !search.getProfileText().empty()) {
                 interpreter.frequencies[search.getProfileText()][interpreter.getIterationNumber()]++;
@@ -464,21 +463,22 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             // get the targeted relation
             const InterpreterRelation& rel = interpreter.getRelation(scan.getRelation());
 
-            // process full scan if no index is given
-            if (scan.getRangeQueryColumns() == 0) {
-                // if scan is not binding anything => check for emptiness
-                if (scan.isPureExistenceCheck() && !rel.empty()) {
-                    visitSearch(scan);
-                    return;
-                }
-
-                // if scan is unrestricted => use simple iterator
-                for (const RamDomain* cur : rel) {
-                    ctxt[scan.getLevel()] = cur;
-                    visitSearch(scan);
-                }
+            // if scan is not binding anything => check for emptiness
+            if (scan.isPureExistenceCheck() && !rel.empty()) {
+                visitSearch(scan);
                 return;
             }
+
+            // use simple iterator
+            for (const RamDomain* cur : rel) {
+                ctxt[scan.getIdentifier()] = cur;
+                visitSearch(scan);
+            }
+        }
+
+        void visitIndexScan(const RamIndexScan& scan) override {
+            // get the targeted relation
+            const InterpreterRelation& rel = interpreter.getRelation(scan.getRelation());
 
             // create pattern tuple for range query
             auto arity = rel.getArity();
@@ -515,7 +515,7 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             // conduct range query
             for (auto ip = range.first; ip != range.second; ++ip) {
                 const RamDomain* data = *(ip);
-                ctxt[scan.getLevel()] = data;
+                ctxt[scan.getIdentifier()] = data;
                 visitSearch(scan);
             }
         }
@@ -534,7 +534,7 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             const RamDomain* tuple = unpack(ref, arity);
 
             // save reference to temporary value
-            ctxt[lookup.getLevel()] = tuple;
+            ctxt[lookup.getIdentifier()] = tuple;
 
             // run nested part - using base class visitor
             visitSearch(lookup);
@@ -596,11 +596,11 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             for (auto ip = range.first; ip != range.second; ++ip) {
                 // link tuple
                 const RamDomain* data = *(ip);
-                ctxt[aggregate.getLevel()] = data;
+                ctxt[aggregate.getIdentifier()] = data;
 
                 // count is easy
                 if (aggregate.getFunction() == RamAggregate::COUNT) {
-                    res++;
+                    ++res;
                     continue;
                 }
 
@@ -628,25 +628,21 @@ void Interpreter::evalOp(const RamOperation& op, const InterpreterContext& args)
             // write result to environment
             RamDomain tuple[1];
             tuple[0] = res;
-            ctxt[aggregate.getLevel()] = tuple;
-
-            // check whether result is used in a condition
-            auto condition = aggregate.getCondition();
-            if (condition && !interpreter.evalCond(*condition, ctxt)) {
-                return;  // condition not valid => skip nested
-            }
+            ctxt[aggregate.getIdentifier()] = tuple;
 
             // run nested part - using base class visitor
             visitSearch(aggregate);
         }
 
-        void visitProject(const RamProject& project) override {
-            // check constraints
-            RamCondition* condition = project.getCondition();
-            if (condition && !interpreter.evalCond(*condition, ctxt)) {
-                return;  // condition violated => skip insert
+        void visitFilter(const RamFilter& filter) override {
+            // check condition
+            if (interpreter.evalCond(filter.getCondition(), ctxt)) {
+                // process nested
+                visitNestedOperation(filter);
             }
+        }
 
+        void visitProject(const RamProject& project) override {
             // create a tuple of the proper arity (also supports arity 0)
             auto arity = project.getRelation().getArity();
             const auto& values = project.getValues();

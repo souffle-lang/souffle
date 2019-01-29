@@ -39,7 +39,7 @@ public:
     RamCondition(RamNodeType type) : RamNode(type) {}
 
     /** Get level */
-    virtual size_t getLevel() = 0;
+    virtual size_t getLevel() const = 0;
 
     /** Create clone */
     RamCondition* clone() const override = 0;
@@ -81,7 +81,7 @@ public:
     }
 
     /** Get level */
-    size_t getLevel() override {
+    size_t getLevel() const override {
         return std::max(lhs->getLevel(), rhs->getLevel());
     }
 
@@ -139,7 +139,7 @@ public:
     }
 
     /** Get level */
-    size_t getLevel() override {
+    size_t getLevel() const override {
         return std::max(lhs->getLevel(), rhs->getLevel());
     }
 
@@ -234,7 +234,7 @@ public:
     }
 
     /** Get level */
-    size_t getLevel() override {
+    size_t getLevel() const override {
         size_t level = 0;
         for (const auto& cur : values) {
             if (cur) {
@@ -350,7 +350,7 @@ public:
     }
 
     /** Get level */
-    size_t getLevel() override {
+    size_t getLevel() const override {
         size_t level = 0;
         for (const auto& cur : values) {
             if (cur) {
@@ -455,7 +455,7 @@ public:
     }
 
     /** Get level */
-    size_t getLevel() override {
+    size_t getLevel() const override {
         return 0;  // can be in the top level
     }
 

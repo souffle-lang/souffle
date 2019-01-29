@@ -120,6 +120,8 @@ ADD_EXECUTABLE(souffle
         ./src/AstTransforms.h
         ./src/AstClause.h
         ./src/EquivalenceRelation.h
+        ./src/BinaryRelation.h
+        ./src/RamTransforms.h
         ./src/ParserDriver.cpp
         ./src/AstTransformer.cpp
         ./src/PrecedenceGraph.cpp
@@ -173,4 +175,5 @@ ADD_EXECUTABLE(souffle
         ./src/AstProgram.cpp
         ./src/MagicSet.cpp
         ./src/Global.cpp
+        ./src/RamTransforms.cpp
         )
