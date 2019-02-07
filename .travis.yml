@@ -96,7 +96,7 @@ jobs:
         - libstdc++-7-dev
     script: ".travis/run_test_format.sh"
 
-# Testing stage (-j8,-c -j8)
+# Testing stage (-i -j8,-c -j8)
   - <<: *linuxgcc
     env:
     - "gcc-setup"
@@ -108,7 +108,7 @@ jobs:
     - *gcc_environment
     - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-i -j8,-c -j8"
 
-# Testing stage for clang without OpenMP (,-c)
+# Testing stage for clang without OpenMP (-i,-c)
   - <<: *linuxclang
     env:
     - "clang-setup"
@@ -119,7 +119,7 @@ jobs:
     - "clang-setup"
     - SOUFFLE_CATEGORY=Unit,Syntactic,Semantic,Interface,Profile,Provenance SOUFFLE_CONFS="-i,-c"
 
-# Testing stage with 64bit RamDomains (-j8,-c -j8, skipping the 32bit Semantic tests)
+# Testing stage with 64bit RamDomains (-i -j8,-c -j8, skipping the 32bit Semantic tests)
   - <<: *linuxgcc
     before_script: ".travis/init_test_64bit.sh"
     env:
@@ -146,14 +146,14 @@ jobs:
     - SOUFFLE_CONFS="-c -j8 -empi"
     - SOUFFLE_MAKE_JOBS="2"
 
-# Testing stage (-j8,-c -j8)
+# Testing stage (-i -j8,-c -j8)
   - <<: *linuxgcc
     env:
     - "gcc-evaluation"
     - *gcc_environment
     - SOUFFLE_CATEGORY=Evaluation SOUFFLE_CONFS="-i -j8,-c -j8"
 
-# Testing stage for clang without OpenMP (,-c)
+# Testing stage for clang without OpenMP (-i,-c)
   - <<: *linuxclang
     env:
     - "clang-evaluation"
