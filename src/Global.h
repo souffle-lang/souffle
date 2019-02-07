@@ -95,7 +95,7 @@ struct MainOption {
                               displayed, e.g. 'o' for '-o'. */
     std::string argument;  /* The argument this option, e.g. if longName is 'option', shortName is 'o', and
                               argument is 'ARG', then we have '-o=ARG' and '--option=ARG'. */
-    std::string byDefault; /* The default value for this option, used if no this option is not specified as a
+    std::string byDefault; /* The default value for this option, used if this option is not specified as a
                               command line argument. */
     bool takesMany; /* Whether this option takes many arguments, false for 'it takes only one' true for 'it
                        takes one or more'. */

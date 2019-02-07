@@ -176,6 +176,7 @@ int main(int argc, char** argv) {
                             {"compile", 'c', "", "", false,
                                     "Generate C++ source code, compile to a binary executable, then run this "
                                     "executable."},
+                            {"interpret", 'i', "", "", false, "Run the interpreter."},
                             {"generate", 'g', "FILE", "", false,
                                     "Generate C++ source code for the given Datalog program and write it to "
                                     "<FILE>."},
@@ -213,11 +214,10 @@ int main(int argc, char** argv) {
                 }());
 
         // ------ command line arguments -------------
-
         /* for the version option, if given print the version text then exit */
         if (Global::config().has("version")) {
             std::cout << "Souffle: " << PACKAGE_VERSION << "" << std::endl;
-            std::cout << "Copyright (c) 2016-18 The Souffle Developers." << std::endl;
+            std::cout << "Copyright (c) 2016-19 The Souffle Developers." << std::endl;
             std::cout << "Copyright (c) 2013-16 Oracle and/or its affiliates." << std::endl;
             return 0;
         }
@@ -232,6 +232,15 @@ int main(int argc, char** argv) {
         /* check that datalog program exists */
         if (!existFile(Global::config().get(""))) {
             throw std::runtime_error("cannot open file " + std::string(Global::config().get("")));
+        }
+
+        /* check whether interpreter or compiler should be run */
+        if (Global::config().has("interpret")) {
+            // -i takes precedence if used
+            Global::config().unset("compile");
+        } else {
+            // default is -c
+            Global::config().set("compile");
         }
 
         /* for the jobs option, to determine the number of threads used */
