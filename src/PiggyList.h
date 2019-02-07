@@ -45,7 +45,7 @@ class RandomInsertPiggyList {
     }
 
 public:
-    RandomInsertPiggyList() {}
+    RandomInsertPiggyList() = default;
     // an instance where the initial size is not 65k, and instead is user settable (to a power of
     // initialbitsize)
     RandomInsertPiggyList(size_t initialbitsize) : BLOCKBITS(initialbitsize) {}
@@ -269,7 +269,7 @@ public:
 
     public:
         // default ctor, to silence
-        iterator(){};
+        iterator() = default;
 
         /* begin iterator for iterating over all elements */
         iterator(PiggyList* bl) : bl(bl){};

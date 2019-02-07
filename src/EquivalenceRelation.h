@@ -244,7 +244,7 @@ private:
 
             StorePair p = {rep, nullptr};
             StatesList* mapList = equivalencePartition.insert(p, [&](StorePair& sp) {
-                StatesList* r = new StatesList(1);
+                auto* r = new StatesList(1);
                 sp.second = r;
                 return r;
             });

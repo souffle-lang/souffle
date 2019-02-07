@@ -278,7 +278,7 @@ protected:
     /** Implements the node comparison for this node type */
     bool equal(const AstNode& node) const override {
         assert(dynamic_cast<const AstProvenanceNegation*>(&node));
-        const AstProvenanceNegation& other = static_cast<const AstProvenanceNegation&>(node);
+        const auto& other = static_cast<const AstProvenanceNegation&>(node);
         return *atom == *other.atom;
     }
 };

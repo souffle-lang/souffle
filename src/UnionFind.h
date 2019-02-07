@@ -56,7 +56,7 @@ class DisjointSet {
     PiggyList<std::atomic<block_t>> a_blocks;
 
 public:
-    DisjointSet(){};
+    DisjointSet() = default;
 
     // copy ctor
     DisjointSet(DisjointSet& other) = delete;
@@ -284,7 +284,7 @@ public:
     }
 
 public:
-    SparseDisjointSet() {}
+    SparseDisjointSet() = default;
 
     // copy ctor
     SparseDisjointSet(SparseDisjointSet& other) = delete;

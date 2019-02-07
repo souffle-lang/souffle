@@ -18,6 +18,7 @@
 
 #include "RamAnalysis.h"
 #include "RamCondition.h"
+#include "RamValueLevel.h"
 
 namespace souffle {
 
@@ -25,12 +26,14 @@ namespace souffle {
  * Class for a level analysis
  */
 class RamConditionLevelAnalysis : public RamAnalysis {
+    RamValueLevelAnalysis* rvla;
+
 public:
     /** name of analysis */
     static constexpr const char* name = "condition-level-analysis";
 
     /** run level analysis for a RAM translation unit */
-    void run(const RamTranslationUnit& translationUnit) override {}
+    void run(const RamTranslationUnit& translationUnit) override;
 
     /** Get level */
     size_t getLevel(const RamCondition* condition) const;

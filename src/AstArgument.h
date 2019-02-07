@@ -398,9 +398,9 @@ protected:
     std::vector<std::unique_ptr<AstArgument>> args;
 
 public:
-    AstUserDefinedFunctor() {}
+    AstUserDefinedFunctor() = default;
 
-    AstUserDefinedFunctor(const std::string& name) : name(name) {}
+    AstUserDefinedFunctor(std::string name) : name(std::move(name)) {}
 
     ~AstUserDefinedFunctor() override = default;
 

@@ -152,7 +152,10 @@ public:
                     insert(symbols);
                     break;
                 }
-                default: { throw std::runtime_error("Invalid parameter in SymbolTable::handleMpiMessages."); }
+                default: {
+                    throw std::runtime_error("Invalid parameter in SymbolTable::handleMpiMessages.");
+                    break;
+                }
             }
         }
         for (size_t i = 0; i < count; ++i) {

@@ -31,10 +31,11 @@ class RamProgram;
  * can be evaluated.
  */
 class LevelConditionsTransformer : public RamTransformer {
-    RamConditionLevelAnalysis* rcla;
+    RamConditionLevelAnalysis* rcla{nullptr};
 
 private:
     bool transform(RamTranslationUnit& translationUnit) override {
+        rcla = translationUnit.getAnalysis<RamConditionLevelAnalysis>();
         return levelConditions(*translationUnit.getProgram());
     }
 
@@ -51,12 +52,13 @@ public:
 };
 
 class CreateIndicesTransformer : public RamTransformer {
-    RamConstValueAnalysis* rcva;
-    RamValueLevelAnalysis* rvla;
+    RamConstValueAnalysis* rcva{nullptr};
+    RamValueLevelAnalysis* rvla{nullptr};
 
 private:
     bool transform(RamTranslationUnit& translationUnit) override {
         rcva = translationUnit.getAnalysis<RamConstValueAnalysis>();
+        rvla = translationUnit.getAnalysis<RamValueLevelAnalysis>();
         return createIndices(*translationUnit.getProgram());
     }
 
@@ -77,13 +79,15 @@ public:
 };
 
 class ConvertExistenceChecksTransformer : public RamTransformer {
-    RamConstValueAnalysis* rcva;
-    RamConditionLevelAnalysis* rcla;
-    RamValueLevelAnalysis* rvla;
+    RamConstValueAnalysis* rcva{nullptr};
+    RamConditionLevelAnalysis* rcla{nullptr};
+    RamValueLevelAnalysis* rvla{nullptr};
 
 private:
     bool transform(RamTranslationUnit& translationUnit) override {
         rcva = translationUnit.getAnalysis<RamConstValueAnalysis>();
+        rcla = translationUnit.getAnalysis<RamConditionLevelAnalysis>();
+        rvla = translationUnit.getAnalysis<RamValueLevelAnalysis>();
         return convertExistenceChecks(*translationUnit.getProgram());
     }
 

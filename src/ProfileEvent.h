@@ -98,7 +98,7 @@ public:
         /* current time */
         microseconds time = std::chrono::duration_cast<microseconds>(now().time_since_epoch());
         /* system CPU time used */
-        struct rusage ru;
+        struct rusage ru {};
         getrusage(RUSAGE_SELF, &ru);
         /* system CPU time used */
         uint64_t systemTime = ru.ru_stime.tv_sec * 1000000 + ru.ru_stime.tv_usec;

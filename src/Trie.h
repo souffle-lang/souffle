@@ -593,7 +593,7 @@ private:
             }
 
             // somebody else was faster => use standard insertion procedure
-            free(info.root);
+            delete info.root;
 
             // retrieve new root info
             info = getRootInfo();
@@ -636,7 +636,7 @@ private:
                 // try to update next
                 if (!aNext.compare_exchange_strong(next, newNext)) {
                     // some other thread was faster => use updated next
-                    free(newNext);
+                    delete newNext;
                 } else {
                     // the locally created next is the new next
                     next = newNext;
@@ -1201,7 +1201,7 @@ private:
      * Creates new nodes and initializes them with 0.
      */
     static Node* newNode() {
-        auto* res = (Node*)(malloc(sizeof(Node)));
+        auto* res = new Node();
         std::memset(res->cell, 0, sizeof(Cell) * NUM_CELLS);
         return res;
     }
@@ -1216,7 +1216,7 @@ private:
                 freeNodes(node->cell[i].ptr, level - 1);
             }
         }
-        free(node);
+        delete node;
     }
 
     /**
@@ -1236,7 +1236,7 @@ private:
         if (!node) return nullptr;
 
         // create a clone
-        auto* res = (Node*)(malloc(sizeof(Node)));
+        auto* res = new Node();
 
         // handle leaf level
         if (level == 0) {
@@ -1339,7 +1339,7 @@ private:
             oldRoot->parent = info.root;
         } else {
             // throw away temporary new node
-            free(newRoot);
+            delete newRoot;
         }
     }
 

@@ -295,7 +295,7 @@ public:
 
     /** Create clone */
     RamRelationReference* clone() const override {
-        RamRelationReference* res = new RamRelationReference(relation);
+        auto* res = new RamRelationReference(relation);
         return res;
     }
 

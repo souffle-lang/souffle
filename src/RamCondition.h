@@ -398,7 +398,7 @@ protected:
     /** Check equality */
     bool equal(const RamNode& node) const override {
         assert(dynamic_cast<const RamProvenanceNotExists*>(&node));
-        const RamProvenanceNotExists& other = static_cast<const RamProvenanceNotExists&>(node);
+        const auto& other = static_cast<const RamProvenanceNotExists&>(node);
         return getRelation() == other.getRelation() && equal_targets(values, other.values);
     }
 };

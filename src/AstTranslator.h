@@ -50,10 +50,10 @@ class TypeEnvironment;
 class AstTranslator {
 private:
     /** AST program */
-    const AstProgram* program;
+    const AstProgram* program = nullptr;
 
     /** Type environment */
-    const TypeEnvironment* typeEnv;
+    const TypeEnvironment* typeEnv = nullptr;
 
     /** RAM program */
     std::unique_ptr<RamProgram> ramProg;
@@ -380,7 +380,7 @@ private:
     void translateProgram(const AstTranslationUnit& translationUnit);
 
 public:
-    AstTranslator() : program(nullptr){};
+    AstTranslator() = default;
 
     /** translates AST to translation unit  */
     std::unique_ptr<RamTranslationUnit> translateUnit(AstTranslationUnit& tu);

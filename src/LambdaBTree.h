@@ -50,8 +50,8 @@ template <typename Key, typename Comparator,
 class LambdaBTree : public btree<Key, Comparator, Allocator, blockSize, SearchStrategy, isSet, WeakComparator,
                             Updater> {
 public:
-    typedef btree<Key, Comparator, Allocator, blockSize, SearchStrategy, isSet, WeakComparator, Updater>
-            parenttype;
+    using parenttype =
+            btree<Key, Comparator, Allocator, blockSize, SearchStrategy, isSet, WeakComparator, Updater>;
 
     LambdaBTree(const Comparator& comp = Comparator(), const WeakComparator& weak_comp = WeakComparator())
             : parenttype(comp, weak_comp) {}
@@ -594,7 +594,7 @@ template <typename Key, typename Functor, typename Comparator = detail::comparat
         unsigned blockSize = 256, typename SearchStrategy = typename detail::default_strategy<Key>::type>
 class LambdaBTreeSet
         : public detail::LambdaBTree<Key, Comparator, Allocator, blockSize, SearchStrategy, true, Functor> {
-    typedef detail::LambdaBTree<Key, Comparator, Allocator, blockSize, SearchStrategy, true, Functor> super;
+    using super = detail::LambdaBTree<Key, Comparator, Allocator, blockSize, SearchStrategy, true, Functor>;
 
     friend class detail::LambdaBTree<Key, Comparator, Allocator, blockSize, SearchStrategy, true, Functor>;
 

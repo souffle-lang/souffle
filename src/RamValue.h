@@ -147,9 +147,9 @@ private:
     const std::string type;
 
 public:
-    RamUserDefinedOperator(
-            const std::string& n, const std::string& t, std::vector<std::unique_ptr<RamValue>> args)
-            : RamValue(RN_UserDefinedOperator), arguments(std::move(args)), name(n), type(t) {}
+    RamUserDefinedOperator(std::string n, std::string t, std::vector<std::unique_ptr<RamValue>> args)
+            : RamValue(RN_UserDefinedOperator), arguments(std::move(args)), name(std::move(n)),
+              type(std::move(t)) {}
 
     /** Print */
     void print(std::ostream& os) const override {

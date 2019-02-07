@@ -23,6 +23,7 @@
 #include "RamTypes.h"
 #include "Table.h"
 #include "Util.h"
+#include <cassert>
 #include <iostream>
 #include <iterator>
 #include <mutex>
@@ -31,7 +32,6 @@
 #include <type_traits>
 #include <unordered_set>
 #include <vector>
-#include <assert.h>
 
 namespace souffle {
 

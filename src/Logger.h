@@ -52,7 +52,9 @@ private:
     size_t preSize;
 
 public:
-    Logger(std::string label, size_t iteration, std::function<size_t()> size = []() { return 0; })
+    Logger(std::string label, size_t iteration) : Logger(label, iteration, []() { return 0; }) {}
+
+    Logger(std::string label, size_t iteration, std::function<size_t()> size)
             : label(std::move(label)), start(now()), iteration(iteration), size(size), preSize(size()) {
         struct rusage ru;
         getrusage(RUSAGE_SELF, &ru);
@@ -60,6 +62,7 @@ public:
         // Assume that if we are logging the progress of an event then we care about usage during that time.
         ProfileEventSingleton::instance().resetTimerInterval();
     }
+
     ~Logger() {
         struct rusage ru;
         getrusage(RUSAGE_SELF, &ru);

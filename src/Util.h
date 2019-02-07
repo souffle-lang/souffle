@@ -1318,12 +1318,12 @@ class LRUCache {
     std::array<std::size_t, size> priv;  // < predecessor of element i
     std::array<std::size_t, size> post;  // < successor of element i
 
-    std::size_t first;  // < index of the first element
-    std::size_t last;   // < index of the last element
+    std::size_t first{0};        // < index of the first element
+    std::size_t last{size - 1};  // < index of the last element
 
 public:
     // creates a new, empty cache
-    LRUCache(const T& val = T()) : entries(), first(0), last(size - 1) {
+    LRUCache(const T& val = T()) {
         for (unsigned i = 0; i < size; i++) {
             entries[i] = val;
             priv[i] = i - 1;

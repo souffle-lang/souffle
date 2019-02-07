@@ -15,10 +15,15 @@
  ***********************************************************************/
 
 #include "RamConditionLevel.h"
-#include "RamValueLevel.h"
+#include "RamTranslationUnit.h"
 #include "RamVisitor.h"
 
 namespace souffle {
+
+/** run level analysis for a RAM translation unit */
+void RamConditionLevelAnalysis::run(const RamTranslationUnit& translationUnit) {
+    rvla = translationUnit.getAnalysis<RamValueLevelAnalysis>();
+}
 
 /** Get level of condition (which for-loop of a query) */
 size_t RamConditionLevelAnalysis::getLevel(const RamCondition* condition) const {
@@ -27,6 +32,8 @@ size_t RamConditionLevelAnalysis::getLevel(const RamCondition* condition) const 
         RamValueLevelAnalysis* rvla;
 
     public:
+        ConditionLevelVisitor(RamValueLevelAnalysis* rvla) : rvla(rvla) {}
+
         // conjunction
         size_t visitAnd(const RamAnd& conj) override {
             return std::max(visit(conj.getLHS()), visit(conj.getRHS()));
@@ -64,7 +71,7 @@ size_t RamConditionLevelAnalysis::getLevel(const RamCondition* condition) const 
             return 0;  // can be in the top level
         }
     };
-    return ConditionLevelVisitor().visit(condition);
+    return ConditionLevelVisitor(rvla).visit(condition);
 }
 
 }  // end of namespace souffle

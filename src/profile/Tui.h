@@ -761,7 +761,7 @@ public:
         // Translate the string ordered text usage stats to a time ordered binary form.
         std::set<Usage> allUsages;
         for (auto& currentKey : usageStats->getKeys()) {
-            Usage currentUsage;
+            Usage currentUsage{};
             uint64_t cur = std::stoul(currentKey);
             currentUsage.time = std::chrono::duration<uint64_t, std::micro>(cur);
             cur = dynamic_cast<SizeEntry*>(
@@ -1459,7 +1459,7 @@ protected:
     }
 
     uint32_t getTermWidth() {
-        struct winsize w;
+        struct winsize w {};
         ioctl(0, TIOCGWINSZ, &w);
         uint32_t width = w.ws_col > 0 ? w.ws_col : 80;
         return width;

@@ -342,7 +342,7 @@ protected:
     }
 
 public:
-    ProfileDatabase() : root(std::unique_ptr<DirectoryEntry>(new DirectoryEntry("root"))) {}
+    ProfileDatabase() : root(std::make_unique<DirectoryEntry>("root")) {}
 
     ProfileDatabase(const std::string& filename) : root(std::make_unique<DirectoryEntry>("root")) {
         std::ifstream file(filename);
@@ -435,13 +435,13 @@ public:
      */
     std::map<std::string, std::string> getStringMap(const std::vector<std::string>& path) const {
         std::map<std::string, std::string> kvps;
-        DirectoryEntry* parent = dynamic_cast<DirectoryEntry*>(lookupEntry(path));
+        auto* parent = dynamic_cast<DirectoryEntry*>(lookupEntry(path));
         if (parent == nullptr) {
             return kvps;
         }
 
         for (const auto& key : parent->getKeys()) {
-            TextEntry* text = dynamic_cast<TextEntry*>(parent->readEntry(key));
+            auto* text = dynamic_cast<TextEntry*>(parent->readEntry(key));
             if (text != nullptr) {
                 kvps[key] = text->getText();
             }

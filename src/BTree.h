@@ -68,7 +68,7 @@ struct linear_search : public search_strategy {
     /**
      * Required user-defined default constructor.
      */
-    linear_search() {}
+    linear_search() = default;
 
     /**
      * Obtains an iterator referencing an element equivalent to the
@@ -122,7 +122,7 @@ struct binary_search : public search_strategy {
     /**
      * Required user-defined default constructor.
      */
-    binary_search() {}
+    binary_search() = default;
 
     /**
      * Obtains an iterator pointing to some element within the given
@@ -1184,7 +1184,7 @@ public:
         node_cache last_upper_bound_end;
 
         // default constructor
-        btree_operation_hints() {}
+        btree_operation_hints() = default;
 
         // resets all hints (to be triggered e.g. when deleting nodes)
         void clear() {
