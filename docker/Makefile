@@ -7,7 +7,7 @@ SOUFFLE_CATEGORY ?= "Syntactic,Semantic,FastEvaluation,Profiling,Interface"
 # centos7 and oracle linux do not fully support c++11. Currently this only
 # affects provenance.
 #SOUFFLE_CATEGORY ?= "Syntactic,Semantic,FastEvaluation,Profiling,Provenance,Interface"
-SOUFFLE_CONFS ?= "-c -j4 -ra.html,-j4 -ra.html"
+SOUFFLE_CONFS ?= "-c -j4 -ra.html,-i -j4 -ra.html"
 SOUFFLE_DOCKERFILES ?= "$(shell find . -name Dockerfile)"
 
 .PHONY: all check deploy
