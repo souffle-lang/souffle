@@ -4,4 +4,7 @@ testsuite
 testsuite.dir
 package.m4
 testsuite.log
-
+.libs
+.deps
+functors.lo
+libfunctors.la

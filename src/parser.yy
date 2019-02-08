@@ -415,7 +415,7 @@ functor_type
   ;
 
 functor_typeargs
-  : functor_type COMMA functor_typeargs { $$ = $3 + $1; }
+  : functor_type COMMA functor_typeargs { $$ = $1 + $3; }
   | functor_type { $$ = $1;  }
   ;
 
