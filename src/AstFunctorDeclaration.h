@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "AstNode.h"
 #include "Util.h"
 
 #include <algorithm>
