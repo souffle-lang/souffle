@@ -91,6 +91,7 @@ inline size_t getFunctorOpArity(FunctorOp op) {
 
         /** Arbitrary length Functor Operators */
         case FunctorOp::CAT:
+            // An arbitrary length that should not be needed
             return 255U;
 
             /** Undefined */
