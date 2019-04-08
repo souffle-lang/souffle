@@ -83,14 +83,17 @@ inline size_t getFunctorOpArity(FunctorOp op) {
         case FunctorOp::LOR:
         case FunctorOp::MAX:
         case FunctorOp::MIN:
-        case FunctorOp::CAT:
             return 2U;
 
         /** Ternary Functor Operators */
         case FunctorOp::SUBSTR:
             return 3U;
 
-        /** Undefined */
+        /** Arbitrary length Functor Operators */
+        case FunctorOp::CAT:
+            return 255U;
+
+            /** Undefined */
         default:
             break;
     }
@@ -219,7 +222,7 @@ inline bool isSymbolicFunctorOp(const FunctorOp op) {
  */
 inline bool functorOpAcceptsNumbers(size_t arg, const FunctorOp op) {
     size_t expectedArity = getFunctorOpArity(op);
-    assert(arg >= 0 && arg < expectedArity && "argument out of range");
+    assert(op == FunctorOp::CAT || (arg >= 0 && arg < expectedArity && "argument out of range"));
 
     switch (op) {
         /** Unary Functor Operators */

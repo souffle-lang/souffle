@@ -1303,9 +1303,13 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     out << "symTable.lookup(";
                     out << "symTable.resolve(";
                     visit(op.getArgument(0), out);
-                    out << ") + symTable.resolve(";
-                    visit(op.getArgument(1), out);
-                    out << "))";
+                    out << ")";
+                    for (size_t i = 1; i < op.getArgCount(); ++i) {
+                        out << " + symTable.resolve(";
+                        visit(op.getArgument(i), out);
+                        out << ")";
+                    }
+                    out << ")";
                     break;
                 }
 

@@ -645,9 +645,14 @@ arg
         $$ = new AstIntrinsicFunctor(FunctorOp::MIN, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
         $$->setSrcLoc(@$);
     }
-  | CAT LPAREN arg COMMA arg RPAREN {
-        $$ = new AstIntrinsicFunctor(FunctorOp::CAT, std::unique_ptr<AstArgument>($3), std::unique_ptr<AstArgument>($5));
+  | CAT LPAREN arg_list RPAREN {
+        std::vector<std::unique_ptr<AstArgument>> args;
+        for (auto* cur : $3->getArguments()) {
+            args.emplace_back(cur);
+        }
+        $$ = new AstIntrinsicFunctor(FunctorOp::CAT, std::move(args));
         $$->setSrcLoc(@$);
+        delete $3;
     }
   | ORD LPAREN arg RPAREN {
         $$ = new AstIntrinsicFunctor(FunctorOp::ORD, std::unique_ptr<AstArgument>($3));

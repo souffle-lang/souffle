@@ -279,8 +279,15 @@ public:
             args.push_back(std::move(cur));
         }
 
-        // TODO (#761): eventually allow non-fixed functor arity
-        assert(getFunctorOpArity(function) == args.size() && "invalid number of arguments for functor");
+        switch (function) {
+            case FunctorOp::CAT:
+                assert(args.size() > 1 && "invalid number of arguments for functor");
+                break;
+            default:
+                assert(getFunctorOpArity(function) == args.size() &&
+                        "invalid number of arguments for functor");
+                break;
+        }
     }
 
     AstIntrinsicFunctor(FunctorOp function, std::vector<std::unique_ptr<AstArgument>> operands)

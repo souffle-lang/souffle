@@ -152,9 +152,11 @@ RamDomain Interpreter::evalExpr(const RamExpression& expr, const InterpreterCont
                     return std::min(visit(args[0]), visit(args[1]));
                 }
                 case FunctorOp::CAT: {
-                    return interpreter.getSymbolTable().lookup(
-                            interpreter.getSymbolTable().resolve(visit(args[0])) +
-                            interpreter.getSymbolTable().resolve(visit(args[1])));
+                    std::stringstream ss;
+                    for (auto& arg : args) {
+                        ss << interpreter.getSymbolTable().resolve(visit(arg));
+                    }
+                    return interpreter.getSymbolTable().lookup(ss.str());
                 }
 
                 /** Ternary Functor Operators */
