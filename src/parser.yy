@@ -648,7 +648,7 @@ arg
   | CAT LPAREN arg_list RPAREN {
         std::vector<std::unique_ptr<AstArgument>> args;
         for (auto* cur : $3->getArguments()) {
-            args.emplace_back(cur);
+            args.emplace_back(cur->clone());
         }
         $$ = new AstIntrinsicFunctor(FunctorOp::CAT, std::move(args));
         $$->setSrcLoc(@$);
