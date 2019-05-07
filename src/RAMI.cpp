@@ -193,15 +193,11 @@ RamDomain RAMI::evalExpr(const RamExpression& expr, const InterpreterContext& ct
             const std::string& name = op.getName();
             const std::string& type = op.getType();
 
-            // load DLL (if not done yet)
-            void* handle = interpreter.loadDLL();
-            auto fn = reinterpret_cast<void (*)()>(dlsym(handle, name.c_str()));
+            auto fn = reinterpret_cast<void (*)()>(interpreter.getMethodHandle(name));
             if (fn == nullptr) {
-                std::cerr << "Cannot find user-defined operator " << name << " in " << SOUFFLE_DLL
-                          << std::endl;
+                std::cerr << "Cannot find user-defined operator " << name << std::endl;
                 exit(1);
             }
-
             // prepare dynamic call environment
             size_t arity = op.getArgCount();
             ffi_cif cif;

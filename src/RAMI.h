@@ -36,8 +36,6 @@
 #include <vector>
 #include <dlfcn.h>
 
-#define SOUFFLE_DLL "libfunctors.so"
-
 namespace souffle {
 
 class InterpreterProgInterface;
@@ -144,17 +142,31 @@ protected:
     }
 
     /** Load dll */
-    void* loadDLL() {
-        if (dll == nullptr) {
-            // check environment variable
-            std::string fname = SOUFFLE_DLL;
-            dll = dlopen(SOUFFLE_DLL, RTLD_LAZY);
-            if (dll == nullptr) {
-                std::cerr << "Cannot find Souffle's DLL" << std::endl;
+    const std::vector<void*>& loadDLL() {
+        if (!dll.empty()) {
+            return dll;
+        }
+
+        if (!Global::config().has("libraries")) {
+            Global::config().set("libraries", SOUFFLE_DLL);
+        }
+        for (const std::string& library : splitString(Global::config().get("libraries"), ',')) {
+            dll.push_back(dlopen(library.c_str(), RTLD_LAZY));
+            if (dll.back() == nullptr) {
+                std::cerr << "Cannot find '" << library << "' DLL" << std::endl;
                 exit(1);
             }
         }
+
         return dll;
+    }
+
+    void* getMethodHandle(const std::string& method) {
+        // load DLLs (if not done yet)
+        for (void* libHandle : loadDLL()) {
+            return dlsym(libHandle, method.c_str());
+        }
+        return nullptr;
     }
 
 private:
@@ -173,7 +185,7 @@ private:
     size_t iteration = 0;
 
     /** Dynamic library for user-defined functors */
-    void* dll = nullptr;
+    std::vector<void*> dll;
 };
 
 }  // end of namespace souffle
