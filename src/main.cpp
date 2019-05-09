@@ -92,7 +92,13 @@ void executeBinary(const std::string& binaryFilename
     } else
 #endif
     {
-        exitCode = system(binaryFilename.c_str());
+        std::string compileCmd = "LD_LIBRARY_PATH=";
+        for (const std::string& library : splitString(Global::config().get("library-dir"), ' ')) {
+            compileCmd += library + ':';
+        }
+        compileCmd.back() = ' ';
+        compileCmd += binaryFilename;
+        exitCode = system(compileCmd.c_str());
     }
 
     if (Global::config().get("dl-program").empty()) {
@@ -111,6 +117,22 @@ void executeBinary(const std::string& binaryFilename
  */
 void compileToBinary(std::string compileCmd, const std::string& sourceFilename) {
     // add source code
+    compileCmd += ' ';
+    for (const std::string& path : splitString(Global::config().get("library-dir"), ' ')) {
+        // The first entry may be blank
+        if (path.empty()) {
+            continue;
+        }
+        compileCmd += "-L" + path + ' ';
+    }
+    for (const std::string& library : splitString(Global::config().get("libraries"), ' ')) {
+        // The first entry may be blank
+        if (library.empty()) {
+            continue;
+        }
+        compileCmd += "-l" + library + ' ';
+    }
+
     compileCmd += sourceFilename;
 
     // run executable
@@ -167,7 +189,7 @@ int main(int argc, char** argv) {
                         "Generate C++ source code for the given Datalog program and write it to "
                         "<FILE>."},
                 {"library-dir", 'L', "DIR", ".", true, "Specify directory for library files."},
-                {"libraries", 'l', "FILE", ".", true, "Specify libraries."},
+                {"libraries", 'l', "FILE", "", true, "Specify libraries."},
                 {"no-warn", 'w', "", "", false, "Disable warnings."},
                 {"magic-transform", 'm', "RELATIONS", "", false,
                         "Enable magic set transformation changes on the given relations, use '*' "
@@ -595,7 +617,12 @@ int main(int argc, char** argv) {
             os.close();
 
             if (withSharedLibrary) {
-                compileCmd += "-s ";
+                if (!Global::config().has("libraries")) {
+                    Global::config().set("libraries", "functors");
+                }
+                if (!Global::config().has("library-dir")) {
+                    Global::config().set("library-dir", ".");
+                }
             }
 
             if (Global::config().has("compile")) {

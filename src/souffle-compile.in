@@ -19,7 +19,8 @@ Usage:
 Options:
   -h           show usage
   -g           Build in debug mode
-  -s           enable shared library
+  -l           additional shared libraries
+  -L           library paths
   -v           verbose output
   -w           enable warnings\n"
   exit 1;
@@ -62,7 +63,7 @@ error "installation error: souffle header files cannot be found" $?
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
 # default getopt is an old BSD getopt, so need this for portability
-while getopts "hwsvg" opt; do
+while getopts "hwl:L:vg" opt; do
   case "$opt" in
     h|\?) # Show usage and exit
       usage;
@@ -70,8 +71,11 @@ while getopts "hwsvg" opt; do
     g) # enable debug mode
       CXXFLAGS="$(echo $CXXFLAGS|sed 's/-O[0-9s]//g') -g -O0";
     ;;
-    s) # enable shared library
-      LDFLAGS="$LDFLAGS -L. -lfunctors";
+    L) # enable shared library
+      LDFLAGS="$LDFLAGS -L${OPTARG}";
+    ;;
+    l) # enable shared library
+      LIBS="$LIBS -l${OPTARG}";
     ;;
     w) # enable warnings
       WARNINGS="1"
@@ -105,7 +109,7 @@ cd "$OLDPWD"
 
 # Compile
 rm -f $dir/$exe
-$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 $LIBS -I$HEADER_DIR $OMP_FLAG $LDFLAGS 2> $dir/$exe.$$.ccerr
+$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 -I$HEADER_DIR $OMP_FLAG $LDFLAGS $LIBS 2> $dir/$exe.$$.ccerr
 if test -f $dir/$exe
 then
   if [ "$WARNINGS" = 1 ]
