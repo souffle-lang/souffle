@@ -183,9 +183,6 @@ private:
 
     /** iteration number (in a fix-point calculation) */
     size_t iteration = 0;
-
-    /** Dynamic library for user-defined functors */
-    std::vector<void*> dll;
 };
 
 }  // end of namespace souffle

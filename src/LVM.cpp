@@ -462,9 +462,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, InterpreterContext& ctxt
                 const std::string name = symbolTable.resolve(code[ip + 1]);
                 const std::string type = symbolTable.resolve(code[ip + 2]);
 
-                // load DLL (if not done yet)
-                void* handle = this->loadDLL();
-                auto fn = reinterpret_cast<void (*)()>(dlsym(handle, name.c_str()));
+                auto fn = reinterpret_cast<void (*)()>(getMethodHandle(name));
                 if (fn == nullptr) {
                     std::cerr << "Cannot find user-defined operator " << name << " in " << SOUFFLE_DLL
                               << std::endl;

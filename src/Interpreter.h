@@ -68,6 +68,37 @@ public:
             std::vector<RamDomain>& returnValues, std::vector<bool>& returnErrors) = 0;
 
 protected:
+    /** Load dll */
+    const std::vector<void*>& loadDLL() {
+        if (!dll.empty()) {
+            return dll;
+        }
+
+        if (!Global::config().has("libraries")) {
+            Global::config().set("libraries", SOUFFLE_DLL);
+        }
+        std::cout << "libraries: <" << Global::config().get("libraries") << ">" << std::endl;
+        for (const std::string& library : splitString(Global::config().get("libraries"), ',')) {
+            auto tmp = dlopen(library.c_str(), RTLD_LAZY);
+            std::cout << tmp << std::endl;
+            dll.push_back(tmp);
+            if (dll.back() == nullptr) {
+                std::cerr << "Cannot find '" << library << "' DLL" << std::endl;
+                exit(1);
+            }
+        }
+
+        return dll;
+    }
+
+    void* getMethodHandle(const std::string& method) {
+        // load DLLs (if not done yet)
+        for (void* libHandle : loadDLL()) {
+            return dlsym(libHandle, method.c_str());
+        }
+        return nullptr;
+    }
+
     friend InterpreterProgInterface;
 
     /** relation environment type */
@@ -88,6 +119,9 @@ protected:
 
     /** Relation Environment */
     relation_map environment;
+
+    /** Dynamic library for user-defined functors */
+    std::vector<void*> dll;
 };
 
 }  // end of namespace souffle
