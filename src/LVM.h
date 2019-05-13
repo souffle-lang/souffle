@@ -37,8 +37,6 @@
 #include <vector>
 #include <dlfcn.h>
 
-#define SOUFFLE_DLL "libfunctors.so"
-
 namespace souffle {
 
 class InterpreterProgInterface;

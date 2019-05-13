@@ -464,8 +464,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, InterpreterContext& ctxt
 
                 auto fn = reinterpret_cast<void (*)()>(getMethodHandle(name));
                 if (fn == nullptr) {
-                    std::cerr << "Cannot find user-defined operator " << name << " in " << SOUFFLE_DLL
-                              << std::endl;
+                    std::cerr << "Cannot find user-defined operator " << name << std::endl;
                     exit(1);
                 }
 

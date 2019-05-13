@@ -141,34 +141,6 @@ protected:
         environment[ramRel2.getName()] = rel1;
     }
 
-    /** Load dll */
-    const std::vector<void*>& loadDLL() {
-        if (!dll.empty()) {
-            return dll;
-        }
-
-        if (!Global::config().has("libraries")) {
-            Global::config().set("libraries", SOUFFLE_DLL);
-        }
-        for (const std::string& library : splitString(Global::config().get("libraries"), ',')) {
-            dll.push_back(dlopen(library.c_str(), RTLD_LAZY));
-            if (dll.back() == nullptr) {
-                std::cerr << "Cannot find '" << library << "' DLL" << std::endl;
-                exit(1);
-            }
-        }
-
-        return dll;
-    }
-
-    void* getMethodHandle(const std::string& method) {
-        // load DLLs (if not done yet)
-        for (void* libHandle : loadDLL()) {
-            return dlsym(libHandle, method.c_str());
-        }
-        return nullptr;
-    }
-
 private:
     friend InterpreterProgInterface;
 
