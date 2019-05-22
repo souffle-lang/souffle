@@ -33,6 +33,14 @@ public:
     void readAll(T& relation) {
         auto lease = symbolTable.acquireLock();
         (void)lease;
+        if (arity == 0) {
+            if (readNullary()) {
+                auto* ramDomain = new RamDomain[0];
+                relation.insert(ramDomain);
+                delete ramDomain;
+            }
+            return;
+        }
         while (const auto next = readNextTuple()) {
             const RamDomain* ramDomain = next.get();
             relation.insert(ramDomain);
@@ -42,11 +50,14 @@ public:
     virtual ~ReadStream() = default;
 
 protected:
-    virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
     const std::vector<bool>& symbolMask;
     SymbolTable& symbolTable;
     const bool isProvenance;
     const uint8_t arity;
+    virtual std::unique_ptr<RamDomain[]> readNextTuple() = 0;
+    virtual bool readNullary() {
+        assert(false && "Input for nullaries is not support for this IO type");
+    }
 };
 
 class ReadStreamFactory {

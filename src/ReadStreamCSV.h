@@ -50,6 +50,22 @@ public:
 
 protected:
     /**
+     * Read and return true if there is content..
+     *
+     * Returns true if there is data.
+     * @return
+     */
+    bool readNullary() override {
+        if (file.eof()) {
+            return false;
+        }
+        std::string line;
+        if (!getline(file, line)) {
+            return false;
+        }
+        return true;
+    }
+    /**
      * Read and return the next tuple.
      *
      * Returns nullptr if no tuple was readable.
@@ -65,6 +81,7 @@ protected:
         if (!getline(file, line)) {
             return nullptr;
         }
+
         // Handle Windows line endings on non-Windows systems
         if (line.back() == '\r') {
             line = line.substr(0, line.length() - 1);
