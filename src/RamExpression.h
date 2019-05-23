@@ -216,14 +216,10 @@ protected:
 class RamElementAccess : public RamExpression {
 public:
     RamElementAccess(size_t ident, size_t elem, std::unique_ptr<RamRelationReference> relRef = nullptr)
-            : identifier(ident), element(elem), relationRef(std::move(relRef)) {}
+            : identifier(ident), element(elem) {}
 
     void print(std::ostream& os) const override {
-        if (nullptr == relationRef) {
-            os << "t" << identifier << "." << element;
-        } else {
-            os << "t" << identifier << "." << relationRef->get()->getArg(element);
-        }
+        os << "t" << identifier << "." << element;
     }
 
     /** Get identifier */
@@ -236,27 +232,8 @@ public:
         return element;
     }
 
-    std::vector<const RamNode*> getChildNodes() const override {
-        if (relationRef != nullptr) {
-            return {relationRef.get()};
-        } else {
-            return {};
-        }
-    }
-
     RamElementAccess* clone() const override {
-        if (relationRef != nullptr) {
-            return new RamElementAccess(
-                    identifier, element, std::unique_ptr<RamRelationReference>(relationRef->clone()));
-        } else {
-            return new RamElementAccess(identifier, element);
-        }
-    }
-
-    void apply(const RamNodeMapper& map) override {
-        if (relationRef != nullptr) {
-            relationRef = map(std::move(relationRef));
-        }
+        return new RamElementAccess(identifier, element);
     }
 
 protected:
@@ -265,11 +242,6 @@ protected:
 
     /** Element number */
     const size_t element;
-
-    /** Relation for debugging purposes
-     *  Set to nullptr for non-existent relations
-     */
-    std::unique_ptr<RamRelationReference> relationRef;
 
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamElementAccess*>(&node));

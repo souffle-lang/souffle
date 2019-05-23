@@ -507,7 +507,7 @@ int main(int argc, char** argv) {
                             std::make_unique<HoistConditionsTransformer>(),
                             std::make_unique<MakeIndexTransformer>())),
             std::make_unique<IfConversionTransformer>(), std::make_unique<ChoiceConversionTransformer>(),
-            std::make_unique<CollapseFiltersTransformer>(),
+            std::make_unique<CollapseFiltersTransformer>(), std::make_unique<TupleIdTransformer>(),
             std::make_unique<RamConditionalTransformer>(
                     []() -> bool { return std::stoi(Global::config().get("jobs")) > 1; },
                     std::make_unique<ParallelTransformer>()));

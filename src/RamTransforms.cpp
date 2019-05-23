@@ -520,6 +520,42 @@ bool ChoiceConversionTransformer::convertScans(RamProgram& program) {
     return changed;
 }
 
+bool TupleIdTransformer::reorderOperations(RamProgram& program) {
+    // flag to determine whether the RAM program has changed
+    bool changed = false;
+
+    visitDepthFirst(program, [&](const RamQuery& query) {
+        // Maps old tupleIds to new tupleIds
+        std::map<int, int> reorder;
+        int ctr = 0;
+
+        visitDepthFirst(query, [&](const RamSearch& search) {
+            if (ctr != search.getTupleId()) {
+                changed = true;
+            }
+            reorder[search.getTupleId()] = ctr;
+            const_cast<RamSearch*>(&search)->setTupleId(ctr);
+            ctr++;
+        });
+
+        std::function<std::unique_ptr<RamNode>(std::unique_ptr<RamNode>)> elementRewriter =
+                [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
+            if (auto* element = dynamic_cast<RamElementAccess*>(node.get())) {
+                if (reorder[element->getTupleId()] != element->getTupleId()) {
+                    changed = true;
+                    node = std::make_unique<RamElementAccess>(
+                            reorder[element->getTupleId()], element->getElement());
+                }
+            }
+            node->apply(makeLambdaRamMapper(elementRewriter));
+            return node;
+        };
+        const_cast<RamQuery*>(&query)->apply(makeLambdaRamMapper(elementRewriter));
+    });
+
+    return changed;
+}
+
 bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
     // flag to determine whether the RAM program has changed
     bool changed = false;

@@ -418,6 +418,48 @@ protected:
 };
 
 /**
+ * @class TupleIdTransformer
+ * @brief Ordering tupleIds in RamSearch operations correctly
+ *
+ * Transformations, like MakeIndex and IfConversion do not
+ * ensure that RamSearches maintain an appropriate order
+ * with respect to their tupleId's
+ *
+ * For example:
+ * SEARCH ... (tupleId = 2)
+ * ...
+ * 		SEARCH ... (tupleId = 1)
+ * 			...
+ *
+ * Will be converted to
+ * SEARCH ... (tupleId = 0)
+ * ...
+ * 		SEARCH ... (tupleId = 1)
+ * 			...
+ *
+ */
+class TupleIdTransformer : public RamTransformer {
+public:
+    std::string getName() const override {
+        return "TupleIdTransformer";
+    }
+
+    /**
+     * @brief Apply tupleIdreordering to the whole program
+     * @param RAM program
+     * @result A flag indicating whether the RAM program has been changed.
+     *
+     * Search for RamSearches and RamElementAccesses and rewrite their tupleIds
+     */
+    bool reorderOperations(RamProgram& program);
+
+protected:
+    bool transform(RamTranslationUnit& translationUnit) override {
+        return reorderOperations(*translationUnit.getProgram());
+    }
+};
+
+/**
  * @class ParallelTransformer
  * @brief Transforms Choice/IndexChoice/IndexScan/Scan into parallel versions.
  *

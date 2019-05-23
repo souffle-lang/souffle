@@ -109,13 +109,18 @@ public:
         return identifier;
     }
 
+    /** Set identifier */
+    void setTupleId(int id) {
+        identifier = id;
+    }
+
     std::vector<const RamNode*> getChildNodes() const override {
         return RamNestedOperation::getChildNodes();
     }
 
 protected:
     /** Identifier for the tuple */
-    const int identifier;
+    int identifier;
 
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamSearch*>(&node));
@@ -804,6 +809,11 @@ public:
     RamUnpackRecord* clone() const override {
         return new RamUnpackRecord(std::unique_ptr<RamOperation>(getOperation().clone()), getTupleId(),
                 std::unique_ptr<RamExpression>(getExpression().clone()), arity);
+    }
+
+    void apply(const RamNodeMapper& map) override {
+        RamSearch::apply(map);
+        expression = map(std::move(expression));
     }
 
 protected:
