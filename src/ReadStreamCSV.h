@@ -50,7 +50,7 @@ public:
 
 protected:
     /**
-     * Read and return true if there is content..
+     * Read and return true if there is content.
      *
      * Returns true if there is data.
      * @return
