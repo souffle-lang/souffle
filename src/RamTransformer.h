@@ -21,6 +21,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace souffle {
@@ -98,10 +99,10 @@ public:
         }
     }
     RamTransformerSequence() = default;
-    std::string getName() const {
+    std::string getName() const override {
         return "RamTransformerSequence";
     }
-    bool transform(RamTranslationUnit& tU) {
+    bool transform(RamTranslationUnit& tU) override {
         bool changed = false;
         // The last transformer decides the status
         // of the change flag.
@@ -128,10 +129,10 @@ protected:
 class RamLoopTransformer : public RamTransformer {
 public:
     RamLoopTransformer(std::unique_ptr<RamTransformer> tLoop) : loop(std::move(tLoop)) {}
-    std::string getName() const {
+    std::string getName() const override {
         return "RamLoopTransformer";
     }
-    bool transform(RamTranslationUnit& tU) {
+    bool transform(RamTranslationUnit& tU) override {
         int ctr = 0;
         while (loop->apply(tU)) {
             ctr++;
@@ -153,11 +154,11 @@ protected:
 class RamConditionalTransformer : public RamTransformer {
 public:
     RamConditionalTransformer(std::function<bool()> fn, std::unique_ptr<RamTransformer> tb)
-            : func(fn), body(std::move(tb)) {}
-    std::string getName() const {
+            : func(std::move(fn)), body(std::move(tb)) {}
+    std::string getName() const override {
         return "RamConditionalTransformer";
     }
-    bool transform(RamTranslationUnit& tU) {
+    bool transform(RamTranslationUnit& tU) override {
         if (func()) {
             return body->apply(tU);
         } else {

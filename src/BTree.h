@@ -24,6 +24,7 @@
 #include <iostream>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace souffle {
@@ -1244,8 +1245,8 @@ public:
     // -- ctors / dtors --
 
     // the default constructor creating an empty tree
-    btree(const Comparator& comp = Comparator(), const WeakComparator& weak_comp = WeakComparator())
-            : comp(comp), weak_comp(weak_comp), root(nullptr), leftmost(nullptr) {}
+    btree(Comparator comp = Comparator(), WeakComparator weak_comp = WeakComparator())
+            : comp(std::move(comp)), weak_comp(std::move(weak_comp)), root(nullptr), leftmost(nullptr) {}
 
     // a constructor creating a tree from the given iterator range
     template <typename Iter>

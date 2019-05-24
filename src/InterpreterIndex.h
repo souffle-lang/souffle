@@ -36,15 +36,15 @@ public:
         const LexOrder order;
 
         /* constructor to initialize state */
-        comparator(const LexOrder& order) : order(order) {}
+        comparator(LexOrder order) : order(std::move(order)) {}
 
         /* comparison function */
         int operator()(const RamDomain* x, const RamDomain* y) const {
-            for (size_t i = 0; i < order.size(); i++) {
-                if (x[order[i]] < y[order[i]]) {
+            for (int i : order) {
+                if (x[i] < y[i]) {
                     return -1;
                 }
-                if (x[order[i]] > y[order[i]]) {
+                if (x[i] > y[i]) {
                     return 1;
                 }
             }
@@ -58,8 +58,8 @@ public:
 
         /* equal comparison */
         bool equal(const RamDomain* x, const RamDomain* y) const {
-            for (size_t i = 0; i < order.size(); i++) {
-                if (x[order[i]] != y[order[i]]) {
+            for (int i : order) {
+                if (x[i] != y[i]) {
                     return false;
                 }
             }
