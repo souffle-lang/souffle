@@ -241,7 +241,7 @@ public:
 	    } else {
 		    os << " AND ";
 	    }
-           if (nullptr == dynamic_cast<const RamExpression *>(queryPattern[i].get())) {
+           if (nullptr == dynamic_cast<const RamUndefValue *>(queryPattern[i].get())) {
 	        os << "t" << getTupleId() << ".";
 	        os << getRelation().getArg(i) << " = "; 
 		os << *queryPattern[i]; 
