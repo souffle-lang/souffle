@@ -233,6 +233,22 @@ public:
         return toPtrVector(queryPattern);
     }
 
+    void printIndex(std::ostream &os) {
+	bool first = true; 
+        for (unsigned int i = 0; i < queryPattern.size(); ++i) {
+	    if(first) {
+		    first = false;
+	    } else {
+		    os << " AND ";
+	    }
+            if (dynamic_cast<const RamUndefValue *>(queryPattern[i]) == nullptr) {
+	        os << "t" << getTupleId() << ".";
+	        os << getRelation().getArg(i) << " = "; 
+		os << *queryPattern[i]; 
+            }
+        }
+    }
+
     std::vector<const RamNode*> getChildNodes() const override {
         auto res = RamRelationSearch::getChildNodes();
         for (auto& cur : queryPattern) {

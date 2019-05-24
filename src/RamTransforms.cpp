@@ -238,9 +238,16 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
             addCondition(std::move(cond));
         }
     }
+
+    // Avoid null-pointers for condition and query pattern 
     if (condition == nullptr) {
         condition = std::make_unique<RamTrue>(); 
     } 
+    for(std::size_t i = 0;i<queryPattern.size();i++){
+	    if(queryPattern[i] == nullptr) { 
+		    queryPattern[i] = std::make_unique<RamUndefValue>();
+	    }
+    }
     return condition;
 }
 

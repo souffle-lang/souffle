@@ -88,7 +88,7 @@ public:
      * precondition: tuple does not exist in the index
      */
     void insert(const RamDomain* tuple) {
-        set.insert(tuple, operation_hints);
+        set.insert(tuple);
     }
 
     /**
@@ -103,13 +103,12 @@ public:
 
     /** check whether tuple exists in index */
     bool exists(const RamDomain* value) {
-        return set.find(value, operation_hints) != set.end();
+        return set.find(value) != set.end();
     }
 
     /** purge all hashes of index */
     void purge() {
         set.clear();
-        operation_hints.clear();
     }
 
     /** enables the index to be printed */
@@ -120,14 +119,13 @@ public:
     }
 
     /** return start and end iterator of an equal range */
-    inline std::pair<iterator, iterator> equalRange(const RamDomain* value) {
+    inline std::pair<iterator, iterator> equalRange(const RamDomain* value) const {
         return lowerUpperBound(value, value);
     }
 
     /** return start and end iterator of a range */
-    inline std::pair<iterator, iterator> lowerUpperBound(const RamDomain* low, const RamDomain* high) {
-        return std::pair<iterator, iterator>(
-                set.lower_bound(low, operation_hints), set.upper_bound(high, operation_hints));
+    inline std::pair<iterator, iterator> lowerUpperBound(const RamDomain* low, const RamDomain* high) const {
+        return std::pair<iterator, iterator>(set.lower_bound(low), set.upper_bound(high));
     }
 
     /** return start and end iterator of the index set */
@@ -136,14 +134,10 @@ public:
     }
 
 private:
-    /** retain the index order used to construct an object of this class */
+    // retain the index order used to construct an object of this class
     const LexOrder theOrder;
-
-    /** set storing tuple pointers of table */
+    // set storing tuple pointers of table
     index_set set;
-
-    /** Operation hints */
-    index_set::btree_operation_hints<1> operation_hints;
 };
 
 }  // end of namespace souffle
