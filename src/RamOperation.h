@@ -241,11 +241,11 @@ public:
 	    } else {
 		    os << " AND ";
 	    }
-           // if (dynamic_cast<const RamUndefValue *>(queryPattern[i]) == nullptr) {
+           if (nullptr == dynamic_cast<const RamExpression *>(queryPattern[i].get())) {
 	        os << "t" << getTupleId() << ".";
 	        os << getRelation().getArg(i) << " = "; 
 		os << *queryPattern[i]; 
-           // }
+           } 
         }
     }
 

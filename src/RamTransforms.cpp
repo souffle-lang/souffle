@@ -239,14 +239,14 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
         }
     }
 
-    // Avoid null-pointers for condition and query pattern 
+    // Avoid null-pointers for condition and query pattern
     if (condition == nullptr) {
-        condition = std::make_unique<RamTrue>(); 
-    } 
-    for(std::size_t i = 0;i<queryPattern.size();i++){
-	    if(queryPattern[i] == nullptr) { 
-		    queryPattern[i] = std::make_unique<RamUndefValue>();
-	    }
+        condition = std::make_unique<RamTrue>();
+    }
+    for (std::size_t i = 0; i < queryPattern.size(); i++) {
+        if (queryPattern[i] == nullptr) {
+            queryPattern[i] = std::make_unique<RamUndefValue>();
+        }
     }
     return condition;
 }
@@ -263,8 +263,7 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
             return std::make_unique<RamIndexAggregate>(
                     std::unique_ptr<RamOperation>(agg->getOperation().clone()), agg->getFunction(),
                     std::make_unique<RamRelationReference>(&rel),
-                    std::unique_ptr<RamExpression>(agg->getExpression().clone()),
-                    std::move(condition),
+                    std::unique_ptr<RamExpression>(agg->getExpression().clone()), std::move(condition),
                     std::move(queryPattern), agg->getTupleId());
         }
     }
@@ -272,13 +271,13 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
 }
 
 std::unique_ptr<RamOperation> MakeIndexTransformer::constructFilter(
-   std::unique_ptr<RamCondition> condition, 
-   std::unique_ptr<RamOperation> nestedOperation) {
-   if (dynamic_cast<const RamTrue *>(condition)!=nullptr) {
-      return nestedOperation;
-   } else {
-      return std::make_unique<RamFilter>(std::move(condition), std::move(nestedOperation)); 
-   }
+        std::unique_ptr<RamCondition> condition, RamOperation* nestedOperation) {
+    if (dynamic_cast<const RamTrue*>(condition.get()) != nullptr) {
+        return std::unique_ptr<RamOperation>(nestedOperation);
+    } else {
+        return std::make_unique<RamFilter>(
+                std::move(condition), std::unique_ptr<RamOperation>(nestedOperation));
+    }
 }
 
 std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* scan) {
@@ -291,8 +290,7 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* s
                 queryPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
         if (indexable) {
             return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
-                    std::move(queryPattern),
-                    constructFilter(condition, std::make_unique<RamOperation>(filter->getOperation().clone())), 
+                    std::move(queryPattern), constructFilter(condition, filter->getOperation().clone()),
                     scan->getProfileText());
         }
     }
@@ -332,8 +330,7 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
                 }
             }
             return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
-                    std::move(queryPattern),
-                    constructFilter(condition, std::make_unique<RamOperation>(filter->getOperation().clone())), 
+                    std::move(queryPattern), constructFilter(condition, filter->getOperation().clone()),
                     iscan->getProfileText());
         }
     }

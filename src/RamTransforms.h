@@ -243,7 +243,7 @@ public:
      */
     std::unique_ptr<RamOperation> constructFilter(
             std::unique_ptr<RamCondition> condition, 
-            std::unique_ptr<RamOperation> nestedOperation); 
+            RamOperation* nestedOperation); 
 
     /**
      * @brief Rewrite a scan operation to an indexed scan operation
