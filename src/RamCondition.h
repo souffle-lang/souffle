@@ -56,6 +56,10 @@ public:
     }
 };
 
+inline bool isRamTrue(const RamCondition *cond) {
+   return nullptr != dynamic_cast<const RamTrue *>(cond); 
+}
+
 /**
  * False Value
  */

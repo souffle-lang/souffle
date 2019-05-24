@@ -236,16 +236,6 @@ public:
             bool& indexable, std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
 
     /**
-     * @brief Construct a filter operation 
-     * @param Condition of the filter operation 
-     * @param NestedOperation of the filter operation 
-     * @result Newly created filter operation 
-     */
-    std::unique_ptr<RamOperation> constructFilter(
-            std::unique_ptr<RamCondition> condition, 
-            RamOperation* nestedOperation); 
-
-    /**
      * @brief Rewrite a scan operation to an indexed scan operation
      * @param Scan operation that is potentially rewritten to an IndexScan
      * @result The result is null if the scan could not be rewritten to an IndexScan;

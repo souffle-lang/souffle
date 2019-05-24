@@ -317,6 +317,10 @@ public:
     }
 };
 
+inline bool isRamUndefValue(const RamExpression *expr) {
+  return nullptr != dynamic_cast<const RamUndefValue *>(expr);
+}
+ 
 /**
  * Record pack operation
  */

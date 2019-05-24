@@ -270,16 +270,6 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
     return nullptr;
 }
 
-std::unique_ptr<RamOperation> MakeIndexTransformer::constructFilter(
-        std::unique_ptr<RamCondition> condition, RamOperation* nestedOperation) {
-    if (dynamic_cast<const RamTrue*>(condition.get()) != nullptr) {
-        return std::unique_ptr<RamOperation>(nestedOperation);
-    } else {
-        return std::make_unique<RamFilter>(
-                std::move(condition), std::unique_ptr<RamOperation>(nestedOperation));
-    }
-}
-
 std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* scan) {
     if (const auto* filter = dynamic_cast<const RamFilter*>(&scan->getOperation())) {
         const RamRelation& rel = scan->getRelation();
@@ -289,9 +279,15 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* s
         std::unique_ptr<RamCondition> condition = constructPattern(
                 queryPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
         if (indexable) {
+            std::unique_ptr<RamOperation> op = 
+                  std::unique_ptr<RamOperation>(filter->getOperation().clone());
+            if (!isRamTrue(condition.get())) {
+                op = std::make_unique<RamFilter>(
+                          std::move(condition), 
+                          std::move(op));
+            }
             return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
-                    std::move(queryPattern), constructFilter(condition, filter->getOperation().clone()),
-                    scan->getProfileText());
+                    std::move(queryPattern), std::move(op), scan->getProfileText());
         }
     }
     return nullptr;
@@ -329,9 +325,15 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
                     }
                 }
             }
+            std::unique_ptr<RamOperation> op = 
+                  std::unique_ptr<RamOperation>(filter->getOperation().clone());
+            if (!isRamTrue(condition.get())) {
+                op = std::make_unique<RamFilter>(
+                          std::move(condition), 
+                          std::move(op));
+            }
             return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
-                    std::move(queryPattern), constructFilter(condition, filter->getOperation().clone()),
-                    iscan->getProfileText());
+                    std::move(queryPattern), std::move(op), iscan->getProfileText());
         }
     }
     return nullptr;
