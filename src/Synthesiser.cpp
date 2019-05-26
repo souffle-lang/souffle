@@ -1686,7 +1686,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         // -- safety net --
 
         void visitUndefValue(const RamUndefValue& undef, std::ostream& /*out*/) override {
-		std::cout << "Hit\n"; 
+            std::cout << "Hit\n";
             // assert(false && "Compilation error");
         }
 

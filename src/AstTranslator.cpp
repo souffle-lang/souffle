@@ -265,7 +265,7 @@ std::unique_ptr<RamExpression> AstTranslator::translateValue(
         }
 
         std::unique_ptr<RamExpression> visitUnnamedVariable(const AstUnnamedVariable& var) override {
-            return nullptr;  // utilised to identify _ values
+            return std::make_unique<RamUndefValue>();
         }
 
         std::unique_ptr<RamExpression> visitConstant(const AstConstant& c) override {

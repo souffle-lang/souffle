@@ -257,19 +257,19 @@ protected:
     std::vector<std::unique_ptr<RamExpression>> queryPattern;
 
     void printIndex(std::ostream& os) const {
-	bool first = true; 
+        bool first = true;
         for (unsigned int i = 0; i < queryPattern.size(); ++i) {
-           if (nullptr == dynamic_cast<const RamUndefValue *>(queryPattern[i].get())) {
-	         if(first) {
-	            os << " ON INDEX "; 
-		    first = false;
-	          } else {
-		    os << " AND ";
-	         }
-	        os << "t" << getTupleId() << ".";
-	        os << getRelation().getArg(i) << " = "; 
-		os << *queryPattern[i]; 
-           } 
+            if (nullptr == dynamic_cast<const RamUndefValue*>(queryPattern[i].get())) {
+                if (first) {
+                    os << " ON INDEX ";
+                    first = false;
+                } else {
+                    os << " AND ";
+                }
+                os << "t" << getTupleId() << ".";
+                os << getRelation().getArg(i) << " = ";
+                os << *queryPattern[i];
+            }
         }
     }
 
@@ -297,7 +297,7 @@ public:
         const RamRelation& rel = getRelation();
         os << times(" ", tabpos);
         os << "SEARCH " << rel.getName() << " AS t" << getTupleId();
-	printIndex(os);
+        printIndex(os);
         os << std::endl;
         RamIndexRelationSearch::print(os, tabpos + 1);
     }
@@ -450,7 +450,7 @@ public:
         const RamRelation& rel = getRelation();
         os << times(" ", tabpos);
         os << "CHOICE " << rel.getName() << " AS t" << getTupleId();
-	printIndex(os);
+        printIndex(os);
         os << " WHERE " << getCondition();
         os << std::endl;
         RamIndexRelationSearch::print(os, tabpos + 1);
@@ -515,7 +515,7 @@ public:
         const RamRelation& rel = getRelation();
         os << times(" ", tabpos);
         os << "PARALLEL CHOICE " << rel.getName() << " AS t" << getTupleId();
-        printIndex(os); 
+        printIndex(os);
         os << " WHERE " << getCondition();
         os << std::endl;
         RamIndexRelationSearch::print(os, tabpos + 1);
@@ -683,7 +683,7 @@ public:
             os << *expression << " ";
         }
         os << " SEARCH t" << getTupleId() << " ∈ " << getRelation().getName();
-	printIndex(os);
+        printIndex(os);
         if (condition != nullptr) {
             os << " WHERE " << getCondition();
         }
