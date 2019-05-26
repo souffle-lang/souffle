@@ -234,10 +234,10 @@ protected:
         auto arity = exists.getRelation().getArity();
         std::string types;
         for (size_t i = 0; i < arity; ++i) {
-            if (values[i]) {
+            if (!isRamUndefValue(values[i])) {
                 visit(values[i], exitAddress);
             }
-            types += (values[i] == nullptr ? "_" : "V");
+            types += (isRamUndefValue(values[i]) ? "_" : "V");
         }
         code->push_back(LVM_ExistenceCheck);
         code->push_back(symbolTable.lookup(exists.getRelation().getName()));
@@ -251,10 +251,10 @@ protected:
         auto arity = provExists.getRelation().getArity();
         std::string types;
         for (size_t i = 0; i < arity - 2; ++i) {
-            if (values[i]) {
+            if (!isRamUndefValue(values[i])) {
                 visit(values[i], exitAddress);
             }
-            types += (values[i] == nullptr ? "_" : "V");
+            types += (isRamUndefValue(values[i]) ? "_" : "V");
         }
         code->push_back(LVM_ProvenanceExistenceCheck);
         code->push_back(symbolTable.lookup(provExists.getRelation().getName()));
@@ -451,10 +451,8 @@ protected:
         for (size_t i = 0; i < arity; i++) {
             if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
-                types += "V";
-            } else {
-                types += "_";
             }
+            types += (isRamUndefValue(patterns[i]) ? "_" : "V");
         }
 
         // Init range index based on pattern
@@ -627,10 +625,10 @@ protected:
         std::string types;
         auto arity = aggregate.getRelation().getArity();
         for (size_t i = 0; i < arity; i++) {
-            if (patterns[i]) {
+            if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
             }
-            types += (patterns[i] == nullptr ? "_" : "V");
+            types += (isRamUndefValue(patterns[i]) ? "_" : "V");
         }
 
         // Init range index based on pattern

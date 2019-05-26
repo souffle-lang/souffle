@@ -327,9 +327,9 @@ bool RAMI::evalCond(const RamCondition& cond, const InterpreterContext& ctxt) {
             if (interpreter.isa->isTotalSignature(&exists)) {
                 RamDomain tuple[arity];
                 for (size_t i = 0; i < arity; i++) {
-                    tuple[i] = (values[i]) ? interpreter.evalExpr(*values[i], ctxt) : MIN_RAM_DOMAIN;
+                    assert(!isRamUndefValue(values[i]) && "Value in index is undefined");
+                    tuple[i] = interpreter.evalExpr(*values[i], ctxt);
                 }
-
                 return rel.exists(tuple);
             }
 
@@ -337,8 +337,8 @@ bool RAMI::evalCond(const RamCondition& cond, const InterpreterContext& ctxt) {
             RamDomain low[arity];
             RamDomain high[arity];
             for (size_t i = 0; i < arity; i++) {
-                low[i] = (values[i]) ? interpreter.evalExpr(*values[i], ctxt) : MIN_RAM_DOMAIN;
-                high[i] = (values[i]) ? low[i] : MAX_RAM_DOMAIN;
+                low[i] = !isRamUndefValue(values[i]) ? interpreter.evalExpr(*values[i], ctxt) : MIN_RAM_DOMAIN;
+                high[i] = !isRamUndefValue(values[i]) ? low[i] : MAX_RAM_DOMAIN;
             }
 
             // obtain index
@@ -358,8 +358,8 @@ bool RAMI::evalCond(const RamCondition& cond, const InterpreterContext& ctxt) {
             RamDomain low[arity];
             RamDomain high[arity];
             for (size_t i = 0; i < arity - 2; i++) {
-                low[i] = (values[i]) ? interpreter.evalExpr(*values[i], ctxt) : MIN_RAM_DOMAIN;
-                high[i] = (values[i]) ? low[i] : MAX_RAM_DOMAIN;
+                low[i] = !isRamUndefValue(values[i]) ? interpreter.evalExpr(*values[i], ctxt) : MIN_RAM_DOMAIN;
+                high[i] = !isRamUndefValue(values[i]) ? low[i] : MAX_RAM_DOMAIN;
             }
 
             low[arity - 2] = MIN_RAM_DOMAIN;
@@ -497,7 +497,7 @@ void RAMI::evalOp(const RamOperation& op, const InterpreterContext& args) {
             RamDomain hig[arity];
             auto pattern = scan.getRangePattern();
             for (size_t i = 0; i < arity; i++) {
-                if (pattern[i] != nullptr) {
+                if (!isRamUndefValue(pattern[i])) {
                     low[i] = interpreter.evalExpr(*pattern[i], ctxt);
                     hig[i] = low[i];
                 } else {
@@ -548,7 +548,7 @@ void RAMI::evalOp(const RamOperation& op, const InterpreterContext& args) {
             RamDomain hig[arity];
             auto pattern = choice.getRangePattern();
             for (size_t i = 0; i < arity; i++) {
-                if (pattern[i] != nullptr) {
+                if (!isRamUndefValue(pattern[i])) {
                     low[i] = interpreter.evalExpr(*pattern[i], ctxt);
                     hig[i] = low[i];
                 } else {
@@ -697,7 +697,7 @@ void RAMI::evalOp(const RamOperation& op, const InterpreterContext& args) {
             RamDomain hig[arity];
 
             for (size_t i = 0; i < arity; i++) {
-                if (pattern[i] != nullptr) {
+                if (!isRamUndefValue(pattern[i])) {
                     low[i] = interpreter.evalExpr(*pattern[i], ctxt);
                     hig[i] = low[i];
                 } else {
