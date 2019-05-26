@@ -403,10 +403,10 @@ protected:
         std::string types;
         auto arity = scan.getRelation().getArity();
         for (size_t i = 0; i < arity; i++) {
-            if (patterns[i]) {
+            if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
             }
-            types += (patterns[i] == nullptr ? "_" : "V");
+            types += (isRamUndefValue(patterns[i]) ? "_" : "V");
         }
 
         // Init range index based on pattern
@@ -449,7 +449,7 @@ protected:
         std::string types;
         auto arity = indexChoice.getRelation().getArity();
         for (size_t i = 0; i < arity; i++) {
-            if (patterns[i] != nullptr) {
+            if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
                 types += "V";
             } else {

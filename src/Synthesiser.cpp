@@ -675,7 +675,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             out << "const Tuple<RamDomain," << arity << "> key({{";
             for (size_t i = 0; i < arity; i++) {
-                if (rangePattern[i] != nullptr) {
+                if (!isRamUndefValue(rangePattern[i])) {
                     visit(rangePattern[i], out);
                 } else {
                     out << "0";
@@ -716,7 +716,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             out << "const Tuple<RamDomain," << arity << "> key({{";
             for (size_t i = 0; i < arity; i++) {
-                if (rangePattern[i] != nullptr) {
+                if (!isRamUndefValue(rangePattern[i])) {
                     visit(rangePattern[i], out);
                 } else {
                     out << "0";
@@ -760,7 +760,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             out << "const Tuple<RamDomain," << arity << "> key({{";
             for (size_t i = 0; i < arity; i++) {
-                if (rangePattern[i] != nullptr) {
+                if (!isRamUndefValue(rangePattern[i])) {
                     visit(rangePattern[i], out);
                 } else {
                     out << "0";
@@ -810,7 +810,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             out << "const Tuple<RamDomain," << arity << "> key({{";
             for (size_t i = 0; i < arity; i++) {
-                if (rangePattern[i] != nullptr) {
+                if (!isRamUndefValue(rangePattern[i])) {
                     visit(rangePattern[i], out);
                 } else {
                     out << "0";
@@ -928,7 +928,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 // a lambda for printing boundary key values
                 auto printKeyTuple = [&]() {
                     for (size_t i = 0; i < arity; i++) {
-                        if (aggregate.getRangePattern()[i] != nullptr) {
+                        if (!isRamUndefValue(aggregate.getRangePattern()[i])) {
                             visit(aggregate.getRangePattern()[i], out);
                         } else {
                             out << "0";
@@ -1291,10 +1291,10 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "_" << isa->getSearchSignature(&exists);
             out << "(Tuple<RamDomain," << arity << ">({{";
             out << join(exists.getValues(), ",", [&](std::ostream& out, RamExpression* value) {
-                if (!value) {
-                    out << "0";
-                } else {
+                if (!isRamUndefValue(value)) {
                     visit(*value, out);
+                } else {
+                    out << "0";
                 }
             });
             out << "}})," << ctxName << ").empty()" << after;
@@ -1319,10 +1319,10 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "(Tuple<RamDomain," << arity << ">({{";
             for (size_t i = 0; i < provExists.getValues().size() - 1; i++) {
                 RamExpression* val = provExists.getValues()[i];
-                if (!val) {
-                    out << "0";
-                } else {
+                if (!isRamUndefValue(val)) {
                     visit(*val, out);
+                } else {
+                    out << "0";
                 }
                 out << ",";
             }
@@ -1686,7 +1686,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         // -- safety net --
 
         void visitUndefValue(const RamUndefValue& undef, std::ostream& /*out*/) override {
-            assert(false && "Compilation error");
+		std::cout << "Hit\n"; 
+            // assert(false && "Compilation error");
         }
 
         void visitNode(const RamNode& node, std::ostream& /*out*/) override {
