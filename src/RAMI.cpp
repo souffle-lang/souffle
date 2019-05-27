@@ -810,7 +810,7 @@ void RAMI::evalOp(const RamOperation& op, const InterpreterContext& args) {
         // -- return from subroutine --
         bool visitReturnValue(const RamReturnValue& ret) override {
             for (auto val : ret.getValues()) {
-                if (val == nullptr) {
+                if (isRamUndefValue(val)) {
                     ctxt.addReturnValue(0, true);
                 } else {
                     ctxt.addReturnValue(interpreter.evalExpr(*val, ctxt));

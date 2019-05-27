@@ -1601,7 +1601,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         void visitReturnValue(const RamReturnValue& ret, std::ostream& out) override {
             out << "std::lock_guard<std::mutex> guard(lock);\n";
             for (auto val : ret.getValues()) {
-                if (val == nullptr) {
+                if (isRamUndefValue(val)) {
                     out << "ret.push_back(0);\n";
                     out << "err.push_back(true);\n";
                 } else {
@@ -1686,8 +1686,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         // -- safety net --
 
         void visitUndefValue(const RamUndefValue& undef, std::ostream& /*out*/) override {
-            std::cout << "Hit\n";
-            // assert(false && "Compilation error");
+            assert(false && "Compilation error");
         }
 
         void visitNode(const RamNode& node, std::ostream& /*out*/) override {

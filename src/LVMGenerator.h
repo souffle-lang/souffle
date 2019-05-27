@@ -778,7 +778,7 @@ protected:
         auto expressions = ret.getValues();
         size_t size = expressions.size();
         for (int i = size - 1; i >= 0; --i) {
-            if (expressions[i] == nullptr) {
+            if (isRamUndefValue(expressions[i])) {
                 types += '_';
             } else {
                 types += 'V';

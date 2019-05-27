@@ -247,8 +247,9 @@ std::unique_ptr<RamRelationReference> AstTranslator::translateNewRelation(const 
 
 std::unique_ptr<RamExpression> AstTranslator::translateValue(
         const AstArgument* arg, const ValueIndex& index) {
-    if (arg == nullptr) {
-        return std::unique_ptr<RamExpression>();
+
+    if (arg == nullptr) { 
+	return nullptr;
     }
 
     class ValueTranslator : public AstVisitor<std::unique_ptr<RamExpression>> {
@@ -358,8 +359,8 @@ std::unique_ptr<RamCondition> AstTranslator::translateConstraint(
 
             // we don't care about the provenance columns when doing the existence check
             if (Global::config().has("provenance")) {
-                values.push_back(nullptr);
-                values.push_back(nullptr);
+                values.push_back(std::make_unique<RamUndefValue>());
+                values.push_back(std::make_unique<RamUndefValue>());
             }
 
             // add constraint
@@ -392,7 +393,7 @@ std::unique_ptr<RamCondition> AstTranslator::translateConstraint(
 
             // we don't care about the provenance columns when doing the existence check
             if (Global::config().has("provenance")) {
-                values.push_back(nullptr);
+                values.push_back(std::make_unique<RamUndefValue>());
                 // add the height annotation for provenanceNotExists
                 values.push_back(translator.translateValue(atom->getArgument(arity + 1), index));
             }
@@ -559,8 +560,8 @@ std::unique_ptr<RamOperation> AstTranslator::ClauseTranslator::createOperation(c
         }
 
         // add two unnamed args for provenance columns
-        values.push_back(nullptr);
-        values.push_back(nullptr);
+        values.push_back(std::make_unique<RamUndefValue>());
+        values.push_back(std::make_unique<RamUndefValue>());
 
         if (isVolatile) {
             return std::make_unique<RamFilter>(
@@ -1336,8 +1337,8 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
             }
 
             // fill up query with nullptrs for the provenance columns
-            query.push_back(nullptr);
-            query.push_back(nullptr);
+            query.push_back(std::make_unique<RamUndefValue>());
+            query.push_back(std::make_unique<RamUndefValue>());
 
             // ensure the length of query tuple is correct
             assert(query.size() == atom->getArity() && "wrong query tuple size");
@@ -1356,7 +1357,7 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
             // now, return the values of the atoms, with a separator
             // between atom number and atom
             std::vector<std::unique_ptr<RamExpression>> returnAtom;
-            returnAtom.push_back(nullptr);
+            returnAtom.push_back(std::make_unique<RamUndefValue>());
             // the actual atom
             for (size_t i = 0; i < atom->getArity() - 2; i++) {
                 returnAtom.push_back(translateValue(atom->getArgument(i), ValueIndex()));
@@ -1388,7 +1389,7 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
             // now, return the values of the literal, with a separator
             // between atom number and atom
             std::vector<std::unique_ptr<RamExpression>> returnLit;
-            returnLit.push_back(nullptr);
+            returnLit.push_back(std::make_unique<RamUndefValue>());
             // add return values for binary constraints and negations
             if (auto binaryConstraint = dynamic_cast<AstBinaryConstraint*>(con)) {
                 returnLit.push_back(translateValue(binaryConstraint->getLHS(), ValueIndex()));
