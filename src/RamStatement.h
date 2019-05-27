@@ -52,8 +52,7 @@ public:
  */
 class RamRelationStatement : public RamStatement {
 public:
-    RamRelationStatement(std::unique_ptr<RamRelationReference> relRef)
-            : RamStatement(), relationRef(std::move(relRef)) {}
+    RamRelationStatement(std::unique_ptr<RamRelationReference> relRef) : relationRef(std::move(relRef)) {}
 
     /** Get RAM relation */
     const RamRelation& getRelation() const {
@@ -94,13 +93,14 @@ public:
     };
 
     RamCreate* clone() const override {
-        auto* res = new RamCreate(std::unique_ptr<RamRelationReference>(relationRef->clone()));
-        return res;
+        return new RamCreate(std::unique_ptr<RamRelationReference>(relationRef->clone()));
     }
 };
 
 /**
  * Load data into a relation
+ *
+ * TODO (b-scholz): introduce an abstract class for load/store
  */
 class RamLoad : public RamRelationStatement {
 public:
@@ -123,13 +123,18 @@ public:
     };
 
     RamLoad* clone() const override {
-        auto* res = new RamLoad(std::unique_ptr<RamRelationReference>(relationRef->clone()), ioDirectives);
-        return res;
+        return new RamLoad(std::unique_ptr<RamRelationReference>(relationRef->clone()), ioDirectives);
     }
 
 protected:
     /** load directives of a relation */
     const std::vector<IODirectives> ioDirectives;
+
+    bool equal(const RamNode& node) const override {
+        assert(nullptr != dynamic_cast<const RamLoad*>(&node));
+        const auto& other = static_cast<const RamLoad&>(node);
+        return RamRelationStatement::equal(other) && getIODirectives() == other.getIODirectives();
+    }
 };
 
 /**
@@ -156,13 +161,18 @@ public:
     };
 
     RamStore* clone() const override {
-        auto* res = new RamStore(std::unique_ptr<RamRelationReference>(relationRef->clone()), ioDirectives);
-        return res;
+        return new RamStore(std::unique_ptr<RamRelationReference>(relationRef->clone()), ioDirectives);
     }
 
 protected:
     /** store directives of a relation */
     const std::vector<IODirectives> ioDirectives;
+
+    bool equal(const RamNode& node) const override {
+        assert(nullptr != dynamic_cast<const RamStore*>(&node));
+        const auto& other = static_cast<const RamStore&>(node);
+        return RamRelationStatement::equal(other) && getIODirectives() == other.getIODirectives();
+    }
 };
 
 /**
@@ -181,8 +191,7 @@ public:
     }
 
     RamClear* clone() const override {
-        auto* res = new RamClear(std::unique_ptr<RamRelationReference>(relationRef->clone()));
-        return res;
+        return new RamClear(std::unique_ptr<RamRelationReference>(relationRef->clone()));
     }
 };
 
@@ -201,19 +210,20 @@ public:
     }
 
     RamDrop* clone() const override {
-        auto* res = new RamDrop(std::unique_ptr<RamRelationReference>(relationRef->clone()));
-        return res;
+        return new RamDrop(std::unique_ptr<RamRelationReference>(relationRef->clone()));
     }
 };
 
 /**
  * Merge tuples from a source into target relation.
  * Note that semantically uniqueness of tuples is not checked.
+ *
+ * TODO (b-scholz): introduce an abstract class for Merge/Swap
  */
 class RamMerge : public RamStatement {
 public:
     RamMerge(std::unique_ptr<RamRelationReference> tRef, std::unique_ptr<RamRelationReference> sRef)
-            : RamStatement(), targetRef(std::move(tRef)), sourceRef(std::move(sRef)) {
+            : targetRef(std::move(tRef)), sourceRef(std::move(sRef)) {
         const RamRelation* source = sourceRef->get();
         const RamRelation* target = targetRef->get();
         assert(source->getArity() == target->getArity() && "mismatching relations");
@@ -276,7 +286,8 @@ protected:
 class RamSwap : public RamStatement {
 public:
     RamSwap(std::unique_ptr<RamRelationReference> f, std::unique_ptr<RamRelationReference> s)
-            : RamStatement(), first(std::move(f)), second(std::move(s)) {
+            : first(std::move(f)), second(std::move(s)) {
+        // check for type equivalence
         assert(first->get()->getArity() == second->get()->getArity() && "mismatching relations");
         for (size_t i = 0; i < first->get()->getArity(); i++) {
             assert(first->get()->getArgTypeQualifier(i) == second->get()->getArgTypeQualifier(i) &&
@@ -307,9 +318,8 @@ public:
     }
 
     RamSwap* clone() const override {
-        auto* res = new RamSwap(std::unique_ptr<RamRelationReference>(first->clone()),
+        return new RamSwap(std::unique_ptr<RamRelationReference>(first->clone()),
                 std::unique_ptr<RamRelationReference>(second->clone()));
-        return res;
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -391,7 +401,7 @@ protected:
  */
 class RamQuery : public RamStatement {
 public:
-    RamQuery(std::unique_ptr<RamOperation> o) : RamStatement(), operation(std::move(o)) {}
+    RamQuery(std::unique_ptr<RamOperation> o) : operation(std::move(o)) {}
 
     /** Get RAM operation */
     const RamOperation& getOperation() const {
@@ -409,9 +419,7 @@ public:
     }
 
     RamQuery* clone() const override {
-        RamQuery* res;
-        res = new RamQuery(std::unique_ptr<RamOperation>(operation->clone()));
-        return res;
+        return new RamQuery(std::unique_ptr<RamOperation>(operation->clone()));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -433,6 +441,9 @@ protected:
  * Sequence of RAM statements
  *
  * Execute statement one by one from an ordered list of statements.
+ *
+ * TODO (b-scholz): introduce an abstract class for sequence/loop
+ *
  */
 class RamSequence : public RamStatement {
 public:
@@ -574,15 +585,15 @@ protected:
  */
 class RamLoop : public RamStatement {
 public:
-    RamLoop(std::unique_ptr<RamStatement> b) : RamStatement(), body(std::move(b)) {}
+    RamLoop(std::unique_ptr<RamStatement> b) : body(std::move(b)) {}
 
     template <typename... Stmts>
     RamLoop(std::unique_ptr<RamStatement> f, std::unique_ptr<RamStatement> s, std::unique_ptr<Stmts>... rest)
-            : RamStatement(),
-              body(std::make_unique<RamSequence>(std::move(f), std::move(s), std::move(rest)...)) {}
+            : body(std::make_unique<RamSequence>(std::move(f), std::move(s), std::move(rest)...)) {}
 
     /** Get loop body */
     const RamStatement& getBody() const {
+        assert(body != nullptr && "Loop body is a null-pointer");
         return *body;
     }
 
@@ -597,8 +608,7 @@ public:
     }
 
     RamLoop* clone() const override {
-        auto* res = new RamLoop(std::unique_ptr<RamStatement>(body->clone()));
-        return res;
+        return new RamLoop(std::unique_ptr<RamStatement>(body->clone()));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -612,7 +622,7 @@ protected:
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamLoop*>(&node));
         const auto& other = static_cast<const RamLoop&>(node);
-        return *body == *other.body;
+        return getBody() == other.getBody();
     }
 };
 
@@ -623,7 +633,7 @@ protected:
  */
 class RamExit : public RamStatement {
 public:
-    RamExit(std::unique_ptr<RamCondition> c) : RamStatement(), condition(std::move(c)) {}
+    RamExit(std::unique_ptr<RamCondition> c) : condition(std::move(c)) {}
 
     /** Get exit condition */
     const RamCondition& getCondition() const {
@@ -640,8 +650,7 @@ public:
     }
 
     RamExit* clone() const override {
-        auto* res = new RamExit(std::unique_ptr<RamCondition>(condition->clone()));
-        return res;
+        return new RamExit(std::unique_ptr<RamCondition>(condition->clone()));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -655,7 +664,71 @@ protected:
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamExit*>(&node));
         const auto& other = static_cast<const RamExit&>(node);
-        return *condition == *other.condition;
+        return getCondition() == other.getCondition();
+    }
+};
+
+/**
+ * Execution time logger for a statement
+ *
+ * Logs the execution time of a statement. Before and after
+ * the execution of the logging statement the wall-clock time
+ * is taken to compute the time duration for the statement.
+ * Duration and logging message is printed after the execution
+ * of the statement.
+ */
+class RamLogRelationTimer : public RamRelationStatement {
+public:
+    RamLogRelationTimer(
+            std::unique_ptr<RamStatement> stmt, std::string msg, std::unique_ptr<RamRelationReference> relRef)
+            : RamRelationStatement(std::move(relRef)), statement(std::move(stmt)), message(std::move(msg)) {}
+
+    /** get logging message */
+    const std::string& getMessage() const {
+        return message;
+    }
+
+    /** get logging statement */
+    const RamStatement& getStatement() const {
+        assert(statement);
+        return *statement;
+    }
+
+    void print(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "START_TIMER ON " << getRelation().getName() << " \""
+           << stringify(message) << "\"" << std::endl;
+        statement->print(os, tabpos + 1);
+        os << times(" ", tabpos) << "END_TIMER" << std::endl;
+    }
+
+    std::vector<const RamNode*> getChildNodes() const override {
+        std::vector<const RamNode*> res = RamRelationStatement::getChildNodes();
+        res.push_back(statement.get());
+        return res;
+    }
+
+    RamLogRelationTimer* clone() const override {
+        return new RamLogRelationTimer(std::unique_ptr<RamStatement>(statement->clone()), message,
+                std::unique_ptr<RamRelationReference>(relationRef->clone()));
+    }
+
+    void apply(const RamNodeMapper& map) override {
+        RamRelationStatement::apply(map);
+        statement = map(std::move(statement));
+    }
+
+protected:
+    /** logging statement */
+    std::unique_ptr<RamStatement> statement;
+
+    /** logging message */
+    std::string message;
+
+    bool equal(const RamNode& node) const override {
+        assert(nullptr != dynamic_cast<const RamLogRelationTimer*>(&node));
+        const auto& other = static_cast<const RamLogRelationTimer&>(node);
+        return RamRelationStatement::equal(other) && getStatement() == other.getStatement() &&
+               getMessage() == other.getMessage();
     }
 };
 
@@ -670,10 +743,8 @@ protected:
  */
 class RamLogTimer : public RamStatement {
 public:
-    RamLogTimer(
-            std::unique_ptr<RamStatement> stmt, std::string msg, std::unique_ptr<RamRelationReference> relRef)
-            : RamStatement(), statement(std::move(stmt)), message(std::move(msg)),
-              relationRef(std::move(relRef)) {
+    RamLogTimer(std::unique_ptr<RamStatement> stmt, std::string msg)
+            : statement(std::move(stmt)), message(std::move(msg)) {
         assert(statement);
     }
 
@@ -688,15 +759,6 @@ public:
         return *statement;
     }
 
-    /** get logged relation */
-    const RamRelation* getRelation() const {
-        if (relationRef != nullptr) {
-            return relationRef->get();
-        } else {
-            return nullptr;
-        }
-    }
-
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos) << "START_TIMER \"" << stringify(message) << "\"" << std::endl;
         statement->print(os, tabpos + 1);
@@ -708,9 +770,7 @@ public:
     }
 
     RamLogTimer* clone() const override {
-        auto* res = new RamLogTimer(std::unique_ptr<RamStatement>(statement->clone()), message,
-                std::unique_ptr<RamRelationReference>(relationRef->clone()));
-        return res;
+        return new RamLogTimer(std::unique_ptr<RamStatement>(statement->clone()), message);
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -730,7 +790,7 @@ protected:
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamLogTimer*>(&node));
         const auto& other = static_cast<const RamLogTimer&>(node);
-        return *statement == *other.statement && message == other.message;
+        return getStatement() == other.getStatement() && getMessage() == other.getMessage();
     }
 };
 
@@ -740,7 +800,7 @@ protected:
 class RamDebugInfo : public RamStatement {
 public:
     RamDebugInfo(std::unique_ptr<RamStatement> stmt, std::string msg)
-            : RamStatement(), statement(std::move(stmt)), message(std::move(msg)) {
+            : statement(std::move(stmt)), message(std::move(msg)) {
         assert(statement);
     }
 
@@ -766,8 +826,7 @@ public:
     }
 
     RamDebugInfo* clone() const override {
-        auto* res = new RamDebugInfo(std::unique_ptr<RamStatement>(statement->clone()), message);
-        return res;
+        return new RamDebugInfo(std::unique_ptr<RamStatement>(statement->clone()), message);
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -795,10 +854,11 @@ protected:
  */
 class RamStratum : public RamStatement {
 public:
-    RamStratum(std::unique_ptr<RamStatement> b, const int i) : RamStatement(), body(std::move(b)), index(i) {}
+    RamStratum(std::unique_ptr<RamStatement> b, const int i) : body(std::move(b)), index(i) {}
 
     /** Get stratum body */
     const RamStatement& getBody() const {
+        assert(body != nullptr && "Body of stratum is a null-pointer");
         return *body;
     }
 
@@ -820,8 +880,7 @@ public:
     }
 
     RamStratum* clone() const override {
-        auto* res = new RamStratum(std::unique_ptr<RamStatement>(body->clone()), index);
-        return res;
+        return new RamStratum(std::unique_ptr<RamStatement>(body->clone()), index);
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -838,7 +897,7 @@ protected:
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamStratum*>(&node));
         const auto& other = static_cast<const RamStratum&>(node);
-        return *body == *other.body && index == other.index;
+        return getBody() == other.getBody() && getIndex() == other.getIndex();
     }
 };
 
@@ -863,8 +922,7 @@ public:
     }
 
     RamLogSize* clone() const override {
-        auto* res = new RamLogSize(std::unique_ptr<RamRelationReference>(relationRef->clone()), message);
-        return res;
+        return new RamLogSize(std::unique_ptr<RamRelationReference>(relationRef->clone()), message);
     }
 
 protected:
@@ -874,8 +932,7 @@ protected:
     bool equal(const RamNode& node) const override {
         assert(nullptr != dynamic_cast<const RamLogSize*>(&node));
         const auto& other = static_cast<const RamLogSize&>(node);
-        RamRelationStatement::equal(other);
-        return getMessage() == other.getMessage();
+        return RamRelationStatement::equal(other) && getMessage() == other.getMessage();
     }
 };
 
@@ -979,7 +1036,7 @@ protected:
 
 class RamWait : public RamStatement {
 public:
-    RamWait(const size_t c) : RamStatement(), count(c) {}
+    RamWait(const size_t c) : count(c) {}
 
     /** Get count of termination signals required. */
     const int getCount() const {

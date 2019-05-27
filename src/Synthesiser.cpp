@@ -495,6 +495,26 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_END_COMMENT(out);
         }
 
+        void visitLogRelationTimer(const RamLogRelationTimer& timer, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            // create local scope for name resolution
+            out << "{\n";
+
+            const std::string ext = fileExtension(Global::config().get("profile"));
+
+            const auto& rel = timer.getRelation();
+            auto relName = synthesiser.getRelationName(rel);
+
+            out << "\tLogger logger(R\"_(" << timer.getMessage() << ")_\",iter, [&](){return " << relName
+                << "->size();});\n";
+            // insert statement to be measured
+            visit(timer.getStatement(), out);
+
+            // done
+            out << "}\n";
+            PRINT_END_COMMENT(out);
+        }
+
         void visitLogTimer(const RamLogTimer& timer, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
             // create local scope for name resolution
@@ -503,15 +523,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             const std::string ext = fileExtension(Global::config().get("profile"));
 
             // create local timer
-            if (timer.getRelation() == nullptr) {
-                out << "\tLogger logger(R\"_(" << timer.getMessage() << ")_\",iter);\n";
-            } else {
-                const auto& rel = *timer.getRelation();
-                auto relName = synthesiser.getRelationName(rel);
-
-                out << "\tLogger logger(R\"_(" << timer.getMessage() << ")_\",iter, [&](){return " << relName
-                    << "->size();});\n";
-            }
+            out << "\tLogger logger(R\"_(" << timer.getMessage() << ")_\",iter);\n";
             // insert statement to be measured
             visit(timer.getStatement(), out);
 

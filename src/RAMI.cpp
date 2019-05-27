@@ -893,16 +893,16 @@ void RAMI::evalStmt(const RamStatement& stmt, const InterpreterContext& args) {
             return !interpreter.evalCond(exit.getCondition(), ctxt);
         }
 
+        bool visitLogRelationTimer(const RamLogRelationTimer& timer) override {
+            const InterpreterRelation& rel = interpreter.getRelation(timer.getRelation());
+            Logger logger(timer.getMessage().c_str(), interpreter.getIterationNumber(),
+                    std::bind(&InterpreterRelation::size, &rel));
+            return visit(timer.getStatement());
+        }
+
         bool visitLogTimer(const RamLogTimer& timer) override {
-            if (timer.getRelation() == nullptr) {
-                Logger logger(timer.getMessage().c_str(), interpreter.getIterationNumber());
-                return visit(timer.getStatement());
-            } else {
-                const InterpreterRelation& rel = interpreter.getRelation(*timer.getRelation());
-                Logger logger(timer.getMessage().c_str(), interpreter.getIterationNumber(),
-                        std::bind(&InterpreterRelation::size, &rel));
-                return visit(timer.getStatement());
-            }
+            Logger logger(timer.getMessage().c_str(), interpreter.getIterationNumber());
+            return visit(timer.getStatement());
         }
 
         bool visitDebugInfo(const RamDebugInfo& dbg) override {

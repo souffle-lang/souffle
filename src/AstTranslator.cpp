@@ -923,7 +923,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateNonRecursiveRelation(
                     LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
             const std::string logSizeStatement =
                     LogStatement::nNonrecursiveRule(relationName, srcLocation, clauseText);
-            rule = std::make_unique<RamSequence>(std::make_unique<RamLogTimer>(std::move(rule),
+            rule = std::make_unique<RamSequence>(std::make_unique<RamLogRelationTimer>(std::move(rule),
                     logTimerStatement, std::unique_ptr<RamRelationReference>(rrel->clone())));
         }
 
@@ -947,7 +947,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateNonRecursiveRelation(
         if (res) {
             const std::string logTimerStatement =
                     LogStatement::tNonrecursiveRelation(relationName, srcLocation);
-            res = std::make_unique<RamLogTimer>(
+            res = std::make_unique<RamLogRelationTimer>(
                     std::move(res), logTimerStatement, std::unique_ptr<RamRelationReference>(rrel->clone()));
         } else {
             // add table size printer
@@ -1031,7 +1031,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
 
         /* measure update time for each relation */
         if (Global::config().has("profile")) {
-            updateRelTable = std::make_unique<RamLogTimer>(std::move(updateRelTable),
+            updateRelTable = std::make_unique<RamLogRelationTimer>(std::move(updateRelTable),
                     LogStatement::cRecursiveRelation(toString(rel->getName()), rel->getSrcLoc()),
                     std::unique_ptr<RamRelationReference>(relNew[rel]->clone()));
         }
@@ -1057,7 +1057,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
 
     // --- build main loop ---
 
-    std::unique_ptr<RamParallel> loopSeq(new RamParallel());
+    std::unique_ptr<RamSequence> loopSeq(new RamSequence());
 
     // create a utility to check SCC membership
     auto isInSameSCC = [&](const AstRelation* rel) {
@@ -1127,8 +1127,9 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
                             LogStatement::tRecursiveRule(relationName, version, srcLocation, clauseText);
                     const std::string logSizeStatement =
                             LogStatement::nRecursiveRule(relationName, version, srcLocation, clauseText);
-                    rule = std::make_unique<RamSequence>(std::make_unique<RamLogTimer>(std::move(rule),
-                            logTimerStatement, std::unique_ptr<RamRelationReference>(relNew[rel]->clone())));
+                    rule = std::make_unique<RamSequence>(
+                            std::make_unique<RamLogRelationTimer>(std::move(rule), logTimerStatement,
+                                    std::unique_ptr<RamRelationReference>(relNew[rel]->clone())));
                 }
 
                 // add debug info
@@ -1157,7 +1158,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
             const SrcLocation& srcLocation = rel->getSrcLoc();
             const std::string logTimerStatement = LogStatement::tRecursiveRelation(relationName, srcLocation);
             const std::string logSizeStatement = LogStatement::nRecursiveRelation(relationName, srcLocation);
-            loopRelSeq = std::make_unique<RamLogTimer>(std::move(loopRelSeq), logTimerStatement,
+            loopRelSeq = std::make_unique<RamLogRelationTimer>(std::move(loopRelSeq), logTimerStatement,
                     std::unique_ptr<RamRelationReference>(relNew[rel]->clone()));
         }
 
@@ -1451,7 +1452,7 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
         if (Global::config().has("profile")) {
             const std::string logTimerStatement =
                     LogStatement::tRelationLoadTime(toString(relation->getName()), relation->getSrcLoc());
-            statement = std::make_unique<RamLogTimer>(std::move(statement), logTimerStatement,
+            statement = std::make_unique<RamLogRelationTimer>(std::move(statement), logTimerStatement,
                     std::unique_ptr<RamRelationReference>(translateRelation(relation)));
         }
         appendStmt(current, std::move(statement));
@@ -1466,7 +1467,7 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
         if (Global::config().has("profile")) {
             const std::string logTimerStatement =
                     LogStatement::tRelationSaveTime(toString(relation->getName()), relation->getSrcLoc());
-            statement = std::make_unique<RamLogTimer>(std::move(statement), logTimerStatement,
+            statement = std::make_unique<RamLogRelationTimer>(std::move(statement), logTimerStatement,
                     std::unique_ptr<RamRelationReference>(translateRelation(relation)));
         }
         appendStmt(current, std::move(statement));
@@ -1699,7 +1700,7 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
 
     // add main timer if profiling
     if (res && Global::config().has("profile")) {
-        res = std::make_unique<RamLogTimer>(std::move(res), LogStatement::runtime(), nullptr);
+        res = std::make_unique<RamLogTimer>(std::move(res), LogStatement::runtime());
     }
 
     // done for main prog
