@@ -66,7 +66,7 @@ protected:
             return nullptr;
         }
         // Handle Windows line endings on non-Windows systems
-        if (line.back() == '\r') {
+        if (!line.empty() && line.back() == '\r') {
             line = line.substr(0, line.length() - 1);
         }
         ++lineNumber;
@@ -90,7 +90,7 @@ protected:
                 continue;
             }
             ++columnsFilled;
-            if (symbolMask.at(column)) {
+            if (symbolMask.at(inputMap[column])) {
                 tuple[inputMap[column]] = symbolTable.unsafeLookup(element);
             } else {
                 try {
