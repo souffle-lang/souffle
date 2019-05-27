@@ -247,9 +247,8 @@ std::unique_ptr<RamRelationReference> AstTranslator::translateNewRelation(const 
 
 std::unique_ptr<RamExpression> AstTranslator::translateValue(
         const AstArgument* arg, const ValueIndex& index) {
-
-    if (arg == nullptr) { 
-	return nullptr;
+    if (arg == nullptr) {
+        return nullptr;
     }
 
     class ValueTranslator : public AstVisitor<std::unique_ptr<RamExpression>> {
