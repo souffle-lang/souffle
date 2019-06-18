@@ -195,14 +195,14 @@
 \#.*$                                 {
                                         char fname[yyleng+1];
                                         int lineno;
-                                        if(sscanf(yytext,"# %d \"%s",&lineno,fname)>=2) {
+                                        if(sscanf(yytext,"# %d \"%[^\"]",&lineno,fname)>=2) {
                                           assert(strlen(fname) > 0 && "failed conversion");
-                                          fname[strlen(fname)-1]='\0';
+                                          fname[strlen(fname)]='\0';
                                           yycolumn = 1; yylineno = lineno-1;
                                           yyfilename = SLOOKUP(fname);
-                                        } else if(sscanf(yytext,"#line %d \"%s",&lineno,fname)>=2) {
+                                        } else if(sscanf(yytext,"#line %d \"%[^\"]",&lineno,fname)>=2) {
                                           assert(strlen(fname) > 0 && "failed conversion");
-                                          fname[strlen(fname)-1]='\0';
+                                          fname[strlen(fname)]='\0';
                                           yycolumn = 1; yylineno = lineno-1;
                                           yyfilename = SLOOKUP(fname);
                                         }
