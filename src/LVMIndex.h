@@ -63,7 +63,7 @@ class TupleRef {
     const RamDomain* base{};
 
     // The size of the tuple.
-    std::size_t arity;
+    std::size_t arity{};
 
 public:
     TupleRef() = default;
@@ -264,7 +264,7 @@ public:
         Stream* stream = nullptr;
 
     public:
-        Iterator() : stream(nullptr) {}
+        Iterator() {}
 
         Iterator(Stream& stream) : stream(&stream) {
             if (stream.cur >= stream.limit) {
