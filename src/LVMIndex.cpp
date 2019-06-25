@@ -180,7 +180,8 @@ class GenericIndex : public LVMIndex {
         std::array<Entry, Stream::BUFFER_SIZE> buffer;
 
     public:
-        Source(const Order& order, iter begin, iter end) : order(std::move(order)), cur(std::move(begin)), end(std::move(end)) {}
+        Source(const Order& order, iter begin, iter end)
+                : order(std::move(order)), cur(std::move(begin)), end(std::move(end)) {}
 
         int load(TupleRef* out, int max) override {
             int c = 0;
