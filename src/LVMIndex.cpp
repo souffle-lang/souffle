@@ -83,7 +83,7 @@ std::ostream& operator<<(std::ostream& out, const Order& order) {
  */
 class NullaryIndex : public LVMIndex {
     // indicates whether the one single element is present or not.
-    bool present;
+    bool present = false;
 
     // a source adaptation, iterating through the optionally present
     // entry in this relation.
@@ -180,7 +180,7 @@ class GenericIndex : public LVMIndex {
         std::array<Entry, Stream::BUFFER_SIZE> buffer;
 
     public:
-        Source(const Order& order, iter begin, iter end) : order(order), cur(begin), end(end) {}
+        Source(const Order& order, iter begin, iter end) : order(std::move(order)), cur(std::move(begin)), end(std::move(end)) {}
 
         int load(TupleRef* out, int max) override {
             int c = 0;

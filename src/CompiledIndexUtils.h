@@ -1077,7 +1077,7 @@ public:
         nested_iterator nested;
 
         // the value currently pointed to
-        tuple_type value;
+        tuple_type value{};
 
     public:
         // default constructor -- creating an end-iterator

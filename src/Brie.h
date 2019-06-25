@@ -384,7 +384,7 @@ private:
      * Obtains a snapshot of the current root information.
      */
     RootInfoSnapshot getRootInfo() const {
-        RootInfoSnapshot res;
+        RootInfoSnapshot res{};
         do {
             // first take the mod counter
             do {
@@ -458,7 +458,7 @@ private:
      * Obtains a snapshot of the current first-node information.
      */
     FirstInfoSnapshot getFirstInfo() const {
-        FirstInfoSnapshot res;
+        FirstInfoSnapshot res{};
         do {
             // first take the version
             do {
@@ -1562,7 +1562,7 @@ public:
         uint64_t mask = 0;
 
         // the value currently pointed to
-        index_type value;
+        index_type value{};
 
     public:
         // default constructor -- creating an end-iterator
@@ -1824,7 +1824,7 @@ public:
         iter_core_t iter_core;
 
         // the value currently pointed to
-        entry_type value;
+        entry_type value{};
 
     public:
         // default constructor -- creating an end-iterator

@@ -18,6 +18,7 @@
 #include "BTree.h"
 #include "Brie.h"
 #include "Util.h"
+#include <utility>
 
 namespace souffle {
 
