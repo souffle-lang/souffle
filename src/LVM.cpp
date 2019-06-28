@@ -804,7 +804,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
             case LVM_Stratum: {
                 this->level++;
                 // Record all the rleation that is created in the previous level
-                if (profile || this->level != 0) {
+                if (profile && this->level != 0) {
                     for (const auto& rel : relationEncoder.getRelationMap()) {
                         if (rel == nullptr) {
                             continue;
