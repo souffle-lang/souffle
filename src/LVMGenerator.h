@@ -324,16 +324,24 @@ protected:
         auto values = exists.getValues();
         auto arity = exists.getRelation().getArity();
         std::string types;
+        bool emptinessCheck = true;
         for (size_t i = 0; i < arity; ++i) {
             if (!isRamUndefValue(values[i])) {
                 visit(values[i], exitAddress);
+                emptinessCheck = false;
             }
             types += (isRamUndefValue(values[i]) ? "_" : "V");
         }
-        code->push_back(LVM_ExistenceCheck);
-        code->push_back(relationEncoder.encodeRelation(exists.getRelation()));
-        code->push_back(symbolTable.lookup(types));
-        code->push_back(getIndexPos(exists));
+        if (emptinessCheck == true) {
+            code->push_back(LVM_EmptinessCheck);
+            code->push_back(relationEncoder.encodeRelation(exists.getRelation()));
+            code->push_back(LVM_Negation);
+        } else {
+            code->push_back(LVM_ExistenceCheck);
+            code->push_back(relationEncoder.encodeRelation(exists.getRelation()));
+            code->push_back(symbolTable.lookup(types));
+            code->push_back(getIndexPos(exists));
+        }
     }
 
     void visitProvenanceExistenceCheck(
@@ -352,6 +360,7 @@ protected:
         if (emptinessCheck == true) {
             code->push_back(LVM_EmptinessCheck);
             code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
+            code->push_back(LVM_Negation);
         } else {
             code->push_back(LVM_ProvenanceExistenceCheck);
             code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
