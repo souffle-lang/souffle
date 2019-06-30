@@ -341,16 +341,23 @@ protected:
         auto values = provExists.getValues();
         auto arity = provExists.getRelation().getArity();
         std::string types;
+        bool emptinessCheck = true;
         for (size_t i = 0; i < arity - 2; ++i) {
             if (!isRamUndefValue(values[i])) {
                 visit(values[i], exitAddress);
+                emptinessCheck = false;
             }
             types += (isRamUndefValue(values[i]) ? "_" : "V");
         }
-        code->push_back(LVM_ProvenanceExistenceCheck);
-        code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
-        code->push_back(symbolTable.lookup(types));
-        code->push_back(getIndexPos(provExists));
+        if (emptinessCheck == true) {
+            code->push_back(LVM_EmptinessCheck);
+            code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
+        } else {
+            code->push_back(LVM_ProvenanceExistenceCheck);
+            code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
+            code->push_back(symbolTable.lookup(types));
+            code->push_back(getIndexPos(provExists));
+        }
     }
 
     void visitConstraint(const RamConstraint& relOp, size_t exitAddress) override {
