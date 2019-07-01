@@ -79,6 +79,7 @@ enum LVM_Type {
     // LVM Conditions
     LVM_Conjunction,
     LVM_Negation,
+    LVM_ContainTuple,
     LVM_EmptinessCheck,
     LVM_ExistenceCheck,
     LVM_ProvenanceExistenceCheck,

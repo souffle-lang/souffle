@@ -567,48 +567,47 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += 2;
                 break;
             }
-            case LVM_ExistenceCheck: {
-                size_t relId = code[ip + 1];
-                const std::string& patterns = symbolTable.resolve(code[ip + 2]);
-                RamDomain indexPos = code[ip + 3];
-                const LVMRelation& rel = *getRelation(relId);
-                const std::string& relName = rel.getName();
-                size_t arity = rel.getArity();
-
-                if (profile && !(relName[0] == '@')) {
-                    this->reads[relName]++;
+            case LVM_ContainTuple: {
+                auto relPtr = getRelation(code[ip + 1]);
+                auto arity = relPtr->getArity();
+                RamDomain tuple[arity];
+                for (auto i = 0; i < arity; ++i) {
+                    tuple[i] = stack.top();
+                    stack.pop();
                 }
+                stack.push(relPtr->contains(TupleRef(tuple, arity)));
+                ip += 2;
+                break;
+            }
+            case LVM_ExistenceCheck: {
+                auto relPtr = getRelation(code[ip + 1]);
+                auto arity = relPtr->getArity();
+                auto indexPos = code[ip + 2];
 
-                // for total we use the exists test
-                if (patterns.find("_") == std::string::npos) {
-                    RamDomain tuple[arity];
-                    for (size_t i = 0; i < arity; i++) {
-                        tuple[arity - i - 1] = stack.top();
-                        stack.pop();
-                    }
-                    stack.push(rel.contains(TupleRef(tuple, arity)));
-                    ip += 4;
-                    break;
-                } else {  // for partial we search for lower and upper boundaries
-                    RamDomain low[arity];
-                    RamDomain high[arity];
-                    for (size_t i = 0; i < arity; i++) {
-                        if (patterns[arity - i - 1] == 'V') {
-                            low[arity - i - 1] = stack.top();
+                RamDomain low[arity];
+                RamDomain high[arity];
+                size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+                for (size_t i = 0; i < numOfTypeMasks; ++i) {
+                    RamDomain typeMask = code[ip + 3 + i];
+                    for (auto j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                        auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                        if (projectedIndex >= arity) {
+                            break;
+                        }
+                        if (1 << j & typeMask) {
+                            low[projectedIndex] = stack.top();
                             stack.pop();
-                            high[arity - i - 1] = low[arity - i - 1];
+                            high[projectedIndex] = low[projectedIndex];
                         } else {
-                            low[arity - i - 1] = MIN_RAM_DOMAIN;
-                            high[arity - i - 1] = MAX_RAM_DOMAIN;
+                            low[projectedIndex] = MIN_RAM_DOMAIN;
+                            high[projectedIndex] = MAX_RAM_DOMAIN;
                         }
                     }
-                    auto range = rel.range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
-
-                    stack.push(range.begin() != range.end());
-                    ip += 4;
-                    break;
                 }
+                auto range = relPtr->range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
+                stack.push(range.begin() != range.end());
 
+                ip += (3 + numOfTypeMasks);
                 break;
             }
             case LVM_ProvenanceExistenceCheck: {

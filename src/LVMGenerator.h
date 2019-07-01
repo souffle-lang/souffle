@@ -323,24 +323,40 @@ protected:
     void visitExistenceCheck(const RamExistenceCheck& exists, size_t exitAddress) override {
         auto values = exists.getValues();
         auto arity = exists.getRelation().getArity();
-        std::string types;
+        auto relId = relationEncoder.encodeRelation(exists.getRelation());
+        std::vector<int> typeMask(arity);
         bool emptinessCheck = true;
-        for (size_t i = 0; i < arity; ++i) {
+        bool fullExistenceCheck = true;
+        for (size_t i = arity; i-- > 0;) {
             if (!isRamUndefValue(values[i])) {
                 visit(values[i], exitAddress);
                 emptinessCheck = false;
+                typeMask[i] = 1;
+            } else {
+                fullExistenceCheck = false;
             }
-            types += (isRamUndefValue(values[i]) ? "_" : "V");
         }
+        // Empty type mask is equivalent to a non-emptiness check
         if (emptinessCheck == true) {
             code->push_back(LVM_EmptinessCheck);
-            code->push_back(relationEncoder.encodeRelation(exists.getRelation()));
+            code->push_back(relId);
             code->push_back(LVM_Negation);
-        } else {
+        } else if (fullExistenceCheck == true) {  // Full type mask is equivalent to a total existence check
+            code->push_back(LVM_ContainTuple);
+            code->push_back(relId);
+        } else {  // Otherwise we do a partial existence check.
+            // Partial search with arbitrary length type mask
+            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
             code->push_back(LVM_ExistenceCheck);
-            code->push_back(relationEncoder.encodeRelation(exists.getRelation()));
-            code->push_back(symbolTable.lookup(types));
+            code->push_back(relId);
             code->push_back(getIndexPos(exists));
+            for (auto i = 0; i < numOfTypeMasks; ++i) {
+                RamDomain types = 0;
+                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
+                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+                }
+                code->push_back(types);
+            }
         }
     }
 
@@ -1177,6 +1193,6 @@ private:
         auto i = orderSet.getLexOrderNum(signature);
         return i;
     };
-};
+};  // namespace souffle
 
 }  // end of namespace souffle
