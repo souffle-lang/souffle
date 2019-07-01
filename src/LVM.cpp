@@ -481,14 +481,14 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 for (size_t i = 0; i < arity; i++) {
                     RamDomain arg = stack.top();
                     stack.pop();
-                    if (type[arity - i - 1] == 'S') {
-                        args[arity - i - 1] = &ffi_type_pointer;
-                        strVal[arity - i - 1] = symbolTable.resolve(arg).c_str();
-                        values[arity - i - 1] = &strVal[arity - i - 1];
+                    if (type[i] == 'S') {
+                        args[i] = &ffi_type_pointer;
+                        strVal[i] = symbolTable.resolve(arg).c_str();
+                        values[i] = &strVal[i];
                     } else {
-                        args[arity - i - 1] = &ffi_type_uint32;
-                        intVal[arity - i - 1] = arg;
-                        values[arity - i - 1] = &intVal[arity - i - 1];
+                        args[i] = &ffi_type_uint32;
+                        intVal[i] = arg;
+                        values[i] = &intVal[i];
                     }
                 }
 
@@ -610,36 +610,6 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += (3 + numOfTypeMasks);
                 break;
             }
-            case LVM_ProvenanceExistenceCheck: {
-                size_t relId = code[ip + 1];
-                const std::string& patterns = symbolTable.resolve(code[ip + 2]);
-                RamDomain indexPos = code[ip + 3];
-                const LVMRelation& rel = *getRelation(relId);
-                auto arity = rel.getArity();
-
-                RamDomain low[arity];
-                RamDomain high[arity];
-                for (size_t i = 2; i < arity; i++) {
-                    if (patterns[arity - i - 1] == 'V') {
-                        low[arity - i - 1] = stack.top();
-                        stack.pop();
-                        high[arity - i - 1] = low[arity - i - 1];
-                    } else {
-                        low[arity - i - 1] = MIN_RAM_DOMAIN;
-                        high[arity - i - 1] = MAX_RAM_DOMAIN;
-                    }
-                }
-
-                low[arity - 2] = MIN_RAM_DOMAIN;
-                low[arity - 1] = MIN_RAM_DOMAIN;
-                high[arity - 2] = MAX_RAM_DOMAIN;
-                high[arity - 1] = MAX_RAM_DOMAIN;
-
-                auto range = rel.range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
-                stack.push(range.begin() != range.end());
-                ip += 4;
-                break;
-            }
             case LVM_Constraint:
                 /** Does nothing, just a label */
                 ip += 1;
@@ -700,7 +670,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 LVMRelation& rel = *getRelation(relId);
                 RamDomain tuple[arity];
                 for (auto i = 0; i < arity; ++i) {
-                    tuple[arity - i - 1] = stack.top();
+                    tuple[i] = stack.top();
                     stack.pop();
                 }
                 rel.insert(TupleRef(tuple, arity));
@@ -895,7 +865,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 auto arity = code[ip + 2];
                 RamDomain tuple[arity];
                 for (auto i = 0; i < arity; ++i) {
-                    tuple[arity - i - 1] = stack.top();
+                    tuple[i] = stack.top();
                     stack.pop();
                 }
                 getRelation(relId)->insert(TupleRef(tuple, arity));
@@ -984,29 +954,34 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
             };
             case LVM_ITER_InitRangeIndex: {
                 RamDomain dest = code[ip + 1];
-                size_t relId = code[ip + 2];
-                auto relPtr = getRelation(relId);
-                const std::string& pattern = symbolTable.resolve(code[ip + 3]);
-                RamDomain indexPos = code[ip + 4];
+                auto relPtr = getRelation(code[ip + 2]);
+                auto arity = relPtr->getArity();
+                RamDomain indexPos = code[ip + 3];
 
                 // create pattern tuple for range query
-                auto arity = relPtr->getArity();
+                size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
                 RamDomain low[arity];
-                RamDomain hig[arity];
-                for (size_t i = 0; i < arity; i++) {
-                    if (pattern[arity - i - 1] == 'V') {
-                        low[arity - i - 1] = stack.top();
-                        stack.pop();
-                        hig[arity - i - 1] = low[arity - i - 1];
-                    } else {
-                        low[arity - i - 1] = MIN_RAM_DOMAIN;
-                        hig[arity - i - 1] = MAX_RAM_DOMAIN;
+                RamDomain high[arity];
+                for (size_t i = 0; i < numOfTypeMasks; ++i) {
+                    RamDomain typeMask = code[ip + 4 + i];
+                    for (auto j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                        auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                        if (projectedIndex >= arity) {
+                            break;
+                        }
+                        if (1 << j & typeMask) {
+                            low[projectedIndex] = stack.top();
+                            stack.pop();
+                            high[projectedIndex] = low[projectedIndex];
+                        } else {
+                            low[projectedIndex] = MIN_RAM_DOMAIN;
+                            high[projectedIndex] = MAX_RAM_DOMAIN;
+                        }
                     }
                 }
-
                 // get iterator range
-                lookUpStream(dest) = relPtr->range(indexPos, TupleRef(low, arity), TupleRef(hig, arity));
-                ip += 5;
+                lookUpStream(dest) = relPtr->range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
+                ip += (4 + numOfTypeMasks);
                 break;
             };
             case LVM_ITER_NotAtEnd: {

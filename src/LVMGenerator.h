@@ -271,7 +271,7 @@ protected:
     }
 
     void visitUserDefinedOperator(const RamUserDefinedOperator& op, size_t exitAddress) override {
-        for (size_t i = 0; i < op.getArgCount(); i++) {
+        for (size_t i = op.getArgCount(); i-- > 0;) {
             visit(op.getArgument(i), exitAddress);
         }
         code->push_back(LVM_UserDefinedOperator);
@@ -341,7 +341,8 @@ protected:
             code->push_back(LVM_EmptinessCheck);
             code->push_back(relId);
             code->push_back(LVM_Negation);
-        } else if (fullExistenceCheck == true) {  // Full type mask is equivalent to a total existence check
+        } else if (fullExistenceCheck == true) {
+            // Full type mask is equivalent to a full order existence check
             code->push_back(LVM_ContainTuple);
             code->push_back(relId);
         } else {  // Otherwise we do a partial existence check.
@@ -362,26 +363,39 @@ protected:
 
     void visitProvenanceExistenceCheck(
             const RamProvenanceExistenceCheck& provExists, size_t exitAddress) override {
+        // By leaving the last two pattern mask empty (0), we can transfer a provenance existence into an
+        // equivalent normal existence check.
+        // Unlike RamExistence, a ProvenanceExistence can never be a full order existence check.
         auto values = provExists.getValues();
         auto arity = provExists.getRelation().getArity();
-        std::string types;
+        auto relId = relationEncoder.encodeRelation(provExists.getRelation());
+        std::vector<int> typeMask(arity);
         bool emptinessCheck = true;
-        for (size_t i = 0; i < arity - 2; ++i) {
+        for (size_t i = arity - 2; i-- > 0;) {
             if (!isRamUndefValue(values[i])) {
                 visit(values[i], exitAddress);
                 emptinessCheck = false;
+                typeMask[i] = 1;
             }
-            types += (isRamUndefValue(values[i]) ? "_" : "V");
         }
+
+        // Empty type mask is equivalent to a non-emptiness check
         if (emptinessCheck == true) {
             code->push_back(LVM_EmptinessCheck);
-            code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
+            code->push_back(relId);
             code->push_back(LVM_Negation);
-        } else {
-            code->push_back(LVM_ProvenanceExistenceCheck);
-            code->push_back(relationEncoder.encodeRelation(provExists.getRelation()));
-            code->push_back(symbolTable.lookup(types));
+        } else {  // Otherwise we do a partial existence check.
+            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+            code->push_back(LVM_ExistenceCheck);
+            code->push_back(relId);
             code->push_back(getIndexPos(provExists));
+            for (auto i = 0; i < numOfTypeMasks; ++i) {
+                RamDomain types = 0;
+                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
+                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+                }
+                code->push_back(types);
+            }
         }
     }
 
@@ -523,15 +537,15 @@ protected:
 
         // Obtain the pattern for index
         auto patterns = scan.getRangePattern();
-        std::string types;
         auto arity = scan.getRelation().getArity();
+        std::vector<int> typeMask(arity);
         bool fullIndexSearch = true;
-        for (size_t i = 0; i < arity; i++) {
+        for (size_t i = arity; i-- > 0;) {
             if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
                 fullIndexSearch = false;
+                typeMask[i] = 1;
             }
-            types += (isRamUndefValue(patterns[i]) ? "_" : "V");
         }
 
         // Init range index based on pattern
@@ -540,11 +554,18 @@ protected:
             code->push_back(counterLabel);
             code->push_back(relationEncoder.encodeRelation(scan.getRelation()));
         } else {
+            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
             code->push_back(LVM_ITER_InitRangeIndex);
             code->push_back(counterLabel);
             code->push_back(relationEncoder.encodeRelation(scan.getRelation()));
-            code->push_back(symbolTable.lookup(types));
             code->push_back(getIndexPos(scan));
+            for (auto i = 0; i < numOfTypeMasks; ++i) {
+                RamDomain types = 0;
+                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
+                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+                }
+                code->push_back(types);
+            }
         }
 
         // While iter is not at end
@@ -577,15 +598,15 @@ protected:
 
         // Obtain the pattern for index
         auto patterns = indexChoice.getRangePattern();
-        std::string types;
         auto arity = indexChoice.getRelation().getArity();
+        std::vector<int> typeMask(arity);
         bool fullIndexSearch = true;
-        for (size_t i = 0; i < arity; i++) {
+        for (size_t i = arity; i-- > 0;) {
             if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
                 fullIndexSearch = false;
+                typeMask[i] = 1;
             }
-            types += (isRamUndefValue(patterns[i]) ? "_" : "V");
         }
 
         // Init range index based on pattern
@@ -594,11 +615,18 @@ protected:
             code->push_back(counterLabel);
             code->push_back(relationEncoder.encodeRelation(indexChoice.getRelation()));
         } else {
+            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
             code->push_back(LVM_ITER_InitRangeIndex);
             code->push_back(counterLabel);
             code->push_back(relationEncoder.encodeRelation(indexChoice.getRelation()));
-            code->push_back(symbolTable.lookup(types));
             code->push_back(getIndexPos(indexChoice));
+            for (auto i = 0; i < numOfTypeMasks; ++i) {
+                RamDomain types = 0;
+                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
+                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+                }
+                code->push_back(types);
+            }
         }
 
         // While iter is not at end.
@@ -761,15 +789,15 @@ protected:
 
         // Obtain the pattern for index
         auto patterns = aggregate.getRangePattern();
-        std::string types;
         auto arity = aggregate.getRelation().getArity();
+        std::vector<int> typeMask(arity);
         bool fullIndexSearch = true;
-        for (size_t i = 0; i < arity; i++) {
+        for (size_t i = arity; i-- > 0;) {
             if (!isRamUndefValue(patterns[i])) {
                 visit(patterns[i], exitAddress);
                 fullIndexSearch = false;
+                typeMask[i] = 1;
             }
-            types += (isRamUndefValue(patterns[i]) ? "_" : "V");
         }
 
         // Init range index based on pattern
@@ -778,11 +806,18 @@ protected:
             code->push_back(counterLabel);
             code->push_back(relationEncoder.encodeRelation(aggregate.getRelation()));
         } else {
+            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
             code->push_back(LVM_ITER_InitRangeIndex);
             code->push_back(counterLabel);
             code->push_back(relationEncoder.encodeRelation(aggregate.getRelation()));
-            code->push_back(symbolTable.lookup(types));
             code->push_back(getIndexPos(aggregate));
+            for (auto i = 0; i < numOfTypeMasks; ++i) {
+                RamDomain types = 0;
+                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
+                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+                }
+                code->push_back(types);
+            }
         }
 
         if (aggregate.getFunction() == souffle::COUNT &&
@@ -912,9 +947,9 @@ protected:
         size_t arity = project.getRelation().getArity();
         std::string relationName = project.getRelation().getName();
         auto values = project.getValues();
-        for (auto& value : values) {
-            assert(value);
-            visit(value, exitAddress);
+        for (size_t i = values.size(); i-- > 0;) {
+            assert(values[i]);
+            visit(values[i], exitAddress);
         }
         code->push_back(LVM_Project);
         code->push_back(arity);
@@ -924,7 +959,7 @@ protected:
         std::string types;
         auto expressions = ret.getValues();
         size_t size = expressions.size();
-        for (int i = size - 1; i >= 0; --i) {
+        for (size_t i = size; i-- > 0;) {
             if (isRamUndefValue(expressions[i])) {
                 types += '_';
             } else {
@@ -1076,7 +1111,7 @@ protected:
     void visitFact(const RamFact& fact, size_t exitAddress) override {
         size_t arity = fact.getRelation().getArity();
         auto values = fact.getValues();
-        for (size_t i = 0; i < arity; ++i) {
+        for (size_t i = arity; i-- > 0;) {
             visit(values[i], exitAddress);  // Values cannot be null here
         }
         std::string targertRelation = fact.getRelation().getName();
