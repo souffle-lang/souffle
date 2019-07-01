@@ -610,6 +610,31 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += (3 + numOfTypeMasks);
                 break;
             }
+            case LVM_ExistenceCheckSpecial: {
+                auto relPtr = getRelation(code[ip + 1]);
+                auto arity = relPtr->getArity();
+                auto indexPos = code[ip + 2];
+                auto typeMask = code[ip + 3];
+
+                RamDomain low[arity];
+                RamDomain high[arity];
+                for (size_t i = 0; i < arity; ++i) {
+                    if (1 << i & typeMask) {
+                        low[i] = stack.top();
+                        stack.pop();
+                        high[i] = low[i];
+
+                    } else {
+                        low[i] = MIN_RAM_DOMAIN;
+                        high[i] = MAX_RAM_DOMAIN;
+                    }
+                }
+                auto range = relPtr->range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
+                stack.push(range.begin() != range.end());
+
+                ip += 4;
+                break;
+            }
             case LVM_Constraint:
                 /** Does nothing, just a label */
                 ip += 1;
@@ -984,6 +1009,31 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += (4 + numOfTypeMasks);
                 break;
             };
+            case LVM_ITER_InitRangeIndexSpecial: {
+                RamDomain dest = code[ip + 1];
+                auto relPtr = getRelation(code[ip + 2]);
+                auto arity = relPtr->getArity();
+                auto indexPos = code[ip + 3];
+                auto typeMask = code[ip + 4];
+
+                // create pattern tuple for range query
+                RamDomain low[arity];
+                RamDomain high[arity];
+                for (size_t i = 0; i < arity; ++i) {
+                    if (1 << i & typeMask) {
+                        low[i] = stack.top();
+                        stack.pop();
+                        high[i] = low[i];
+                    } else {
+                        low[i] = MIN_RAM_DOMAIN;
+                        high[i] = MAX_RAM_DOMAIN;
+                    }
+                }
+                // get iterator range
+                lookUpStream(dest) = relPtr->range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
+                ip += 5;
+                break;
+            };
             case LVM_ITER_NotAtEnd: {
                 RamDomain idx = code[ip + 1];
                 auto& stream = lookUpStream(idx);
@@ -1013,6 +1063,6 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 break;
         }
     }
-}
+}  // namespace souffle
 
 }  // end of namespace souffle

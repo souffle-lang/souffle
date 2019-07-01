@@ -346,18 +346,8 @@ protected:
             code->push_back(LVM_ContainTuple);
             code->push_back(relId);
         } else {  // Otherwise we do a partial existence check.
-            // Partial search with arbitrary length type mask
-            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
-            code->push_back(LVM_ExistenceCheck);
-            code->push_back(relId);
-            code->push_back(getIndexPos(exists));
-            for (auto i = 0; i < numOfTypeMasks; ++i) {
-                RamDomain types = 0;
-                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
-                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
-                }
-                code->push_back(types);
-            }
+            size_t indexPos = getIndexPos(exists);
+            this->emitExistenceCheckInst(arity, relId, indexPos, typeMask);
         }
     }
 
@@ -385,17 +375,8 @@ protected:
             code->push_back(relId);
             code->push_back(LVM_Negation);
         } else {  // Otherwise we do a partial existence check.
-            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
-            code->push_back(LVM_ExistenceCheck);
-            code->push_back(relId);
-            code->push_back(getIndexPos(provExists));
-            for (auto i = 0; i < numOfTypeMasks; ++i) {
-                RamDomain types = 0;
-                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
-                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
-                }
-                code->push_back(types);
-            }
+            size_t indexPos = getIndexPos(provExists);
+            this->emitExistenceCheckInst(arity, relId, indexPos, typeMask);
         }
     }
 
@@ -538,6 +519,7 @@ protected:
         // Obtain the pattern for index
         auto patterns = scan.getRangePattern();
         auto arity = scan.getRelation().getArity();
+        auto relId = relationEncoder.encodeRelation(scan.getRelation());
         std::vector<int> typeMask(arity);
         bool fullIndexSearch = true;
         for (size_t i = arity; i-- > 0;) {
@@ -552,20 +534,10 @@ protected:
         if (fullIndexSearch == true) {
             code->push_back(LVM_ITER_InitFullIndex);
             code->push_back(counterLabel);
-            code->push_back(relationEncoder.encodeRelation(scan.getRelation()));
+            code->push_back(relId);
         } else {
-            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
-            code->push_back(LVM_ITER_InitRangeIndex);
-            code->push_back(counterLabel);
-            code->push_back(relationEncoder.encodeRelation(scan.getRelation()));
-            code->push_back(getIndexPos(scan));
-            for (auto i = 0; i < numOfTypeMasks; ++i) {
-                RamDomain types = 0;
-                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
-                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
-                }
-                code->push_back(types);
-            }
+            auto indexPos = getIndexPos(scan);
+            this->emitRangeIndexInst(arity, relId, indexPos, counterLabel, typeMask);
         }
 
         // While iter is not at end
@@ -599,6 +571,7 @@ protected:
         // Obtain the pattern for index
         auto patterns = indexChoice.getRangePattern();
         auto arity = indexChoice.getRelation().getArity();
+        auto relId = relationEncoder.encodeRelation(indexChoice.getRelation());
         std::vector<int> typeMask(arity);
         bool fullIndexSearch = true;
         for (size_t i = arity; i-- > 0;) {
@@ -613,20 +586,10 @@ protected:
         if (fullIndexSearch == true) {
             code->push_back(LVM_ITER_InitFullIndex);
             code->push_back(counterLabel);
-            code->push_back(relationEncoder.encodeRelation(indexChoice.getRelation()));
+            code->push_back(relId);
         } else {
-            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
-            code->push_back(LVM_ITER_InitRangeIndex);
-            code->push_back(counterLabel);
-            code->push_back(relationEncoder.encodeRelation(indexChoice.getRelation()));
-            code->push_back(getIndexPos(indexChoice));
-            for (auto i = 0; i < numOfTypeMasks; ++i) {
-                RamDomain types = 0;
-                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
-                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
-                }
-                code->push_back(types);
-            }
+            auto indexPos = getIndexPos(indexChoice);
+            this->emitRangeIndexInst(arity, relId, indexPos, counterLabel, typeMask);
         }
 
         // While iter is not at end.
@@ -790,6 +753,7 @@ protected:
         // Obtain the pattern for index
         auto patterns = aggregate.getRangePattern();
         auto arity = aggregate.getRelation().getArity();
+        auto relId = relationEncoder.encodeRelation(aggregate.getRelation());
         std::vector<int> typeMask(arity);
         bool fullIndexSearch = true;
         for (size_t i = arity; i-- > 0;) {
@@ -804,20 +768,10 @@ protected:
         if (fullIndexSearch == true) {
             code->push_back(LVM_ITER_InitFullIndex);
             code->push_back(counterLabel);
-            code->push_back(relationEncoder.encodeRelation(aggregate.getRelation()));
+            code->push_back(relId);
         } else {
-            size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
-            code->push_back(LVM_ITER_InitRangeIndex);
-            code->push_back(counterLabel);
-            code->push_back(relationEncoder.encodeRelation(aggregate.getRelation()));
-            code->push_back(getIndexPos(aggregate));
-            for (auto i = 0; i < numOfTypeMasks; ++i) {
-                RamDomain types = 0;
-                for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
-                    types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
-                }
-                code->push_back(types);
-            }
+            auto indexPos = getIndexPos(aggregate);
+            this->emitRangeIndexInst(arity, relId, indexPos, counterLabel, typeMask);
         }
 
         if (aggregate.getFunction() == souffle::COUNT &&
@@ -1228,6 +1182,52 @@ private:
         auto i = orderSet.getLexOrderNum(signature);
         return i;
     };
+
+    /** Emit existence check instructions */
+    void emitExistenceCheckInst(const size_t& arity, const size_t& relId, const size_t& indexPos,
+            const std::vector<int>& typeMask) {
+        size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+        if (numOfTypeMasks == 1) {  // Special instruction with only one block of typeMask
+            code->push_back(LVM_ExistenceCheckSpecial);
+        } else {
+            code->push_back(LVM_ExistenceCheck);
+        }
+        code->push_back(relId);
+        code->push_back(indexPos);
+        for (auto i = 0; i < numOfTypeMasks; ++i) {
+            RamDomain types = 0;
+            for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
+                types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+            }
+            code->push_back(types);
+        }
+    }
+
+    /** Emit range index instructions */
+    void emitRangeIndexInst(const size_t& arity, const size_t& relId, const size_t& indexPos,
+            const size_t& counterLabel, const std::vector<int>& typeMask) {
+        size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+        if (numOfTypeMasks == 1) {
+            code->push_back(LVM_ITER_InitRangeIndexSpecial);
+        } else {
+            code->push_back(LVM_ITER_InitRangeIndex);
+        }
+        code->push_back(counterLabel);
+        code->push_back(relId);
+        code->push_back(indexPos);
+        for (auto i = 0; i < numOfTypeMasks; ++i) {
+            RamDomain types = 0;
+            for (auto j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                if (projectedIndex >= arity) {
+                    break;
+                }
+                types |= (typeMask[projectedIndex] << j);
+            }
+            code->push_back(types);
+        }
+    }
+
 };  // namespace souffle
 
 }  // end of namespace souffle
