@@ -79,10 +79,10 @@ enum LVM_Type {
     // LVM Conditions
     LVM_Conjunction,
     LVM_Negation,
-    LVM_ContainTuple,
+    LVM_ContainCheck,
     LVM_EmptinessCheck,
     LVM_ExistenceCheck,
-    LVM_ExistenceCheckSpecial,
+    LVM_ExistenceCheckOneArg,
     LVM_ProvenanceExistenceCheck,
     LVM_Constraint,
     LVM_True,
@@ -140,7 +140,7 @@ enum LVM_Type {
 
     LVM_ITER_InitFullIndex,
     LVM_ITER_InitRangeIndex,
-    LVM_ITER_InitRangeIndexSpecial,
+    LVM_ITER_InitRangeIndexOneArg,
     LVM_ITER_Select,
     LVM_ITER_Inc,
     LVM_ITER_NotAtEnd,

@@ -567,7 +567,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += 2;
                 break;
             }
-            case LVM_ContainTuple: {
+            case LVM_ContainCheck: {
                 auto relPtr = getRelation(code[ip + 1]);
                 auto arity = relPtr->getArity();
                 RamDomain tuple[arity];
@@ -610,7 +610,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += (3 + numOfTypeMasks);
                 break;
             }
-            case LVM_ExistenceCheckSpecial: {
+            case LVM_ExistenceCheckOneArg: {
                 auto relPtr = getRelation(code[ip + 1]);
                 auto arity = relPtr->getArity();
                 auto indexPos = code[ip + 2];
@@ -1009,7 +1009,7 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 ip += (4 + numOfTypeMasks);
                 break;
             };
-            case LVM_ITER_InitRangeIndexSpecial: {
+            case LVM_ITER_InitRangeIndexOneArg: {
                 RamDomain dest = code[ip + 1];
                 auto relPtr = getRelation(code[ip + 2]);
                 auto arity = relPtr->getArity();

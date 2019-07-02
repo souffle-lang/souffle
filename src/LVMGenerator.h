@@ -343,7 +343,7 @@ protected:
             code->push_back(LVM_Negation);
         } else if (fullExistenceCheck == true) {
             // Full type mask is equivalent to a full order existence check
-            code->push_back(LVM_ContainTuple);
+            code->push_back(LVM_ContainCheck);
             code->push_back(relId);
         } else {  // Otherwise we do a partial existence check.
             size_t indexPos = getIndexPos(exists);
@@ -354,7 +354,7 @@ protected:
     void visitProvenanceExistenceCheck(
             const RamProvenanceExistenceCheck& provExists, size_t exitAddress) override {
         // By leaving the last two pattern mask empty (0), we can transfer a provenance existence into an
-        // equivalent normal existence check.
+        // equivalent Ram existence check.
         // Unlike RamExistence, a ProvenanceExistence can never be a full order existence check.
         auto values = provExists.getValues();
         auto arity = provExists.getRelation().getArity();
@@ -1187,8 +1187,12 @@ private:
     void emitExistenceCheckInst(const size_t& arity, const size_t& relId, const size_t& indexPos,
             const std::vector<int>& typeMask) {
         size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
-        if (numOfTypeMasks == 1) {  // Special instruction with only one block of typeMask
-            code->push_back(LVM_ExistenceCheckSpecial);
+        // Emit special instruction for relation with arity < RAM_DOMAIN_SIZE
+        // to avoid overhead of checking argument size --- as it is the most common case
+        // TODO (xiaowen): benchmark suggest no noticeable difference whether we add
+        // this optimization or not.
+        if (numOfTypeMasks == 1) {
+            code->push_back(LVM_ExistenceCheckOneArg);
         } else {
             code->push_back(LVM_ExistenceCheck);
         }
@@ -1196,8 +1200,12 @@ private:
         code->push_back(indexPos);
         for (auto i = 0; i < numOfTypeMasks; ++i) {
             RamDomain types = 0;
-            for (auto j = 0; j < RAM_DOMAIN_SIZE && i * RAM_DOMAIN_SIZE + j < arity; ++j) {
-                types |= (typeMask[i * RAM_DOMAIN_SIZE + j] << j);
+            for (auto j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                if (projectedIndex >= arity) {
+                    break;
+                }
+                types |= (typeMask[projectedIndex] << j);
             }
             code->push_back(types);
         }
@@ -1207,8 +1215,12 @@ private:
     void emitRangeIndexInst(const size_t& arity, const size_t& relId, const size_t& indexPos,
             const size_t& counterLabel, const std::vector<int>& typeMask) {
         size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+        // Emit special instruction for relation with arity < RAM_DOMAIN_SIZE
+        // to avoid overhead of checking argumnet size --- as it is the most common case
+        // TODO (xiaowen): benchmark suggest no noticeable difference whether we add
+        // this optimization or not.
         if (numOfTypeMasks == 1) {
-            code->push_back(LVM_ITER_InitRangeIndexSpecial);
+            code->push_back(LVM_ITER_InitRangeIndexOneArg);
         } else {
             code->push_back(LVM_ITER_InitRangeIndex);
         }
