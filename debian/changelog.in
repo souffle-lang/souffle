@@ -8,7 +8,7 @@ souffle (@VERSION@-1) UNRELEASED; urgency=low
   * Allow input pipes for datalog (maweki)
   * Add RAM transforms to debug report (rdowavic)
   * Allow arbitrary argument length formax/min/cat functors (azreika)
-  * Add Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96)
+  * Add Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96,HerbertJordan)
   * Performance enhancements
   * Bug fixes
 
