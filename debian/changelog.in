@@ -1,4 +1,20 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
+  * Provenance improvements (taipan-snake)
+  * Support negation in provenance (taipan-snake)
+  * Memory use improvements (mmcgr)
+  * RAM improvements (brodyf)
+  * Enable complex aggregates (rdowavic)
+  * Add user-defined libraries for functors (mmcgr)
+  * Allow input pipes for datalog (maweki)
+  * Add RAM transforms to debug report (rdowavic)
+  * Allow arbitrary argument length formax/min/cat functors (azreika)
+  * Add Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96)
+  * Performance enhancements
+  * Bug fixes
+
+ -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Tue, 23 Jul 2019 11:40:23 +1100
+
+souffle (1.5.1); urgency=low
   * Rewritten code generation (taipan-snake)
   * Improved Provenance via generated data structures (taipan-snake)
   * Profile cpu & memory usage (mmcgr)
