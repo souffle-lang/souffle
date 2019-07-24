@@ -1,14 +1,19 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
-  * Provenance improvements (taipan-snake)
-  * Support negation in provenance (taipan-snake)
+  * Provenance support for negation and equivalence relations (taipan-snake)
   * Memory use improvements (mmcgr)
-  * RAM improvements (brodyf)
+  * Separated RAM transformations from AST translation (brodyf)
+  * RAM optimisations (brodyf,dcol97)
   * Enable complex aggregates (rdowavic)
-  * Add user-defined libraries for functors (mmcgr)
   * Allow input pipes for datalog (maweki)
   * Add RAM transforms to debug report (rdowavic)
   * Allow arbitrary argument length formax/min/cat functors (azreika)
-  * Add Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96,HerbertJordan)
+  * AST optimisations (azreika)
+  * Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96,HerbertJordan)
+  * Added --interpreter[LVM|RAMI] parameter for interpreter choice (XiaowenHu96)
+  * Add user-defined libraries for functors (mmcgr)
+  * Added -l parameter for functor libraries and -L for functor library paths (mmcgr)
+  * Improved code documentation
+  * Refactoring for maintainability and readability
   * Performance enhancements
   * Bug fixes
 
