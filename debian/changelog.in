@@ -1,11 +1,14 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
   * Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96,HerbertJordan)
   * Provenance support for negation and equivalence relations (taipan-snake)
-  * Refactored RAM semantics (brodyf)  
-  * Separated RAM transformations from AST translation (brodyf)
-  * Refactored Ram analyses
-  * RAM optimisations (brodyf,dcol97)
-  * Add RAM transforms to debug report (rdowavic)
+  * New semantics for RAM (b-scholz)
+  * Stratified RAM Analysis interfaces (b-scholz)
+  * New RAM Transformations: expand/collapsing conditions of filters, hoisting
+    of conditions, index transformation to utilize index operations,
+    if-conversions (converting scans to existence operations if possible), Choice
+    conversion, hoisting aggregates, and parallelization (dcol97)
+  * Meta-transformers for RAM (sequence/loop/conditional) (b-scholz)
+  * Add RAM transform support to debug report (rdowavic)
   * Enable complex aggregates (rdowavic)
   * Memory use improvements (mmcgr)
   * Allow input pipes for datalog (maweki)
@@ -14,8 +17,8 @@ souffle (@VERSION@-1) UNRELEASED; urgency=low
   * Add user-defined libraries for functors (mmcgr)
   * Added -l parameter for functor libraries and -L for functor library paths (mmcgr)
   * Added --interpreter[LVM|RAMI] parameter for interpreter choice (XiaowenHu96)
-  * Improved code documentation
-  * Refactoring for maintainability and readability
+  * Improved code documentation (dcol97)
+  * Refactoring for maintainability and readability (mmcgr)
   * Performance enhancements
   * Bug fixes
 
