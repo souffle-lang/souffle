@@ -235,7 +235,7 @@ public:
     std::unique_ptr<RamCondition> constructPattern(std::vector<std::unique_ptr<RamExpression>>& queryPattern,
             bool& indexable, std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
 
-        /**
+    /**
      * @brief Get expression of RAM element access
      *
      * @param Equivalence constraints of the format t1.x = <expression> or <expression> = t1.x
@@ -245,7 +245,8 @@ public:
      * The method retrieves expression the expression of an equivalence constraint of the
      * format t1.x = <expr> or <expr> = t1.x
      */
-    std::unique_ptr<RamExpression> getComparisonExpression(RamCondition* c, size_t& element, int level, bool getLowerBound);
+    std::unique_ptr<RamExpression> getComparisonExpression(
+            RamCondition* c, size_t& element, int level, bool getLowerBound);
 
     /**
      * @brief Construct query patterns for an indexable operation
@@ -255,9 +256,10 @@ public:
      * @param Tuple identifier of the indexable operation
      * @result Remaining conditions that could not be transformed to an index
      */
-    std::unique_ptr<RamCondition> constructLowHighPattern(std::vector<std::unique_ptr<RamExpression>>& lowQueryPattern,
-            std::vector<std::unique_ptr<RamExpression>>& highQueryPattern,
-            bool& indexable, std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
+    std::unique_ptr<RamCondition> constructLowHighPattern(
+            std::vector<std::unique_ptr<RamExpression>>& lowQueryPattern,
+            std::vector<std::unique_ptr<RamExpression>>& highQueryPattern, bool& indexable,
+            std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
 
     /**
      * @brief Rewrite a scan operation to an indexed scan operation

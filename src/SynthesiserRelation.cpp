@@ -665,7 +665,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         out << "(const t_tuple& lt, const t_tuple& ht, context& h) const {\n";
 
         out << "t_tuple low(lt); t_tuple high(ht);\n";
-            // check which indices to pad out
+        // check which indices to pad out
         for (size_t column = 0; column < arity; column++) {
             // if bit number column is set
             if (!((search >> column) & 1)) {
@@ -977,7 +977,7 @@ void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
         out << "context h; return equalRange_" << search << "(t, h);\n";
         out << "}\n";
     }
-    //TODO highLowRange
+    // TODO highLowRange
     // empty method
     out << "bool empty() const {\n";
     out << "return ind_" << masterIndex << ".empty();\n";
@@ -1210,7 +1210,7 @@ void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
         out << "}\n";
     }
 
-    //TODO lowHighRange
+    // TODO lowHighRange
     // empty method
     out << "bool empty() const {\n";
     out << "return ind_" << masterIndex << ".size() == 0;\n";

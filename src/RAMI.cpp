@@ -541,7 +541,7 @@ void RAMI::evalOp(const RamOperation& op, const RAMIContext& args) {
                 } else {
                     low[i] = MIN_RAM_DOMAIN;
                 }
-                if(!isRamUndefValue(highPattern[i])) {
+                if (!isRamUndefValue(highPattern[i])) {
                     hig[i] = interpreter.evalExpr(*highPattern[i], ctxt);
                 } else {
                     hig[i] = MAX_RAM_DOMAIN;

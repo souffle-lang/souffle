@@ -373,11 +373,10 @@ public:
     RamRangeScan(std::unique_ptr<RamRelationReference> r, int ident,
             std::vector<std::unique_ptr<RamExpression>> lowQueryPattern,
             std::vector<std::unique_ptr<RamExpression>> highQueryPattern,
-            std::unique_ptr<RamOperation> nested,
-            std::string profileText = "")
+            std::unique_ptr<RamOperation> nested, std::string profileText = "")
             : RamIndexOperation(std::move(r), ident, std::move(lowQueryPattern), std::move(nested),
-                      std::move(profileText)) ,
-                      highQueryPattern(std::move(highQueryPattern))  {}
+                      std::move(profileText)),
+              highQueryPattern(std::move(highQueryPattern)) {}
 
     void print(std::ostream& os, int tabpos) const override {
         const RamRelation& rel = getRelation();
@@ -414,8 +413,8 @@ public:
             resHighQueryPattern[i] = std::unique_ptr<RamExpression>(highQueryPattern[i]->clone());
         }
         return new RamRangeScan(std::unique_ptr<RamRelationReference>(relationRef->clone()), getTupleId(),
-                std::move(resQueryPattern),std::move(resHighQueryPattern), std::unique_ptr<RamOperation>(getOperation().clone()),
-                getProfileText());
+                std::move(resQueryPattern), std::move(resHighQueryPattern),
+                std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
     }
     /**
      * @brief Get high range pattern
@@ -424,10 +423,11 @@ public:
     std::vector<RamExpression*> getHighRangePattern() const {
         return toPtrVector(highQueryPattern);
     }
+
 protected:
     std::vector<std::unique_ptr<RamExpression>> highQueryPattern;
 
-        /** @brief Helper method for printing */
+    /** @brief Helper method for printing */
     void printRangeIndex(std::ostream& os) const {
         bool first = true;
         for (unsigned int i = 0; i < queryPattern.size(); ++i) {
