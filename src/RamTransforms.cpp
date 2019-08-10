@@ -252,6 +252,111 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
     return condition;
 }
 
+std::unique_ptr<RamExpression> MakeIndexTransformer::getComparisonExpression(
+        RamCondition* c, size_t& element, int identifier, bool getLowerBound) {
+    if (auto* binRelOp = dynamic_cast<RamConstraint*>(c)) {
+        auto op=binRelOp->getOperator();
+        if (op==BinaryConstraintOp::GE || op==BinaryConstraintOp::GT ||
+            op==BinaryConstraintOp::LT || op==BinaryConstraintOp::LE){
+            bool checkLeftSide;
+            if(getLowerBound)
+                checkLeftSide=(op == BinaryConstraintOp::GE || op == BinaryConstraintOp::GT);
+            else
+                checkLeftSide=(op == BinaryConstraintOp::LE || op == BinaryConstraintOp::LT);
+
+        if (checkLeftSide) {
+            if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
+                const RamExpression* rhs = &binRelOp->getRHS();
+                if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
+                    element = lhs->getElement();
+                    std::vector<std::unique_ptr<RamExpression>> values;
+                    values.push_back(std::unique_ptr<RamExpression>(rhs->clone()));
+                    values.push_back(std::make_unique<RamNumber>(1));
+                    if(op ==BinaryConstraintOp::LT)
+                        return std::make_unique<RamIntrinsicOperator>(FunctorOp::SUB,std::move(values));
+                    if(op ==BinaryConstraintOp::GT)
+                        return std::make_unique<RamIntrinsicOperator>(FunctorOp::ADD,std::move(values));
+                    return std::unique_ptr<RamExpression>(rhs->clone());
+                }
+            }
+        } else{
+            if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
+                const RamExpression* lhs = &binRelOp->getLHS();
+                if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
+                    element = rhs->getElement();
+                    std::vector<std::unique_ptr<RamExpression>> values;
+                    values.push_back(std::unique_ptr<RamExpression>(rhs->clone()));
+                    values.push_back(std::make_unique<RamNumber>(1));
+                    if(op ==BinaryConstraintOp::LT)
+                        return std::make_unique<RamIntrinsicOperator>(FunctorOp::ADD, std::move(values));
+                    if(op ==BinaryConstraintOp::GT)
+                        return std::make_unique<RamIntrinsicOperator>(FunctorOp::SUB, std::move(values));
+                    return std::unique_ptr<RamExpression>(lhs->clone());
+                }
+            }
+        }
+        }
+    }
+    return nullptr;
+}
+
+
+std::unique_ptr<RamCondition> MakeIndexTransformer::constructLowHighPattern(
+        std::vector<std::unique_ptr<RamExpression>>& lowQueryPattern,
+        std::vector<std::unique_ptr<RamExpression>>& highQueryPattern,
+        bool& indexable,
+        std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier) {
+    // Remaining conditions which do not form a range
+    std::unique_ptr<RamCondition> condition;
+    auto addCondition = [&](std::unique_ptr<RamCondition> c) {
+        if (condition != nullptr) {
+            condition = std::make_unique<RamConjunction>(std::move(condition), std::move(c));
+        } else {
+            condition = std::move(c);
+        }
+    };
+
+    // Build low and high query patterns and remaining condition
+    for (auto& cond : conditionList) {
+        size_t element = 0;
+        if (lowQueryPattern[element] == nullptr){
+           if(std::unique_ptr<RamExpression> lowValue = getComparisonExpression(cond.get(), element, identifier,true)) {
+                indexable = true;
+                lowQueryPattern[element] = std::move(lowValue);
+                continue;
+           }
+        }
+        if (highQueryPattern[element] == nullptr){
+            if(std::unique_ptr<RamExpression> highValue = getComparisonExpression(cond.get(), element, identifier,false)) {
+                indexable = true;
+                highQueryPattern[element] = std::move(highValue);
+                continue;
+            }
+        }
+        addCondition(std::move(cond));
+    }
+    // Avoid null-pointers for condition and query pattern
+    if (condition == nullptr) {
+        condition = std::make_unique<RamTrue>();
+    }
+
+    for (size_t i=0;i<lowQueryPattern.size(); i++) {
+        if (lowQueryPattern[i] == nullptr) {
+            if(highQueryPattern[i]==nullptr){
+                lowQueryPattern[i] = std::make_unique<RamUndefValue>();
+                highQueryPattern[i] = std::make_unique<RamUndefValue>();
+            } else{
+                lowQueryPattern[i] = std::make_unique<RamNumber>(MIN_RAM_DOMAIN);
+            }
+        }else{
+            if (highQueryPattern[i] == nullptr)
+                highQueryPattern[i] = std::make_unique<RamNumber>(MAX_RAM_DOMAIN);
+        }
+    }
+
+    return condition;
+}
+
 std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAggregate* agg) {
     if (dynamic_cast<const RamTrue*>(&agg->getCondition()) == nullptr) {
         const RamRelation& rel = agg->getRelation();
@@ -286,6 +391,29 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* s
             }
             return std::make_unique<RamIndexScan>(std::make_unique<RamRelationReference>(&rel), identifier,
                     std::move(queryPattern), std::move(op), scan->getProfileText());
+        }
+    }
+    return nullptr;
+}
+
+std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScanToRangeScan(const RamScan* scan) {
+    if (const auto* filter = dynamic_cast<const RamFilter*>(&scan->getOperation())) {
+        const RamRelation& rel = scan->getRelation();
+        const int identifier = scan->getTupleId();
+        std::vector<std::unique_ptr<RamExpression>> lowQueryPattern(rel.getArity());
+        std::vector<std::unique_ptr<RamExpression>> highQueryPattern(rel.getArity());
+        bool indexable = false;
+        std::unique_ptr<RamCondition> condition = constructLowHighPattern(
+                lowQueryPattern, highQueryPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
+        if (indexable) {
+            std::unique_ptr<RamOperation> op = std::unique_ptr<RamOperation>(filter->getOperation().clone());
+            if (!isRamTrue(condition.get())) {
+                op = std::make_unique<RamFilter>(std::move(condition), std::move(op));
+            }
+            return std::make_unique<RamRangeScan>(std::make_unique<RamRelationReference>(&rel), identifier,
+                    std::move(lowQueryPattern),
+                    std::move(highQueryPattern),
+                    std::move(op), scan->getProfileText());
         }
     }
     return nullptr;
@@ -343,6 +471,11 @@ bool MakeIndexTransformer::makeIndex(RamProgram& program) {
                 if (std::unique_ptr<RamOperation> op = rewriteScan(scan)) {
                     changed = true;
                     node = std::move(op);
+                }else{
+                    if (std::unique_ptr<RamOperation> op = rewriteScanToRangeScan(scan)) {
+                        changed = true;
+                        node = std::move(op);
+                    }
                 }
             } else if (const RamIndexScan* iscan = dynamic_cast<RamIndexScan*>(node.get())) {
                 if (std::unique_ptr<RamOperation> op = rewriteIndexScan(iscan)) {

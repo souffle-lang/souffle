@@ -368,16 +368,41 @@ public:
  *	 ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class RamRangeScan : public RamIndexScan {
+class RamRangeScan : public RamIndexOperation {
 public:
     RamRangeScan(std::unique_ptr<RamRelationReference> r, int ident,
             std::vector<std::unique_ptr<RamExpression>> lowQueryPattern,
             std::vector<std::unique_ptr<RamExpression>> highQueryPattern,
             std::unique_ptr<RamOperation> nested,
             std::string profileText = "")
-            : RamIndexScan(std::move(r), ident, std::move(lowQueryPattern), std::move(nested),
+            : RamIndexOperation(std::move(r), ident, std::move(lowQueryPattern), std::move(nested),
                       std::move(profileText)) ,
                       highQueryPattern(std::move(highQueryPattern))  {}
+
+    void print(std::ostream& os, int tabpos) const override {
+        const RamRelation& rel = getRelation();
+        os << times(" ", tabpos);
+        os << "FOR t" << getTupleId() << " IN ";
+        os << rel.getName();
+        printRangeIndex(os);
+        os << std::endl;
+        RamIndexOperation::print(os, tabpos + 1);
+    }
+
+    std::vector<const RamNode*> getChildNodes() const override {
+        auto res = RamIndexOperation::getChildNodes();
+        for (auto& cur : highQueryPattern) {
+            res.push_back(cur.get());
+        }
+        return res;
+    }
+
+    void apply(const RamNodeMapper& map) override {
+        RamIndexOperation::apply(map);
+        for (auto& cur : highQueryPattern) {
+            cur = map(std::move(cur));
+        }
+    }
 
     RamRangeScan* clone() const override {
         std::vector<std::unique_ptr<RamExpression>> resQueryPattern(queryPattern.size());
@@ -401,6 +426,37 @@ public:
     }
 protected:
     std::vector<std::unique_ptr<RamExpression>> highQueryPattern;
+
+        /** @brief Helper method for printing */
+    void printRangeIndex(std::ostream& os) const {
+        bool first = true;
+        for (unsigned int i = 0; i < queryPattern.size(); ++i) {
+            if (!isRamUndefValue(queryPattern[i].get())) {
+                if (first) {
+                    os << " ON INDEX ";
+                    first = false;
+                } else {
+                    os << " AND ";
+                }
+                os << "t" << getTupleId() << ".";
+                os << getRelation().getArg(i) << " >= ";
+                os << *queryPattern[i];
+            }
+        }
+        for (unsigned int i = 0; i < highQueryPattern.size(); ++i) {
+            if (!isRamUndefValue(highQueryPattern[i].get())) {
+                if (first) {
+                    os << " ON INDEX ";
+                    first = false;
+                } else {
+                    os << " AND ";
+                }
+                os << "t" << getTupleId() << ".";
+                os << getRelation().getArg(i) << " <= ";
+                os << *highQueryPattern[i];
+            }
+        }
+    }
 };
 
 /**

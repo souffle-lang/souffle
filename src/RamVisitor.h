@@ -206,7 +206,7 @@ protected:
     LINK(ParallelScan, Scan);
     LINK(IndexScan, IndexOperation);
     LINK(ParallelIndexScan, IndexScan);
-    LINK(RangeScan, IndexScan);
+    LINK(RangeScan, IndexOperation);
     LINK(Choice, RelationOperation);
     LINK(ParallelChoice, Choice);
     LINK(IndexChoice, IndexOperation);

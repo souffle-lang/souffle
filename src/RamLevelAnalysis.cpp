@@ -58,6 +58,17 @@ int RamLevelAnalysis::getLevel(const RamNode* node) const {
             return level;
         }
 
+        int visitRangeScan(const RamRangeScan& rangeScan) override {
+            int level = -1;
+            for (auto& index : rangeScan.getRangePattern()) {
+                level = std::max(level, visit(index));
+            }
+            for (auto& index : rangeScan.getHighRangePattern()) {
+                level = std::max(level, visit(index));
+            }
+            return level;
+        }
+
         // choice
         int visitChoice(const RamChoice& choice) override {
             return std::max(-1, visit(choice.getCondition()));

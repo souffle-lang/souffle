@@ -525,6 +525,46 @@ void RAMI::evalOp(const RamOperation& op, const RAMIContext& args) {
             return true;
         }
 
+        bool visitRangeScan(const RamRangeScan& scan) override {
+            // get the targeted relation
+            const RAMIRelation& rel = interpreter.getRelation(scan.getRelation());
+
+            // create pattern tuple for range query
+            auto arity = rel.getArity();
+            RamDomain low[arity];
+            RamDomain hig[arity];
+            auto lowPattern = scan.getRangePattern();
+            auto highPattern = scan.getHighRangePattern();
+            for (size_t i = 0; i < arity; i++) {
+                if (!isRamUndefValue(lowPattern[i])) {
+                    low[i] = interpreter.evalExpr(*lowPattern[i], ctxt);
+                } else {
+                    low[i] = MIN_RAM_DOMAIN;
+                }
+                if(!isRamUndefValue(highPattern[i])) {
+                    hig[i] = interpreter.evalExpr(*highPattern[i], ctxt);
+                } else {
+                    hig[i] = MAX_RAM_DOMAIN;
+                }
+            }
+
+            // obtain index
+            auto idx = rel.getIndex(interpreter.isa->getSearchSignature(&scan));
+
+            // get iterator range
+            auto range = idx->lowerUpperBound(low, hig);
+
+            // conduct range query
+            for (auto ip = range.first; ip != range.second; ++ip) {
+                const RamDomain* data = *(ip);
+                ctxt[scan.getTupleId()] = data;
+                if (!visitTupleOperation(scan)) {
+                    break;
+                }
+            }
+            return true;
+        }
+
         bool visitChoice(const RamChoice& choice) override {
             // get the targeted relation
             const RAMIRelation& rel = interpreter.getRelation(choice.getRelation());

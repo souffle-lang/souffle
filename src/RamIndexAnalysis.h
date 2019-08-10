@@ -346,6 +346,13 @@ public:
     SearchSignature getSearchSignature(const RamIndexOperation* search) const;
 
     /**
+     * @Brief Get index signature for an Ram RangScan operation
+     * @param  RangeScan operation
+     * @result Index signature of operation
+     */
+    SearchSignature getSearchSignature(const RamRangeScan* search) const;
+
+    /**
      * @Brief Get the index signature for an existence check
      * @param Existence check
      * @result index signature of existence check
