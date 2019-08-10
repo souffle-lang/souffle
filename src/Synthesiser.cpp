@@ -710,6 +710,57 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_END_COMMENT(out);
         }
 
+        void visitRangeScan(const RamRangeScan& rscan, std::ostream& out) override {
+            const auto& rel = rscan.getRelation();
+            auto relName = synthesiser.getRelationName(rel);
+            auto identifier = rscan.getTupleId();
+            auto keys = isa->getSearchSignature(&rscan);
+            auto arity = rel.getArity();
+            const auto& lowRangePattern = rscan.getRangePattern();
+            const auto& highRangePattern = rscan.getHighRangePattern();
+
+            assert(arity > 0 && "AstTranslator failed/no index scans for nullaries");
+
+            PRINT_BEGIN_COMMENT(out);
+
+            out << "const Tuple<RamDomain," << arity << "> low_key({{";
+            for (size_t i = 0; i < arity; i++) {
+                if (!isRamUndefValue(lowRangePattern[i])) {
+                    visit(lowRangePattern[i], out);
+                } else {
+                    out << "0";
+                }
+                if (i + 1 < arity) {
+                    out << ",";
+                }
+            }
+            out << "}});\n";
+
+            out << "const Tuple<RamDomain," << arity << "> high_key({{";
+            for (size_t i = 0; i < arity; i++) {
+                if (!isRamUndefValue(highRangePattern[i])) {
+                    visit(highRangePattern[i], out);
+                } else {
+                    out << "0";
+                }
+                if (i + 1 < arity) {
+                    out << ",";
+                }
+            }
+            out << "}});\n";
+
+            auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
+
+            out << "auto range = " << relName << "->"
+                << "lowHighRange_" << keys << "(low_key, high_key," << ctxName << ");\n";
+            out << "for(const auto& env" << identifier << " : range) {\n";
+
+            visitTupleOperation(rscan, out);
+
+            out << "}\n";
+            PRINT_END_COMMENT(out);
+        }
+
         void visitParallelIndexScan(const RamParallelIndexScan& piscan, std::ostream& out) override {
             const auto& rel = piscan.getRelation();
             auto relName = synthesiser.getRelationName(rel);

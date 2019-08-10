@@ -334,6 +334,35 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
         out << "}\n";
     }
 
+    // lowHighRange methods for each pattern which is used to search this relation
+    for (int64_t search : getMinIndexSelection().getSearches()) {
+        auto lexOrder = getMinIndexSelection().getLexOrder(search);
+        size_t indNum = indexToNumMap[lexOrder];
+
+        out << "range<t_ind_" << indNum << "::iterator> lowHighRange_" << search;
+        out << "(const t_tuple& lt, const t_tuple& ht, context& h) const {\n";
+
+        // generate lower and upper bounds for range search
+        out << "t_tuple low(lt); t_tuple high(ht);\n";
+        // check which indices to pad out
+        for (size_t column = 0; column < arity; column++) {
+            // if bit number column is set
+            if (!((search >> column) & 1)) {
+                out << "low[" << column << "] = MIN_RAM_DOMAIN;\n";
+                out << "high[" << column << "] = MAX_RAM_DOMAIN;\n";
+            }
+        }
+        out << "return make_range(ind_" << indNum << ".lower_bound(low, h.hints_" << indNum << "), ind_"
+            << indNum << ".upper_bound(high, h.hints_" << indNum << "));\n";
+        out << "}\n";
+
+        out << "range<t_ind_" << indNum << "::iterator> lowHighRange_" << search;
+        out << "(const t_tuple& low,const t_tuple& high) const {\n";
+        out << "context h;\n";
+        out << "return lowHighRange_" << search << "(low, high, h);\n";
+        out << "}\n";
+    }
+
     // empty method
     out << "bool empty() const {\n";
     out << "return ind_" << masterIndex << ".empty();\n";
@@ -624,6 +653,33 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         out << "range<iterator_" << indNum << "> equalRange_" << search;
         out << "(const t_tuple& t) const {\n";
         out << "context h; return equalRange_" << search << "(t, h);\n";
+        out << "}\n";
+    }
+
+    // lowHigh range
+    for (int64_t search : getMinIndexSelection().getSearches()) {
+        auto lexOrder = getMinIndexSelection().getLexOrder(search);
+        size_t indNum = indexToNumMap[lexOrder];
+
+        out << "range<iterator_" << indNum << "> lowHighRange_" << search;
+        out << "(const t_tuple& lt, const t_tuple& ht, context& h) const {\n";
+
+        out << "t_tuple low(lt); t_tuple high(ht);\n";
+            // check which indices to pad out
+        for (size_t column = 0; column < arity; column++) {
+            // if bit number column is set
+            if (!((search >> column) & 1)) {
+                out << "low[" << column << "] = MIN_RAM_DOMAIN;\n";
+                out << "high[" << column << "] = MAX_RAM_DOMAIN;\n";
+            }
+        }
+        out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&low, h.hints_"
+            << indNum << "), ind_" << indNum << ".upper_bound(&high, h.hints_" << indNum << "));\n";
+        out << "}\n";
+
+        out << "range<iterator_" << indNum << "> lowHighRange_" << search;
+        out << "(const t_tuple& low,const t_tuple& high) const {\n";
+        out << "context h; return lowHighRange_" << search << "(low, high, h);\n";
         out << "}\n";
     }
 
@@ -921,7 +977,7 @@ void SynthesiserBrieRelation::generateTypeStruct(std::ostream& out) {
         out << "context h; return equalRange_" << search << "(t, h);\n";
         out << "}\n";
     }
-
+    //TODO highLowRange
     // empty method
     out << "bool empty() const {\n";
     out << "return ind_" << masterIndex << ".empty();\n";
@@ -1154,6 +1210,7 @@ void SynthesiserEqrelRelation::generateTypeStruct(std::ostream& out) {
         out << "}\n";
     }
 
+    //TODO lowHighRange
     // empty method
     out << "bool empty() const {\n";
     out << "return ind_" << masterIndex << ".size() == 0;\n";

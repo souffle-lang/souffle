@@ -357,6 +357,53 @@ public:
 };
 
 /**
+ * @class RamRangeScan
+ * @brief Search for tuples of a relation within a range
+ *
+ * For example:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  QUERY
+ *   ...
+ *	 FOR t1 IN X ON INDEX  Expr1 <= t1.c < Expr2
+ *	 ...
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+class RamRangeScan : public RamIndexScan {
+public:
+    RamRangeScan(std::unique_ptr<RamRelationReference> r, int ident,
+            std::vector<std::unique_ptr<RamExpression>> lowQueryPattern,
+            std::vector<std::unique_ptr<RamExpression>> highQueryPattern,
+            std::unique_ptr<RamOperation> nested,
+            std::string profileText = "")
+            : RamIndexScan(std::move(r), ident, std::move(lowQueryPattern), std::move(nested),
+                      std::move(profileText)) ,
+                      highQueryPattern(std::move(highQueryPattern))  {}
+
+    RamRangeScan* clone() const override {
+        std::vector<std::unique_ptr<RamExpression>> resQueryPattern(queryPattern.size());
+        for (unsigned int i = 0; i < queryPattern.size(); ++i) {
+            resQueryPattern[i] = std::unique_ptr<RamExpression>(queryPattern[i]->clone());
+        }
+        std::vector<std::unique_ptr<RamExpression>> resHighQueryPattern(highQueryPattern.size());
+        for (unsigned int i = 0; i < highQueryPattern.size(); ++i) {
+            resHighQueryPattern[i] = std::unique_ptr<RamExpression>(highQueryPattern[i]->clone());
+        }
+        return new RamRangeScan(std::unique_ptr<RamRelationReference>(relationRef->clone()), getTupleId(),
+                std::move(resQueryPattern),std::move(resHighQueryPattern), std::unique_ptr<RamOperation>(getOperation().clone()),
+                getProfileText());
+    }
+    /**
+     * @brief Get high range pattern
+     * @return A std::vector of pointers to RamExpression objects
+     */
+    std::vector<RamExpression*> getHighRangePattern() const {
+        return toPtrVector(highQueryPattern);
+    }
+protected:
+    std::vector<std::unique_ptr<RamExpression>> highQueryPattern;
+};
+
+/**
  * @class RamParallelIndexScan
  * @brief Search for tuples of a relation matching a criteria
  *
