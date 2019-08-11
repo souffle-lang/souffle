@@ -562,6 +562,63 @@ protected:
         setAddress(L1, code->size());
     }
 
+    void visitRangeScan(const RamRangeScan& scan, size_t exitAddress) override {
+        code->push_back(LVM_RangeScan);
+        size_t counterLabel = getNewIterator();
+        size_t L1 = getNewAddressLabel();
+
+        // Obtain the pattern for index
+        auto lowPatterns = scan.getRangePattern();
+        auto highPatterns = scan.getHighRangePattern();
+        auto arity = scan.getRelation().getArity();
+        auto relId = relationEncoder.encodeRelation(scan.getRelation());
+        std::vector<int> typeMask(arity);
+        bool fullIndexSearch = true;
+        for (size_t i = arity; i-- > 0;) {
+            if (!isRamUndefValue(lowPatterns[i])) {
+                visit(lowPatterns[i], exitAddress);
+                fullIndexSearch = false;
+                typeMask[i] = 1;
+            }
+            if (!isRamUndefValue(highPatterns[i])) {
+                visit(highPatterns[i], exitAddress);
+                fullIndexSearch = false;
+                typeMask[i] = 1;
+            }
+        }
+
+        // Init range index based on pattern
+        if (fullIndexSearch == true) {
+            code->push_back(LVM_ITER_InitFullIndex);
+            code->push_back(counterLabel);
+            code->push_back(relId);
+        } else {
+            auto indexPos = getIndexPos(scan);
+            this->emitLowHighRangeIndexInst(arity, relId, indexPos, counterLabel, typeMask);
+        }
+
+        // While iter is not at end
+        size_t address_L0 = code->size();
+        code->push_back(LVM_ITER_NotAtEnd);
+        code->push_back(counterLabel);
+        code->push_back(LVM_Jmpez);
+        code->push_back(lookupAddress(L1));
+
+        // Select the tuple pointed by the iter
+        code->push_back(LVM_ITER_Select);
+        code->push_back(counterLabel);
+        code->push_back(scan.getTupleId());
+
+        // Increment the iter and jump to the start of while loop.
+        visitTupleOperation(scan, lookupAddress(L1));
+
+        code->push_back(LVM_ITER_Inc);
+        code->push_back(counterLabel);
+        code->push_back(LVM_Goto);
+        code->push_back(address_L0);
+        setAddress(L1, code->size());
+    }
+
     void visitIndexChoice(const RamIndexChoice& indexChoice, size_t exitAddress) override {
         code->push_back(LVM_IndexChoice);
         size_t counterLabel = getNewIterator();
@@ -1224,6 +1281,27 @@ private:
         } else {
             code->push_back(LVM_ITER_InitRangeIndex);
         }
+        code->push_back(counterLabel);
+        code->push_back(relId);
+        code->push_back(indexPos);
+        for (size_t i = 0; i < numOfTypeMasks; ++i) {
+            RamDomain types = 0;
+            for (size_t j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                if (projectedIndex >= arity) {
+                    break;
+                }
+                types |= (typeMask[projectedIndex] << j);
+            }
+            code->push_back(types);
+        }
+    }
+
+    /** Emit low high range index instructions */
+    void emitLowHighRangeIndexInst(const size_t& arity, const size_t& relId, const size_t& indexPos,
+            const size_t& counterLabel, const std::vector<int>& typeMask) {
+        size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+        code->push_back(LVM_ITER_InitLowHighRangeIndex);
         code->push_back(counterLabel);
         code->push_back(relId);
         code->push_back(indexPos);

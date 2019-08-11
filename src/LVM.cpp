@@ -647,6 +647,10 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                 /** Does nothing, just a label */
                 ip += 1;
                 break;
+            case LVM_RangeScan:
+                /** Does nothing, just a label */
+                ip += 1;
+                break;
             case LVM_Choice:
                 /** Does nothing, just a label */
                 ip += 1;
@@ -1001,6 +1005,51 @@ void LVM::execute(std::unique_ptr<LVMCode>& codeStream, LVMContext& ctxt, size_t
                         } else {
                             low[projectedIndex] = MIN_RAM_DOMAIN;
                             high[projectedIndex] = MAX_RAM_DOMAIN;
+                        }
+                    }
+                }
+                // get iterator range
+                lookUpStream(dest) = relPtr->range(indexPos, TupleRef(low, arity), TupleRef(high, arity));
+                ip += (4 + numOfTypeMasks);
+                break;
+            };
+            case LVM_ITER_InitLowHighRangeIndex: {
+                RamDomain dest = code[ip + 1];
+                auto relPtr = getRelation(code[ip + 2]);
+                auto arity = relPtr->getArity();
+                RamDomain indexPos = code[ip + 3];
+
+                // create pattern tuple for range query
+                size_t numOfTypeMasks = arity / RAM_DOMAIN_SIZE + (arity % RAM_DOMAIN_SIZE != 0);
+                RamDomain low[arity];
+                RamDomain high[arity];
+                for (size_t i = 0; i < numOfTypeMasks; ++i) {
+                    RamDomain typeMask = code[ip + 4 + i];
+                    for (auto j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                        auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                        if (projectedIndex >= arity) {
+                            break;
+                        }
+                        if (1 << j & typeMask) {
+                            high[projectedIndex] = stack.top();
+                            stack.pop();
+                        } else {
+                            high[projectedIndex] = MAX_RAM_DOMAIN;
+                        }
+                    }
+                }
+                for (size_t i = 0; i < numOfTypeMasks; ++i) {
+                    RamDomain typeMask = code[ip + 4 + i];
+                    for (auto j = 0; j < RAM_DOMAIN_SIZE; ++j) {
+                        auto projectedIndex = i * RAM_DOMAIN_SIZE + j;
+                        if (projectedIndex >= arity) {
+                            break;
+                        }
+                        if (1 << j & typeMask) {
+                            low[projectedIndex] = stack.top();
+                            stack.pop();
+                        } else {
+                            low[projectedIndex] = MIN_RAM_DOMAIN;
                         }
                     }
                 }

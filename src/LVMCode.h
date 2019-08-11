@@ -91,6 +91,7 @@ enum LVM_Type {
     // LVM Operations;
     LVM_Scan,
     LVM_IndexScan,
+    LVM_RangeScan,
     LVM_Choice,
     LVM_IndexChoice,
     LVM_UnpackRecord,
@@ -140,6 +141,7 @@ enum LVM_Type {
 
     LVM_ITER_InitFullIndex,
     LVM_ITER_InitRangeIndex,
+    LVM_ITER_InitLowHighRangeIndex,
     LVM_ITER_InitRangeIndexOneArg,
     LVM_ITER_Select,
     LVM_ITER_Inc,
