@@ -1,0 +1,65 @@
+.decl point(X:number, Y:number)
+
+point(0,0).
+
+// make a grid 10*10
+point(X+1,Y):-
+    point(X,Y),X<10.
+
+point(X,Y+1):-
+    point(X,Y),Y<10.
+
+
+.decl inUpperHalf(X:number,Y:number)
+.output inUpperHalf
+
+inUpperHalf(X,Y):-
+    point(X,Y),
+    Y>=5.
+
+.decl inLowerHalf(X:number,Y:number)
+.output inLowerHalf
+
+inLowerHalf(X,Y):-
+    point(X,Y),
+    Y<5.
+
+.decl inLeftHalf(X:number,Y:number)
+.output inLeftHalf
+
+inLeftHalf(X,Y):-
+    point(X,Y),
+    X<5.
+
+.decl inRightHalf(X:number,Y:number)
+.output inRightHalf
+
+inRightHalf(X,Y):-
+    point(X,Y),
+    X>=5.
+
+.decl inUpperLeftCorner(X:number,Y:number)
+.output inUpperLeftCorner
+
+inUpperLeftCorner(X,Y):-
+    point(X,Y),
+    X<5,
+    Y>=5.
+
+.decl inLowerRightCorner(X:number,Y:number)
+.output inLowerRightCorner
+
+inLowerRightCorner(X,Y):-
+    point(X,Y),
+    X>=5,
+    Y<5.
+
+.decl inMiddleSquare(X:number,Y:number)
+.output inMiddleSquare
+
+inMiddleSquare(X,Y):-
+    point(X,Y),
+    X>=4,X<=6,
+    Y>=4,Y<=6.
+
+
