@@ -1,0 +1,72 @@
+.decl interval(B:number,E:number)
+.input interval
+
+.decl equalToThousand(B:number)
+.output equalToThousand
+
+equalToThousand(B):-
+	interval(B,_),
+	B=1000.
+
+.decl greaterEqualThanThousand(B:number)
+.output greaterEqualThanThousand
+
+greaterEqualThanThousand(B):-
+	interval(B,_),
+	B>=1000.
+
+.decl greaterThanThousand(B:number)
+.output greaterThanThousand
+
+greaterThanThousand(B):-
+	interval(B,_),
+	B>1000.
+
+.decl lessThanThousand(B:number)
+.output lessThanThousand
+
+lessThanThousand(B):-
+	interval(B,_),
+	B<1000.
+
+.decl lessEqualThanThousand(B:number)
+.output lessEqualThanThousand
+
+lessEqualThanThousand(B):-
+	interval(B,_),
+	B<=1000.
+
+.decl inBetweenRange(B:number)
+.output inBetweenRange
+
+inBetweenRange(B):-
+	interval(B,_),
+	B>=1000,
+	B<=2000.
+
+.decl inBetweenOpenRange(B:number)
+.output inBetweenOpenRange
+
+inBetweenOpenRange(B):-
+	interval(B,_),
+	B>1000,
+	B<2000.
+
+.decl overlap(B1:number,B2:number)
+.output overlap
+
+overlap(B1,B2):-
+	interval(B1,E1),
+	interval(B2,_),
+	B2>=B1,
+	B2< E1.
+
+// index should take priority
+.decl indexAndRange(B:number)
+.output indexAndRange
+
+indexAndRange(B):-
+	interval(B,E),
+	E=1000,
+	B>=20.
+
