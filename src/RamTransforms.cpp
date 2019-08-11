@@ -315,22 +315,32 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructLowHighPattern(
     };
 
     // Build low and high query patterns and remaining condition
+    // We include at most one index in the condition. Considering several indexes with equality is fine
+    // but not with ranges.
+    size_t selectedIndex = lowQueryPattern.size();
     for (auto& cond : conditionList) {
         size_t element = 0;
-        if (lowQueryPattern[element] == nullptr) {
-            if (std::unique_ptr<RamExpression> lowValue =
-                            getComparisonExpression(cond.get(), element, identifier, true)) {
-                indexable = true;
-                lowQueryPattern[element] = std::move(lowValue);
-                continue;
+        if (std::unique_ptr<RamExpression> lowValue =
+                        getComparisonExpression(cond.get(), element, identifier, true)) {
+            if (!indexable || selectedIndex == element) {
+                if (lowQueryPattern[element] == nullptr) {
+                    selectedIndex = element;
+                    indexable = true;
+                    lowQueryPattern[element] = std::move(lowValue);
+                    continue;
+                }
             }
-        }
-        if (highQueryPattern[element] == nullptr) {
+        } else {
             if (std::unique_ptr<RamExpression> highValue =
                             getComparisonExpression(cond.get(), element, identifier, false)) {
-                indexable = true;
-                highQueryPattern[element] = std::move(highValue);
-                continue;
+                if (!indexable || selectedIndex == element) {
+                    if (highQueryPattern[element] == nullptr) {
+                        selectedIndex = element;
+                        indexable = true;
+                        highQueryPattern[element] = std::move(highValue);
+                        continue;
+                    }
+                }
             }
         }
         addCondition(std::move(cond));
