@@ -237,20 +237,6 @@ public:
     Stream range(const TupleRef& low, const TupleRef& high) const override {
         Entry a = order.encode(low.asTuple<Arity>());
         Entry b = order.encode(high.asTuple<Arity>());
-        // Transfer upper_bound to a equivalent lower bound
-        bool fullIndexSearch = true;
-        for (size_t i = Arity; i-- > 0;) {
-            if (a[i] == MIN_RAM_DOMAIN && b[i] == MAX_RAM_DOMAIN) {
-                b[i] = MIN_RAM_DOMAIN;
-                continue;
-            }
-            if (a[i] == b[i]) {
-                b[i] += 1;
-                fullIndexSearch = false;
-                break;
-            }
-        }
-        assert(fullIndexSearch == false && "Full index search is not allowed in range query\n");
         return std::make_unique<Source>(order, data.lower_bound(a), data.lower_bound(b));
     }
 

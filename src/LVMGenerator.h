@@ -573,29 +573,17 @@ protected:
         auto arity = scan.getRelation().getArity();
         auto relId = relationEncoder.encodeRelation(scan.getRelation());
         std::vector<int> typeMask(arity);
-        bool fullIndexSearch = true;
         for (size_t i = arity; i-- > 0;) {
             if (!isRamUndefValue(lowPatterns[i])) {
                 visit(lowPatterns[i], exitAddress);
-                fullIndexSearch = false;
-                typeMask[i] = 1;
-            }
-            if (!isRamUndefValue(highPatterns[i])) {
                 visit(highPatterns[i], exitAddress);
-                fullIndexSearch = false;
                 typeMask[i] = 1;
             }
         }
 
         // Init range index based on pattern
-        if (fullIndexSearch == true) {
-            code->push_back(LVM_ITER_InitFullIndex);
-            code->push_back(counterLabel);
-            code->push_back(relId);
-        } else {
-            auto indexPos = getIndexPos(scan);
-            this->emitLowHighRangeIndexInst(arity, relId, indexPos, counterLabel, typeMask);
-        }
+        auto indexPos = getIndexPos(scan);
+        this->emitLowHighRangeIndexInst(arity, relId, indexPos, counterLabel, typeMask);
 
         // While iter is not at end
         size_t address_L0 = code->size();
