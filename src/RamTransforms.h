@@ -236,21 +236,20 @@ public:
             bool& indexable, std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
 
     /**
-     * @brief Get expression of RAM element access
+     * @brief Get upper or lower bound expression of RAM element access
      *
-     * @param Equivalence constraints of the format t1.x = <expression> or <expression> = t1.x
-     * @param Element that was accessed, e.g., for t1.x this would be the index of attribute x.
-     * @param Tuple identifier
      *
-     * The method retrieves expression the expression of an equivalence constraint of the
-     * format t1.x = <expr> or <expr> = t1.x
+     * The method retrieves an upper or lower bound constraint on an element of the relation
+     * format t1.x <= <expr> or t1.x < <expr> or   <expr> > t1.x or <expr> >= t1.x if !getLowerBound
+     * or t1.x => <expr> or t1.x > <expr> or   <expr> < t1.x or <expr> <= t1.x if getLowerBound
      */
     std::unique_ptr<RamExpression> getComparisonExpression(
             RamCondition* c, size_t& element, int level, bool getLowerBound);
 
     /**
-     * @brief Construct query patterns for an indexable operation
-     * @param Query pattern that is to be constructed
+     * @brief Construct lower bound and hight bound query patterns for a range operation
+     * @param Lower bound query pattern that is to be constructed
+     * @param Upper bound query pattern that is to be constructed
      * @param Flag to indicate whether operation is indexable
      * @param A list of conditions that will be transformed to query patterns
      * @param Tuple identifier of the indexable operation
@@ -268,6 +267,14 @@ public:
      *         otherwise the new IndexScan operation is returned.
      */
     std::unique_ptr<RamOperation> rewriteScan(const RamScan* scan);
+
+    /**
+     * @brief Rewrite a scan operation to an range scan operation
+     * @param Scan operation that is potentially rewritten to an RangeScan
+     * @result The result is null if the scan could not be rewritten to an RangeScan;
+     *         otherwise the new RangeScan operation is returned.
+     *
+     */
     std::unique_ptr<RamOperation> rewriteScanToRangeScan(const RamScan* scan);
 
     /**

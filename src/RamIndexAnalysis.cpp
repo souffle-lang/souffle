@@ -275,10 +275,7 @@ void RamIndexAnalysis::run(const RamTranslationUnit& translationUnit) {
 
     // visit all nodes to collect searches of each relation
     visitDepthFirst(*translationUnit.getProgram(), [&](const RamNode& node) {
-        if (const auto* rangeScan = dynamic_cast<const RamRangeScan*>(&node)) {
-            MinIndexSelection& indexes = getIndexes(rangeScan->getRelation());
-            indexes.addSearch(getSearchSignature(rangeScan));
-        } else if (const auto* indexSearch = dynamic_cast<const RamIndexOperation*>(&node)) {
+        if (const auto* indexSearch = dynamic_cast<const RamIndexOperation*>(&node)) {
             MinIndexSelection& indexes = getIndexes(indexSearch->getRelation());
             indexes.addSearch(getSearchSignature(indexSearch));
         } else if (const auto* exists = dynamic_cast<const RamExistenceCheck*>(&node)) {
@@ -382,23 +379,6 @@ SearchSignature RamIndexAnalysis::getSearchSignature(const RamIndexOperation* se
     std::vector<RamExpression*> rangePattern = search->getRangePattern();
     for (int i = 0; i < (int)rangePattern.size(); i++) {
         if (!isRamUndefValue(rangePattern[i])) {
-            keys |= (1 << i);
-        }
-    }
-    return keys;
-}
-
-SearchSignature RamIndexAnalysis::getSearchSignature(const RamRangeScan* search) const {
-    SearchSignature keys = 0;
-    std::vector<RamExpression*> rangePattern = search->getRangePattern();
-    for (int i = 0; i < (int)rangePattern.size(); i++) {
-        if (!isRamUndefValue(rangePattern[i])) {
-            keys |= (1 << i);
-        }
-    }
-    std::vector<RamExpression*> highRangePattern = search->getHighRangePattern();
-    for (int i = 0; i < (int)highRangePattern.size(); i++) {
-        if (!isRamUndefValue(highRangePattern[i])) {
             keys |= (1 << i);
         }
     }

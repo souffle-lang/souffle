@@ -358,7 +358,9 @@ public:
 
 /**
  * @class RamRangeScan
- * @brief Search for tuples of a relation within a range
+ * @brief Search for tuples of a relation within a range.
+ *
+ * RamRangeScan can only have a query pattern involving one index.
  *
  * For example:
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -417,7 +419,7 @@ public:
                 std::unique_ptr<RamOperation>(getOperation().clone()), getProfileText());
     }
     /**
-     * @brief Get high range pattern
+     * @brief Get the query pattern of the range's upper bound
      * @return A std::vector of pointers to RamExpression objects
      */
     std::vector<RamExpression*> getHighRangePattern() const {
@@ -425,6 +427,8 @@ public:
     }
 
 protected:
+    // RamRangeScan uses queryPattern for the lower bound of the range
+    // and highQuery pattern for the upper bound.
     std::vector<std::unique_ptr<RamExpression>> highQueryPattern;
 
     /** @brief Helper method for printing */
