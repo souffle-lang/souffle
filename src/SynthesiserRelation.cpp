@@ -679,7 +679,8 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             } else {
                 // if the lower bound is greater than the upper bound return an empty range
                 out << "if ( low[" << column << "] > high[" << column << "]){\n";
-                out << "return make_range(ind_" << indNum << ".end(),ind_" << indNum << ".end());\n";
+                out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".end(),ind_" << indNum
+                    << ".end());\n";
                 out << "};\n";
             }
         }
