@@ -546,6 +546,9 @@ void RAMI::evalOp(const RamOperation& op, const RAMIContext& args) {
                 } else {
                     hig[i] = MAX_RAM_DOMAIN;
                 }
+                // if the range is empty we exit early
+                // otherwise the range would be invalid
+                if (low[i] > hig[i]) return true;
             }
 
             // obtain index

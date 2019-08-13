@@ -239,7 +239,8 @@ public:
         Entry b = order.encode(high.asTuple<Arity>());
         // Transfer upper_bound to a equivalent lower bound
         bool fullIndexSearch = true;
-        for (size_t i = Arity; i-- > 0;) {
+        size_t i = Arity;
+        for (; i-- > 0;) {
             if (a[i] == MIN_RAM_DOMAIN && b[i] == MAX_RAM_DOMAIN) {
                 b[i] = MIN_RAM_DOMAIN;
                 continue;
@@ -255,6 +256,9 @@ public:
             }
         }
         assert(fullIndexSearch == false && "Full index search is not allowed in range query\n");
+
+        // if the range is empty return an empty range
+        if (a[i] > b[i]) return std::make_unique<Source>(order, data.end(), data.end());
         return std::make_unique<Source>(order, data.lower_bound(a), data.lower_bound(b));
     }
 

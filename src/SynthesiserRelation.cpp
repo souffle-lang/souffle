@@ -350,6 +350,11 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             if (!((search >> column) & 1)) {
                 out << "low[" << column << "] = MIN_RAM_DOMAIN;\n";
                 out << "high[" << column << "] = MAX_RAM_DOMAIN;\n";
+            } else {
+                // if the lower bound is greater than the upper bound return an empty range
+                out << "if ( low[" << column << "] > high[" << column << "]){\n";
+                out << "return make_range(ind_" << indNum << ".end(),ind_" << indNum << ".end());\n";
+                out << "};\n";
             }
         }
         out << "return make_range(ind_" << indNum << ".lower_bound(low, h.hints_" << indNum << "), ind_"
@@ -671,6 +676,11 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             if (!((search >> column) & 1)) {
                 out << "low[" << column << "] = MIN_RAM_DOMAIN;\n";
                 out << "high[" << column << "] = MAX_RAM_DOMAIN;\n";
+            } else {
+                // if the lower bound is greater than the upper bound return an empty range
+                out << "if ( low[" << column << "] > high[" << column << "]){\n";
+                out << "return make_range(ind_" << indNum << ".end(),ind_" << indNum << ".end());\n";
+                out << "};\n";
             }
         }
         out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&low, h.hints_"
