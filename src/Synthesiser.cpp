@@ -1402,7 +1402,13 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         // -- values --
         void visitNumber(const RamNumber& num, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
-            out << "RamDomain(" << num.getConstant() << ")";
+            out << "RamDomain(";
+            // If RamDomain is 64 bits, the minimum number cannot be properly parsed.
+            if (num.getConstant() == MIN_RAM_DOMAIN)
+                out << "MIN_RAM_DOMAIN";
+            else
+                out << num.getConstant();
+            out << ")";
             PRINT_END_COMMENT(out);
         }
 
