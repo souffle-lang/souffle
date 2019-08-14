@@ -59,7 +59,16 @@ overlap(B1,B2):-
 	interval(B1,E1),
 	interval(B2,_),
 	B2>=B1,
-	B2< E1.
+	B2<E1.
+
+.decl emptyRange(B1:number,B2:number)
+.output emptyRange
+
+emptyRange(B1,B2):-
+	interval(B1,E1),
+	interval(B2,_),
+	B2>E1,
+	B2<B1.
 
 // index should take priority
 .decl indexAndRange(B:number)
