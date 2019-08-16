@@ -1214,11 +1214,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
         void visitConjunction(const RamConjunction& conj, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
-            out << "((";
             visit(conj.getLHS(), out);
-            out << ") && (";
+            out << " && ";
             visit(conj.getRHS(), out);
-            out << "))";
             PRINT_END_COMMENT(out);
         }
 
