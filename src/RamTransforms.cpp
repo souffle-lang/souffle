@@ -139,15 +139,14 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
             node->apply(makeLambdaRamMapper(filterRewriter));
             return node;
         };
-        RamQuery *mQuery = const_cast<RamQuery*>(&query);
-        mQuery ->apply(makeLambdaRamMapper(filterRewriter));
+        RamQuery* mQuery = const_cast<RamQuery*>(&query);
+        mQuery->apply(makeLambdaRamMapper(filterRewriter));
         if (newCondition != nullptr) {
             // insert new filter operation at outer-most level of the query
             changed = true;
-            RamOperation *nestedOp = const_cast<RamOperation*>(&mQuery->getOperation()); 
-            mQuery->rewrite(nestedOp, 
-                        std::make_unique<RamFilter>(std::move(newCondition),
-                                     std::unique_ptr<RamOperation>(nestedOp->clone()))); 
+            RamOperation* nestedOp = const_cast<RamOperation*>(&mQuery->getOperation());
+            mQuery->rewrite(nestedOp, std::make_unique<RamFilter>(std::move(newCondition),
+                                              std::unique_ptr<RamOperation>(nestedOp->clone())));
         }
     });
 
@@ -170,14 +169,14 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
             node->apply(makeLambdaRamMapper(filterRewriter));
             return node;
         };
-        RamTupleOperation *tupleOp = const_cast<RamTupleOperation*>(&search);
+        RamTupleOperation* tupleOp = const_cast<RamTupleOperation*>(&search);
         tupleOp->apply(makeLambdaRamMapper(filterRewriter));
         if (newCondition != nullptr) {
             // insert new filter operation after the search operation
             changed = true;
-            tupleOp->rewrite(&tupleOp->getOperation(), 
-                        std::make_unique<RamFilter>(std::move(newCondition),
-                                     std::unique_ptr<RamOperation>(tupleOp->getOperation().clone()))); 
+            tupleOp->rewrite(&tupleOp->getOperation(),
+                    std::make_unique<RamFilter>(std::move(newCondition),
+                            std::unique_ptr<RamOperation>(tupleOp->getOperation().clone())));
         }
     });
     return changed;
