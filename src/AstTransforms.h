@@ -571,4 +571,17 @@ private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
 
+/**
+ * Transformer for enforcing pragmas in source code
+ */
+class AstPragmaChecker : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "AstPragmaChecker";
+    }
+
+private:
+    bool transform(AstTranslationUnit&) override;
+};
+
 }  // end of namespace souffle

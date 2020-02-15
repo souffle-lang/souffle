@@ -17,7 +17,6 @@
 #pragma once
 
 #include "AstNode.h"
-#include "AstTransformer.h"
 #include <cassert>
 #include <ostream>
 #include <string>
@@ -25,8 +24,6 @@
 #include <vector>
 
 namespace souffle {
-
-class AstTranslationUnit;
 
 /**
  * @class AstPragma
@@ -50,7 +47,7 @@ public:
         return res;
     }
 
-    /* Get kvp */
+    /* get key-value pair */
     std::pair<std::string, std::string> getkvp() const {
         return std::pair<std::string, std::string>(key, value);
     }
@@ -68,17 +65,6 @@ protected:
 
     /** Value */
     std::string value;
-};
-
-/** TODO (b-scholz): this should not be here */
-class AstPragmaChecker : public AstTransformer {
-public:
-    std::string getName() const override {
-        return "AstPragmaChecker";
-    }
-
-private:
-    bool transform(AstTranslationUnit&) override;
 };
 
 }  // end of namespace souffle
