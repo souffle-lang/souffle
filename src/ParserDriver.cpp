@@ -158,6 +158,15 @@ void ParserDriver::addType(std::unique_ptr<AstType> type) {
     }
 }
 
+std::string ParserDriver::addTypeAnon(std::unique_ptr<AstType> type, std::string nameBase) {
+    std::ostringstream name;
+    name << "(#" << anonCounter++ << " " << nameBase << ")";
+    std::string anonName = name.str();
+    type->setQualifiedName(anonName);
+    addType(std::move(type));
+    return anonName;
+}
+
 void ParserDriver::addClause(std::unique_ptr<AstClause> c) {
     translationUnit->getProgram()->addClause(std::move(c));
 }

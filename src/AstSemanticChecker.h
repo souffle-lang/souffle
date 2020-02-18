@@ -31,6 +31,7 @@ class AstRecordType;
 class AstRelation;
 class AstTranslationUnit;
 class AstType;
+class AstSumType;
 class AstUnionType;
 class IOType;
 class ErrorReport;
@@ -60,8 +61,8 @@ private:
     static void checkArgument(ErrorReport& report, const AstProgram& program, const AstArgument& arg);
     static void checkConstant(ErrorReport& report, const AstArgument& argument);
     static void checkFact(ErrorReport& report, const AstProgram& program, const AstClause& fact);
-    static void checkClause(ErrorReport& report, const AstProgram& program, const AstClause& clause,
-            const RecursiveClauses& recursiveClauses);
+    static void checkClause(ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program,
+            const AstClause& clause, const RecursiveClauses& recursiveClauses);
     static void checkRelationDeclaration(ErrorReport& report, const TypeEnvironment& typeEnv,
             const AstProgram& program, const AstRelation& relation, const IOType& ioTypes);
     static void checkRelation(ErrorReport& report, const TypeEnvironment& typeEnv, const AstProgram& program,
@@ -70,6 +71,7 @@ private:
             const RecursiveClauses& recursiveClauses, const IOType& ioTypes);
 
     static void checkUnionType(ErrorReport& report, const AstProgram& program, const AstUnionType& type);
+    static void checkSumType(ErrorReport& report, const AstProgram& program, const AstSumType& type);
     static void checkRecordType(ErrorReport& report, const AstProgram& program, const AstRecordType& type);
     static void checkType(ErrorReport& report, const AstProgram& program, const AstType& type);
     static void checkRecursiveUnionTypes(ErrorReport& report, const AstProgram& program);

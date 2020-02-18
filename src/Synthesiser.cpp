@@ -1633,6 +1633,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         out << ").c_str()";
                         break;
                     case TypeAttribute::Record:
+                    case TypeAttribute::Sum:
                         assert(false);
                 }
             }
@@ -1749,6 +1750,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
                 os << "const char * ";
                 break;
             case TypeAttribute::Record:
+            case TypeAttribute::Sum:
                 abort();
         }
 
@@ -1769,6 +1771,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
                     args.push_back("const char *");
                     break;
                 case TypeAttribute::Record:
+                case TypeAttribute::Sum:
                     abort();
             }
         }

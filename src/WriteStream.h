@@ -141,11 +141,56 @@ protected:
                 case 'r':
                     outputRecord(destination, recordValue, recordType);
                     break;
+                case '+':
+                    outputSum(destination, recordValue, recordType);
+                    break;
                 default:
                     assert(false && "Unsupported type attribute.");
             }
         }
         destination << "]";
+    }
+
+    void outputSum(std::ostream& destination, const RamDomain value, const std::string& name) {
+        auto const sumInfo = types["sums"][name];
+        if (!sumInfo.is_array()) {
+            std::cerr << "Missing sum type information: " << name << std::endl;
+            abort();
+        }
+
+        // sum types are encoded as `(branch-idx, branch-value)` records
+        const RamDomain* tuplePtr = recordTable.unpack(value, 2);
+        const RamDomain branchId = tuplePtr[0];
+        const RamDomain branchValue = tuplePtr[1];
+
+        auto const branchInfo = sumInfo[branchId];
+        auto const& branchName = branchInfo["name"].string_value();
+        auto const& branchType = branchInfo["type"].string_value();
+
+        destination << branchName << " ";
+
+        switch (branchType[0]) {
+            case 'i':
+                destination << branchValue;
+                break;
+            case 'f':
+                destination << ramBitCast<RamFloat>(branchValue);
+                break;
+            case 'u':
+                destination << ramBitCast<RamUnsigned>(branchValue);
+                break;
+            case 's':
+                destination << symbolTable.unsafeResolve(branchValue);
+                break;
+            case 'r':
+                outputRecord(destination, branchValue, branchType);
+                break;
+            case '+':
+                outputSum(destination, branchValue, branchType);
+                break;
+            default:
+                assert(false && "Unsupported type attribute.");
+        }
     }
 };
 

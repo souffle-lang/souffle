@@ -38,6 +38,13 @@ std::vector<const AstRecordInit*> getRecords(const AstNode& root) {
     return recs;
 }
 
+std::vector<const AstSumInit*> getSums(const AstNode& root) {
+    // simply collect the list of all records by visiting all records
+    std::vector<const AstSumInit*> sums;
+    visitDepthFirst(root, [&](const AstSumInit& sum) { sums.push_back(&sum); });
+    return sums;
+}
+
 const AstRelation* getAtomRelation(const AstAtom* atom, const AstProgram* program) {
     return program->getRelation(atom->getQualifiedName());
 }

@@ -379,6 +379,21 @@ public:
 };
 
 /**
+ * Transformation to lower `AstSumInit` to `AstRecordInit`.
+ *
+ * PRECONDITION: semantics have been checked
+ */
+class SumInitToRecordInitTransformer : public AstTransformer {
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+
+public:
+    std::string getName() const override {
+        return "SumInitToRecordInitTransformer";
+    }
+};
+
+/**
  * Transformer that holds an arbitrary number of sub-transformations
  */
 class PipelineTransformer : public MetaTransformer {

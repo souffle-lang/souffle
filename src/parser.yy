@@ -192,6 +192,7 @@
 %type <AstRecordType *>                     non_empty_record_type_list
 %type <AstPragma *>                         pragma
 %type <uint32_t>                            qualifiers
+%type <std::optional<AstQualifiedName>>     record_name_opt;
 %type <std::vector<AstRelation *>>          relation_decl
 %type <std::vector<AstRelation *>>          relation_list
 %type <std::vector<AstClause *>>            rule
@@ -199,9 +200,12 @@
 %type <std::vector<AstStore *>>             store_head
 %type <RuleBody *>                          term
 %type <AstType *>                           type
-%type <std::vector<AstQualifiedName>>      type_params
-%type <std::vector<AstQualifiedName>>      type_param_list
+%type <AstType *>                           type_record
+%type <std::vector<AstQualifiedName>>       type_params
+%type <std::vector<AstQualifiedName>>       type_param_list
 %type <AstUnionType *>                      union_type_list
+%type <AstSumType *>                        sum_branch_list
+%type <AstSumType::Branch>                  sum_branch
 
 /* -- Destructors -- */
 %destructor { delete $$; }                                  atom
@@ -239,9 +243,12 @@
 %destructor { for (auto* cur : $$) { delete cur; } }        store_head
 %destructor { delete $$; }                                  term
 %destructor { delete $$; }                                  type
+%destructor { delete $$; }                                  type_record
 %destructor { }                                             type_params
 %destructor { }                                             type_param_list
 %destructor { delete $$; }                                  union_type_list
+%destructor { delete $$; }                                  sum_branch_list
+%destructor { }                                             sum_branch
 
 /* -- Operator precedence -- */
 %left L_OR
@@ -388,17 +395,34 @@ type
 
         $union_type_list = nullptr;
     }
-  | TYPE IDENT EQUALS LBRACKET RBRACKET {
-        $$ = new AstRecordType();
-        $$->setQualifiedName($IDENT);
-        $$->setSrcLoc(@$);
-    }
-  | TYPE IDENT EQUALS LBRACKET non_empty_record_type_list RBRACKET {
-        $$ = $non_empty_record_type_list;
-        $$->setQualifiedName($IDENT);
+  | TYPE IDENT EQUALS sum_branch_list {
+        $$ = $sum_branch_list;
+        $$->setQualifiedName(std::move($IDENT));
         $$->setSrcLoc(@$);
 
-        $non_empty_record_type_list = nullptr;
+        $IDENT            = {};
+        $sum_branch_list  = {};
+    }
+  | TYPE IDENT EQUALS type_record {
+        $$ = $type_record;
+        $$->setQualifiedName(std::move($IDENT));
+        $$->setSrcLoc(@$);
+
+        $IDENT        = {};
+        $type_record  = {};
+    }
+  ;
+
+type_record
+  : LBRACKET RBRACKET {
+        $$ = new AstRecordType();
+        $$->setSrcLoc(@$);
+    }
+  | LBRACKET non_empty_record_type_list RBRACKET {
+        $$ = $non_empty_record_type_list;
+        $$->setSrcLoc(@$);
+
+        $non_empty_record_type_list = {};
     }
   ;
 
@@ -434,6 +458,42 @@ union_type_list
 
         $identifier.clear();
         $curr_union = nullptr;
+    }
+  ;
+
+/* Union type argument declarations */
+sum_branch_list
+  : sum_branch {
+        $$ = new AstSumType();
+        $$->add(std::move($sum_branch));
+
+        $sum_branch = {};
+    }
+  | sum_branch_list[curr_sum] PIPE sum_branch {
+        $$ = $curr_sum;
+        $$->add(std::move($sum_branch));
+
+        $curr_sum   = {};
+        $sum_branch = {};
+    }
+  ;
+
+sum_branch
+  : IDENT type_record { // ADT style, inline create a record w/ the same name as the branch
+      $$ = { $IDENT, $IDENT };
+
+      $type_record->setQualifiedName(std::move($IDENT));
+      $type_record->setSrcLoc(@$);
+      // immediately register the record type since we can't carry it out of this scope
+      driver.addType(std::unique_ptr<AstType>($type_record));
+
+      $IDENT        = {};
+      $type_record  = {};
+    }
+  | IDENT EQUALS identifier { // refer to an externally defined type for the branch's body
+      $$ = { std::move($IDENT), std::move($identifier) };
+      $IDENT      = {};
+      $identifier = {};
     }
   ;
 
@@ -903,14 +963,15 @@ arg
         $$ = new AstNilConstant();
         $$->setSrcLoc(@$);
     }
-  /* TODO (azreika): in next version: prepend records with identifiers */
-  | LBRACKET RBRACKET {
-        $$ = new AstRecordInit();
+  // FIXME: this syntax is weird but we need a symbol prefix to avoid a S/R conflict
+  | record_name_opt LBRACKET RBRACKET {
+        $$ = new AstRecordInit(std::move($record_name_opt));
         $$->setSrcLoc(@$);
-    }
-  | LBRACKET non_empty_arg_list RBRACKET {
-        auto record = new AstRecordInit();
 
+        $record_name_opt    = {};
+    }
+  | record_name_opt LBRACKET non_empty_arg_list RBRACKET {
+        auto record = new AstRecordInit(std::move($record_name_opt));
         for (auto* arg : $non_empty_arg_list) {
             record->addArgument(std::unique_ptr<AstArgument>(arg));
         }
@@ -918,7 +979,18 @@ arg
         $$ = record;
         $$->setSrcLoc(@$);
 
-        $non_empty_arg_list.clear();
+        $record_name_opt    = {};
+        $non_empty_arg_list = {};
+    }
+
+    /* explicit sum constructor */
+  | AT identifier IDENT LBRACKET arg[value] RBRACKET {
+      $$ = new AstSumInit(std::move($identifier), std::move($IDENT), std::unique_ptr<AstArgument>($value));
+      $$->setSrcLoc(@$);
+
+      $identifier = {};
+      $IDENT      = {};
+      $value      = {};
     }
 
     /* user-defined functor */
@@ -1328,6 +1400,16 @@ arg
         $$->setSrcLoc(@$);
 
         $target_expr = nullptr;
+    }
+  ;
+
+record_name_opt
+  : AT identifier {
+      $$ = std::move($identifier);
+      $identifier = {};
+    }
+  | %empty {
+      $$ = {};
     }
   ;
 

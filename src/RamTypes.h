@@ -30,6 +30,7 @@ enum class TypeAttribute {
     Unsigned,  // Unsigned number
     Float,     // Floating point number.
     Record,
+    Sum,
 };
 
 // Printing of the TypeAttribute Enum.
@@ -50,7 +51,12 @@ inline std::ostream& operator<<(std::ostream& os, TypeAttribute T) {
             break;
         case TypeAttribute::Record:
             os << "TypeAttribute::Record";
+            break;
+        case TypeAttribute::Sum:
+            os << "TypeAttribute::Sum";
+            break;
     }
+    assert(false && "unhandled `RamTypeAttribute` variant");
     return os;
 }
 

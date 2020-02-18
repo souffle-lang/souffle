@@ -62,6 +62,9 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
         } else if (dynamic_cast<const AstRecordType*>(cur) != nullptr) {
             // initialize the record
             env.createRecordType(cur->getQualifiedName());
+        } else if (dynamic_cast<const AstSumType*>(cur) != nullptr) {
+            // initialize the sum type
+            env.createSumType(cur->getQualifiedName());
         } else {
             std::cout << "Unsupported type construct: " << typeid(cur).name() << "\n";
             assert(false && "Unsupported Type Construct!");
@@ -99,6 +102,19 @@ void TypeEnvironmentAnalysis::updateTypeEnvironment(const AstProgram& program) {
             for (const auto& f : t->getFields()) {
                 if (env.isType(f.type)) {
                     rt->add(f.name, env.getType(f.type));
+                }
+            }
+        } else if (auto* t = dynamic_cast<const AstSumType*>(cur)) {
+            // get type as sum type
+            auto* st = dynamic_cast<SumType*>(type);
+            if (!st) {
+                continue;  // support faulty input
+            }
+
+            // add element types
+            for (const auto& cur : t->getBranches()) {
+                if (env.isType(cur.type)) {
+                    st->add({cur.name, env.getType(cur.type)});
                 }
             }
         } else {

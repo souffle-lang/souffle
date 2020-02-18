@@ -117,7 +117,7 @@ class UnionType : public Type {
 public:
     void add(const Type& type);
 
-    const std::vector<const Type*>& getElementTypes() const {
+    const std::vector<std::reference_wrapper<const Type>>& getElementTypes() const {
         return elementTypes;
     }
 
@@ -128,7 +128,7 @@ private:
     friend class TypeEnvironment;
 
     /** The contained element types */
-    std::vector<const Type*> elementTypes;
+    std::vector<std::reference_wrapper<const Type>> elementTypes;
 
     UnionType(const TypeEnvironment& environment, const AstQualifiedName& name) : Type(environment, name) {}
 };
@@ -160,6 +160,36 @@ private:
     std::vector<Field> fields;
 
     RecordType(const TypeEnvironment& environment, const AstQualifiedName& name) : Type(environment, name) {}
+};
+
+/**
+ * A sum type, AKA a discriminated union, tagged union, etc.
+ *
+ * TODO: refinement typing on branch cases?
+ */
+struct SumType : Type {
+    /** A specific branch of a sum type */
+    struct Branch {
+        std::string name;  // < the name of the branch
+        const Type& type;  // < the refined type of the branch
+    };
+
+    void add(Branch type);
+
+    const std::vector<Branch>& getBranches() const {
+        return branches;
+    }
+
+    void print(std::ostream& out) const override;
+
+private:
+    // only allow type environments to create instances
+    friend class TypeEnvironment;
+
+    /** The contained element types */
+    std::vector<Branch> branches;
+
+    SumType(const TypeEnvironment& environment, AstQualifiedName name) : Type(environment, std::move(name)) {}
 };
 
 /**
@@ -348,6 +378,10 @@ public:
         return createType<RecordType>(name);
     }
 
+    SumType& createSumType(const identifier& name) {
+        return createType<SumType>(name);
+    }
+
     // -- query type information --
 
     bool isType(const identifier& ident) const;
@@ -422,7 +456,11 @@ bool eqTypeTypeAttribute(const TypeAttribute ramType, const T& type) {
             return isSymbolType(type);
         case TypeAttribute::Record:
             return isRecordType(type);
+        case TypeAttribute::Sum:
+            return isSumType(type);
     }
+    std::cerr << "unhandled `RamTypeAttribute`: " << ramType;
+    exit(1);
     return false;
 }
 
@@ -442,6 +480,8 @@ TypeAttribute getTypeAttribute(const T& type) {
         primitiveType = TypeAttribute::Record;
     } else if (isSymbolType(type)) {
         primitiveType = TypeAttribute::Symbol;
+    } else if (isSumType(type)) {
+        primitiveType = TypeAttribute::Sum;
     } else {
         std::cerr << "Unknown type class" << std::endl;
         std::exit(EXIT_FAILURE);
@@ -506,6 +546,16 @@ bool isRecordType(const Type& type);
  * Determines whether all the types in the given set are record types.
  */
 bool isRecordType(const TypeSet& s);
+
+/**
+ * Determines whether the given type is a sum type.
+ */
+bool isSumType(const Type& type);
+
+/**
+ * Determines whether all the types in the given set are sum types.
+ */
+bool isSumType(const TypeSet& s);
 
 /**
  * Determines whether the given type is a recursive type.

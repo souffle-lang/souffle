@@ -74,6 +74,7 @@ protected:
                     case 'u':
                     case 'f':
                     case 'r':
+                    case '+':
                         tuple[column] = RamDomainFromString(element);
                         break;
                     default:

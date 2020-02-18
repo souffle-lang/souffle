@@ -573,7 +573,8 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                         values[i] = &floatVal[i];
                         break;
                     case TypeAttribute::Record:
-                        assert(false && "Record support is not implemented");
+                    case TypeAttribute::Sum:
+                        assert(false && "Sum and record support is not implemented");
                 }
             }
 

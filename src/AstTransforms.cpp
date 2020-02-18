@@ -1336,4 +1336,93 @@ bool AstUserDefinedFunctorsTransformer::transform(AstTranslationUnit& translatio
     return update.changed;
 }
 
+namespace {
+
+// If `f` returns a non-null value then the program is considered to have been mutated.
+template <typename F /* a <: AstNode, b <: a => const a& -> unique_ptr<b> */,
+        typename A = typename lambda_traits<F>::arg0_type,
+        typename B = typename lambda_traits<F>::result_type>
+bool mapAstNodePre(AstProgram& program, F&& f) {
+    static_assert(!detail::is_ast_visitor<F>::value, "`F` doesn't look like a lambda mutator");
+    struct AstNodeMapperLambdaPre : public AstNodeMapper {
+        F fn;
+        mutable bool changed = false;
+        AstNodeMapperLambdaPre(F&& fn) : fn(std::forward<F>(fn)) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            // Apply to all aggregates of the form
+            // sum k : { .. } where k is a constant
+            if (auto p = dynamic_cast<std::remove_reference_t<A>*>(node.get())) {
+                auto r = this->fn(*p);
+                this->changed |= !!r;
+                if (r) {
+                    r->apply(*this);
+                    return r;
+                }
+            }
+
+            node->apply(*this);
+            return node;
+        }
+    };
+
+    AstNodeMapperLambdaPre mapper{std::forward<F>(f)};
+    program.apply(mapper);
+    return mapper.changed;
+}
+
+template <typename F /* a <: AstNode, b <: a => const a& -> unique_ptr<b> */,
+        typename A = typename lambda_traits<F>::arg0_type,
+        typename B = typename lambda_traits<F>::result_type>
+bool mapAstNodePost(AstProgram& program, F&& f) {
+    static_assert(!detail::is_ast_visitor<F>::value, "`F` doesn't look like a lambda mutator");
+    struct AstNodeMapperLambdaPre : public AstNodeMapper {
+        F fn;
+        mutable bool changed = false;
+        AstNodeMapperLambdaPre(F&& fn) : fn(std::forward<F>(fn)) {}
+
+        std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
+            node->apply(*this);
+
+            // Apply to all aggregates of the form
+            // sum k : { .. } where k is a constant
+            if (auto p = dynamic_cast<std::remove_reference_t<A>*>(node.get())) {
+                auto r = this->fn(*p);
+                this->changed |= !!r;
+                if (r) return r;
+            }
+
+            return node;
+        }
+    };
+
+    AstNodeMapperLambdaPre mapper{std::forward<F>(f)};
+    program.apply(mapper);
+    return mapper.changed;
+}
+
+}  // namespace
+
+bool SumInitToRecordInitTransformer::transform(AstTranslationUnit& tu) {
+    auto&& env = tu.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
+
+    return mapAstNodePost(*tu.getProgram(), [&](const AstSumInit& r) -> std::unique_ptr<AstRecordInit> {
+        auto& ty = dynamic_cast<const SumType&>(env.getType(r.type));
+        RamDomain branchId = 0;
+        assert(ty.getBranches().size() <= MAX_RAM_DOMAIN);
+        for (auto&& br : ty.getBranches()) {
+            if (br.name == r.getBranch()) {
+                auto c = std::make_unique<AstRecordInit>(r.type);
+                c->addArgument(std::make_unique<AstNumberConstant>(branchId));
+                c->addArgument(std::unique_ptr<AstArgument>(r.getArgument()->clone()));
+                return c;
+            }
+
+            branchId++;
+        }
+
+        return {};
+    });
+}
+
 }  // end of namespace souffle

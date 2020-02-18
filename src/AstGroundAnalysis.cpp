@@ -206,6 +206,17 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
             addConstraint(imply(vars, cur));
         }
 
+        void visitSumInit(const AstSumInit& init) override {
+            auto cur = getVar(init);
+
+            // if sum is grounded so is its branch body
+            auto arg_var = getVar(init.getArgument());
+            addConstraint(imply(cur, arg_var));
+
+            // if the branch body is grounded, so is the sum
+            addConstraint(imply(arg_var, cur));
+        }
+
         // constants are also sources of grounded values
         void visitConstant(const AstConstant& c) override {
             addConstraint(isTrue(getVar(c)));

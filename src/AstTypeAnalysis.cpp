@@ -511,6 +511,30 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
             for (const AstArgument* value : init.getArguments()) {
                 addConstraint(isSubtypeOfComponent(getVar(value), rec, i++));
             }
+
+            // might not have this info due to malformed program.
+            if (init.type && env.isType(*init.type)) {
+                auto&& ty = env.getType(*init.type);
+                addConstraint(isSubtypeOf(rec, ty));
+                addConstraint(isSupertypeOf(rec, ty));
+            }
+        }
+
+        void visitSumInit(const AstSumInit& init) override {
+            auto const ty =
+                    dynamic_cast<const SumType*>(env.isType(init.type) ? &env.getType(init.type) : nullptr);
+            if (!ty) return;  // might not have this info due to malformed program.
+
+            auto rec = getVar(init);
+            addConstraint(isSubtypeOf(rec, *ty));
+            addConstraint(isSupertypeOf(rec, *ty));
+
+            for (auto&& br : ty->getBranches()) {
+                if (br.name != init.getBranch()) continue;
+
+                addConstraint(isSubtypeOf(getVar(init.getArgument()), br.type));
+                break;  // first branch name match is enough; branches may not have overlapping names
+            }
         }
 
         // visit aggregates

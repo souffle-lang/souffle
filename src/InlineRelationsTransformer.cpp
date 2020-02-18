@@ -666,7 +666,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
             if (argumentVersions.isValid()) {
                 changed = true;
                 for (AstArgument* newArgumentVersion : argumentVersions.getVector()) {
-                    auto* newRecordArg = new AstRecordInit();
+                    auto* newRecordArg = new AstRecordInit(record->type);
                     for (size_t j = 0; j < recordArguments.size(); j++) {
                         if (i == j) {
                             newRecordArg->addArgument(std::unique_ptr<AstArgument>(newArgumentVersion));

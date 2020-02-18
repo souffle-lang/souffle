@@ -19,6 +19,7 @@
 #include "CompiledTuple.h"
 #include "ParallelUtils.h"
 #include "RamTypes.h"
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <limits>

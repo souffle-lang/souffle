@@ -42,8 +42,8 @@ public:
     }
 
     /** set type name */
-    void setQualifiedName(const AstQualifiedName& name) {
-        this->name = name;
+    void setQualifiedName(AstQualifiedName name) {
+        this->name = std::move(name);
     }
 
     AstType* clone() const override = 0;
@@ -141,6 +141,70 @@ protected:
 private:
     /** The list of types aggregated by this union type */
     std::vector<AstQualifiedName> types;
+};
+
+/**
+ * A sum type represents one alternative from many.
+ */
+class AstSumType : public AstType {
+public:
+    struct Branch {
+        std::string name;       // < the branch name
+        AstQualifiedName type;  // < the branch type
+
+        bool operator==(const Branch& other) const {
+            return this == &other || (name == other.name && type == other.type);
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Branch& br) {
+            return os << br.name << " = " << br.type;
+        }
+    };
+
+    /** Creates a new sum type */
+    AstSumType() = default;
+
+    /** Obtains a reference to the list element types */
+    const std::vector<Branch>& getBranches() const {
+        return branches;
+    }
+
+    /** Adds another element type */
+    void add(Branch branch) {
+        branches.emplace_back(std::move(branch));
+    }
+
+    void setVariantType(size_t idx, AstQualifiedName type) {
+        assert(idx < branches.size() && "sum variant index out of bounds");
+        branches[idx].type = std::move(type);
+    }
+
+    /** Prints a summary of this type to the given stream */
+    void print(std::ostream& os) const override {
+        os << ".type " << getQualifiedName() << " = " << join(branches, " | ");
+    }
+
+    /** Creates a clone of this AST sub-structure */
+    AstSumType* clone() const override {
+        auto res = new AstSumType();
+        res->setSrcLoc(getSrcLoc());
+        res->setQualifiedName(getQualifiedName());
+        res->branches = branches;
+        return res;
+    }
+
+protected:
+    /** Implements the node comparison for this node type */
+    bool equal(const AstNode& node) const override {
+        assert(nullptr != dynamic_cast<const AstSumType*>(&node));
+        const auto& other = static_cast<const AstSumType&>(node);
+        return getQualifiedName() == other.getQualifiedName() && branches == other.branches;
+    }
+
+private:
+    /**
+     * The list of branches for this sum type. */
+    std::vector<Branch> branches;
 };
 
 /**

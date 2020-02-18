@@ -903,6 +903,20 @@ bool none_of(const Container& c, UnaryPredicate p) {
     return std::none_of(c.begin(), c.end(), p);
 }
 
+/**
+ * A generic test checking whether any elements within a container is equal to a
+ * given value.
+ *
+ * @param c the container
+ * @param x the test value
+ * @return true if there is an element y in c such that (x == y) is true, false
+ *          otherwise; for empty containers the result is always false
+ */
+template <typename Container, typename A>
+bool any_equals(const Container& c, A const& x) {
+    return std::any_of(c.begin(), c.end(), [&](auto& y) { return x == y; });
+}
+
 // -------------------------------------------------------------------------------
 //                               Timing Utils
 // -------------------------------------------------------------------------------

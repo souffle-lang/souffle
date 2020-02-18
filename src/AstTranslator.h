@@ -82,6 +82,9 @@ private:
     /** Record types information - used in Ram for I/O. */
     Json RamRecordTypes;
 
+    /** Sum type information - used in Ram for I/O. */
+    Json ramSumTypes;
+
     /** Auxiliary Arity Analysis */
     const AuxiliaryArity* auxArityAnalysis = nullptr;
 
@@ -384,6 +387,11 @@ private:
      * If they don't exists - create them.
      */
     const Json getRecordsTypes(void);
+
+    /**
+     * Get ram sum types.
+     */
+    const Json getSumTypes();
 
     /**
      * translate RAM code for the non-recursive clauses of the given relation.
