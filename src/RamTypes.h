@@ -38,25 +38,20 @@ enum class TypeAttribute {
 inline std::ostream& operator<<(std::ostream& os, TypeAttribute T) {
     switch (T) {
         case TypeAttribute::Symbol:
-            os << "TypeAttribute::Symbol";
-            break;
+            return os << "TypeAttribute::Symbol";
         case TypeAttribute::Signed:
-            os << "TypeAttribute::Signed";
-            break;
+            return os << "TypeAttribute::Signed";
         case TypeAttribute::Float:
-            os << "TypeAttribute::Float";
-            break;
+            return os << "TypeAttribute::Float";
         case TypeAttribute::Unsigned:
-            os << "TypeAttribute::Unsigned";
-            break;
+            return os << "TypeAttribute::Unsigned";
         case TypeAttribute::Record:
-            os << "TypeAttribute::Record";
-            break;
+            return os << "TypeAttribute::Record";
         case TypeAttribute::Sum:
-            os << "TypeAttribute::Sum";
-            break;
+            return os << "TypeAttribute::Sum";
     }
-    assert(false && "unhandled `RamTypeAttribute` variant");
+    std::cerr << "unhandled `TypeAttribute` variant: " << size_t(T);
+    exit(EXIT_FAILURE);
     return os;
 }
 
@@ -71,9 +66,12 @@ inline bool isNumericType(TypeAttribute ramType) {
             return true;
         case TypeAttribute::Symbol:
         case TypeAttribute::Record:
+        case TypeAttribute::Sum:
             return false;
     }
-    return false;  // silence warning
+    std::cerr << "unhandled `TypeAttribute` variant: " << size_t(ramType);
+    exit(EXIT_FAILURE);
+    return false;
 }
 
 /**
