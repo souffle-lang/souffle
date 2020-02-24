@@ -251,6 +251,7 @@
 %destructor { }                                             sum_branch
 
 /* -- Operator precedence -- */
+%left SUM_INIT
 %left L_OR
 %left L_AND
 %left BW_OR
@@ -984,7 +985,7 @@ arg
     }
 
     /* explicit sum constructor */
-  | AT identifier IDENT LBRACKET arg[value] RBRACKET {
+  | AT identifier IDENT arg[value] %prec SUM_INIT {
       $$ = new AstSumInit(std::move($identifier), std::move($IDENT), std::unique_ptr<AstArgument>($value));
       $$->setSrcLoc(@$);
 
