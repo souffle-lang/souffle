@@ -13,9 +13,9 @@ SingleNumberRelation([1, 1, 1]).       // error
 Error: Number constant (type mismatch) in file type_system2.dl at line 29
 SingleNumberRelation([1, 1, 1]).       // error
 ----------------------------^-------------------
-Error: Wrong number of arguments given to record in file type_system2.dl at line 33
+Error: Number constant (type mismatch) in file type_system2.dl at line 33
 DoubleNumberRelation([1]).             // error
----------------------^--------------------------
+----------------------^-------------------------
 Error: Number constant (type mismatch) in file type_system2.dl at line 35
 DoubleNumberRelation([1, 1, 1]).       // error
 ----------------------^-------------------------
@@ -25,12 +25,15 @@ DoubleNumberRelation([1, 1, 1]).       // error
 Error: Number constant (type mismatch) in file type_system2.dl at line 35
 DoubleNumberRelation([1, 1, 1]).       // error
 ----------------------------^-------------------
-Error: Wrong number of arguments given to record in file type_system2.dl at line 39
+Error: Number constant (type mismatch) in file type_system2.dl at line 39
 TripleNumberRelation([1]).             // error
----------------------^--------------------------
-Error: Wrong number of arguments given to record in file type_system2.dl at line 40
+----------------------^-------------------------
+Error: Number constant (type mismatch) in file type_system2.dl at line 40
 TripleNumberRelation([1, 1]).          // error
----------------------^--------------------------
+----------------------^-------------------------
+Error: Number constant (type mismatch) in file type_system2.dl at line 40
+TripleNumberRelation([1, 1]).          // error
+-------------------------^----------------------
 Error: Symbol constant (type mismatch) in file type_system2.dl at line 46
 SingleSymbolRelation(["1", "1"]).      // error
 ----------------------^-------------------------
@@ -46,9 +49,9 @@ SingleSymbolRelation(["1", "1", "1"]). // error
 Error: Symbol constant (type mismatch) in file type_system2.dl at line 47
 SingleSymbolRelation(["1", "1", "1"]). // error
 --------------------------------^---------------
-Error: Wrong number of arguments given to record in file type_system2.dl at line 51
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 51
 DoubleSymbolRelation(["1"]).           // error
----------------------^--------------------------
+----------------------^-------------------------
 Error: Symbol constant (type mismatch) in file type_system2.dl at line 53
 DoubleSymbolRelation(["1", "1", "1"]). // error
 ----------------------^-------------------------
@@ -58,10 +61,13 @@ DoubleSymbolRelation(["1", "1", "1"]). // error
 Error: Symbol constant (type mismatch) in file type_system2.dl at line 53
 DoubleSymbolRelation(["1", "1", "1"]). // error
 --------------------------------^---------------
-Error: Wrong number of arguments given to record in file type_system2.dl at line 57
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 57
 TripleSymbolRelation(["1"]).           // error
----------------------^--------------------------
-Error: Wrong number of arguments given to record in file type_system2.dl at line 58
+----------------------^-------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 58
 TripleSymbolRelation(["1", "1"]).      // error
----------------------^--------------------------
-22 errors generated, evaluation aborted
+----------------------^-------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 58
+TripleSymbolRelation(["1", "1"]).      // error
+---------------------------^--------------------
+24 errors generated, evaluation aborted
