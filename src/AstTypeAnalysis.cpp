@@ -258,6 +258,52 @@ TypeConstraint isSubtypeOfComponent(const TypeVar& a, const TypeVar& b, int inde
 
     return std::make_shared<C>(a, b, index);
 }
+
+TypeConstraint isRecordWithArity(const TypeVar& a, size_t arity) {
+    struct C : public Constraint<TypeVar> {
+        TypeVar a;
+        size_t arity;
+
+        C(TypeVar a, size_t arity) : a(std::move(a)), arity(arity) {}
+
+        bool update(Assignment<TypeVar>& ass) const override {
+            // get list of types for b
+            const TypeSet& recs = ass[a];
+
+            // if it is (not yet) constrainted => skip
+            if (recs.isAll()) {
+                return false;
+            }
+
+            // compute new types for a and b
+            TypeSet types;
+
+            // iterate through types of b
+            for (const Type& t : recs) {
+                // only retain records
+                if (auto p = dynamic_cast<const RecordType*>(&t)) {
+                    if (p->getFields().size() == arity) {
+                        types.insert(t);
+                    }
+                }
+            }
+
+            // update values
+            const bool changed = ass[a] != types;
+            if (changed)
+                ass[a] = types;
+
+            // done
+            return changed;
+        }
+
+        void print(std::ostream& out) const override {
+            out << a << " <: record/" << arity;
+        }
+    };
+
+    return std::make_shared<C>(a, arity);
+}
 }  // namespace
 
 /* Return a new clause with type-annotated variables */
@@ -506,8 +552,9 @@ std::map<const AstArgument*, TypeSet> TypeAnalysis::analyseTypes(
         void visitRecordInit(const AstRecordInit& init) override {
             // link element types with sub-values
             auto rec = getVar(init);
-            int i = 0;
+            addConstraint(isRecordWithArity(rec, init.getArguments().size()));
 
+            int i = 0;
             for (const AstArgument* value : init.getArguments()) {
                 addConstraint(isSubtypeOfComponent(getVar(value), rec, i++));
             }
