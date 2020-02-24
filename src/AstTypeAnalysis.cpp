@@ -290,8 +290,7 @@ TypeConstraint isRecordWithArity(const TypeVar& a, size_t arity) {
 
             // update values
             const bool changed = ass[a] != types;
-            if (changed)
-                ass[a] = types;
+            if (changed) ass[a] = types;
 
             // done
             return changed;
