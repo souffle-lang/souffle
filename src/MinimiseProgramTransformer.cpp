@@ -26,6 +26,7 @@
 #include "AstTranslationUnit.h"
 #include "AstUtils.h"
 #include "AstVisitor.h"
+#include "Util.h"
 #include <map>
 #include <memory>
 #include <stack>
@@ -140,8 +141,8 @@ bool isValidMove(const AstClause* left, size_t leftIdx, const AstClause* right, 
 
     // handle the case where one of the indices refers to the head
     if (leftIdx == 0 && rightIdx == 0) {
-        const AstAtom* leftHead = left->getHead()->getAtom();
-        const AstAtom* rightHead = right->getHead()->getAtom();
+        const AstAtom* leftHead = left->getHead();
+        const AstAtom* rightHead = right->getHead();
         return leftHead->getQualifiedName() == rightHead->getQualifiedName();
     } else if (leftIdx == 0 || rightIdx == 0) {
         return false;
@@ -149,12 +150,12 @@ bool isValidMove(const AstClause* left, size_t leftIdx, const AstClause* right, 
 
     // both must hence be body atoms
     int leftBodyAtomIdx = leftIdx - 1;
-    const AstAtom* leftAtom =
-            dynamic_cast<AstAtomLiteral*>(left->getBodyLiterals()[leftBodyAtomIdx])->getAtom();
+    const AstAtom* leftAtom = dynamic_cast<AstAtom*>(left->getBodyLiterals()[leftBodyAtomIdx]);
+    assert(leftAtom != nullptr && "expected atom");
 
     int rightBodyAtomIdx = rightIdx - 1;
-    const AstAtom* rightAtom =
-            dynamic_cast<AstAtomLiteral*>(right->getBodyLiterals()[rightBodyAtomIdx])->getAtom();
+    const AstAtom* rightAtom = dynamic_cast<AstAtom*>(right->getBodyLiterals()[rightBodyAtomIdx]);
+    assert(rightAtom != nullptr && "expected atom");
 
     return leftAtom->getQualifiedName() == rightAtom->getQualifiedName();
 }
@@ -201,21 +202,15 @@ bool isValidPermutation(
     rightAtoms.push_back(right->getHead());
 
     // check if a valid variable mapping exists
-    auto isVariable = [&](const AstArgument* arg) {
-        return dynamic_cast<const AstVariable*>(arg) != nullptr;
-    };
-
-    auto isConstant = [&](const AstArgument* arg) {
-        return dynamic_cast<const AstConstant*>(arg) != nullptr;
-    };
+    auto isVariable = [](const AstArgument* arg) { return dynamic_cast<const AstVariable*>(arg) != nullptr; };
 
     bool validMapping = true;
     for (size_t i = 0; i < leftAtoms.size() && validMapping; i++) {
         // match arguments
-        std::vector<AstArgument*> leftArgs =
-                dynamic_cast<AstAtomLiteral*>(leftAtoms[i])->getAtom()->getArguments();
-        std::vector<AstArgument*> rightArgs =
-                dynamic_cast<AstAtomLiteral*>(rightAtoms[i])->getAtom()->getArguments();
+        assert(dynamic_cast<AstAtom*>(leftAtoms[i]) != nullptr && "expected atom");
+        assert(dynamic_cast<AstAtom*>(rightAtoms[i]) != nullptr && "expected atom");
+        std::vector<AstArgument*> leftArgs = dynamic_cast<AstAtom*>(leftAtoms[i])->getArguments();
+        std::vector<AstArgument*> rightArgs = dynamic_cast<AstAtom*>(rightAtoms[i])->getArguments();
 
         for (size_t j = 0; j < leftArgs.size(); j++) {
             AstArgument* leftArg = leftArgs[j];
@@ -235,16 +230,16 @@ bool isValidPermutation(
                     validMapping = false;
                     break;
                 }
-            } else if (isConstant(leftArg) && isConstant(rightArg)) {
-                // check if its the same constant
-                auto leftCst = dynamic_cast<AstConstant*>(leftArg)->getRamRepresentation();
-                auto rightCst = dynamic_cast<AstConstant*>(rightArg)->getRamRepresentation();
-
-                if (leftCst != rightCst) {
-                    // constants don't match, failed!
-                    validMapping = false;
-                    break;
-                }
+            } else if (castEq<AstStringConstant>(leftArg, rightArg)) {
+                validMapping = true;
+            } else if (castEq<AstFloatConstant>(leftArg, rightArg)) {
+                validMapping = true;
+            } else if (castEq<AstUnsignedConstant>(leftArg, rightArg)) {
+                validMapping = true;
+            } else if (castEq<AstNumberConstant>(leftArg, rightArg)) {
+                validMapping = true;
+            } else if (dynamic_cast<AstNilConstant*>(leftArg) != nullptr) {
+                validMapping = dynamic_cast<AstNilConstant*>(rightArg) != nullptr;
             } else {
                 // not the same type, failed!
                 validMapping = false;

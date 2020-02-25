@@ -17,7 +17,7 @@
 
 #include "RamNode.h"
 #include "RamTypes.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 
 #include <string>
 #include <utility>

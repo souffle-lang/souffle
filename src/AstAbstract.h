@@ -33,17 +33,6 @@ public:
 };
 
 /**
- * Atom Literal
- */
-class AstAtomLiteral : public AstLiteral {
-public:
-    /** get atom */
-    virtual const AstAtom* getAtom() const = 0;
-
-    AstLiteral* clone() const override = 0;
-};
-
-/**
  * Argument
  */
 class AstArgument : public AstNode {

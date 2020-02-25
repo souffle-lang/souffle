@@ -69,7 +69,7 @@ void normaliseInlinedHeads(AstProgram& program) {
 
     // Go through the clauses of all inlined relations
     for (AstRelation* rel : program.getRelations()) {
-        if (!rel->isInline()) {
+        if (!rel->hasQualifier(RelationQualifier::INLINE)) {
             continue;
         }
 
@@ -153,7 +153,7 @@ void nameInlinedUnderscores(AstProgram& program) {
     // Store the names of all relations to be inlined
     std::set<AstQualifiedName> inlinedRelations;
     for (AstRelation* rel : program.getRelations()) {
-        if (rel->isInline()) {
+        if (rel->hasQualifier(RelationQualifier::INLINE)) {
             inlinedRelations.insert(rel->getQualifiedName());
         }
     }
@@ -171,7 +171,7 @@ bool containsInlinedAtom(const AstProgram& program, const AstClause& clause) {
 
     visitDepthFirst(clause, [&](const AstAtom& atom) {
         AstRelation* rel = program.getRelation(atom.getQualifiedName());
-        if (rel->isInline()) {
+        if (rel->hasQualifier(RelationQualifier::INLINE)) {
             foundInlinedAtom = true;
         }
     });
@@ -766,7 +766,7 @@ NullableVector<std::vector<AstLiteral*>> getInlinedLiteral(AstProgram& program, 
         // Check if this atom is meant to be inlined
         AstRelation* rel = program.getRelation(atom->getQualifiedName());
 
-        if (rel->isInline()) {
+        if (rel->hasQualifier(RelationQualifier::INLINE)) {
             // We found an atom in the clause that needs to be inlined!
             // The clause needs to be replaced
             inlined = true;
@@ -998,7 +998,7 @@ bool InlineRelationsTransformer::transform(AstTranslationUnit& translationUnit) 
         // Go through each relation in the program and check if we need to inline any of its clauses
         for (AstRelation* rel : program.getRelations()) {
             // Skip if the relation is going to be inlined
-            if (rel->isInline()) {
+            if (rel->hasQualifier(RelationQualifier::INLINE)) {
                 continue;
             }
 

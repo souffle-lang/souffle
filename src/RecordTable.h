@@ -89,7 +89,7 @@ public:
         RamDomain* res;
 
 #pragma omp critical(record_unpack)
-        res = &(indexToRecord[index][0]);
+        res = indexToRecord[index].data();
 
         return res;
     }
@@ -98,7 +98,7 @@ public:
         const RamDomain* res;
 
 #pragma omp critical(record_unpack)
-        res = &(indexToRecord[index][0]);
+        res = indexToRecord[index].data();
 
         return res;
     }
@@ -173,7 +173,7 @@ public:
         return ref == getNil();
     }
 
-    RamDomain getNil() const {
+    static constexpr RamDomain getNil() {
         return 0;
     }
 

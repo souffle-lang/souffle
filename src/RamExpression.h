@@ -286,7 +286,7 @@ public:
 
     /** Create clone */
     RamSignedConstant* clone() const override {
-        return new RamSignedConstant(constant);
+        return new RamSignedConstant(getValue());
     }
 };
 
@@ -301,7 +301,7 @@ public:
  */
 class RamUnsignedConstant : public RamConstant {
 public:
-    explicit RamUnsignedConstant(RamDomain val) : RamConstant(val) {}
+    explicit RamUnsignedConstant(RamUnsigned val) : RamConstant(ramBitCast(val)) {}
 
     /** @brief Get value of the constant. */
     RamUnsigned getValue() const {
@@ -314,7 +314,7 @@ public:
 
     /** Create clone */
     RamUnsignedConstant* clone() const override {
-        return new RamUnsignedConstant(constant);
+        return new RamUnsignedConstant(getValue());
     }
 };
 
@@ -329,7 +329,7 @@ public:
  */
 class RamFloatConstant : public RamConstant {
 public:
-    explicit RamFloatConstant(RamDomain val) : RamConstant(val) {}
+    explicit RamFloatConstant(RamFloat val) : RamConstant(ramBitCast(val)) {}
 
     void print(std::ostream& os) const override {
         os << "float(" << getValue() << ")";
@@ -342,7 +342,7 @@ public:
 
     /** Create clone */
     RamFloatConstant* clone() const override {
-        return new RamFloatConstant(constant);
+        return new RamFloatConstant(getValue());
     }
 };
 

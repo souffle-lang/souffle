@@ -31,7 +31,7 @@
 #include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 #include "Util.h"
 #include <cassert>
 #include <cstddef>
@@ -71,7 +71,7 @@ std::unique_ptr<AstRelation> makeInfoRelation(
     auto infoRelation = new AstRelation();
     infoRelation->setQualifiedName(name);
     // set qualifier to INFO_RELATION
-    infoRelation->setQualifier(INFO_RELATION);
+    infoRelation->setRepresentation(RelationRepresentation::INFO);
 
     // create new clause containing a single fact
     auto infoClause = new AstClause();
@@ -124,16 +124,19 @@ std::unique_ptr<AstRelation> makeInfoRelation(
     // add an attribute to infoRelation for the head of clause
     infoRelation->addAttribute(
             std::make_unique<AstAttribute>(std::string("head_vars"), AstQualifiedName("symbol")));
-    infoClauseHead->addArgument(
-            std::make_unique<AstStringConstant>(translationUnit.getSymbolTable(), headVariableString.str()));
+    infoClauseHead->addArgument(std::make_unique<AstStringConstant>(headVariableString.str()));
 
     // visit all body literals and add to info clause head
     for (size_t i = 0; i < originalClause.getBodyLiterals().size(); i++) {
         auto lit = originalClause.getBodyLiterals()[i];
-        const AstAtomLiteral* atomLit = dynamic_cast<AstAtomLiteral*>(lit);
+
         const AstAtom* atom = nullptr;
-        if (atomLit != nullptr) {
-            atom = atomLit->getAtom();
+        if (dynamic_cast<AstAtom*>(lit) != nullptr) {
+            atom = static_cast<AstAtom*>(lit);
+        } else if (dynamic_cast<AstNegation*>(lit) != nullptr) {
+            atom = static_cast<AstNegation*>(lit)->getAtom();
+        } else if (dynamic_cast<AstProvenanceNegation*>(lit) != nullptr) {
+            atom = static_cast<AstProvenanceNegation*>(lit)->getAtom();
         }
 
         // add an attribute for atoms and binary constraints
@@ -153,12 +156,10 @@ std::unique_ptr<AstRelation> makeInfoRelation(
                     atomDescription.append("," + getArgInfo(arg));
                 }
 
-                infoClauseHead->addArgument(std::make_unique<AstStringConstant>(
-                        translationUnit.getSymbolTable(), atomDescription));
+                infoClauseHead->addArgument(std::make_unique<AstStringConstant>(atomDescription));
                 // for a negation, add a marker with the relation name
             } else if (dynamic_cast<AstNegation*>(lit) != nullptr) {
-                infoClauseHead->addArgument(std::make_unique<AstStringConstant>(
-                        translationUnit.getSymbolTable(), ("!" + relName)));
+                infoClauseHead->addArgument(std::make_unique<AstStringConstant>("!" + relName));
             }
             // for a constraint, add the constraint symbol and LHS and RHS
         } else if (auto con = dynamic_cast<AstBinaryConstraint*>(lit)) {
@@ -167,8 +168,7 @@ std::unique_ptr<AstRelation> makeInfoRelation(
             constraintDescription.append("," + getArgInfo(con->getLHS()));
             constraintDescription.append("," + getArgInfo(con->getRHS()));
 
-            infoClauseHead->addArgument(std::make_unique<AstStringConstant>(
-                    translationUnit.getSymbolTable(), constraintDescription));
+            infoClauseHead->addArgument(std::make_unique<AstStringConstant>(constraintDescription));
         }
     }
 
@@ -177,8 +177,7 @@ std::unique_ptr<AstRelation> makeInfoRelation(
     originalClause.print(ss);
 
     infoRelation->addAttribute(std::make_unique<AstAttribute>("clause_repr", AstQualifiedName("symbol")));
-    infoClauseHead->addArgument(
-            std::make_unique<AstStringConstant>(translationUnit.getSymbolTable(), ss.str()));
+    infoClauseHead->addArgument(std::make_unique<AstStringConstant>(ss.str()));
 
     // set clause head and add clause to info relation
     infoClause->setHead(std::unique_ptr<AstAtom>(infoClauseHead));
@@ -193,7 +192,7 @@ void transformEqrelRelation(AstRelation& rel) {
             "attempting to transform non-eqrel relation");
     assert(rel.getArity() == 2 && "eqrel relation not binary");
 
-    rel.setQualifier(rel.getQualifier() - EQREL_RELATION + BTREE_RELATION);
+    rel.setRepresentation(RelationRepresentation::BTREE);
 
     // transitivity
     // transitive clause: A(x, z) :- A(x, y), A(y, z).

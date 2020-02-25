@@ -100,27 +100,23 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const AdornedClause& arg) {
         size_t currpos = 0;
-        bool firstadded = true;
+        bool firstAdded = true;
         out << arg.clause->getHead()->getQualifiedName() << "{" << arg.headAdornment << "} :- ";
 
         std::vector<AstLiteral*> bodyLiterals = arg.clause->getBodyLiterals();
         for (AstLiteral* literal : bodyLiterals) {
-            if (auto* corresAtom = dynamic_cast<AstAtom*>(literal)) {
-                if (firstadded) {
-                    firstadded = false;
-                    out << corresAtom->getQualifiedName() << "{_}";
-                } else {
-                    out << ", " << corresAtom->getQualifiedName() << "{_}";
+            if (auto* atom = dynamic_cast<AstAtom*>(literal)) {
+                if (!firstAdded) {
+                    out << ", ";
                 }
-            } else if (auto* lit = dynamic_cast<AstAtomLiteral*>(literal)) {
-                if (firstadded) {
-                    firstadded = false;
-                    out << lit->getAtom()->getQualifiedName() << "{" << arg.bodyAdornment[currpos] << "}";
-                } else {
-                    out << ", " << lit->getAtom()->getQualifiedName() << "{" << arg.bodyAdornment[currpos]
-                        << "}";
+                firstAdded = false;
+                out << atom->getQualifiedName() << "{_}";
+            } else if (auto* neg = dynamic_cast<AstNegation*>(literal)) {
+                if (!firstAdded) {
+                    out << ", ";
                 }
-                currpos++;
+                firstAdded = false;
+                out << neg->getAtom()->getQualifiedName() << "{" << arg.bodyAdornment[currpos++] << "}";
             }
         }
         out << ". [order: " << arg.ordering << "]";

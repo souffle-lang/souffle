@@ -30,7 +30,7 @@
 #include "RamTypes.h"
 #include "RamUtils.h"
 #include "RamVisitor.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 #include "SymbolTable.h"
 #include "SynthesiserRelation.h"
 #include "Util.h"

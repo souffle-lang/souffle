@@ -112,8 +112,8 @@ void AstTranslator::makeIODirective(IODirectives& ioDirective, const AstRelation
     std::string name = getRelationName(rel->getQualifiedName());
     std::vector<std::string> attributesTypes;
 
-    for (size_t i = 0; i < rel->getArity(); ++i) {
-        auto type = getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName()));
+    for (const auto* attribute : rel->getAttributes()) {
+        auto type = getTypeQualifier(typeEnv->getType(attribute->getTypeName()));
         attributesTypes.push_back(type);
     }
 
@@ -214,8 +214,8 @@ std::vector<IODirectives> AstTranslator::getOutputIODirectives(
                 delimiter = ioDirective.get("delimiter");
             }
             std::vector<std::string> attributeNames;
-            for (unsigned int i = 0; i < rel->getArity(); i++) {
-                attributeNames.push_back(rel->getAttribute(i)->getAttributeName());
+            for (const auto* attribute : rel->getAttributes()) {
+                attributeNames.push_back(attribute->getAttributeName());
             }
 
             if (Global::config().has("provenance")) {
@@ -280,23 +280,23 @@ std::unique_ptr<RamExpression> AstTranslator::translateValue(
         }
 
         std::unique_ptr<RamExpression> visitUnsignedConstant(const AstUnsignedConstant& c) override {
-            return std::make_unique<RamUnsignedConstant>(c.getRamRepresentation());
+            return std::make_unique<RamUnsignedConstant>(c.getValue());
         }
 
         std::unique_ptr<RamExpression> visitFloatConstant(const AstFloatConstant& c) override {
-            return std::make_unique<RamFloatConstant>(c.getRamRepresentation());
+            return std::make_unique<RamFloatConstant>(c.getValue());
         }
 
         std::unique_ptr<RamExpression> visitNumberConstant(const AstNumberConstant& c) override {
-            return std::make_unique<RamSignedConstant>(c.getRamRepresentation());
+            return std::make_unique<RamSignedConstant>(c.getValue());
         }
 
         std::unique_ptr<RamExpression> visitStringConstant(const AstStringConstant& c) override {
-            return std::make_unique<RamSignedConstant>(c.getRamRepresentation());
+            return std::make_unique<RamSignedConstant>(translator.getSymbolTable().lookup(c.getValue()));
         }
 
-        std::unique_ptr<RamExpression> visitNilConstant(const AstNilConstant& c) override {
-            return std::make_unique<RamSignedConstant>(c.getRamRepresentation());
+        std::unique_ptr<RamExpression> visitNilConstant(const AstNilConstant&) override {
+            return std::make_unique<RamSignedConstant>(RecordTable::getNil());
         }
 
         std::unique_ptr<RamExpression> visitIntrinsicFunctor(const AstIntrinsicFunctor& inf) override {
@@ -372,6 +372,7 @@ std::unique_ptr<RamCondition> AstTranslator::translateConstraint(
         std::unique_ptr<RamCondition> visitNegation(const AstNegation& neg) override {
             const auto* atom = neg.getAtom();
             size_t auxiliaryArity = translator.getEvaluationArity(atom);
+            assert(auxiliaryArity <= atom->getArity() && "auxiliary arity out of bounds");
             size_t arity = atom->getArity() - auxiliaryArity;
             std::vector<std::unique_ptr<RamExpression>> values;
 
@@ -393,9 +394,11 @@ std::unique_ptr<RamCondition> AstTranslator::translateConstraint(
         /** for provenance negation */
         std::unique_ptr<RamCondition> visitProvenanceNegation(const AstProvenanceNegation& neg) override {
             const auto* atom = neg.getAtom();
-            int auxiliaryArity = translator.getEvaluationArity(atom);
-            int arity = atom->getArity() - auxiliaryArity;
+            size_t auxiliaryArity = translator.getEvaluationArity(atom);
+            assert(auxiliaryArity < atom->getArity() && "auxiliary arity out of bounds");
+            size_t arity = atom->getArity() - auxiliaryArity;
             std::vector<std::unique_ptr<RamExpression>> values;
+
             auto args = atom->getArguments();
             for (size_t i = 0; i < arity; i++) {
                 values.push_back(translator.translateValue(args[i], index));
@@ -405,7 +408,7 @@ std::unique_ptr<RamCondition> AstTranslator::translateConstraint(
                 // undefined value for rule number
                 values.push_back(std::make_unique<RamUndefValue>());
                 // add the height annotation for provenanceNotExists
-                for (int h = 0; h < auxiliaryArity - 1; h++) {
+                for (size_t h = 0; h + 1 < auxiliaryArity; h++) {
                     values.push_back(translator.translateValue(args[arity + h + 1], index));
                 }
             }
@@ -827,11 +830,12 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
             // add constraints
             size_t pos = 0;
             for (auto arg : atom->getArguments()) {
-                if (auto* c = dynamic_cast<AstConstant*>(arg)) {
+                if (auto* c = dynamic_cast<const AstConstant*>(arg)) {
                     op = std::make_unique<RamFilter>(
                             std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
                                     std::make_unique<RamTupleElement>(level, pos),
-                                    std::make_unique<RamSignedConstant>(c->getRamRepresentation())),
+                                    std::make_unique<RamSignedConstant>(
+                                            translator.getConstantRamRepresentation(*c))),
                             std::move(op));
                 }
                 ++pos;
@@ -881,11 +885,12 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
         } else if (const auto* rec = dynamic_cast<const AstRecordInit*>(cur)) {
             // add constant constraints
             for (size_t pos = 0; pos < rec->getArguments().size(); ++pos) {
-                if (AstConstant* c = dynamic_cast<AstConstant*>(rec->getArguments()[pos])) {
+                if (const AstConstant* c = dynamic_cast<AstConstant*>(rec->getArguments()[pos])) {
                     op = std::make_unique<RamFilter>(
                             std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
                                     std::make_unique<RamTupleElement>(level, pos),
-                                    std::make_unique<RamSignedConstant>(c->getRamRepresentation())),
+                                    std::make_unique<RamSignedConstant>(
+                                            translator.getConstantRamRepresentation(*c))),
                             std::move(op));
                 } else if (AstFunctor* func = dynamic_cast<AstFunctor*>(rec->getArguments()[pos])) {
                     op = std::make_unique<RamFilter>(std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
@@ -1111,9 +1116,7 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
         std::unique_ptr<RamStatement> loopRelSeq;
 
         /* Find clauses for relation rel */
-        for (size_t i = 0; i < rel->clauseSize(); i++) {
-            AstClause* cl = rel->getClause(i);
-
+        for (const auto& cl : rel->getClauses()) {
             // skip non-recursive clauses
             if (!recursiveClauses->recursive(cl)) {
                 continue;
@@ -1555,13 +1558,14 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
             auto arity = rel->getArity();
             auto auxiliaryArity = auxArityAnalysis->getArity(rel);
             auto representation = rel->getRepresentation();
+            const auto& attributes = rel->getAttributes();
             std::vector<std::string> attributeNames;
             std::vector<std::string> attributeTypeQualifiers;
             for (size_t i = 0; i < rel->getArity(); ++i) {
-                attributeNames.push_back(rel->getAttribute(i)->getAttributeName());
+                attributeNames.push_back(attributes[i]->getAttributeName());
                 if (typeEnv != nullptr) {
                     attributeTypeQualifiers.push_back(
-                            getTypeQualifier(typeEnv->getType(rel->getAttribute(i)->getTypeName())));
+                            getTypeQualifier(typeEnv->getType(attributes[i]->getTypeName())));
                 }
             }
             ramRels[name] = std::make_unique<RamRelation>(
@@ -1719,7 +1723,7 @@ std::unique_ptr<RamTranslationUnit> AstTranslator::translateUnit(AstTranslationU
     auto ram_start = std::chrono::high_resolution_clock::now();
     program = tu.getProgram();
     translateProgram(tu);
-    SymbolTable& symTab = tu.getSymbolTable();
+    SymbolTable& symTab = getSymbolTable();
     ErrorReport& errReport = tu.getErrorReport();
     DebugReport& debugReport = tu.getDebugReport();
     std::vector<std::unique_ptr<RamRelation>> rels;
@@ -1741,7 +1745,8 @@ std::unique_ptr<RamTranslationUnit> AstTranslator::translateUnit(AstTranslationU
             debugReport.addSection("ram-program", "RAM Program " + runtimeStr, ramProgStr.str());
         }
     }
-    return std::make_unique<RamTranslationUnit>(std::move(ramProg), symTab, errReport, debugReport);
+    return std::make_unique<RamTranslationUnit>(
+            std::move(ramProg), std::move(symTab), errReport, debugReport);
 }
 
 }  // end of namespace souffle

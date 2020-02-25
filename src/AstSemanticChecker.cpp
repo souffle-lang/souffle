@@ -39,7 +39,7 @@
 #include "GraphUtils.h"
 #include "PrecedenceGraph.h"
 #include "RamTypes.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 #include "SrcLocation.h"
 #include "TypeSystem.h"
 #include "Util.h"
@@ -81,7 +81,7 @@ void AstSemanticChecker::checkProgram(AstTranslationUnit& translationUnit) {
                 suppressedRelations.end()) {
             // mute all relations
             for (AstRelation* rel : program.getRelations()) {
-                rel->setQualifier(rel->getQualifier() | SUPPRESSED_RELATION);
+                rel->addQualifier(RelationQualifier::SUPPRESSED);
             }
         } else {
             // mute only the given relations (if they exist)
@@ -96,7 +96,7 @@ void AstSemanticChecker::checkProgram(AstTranslationUnit& translationUnit) {
 
                     // update suppressed qualifier if the relation is found
                     if (AstRelation* rel = program.getRelation(relid)) {
-                        rel->setQualifier(rel->getQualifier() | SUPPRESSED_RELATION);
+                        rel->addQualifier(RelationQualifier::SUPPRESSED);
                     }
                 }
             }
@@ -422,8 +422,12 @@ static bool hasUnnamedVariable(const AstLiteral* lit) {
 void AstSemanticChecker::checkLiteral(
         ErrorReport& report, const AstProgram& program, const AstLiteral& literal) {
     // check potential nested atom
-    if (const auto* atomLiteral = dynamic_cast<const AstAtomLiteral*>(&literal)) {
-        checkAtom(report, program, *atomLiteral->getAtom());
+    if (const auto* atom = dynamic_cast<const AstAtom*>(&literal)) {
+        checkAtom(report, program, *atom);
+    }
+
+    if (const auto* neg = dynamic_cast<const AstNegation*>(&literal)) {
+        checkAtom(report, program, *neg->getAtom());
     }
 
     if (const auto* constraint = dynamic_cast<const AstBinaryConstraint*>(&literal)) {
@@ -709,8 +713,10 @@ void AstSemanticChecker::checkClause(ErrorReport& report, const TypeEnvironment&
 
 void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const TypeEnvironment& typeEnv,
         const AstProgram& program, const AstRelation& relation, const IOType& ioTypes) {
+    const auto& attributes = relation.getAttributes();
+    assert(attributes.size() == relation.getArity() && "mismatching attribute size and arity");
     for (size_t i = 0; i < relation.getArity(); i++) {
-        AstAttribute* attr = relation.getAttribute(i);
+        AstAttribute* attr = attributes[i];
         AstQualifiedName typeName = attr->getTypeName();
 
         /* check whether type exists */
@@ -723,7 +729,7 @@ void AstSemanticChecker::checkRelationDeclaration(ErrorReport& report, const Typ
 
         /* check whether name occurs more than once */
         for (size_t j = 0; j < i; j++) {
-            if (attr->getAttributeName() == relation.getAttribute(j)->getAttributeName()) {
+            if (attr->getAttributeName() == attributes[j]->getAttributeName()) {
                 report.addError("Doubly defined attribute name " + attr->getAttributeName() + ":" +
                                         toString(attr->getTypeName()),
                         attr->getSrcLoc());
@@ -737,7 +743,9 @@ void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironmen
         const IOType& ioTypes) {
     if (relation.getRepresentation() == RelationRepresentation::EQREL) {
         if (relation.getArity() == 2) {
-            if (relation.getAttribute(0)->getTypeName() != relation.getAttribute(1)->getTypeName()) {
+            const auto& attributes = relation.getAttributes();
+            assert(attributes.size() == 2 && "mismatching attribute size and arity");
+            if (attributes[0]->getTypeName() != attributes[1]->getTypeName()) {
                 report.addError("Domains of equivalence relation " + toString(relation.getQualifiedName()) +
                                         " are different",
                         relation.getSrcLoc());
@@ -758,7 +766,8 @@ void AstSemanticChecker::checkRelation(ErrorReport& report, const TypeEnvironmen
     }
 
     // check whether this relation is empty
-    if (relation.clauseSize() == 0 && !ioTypes.isInput(&relation) && !relation.isSuppressed()) {
+    if (relation.getClauses().empty() && !ioTypes.isInput(&relation) &&
+            !relation.hasQualifier(RelationQualifier::SUPPRESSED)) {
         report.addWarning("No rules/facts defined for relation " + toString(relation.getQualifiedName()),
                 relation.getSrcLoc());
     }
@@ -1247,7 +1256,7 @@ std::vector<AstQualifiedName> findInlineCycle(const PrecedenceGraph& precedenceG
     const AstRelationSet& successors = precedenceGraph.graph().successors(current);
     for (const AstRelation* successor : successors) {
         // Only care about inlined neighbours in the graph
-        if (successor->isInline()) {
+        if (successor->hasQualifier(RelationQualifier::INLINE)) {
             if (visited.find(successor) != visited.end()) {
                 // The neighbour has already been visited, so move on
                 continue;
@@ -1289,10 +1298,12 @@ std::vector<AstQualifiedName> findInlineCycle(const PrecedenceGraph& precedenceG
 
 void AstSemanticChecker::checkInlining(ErrorReport& report, const AstProgram& program,
         const PrecedenceGraph& precedenceGraph, const IOType& ioTypes) {
+    auto isInline = [&](const AstRelation* rel) { return rel->hasQualifier(RelationQualifier::INLINE); };
+
     // Find all inlined relations
     AstRelationSet inlinedRelations;
     for (const auto& relation : program.getRelations()) {
-        if (relation->isInline()) {
+        if (isInline(relation)) {
             inlinedRelations.insert(relation);
             if (ioTypes.isIO(relation)) {
                 report.addError(
@@ -1347,7 +1358,7 @@ void AstSemanticChecker::checkInlining(ErrorReport& report, const AstProgram& pr
     // Check if an inlined literal ever takes in a $
     visitDepthFirst(program, [&](const AstAtom& atom) {
         AstRelation* associatedRelation = program.getRelation(atom.getQualifiedName());
-        if (associatedRelation != nullptr && associatedRelation->isInline()) {
+        if (associatedRelation != nullptr && isInline(associatedRelation)) {
             visitDepthFirst(atom, [&](const AstArgument& arg) {
                 if (dynamic_cast<const AstCounter*>(&arg) != nullptr) {
                     report.addError(
@@ -1430,7 +1441,7 @@ void AstSemanticChecker::checkInlining(ErrorReport& report, const AstProgram& pr
     visitDepthFirst(program, [&](const AstAggregator& aggr) {
         visitDepthFirst(aggr, [&](const AstAtom& subatom) {
             const AstRelation* rel = program.getRelation(subatom.getQualifiedName());
-            if (rel != nullptr && rel->isInline()) {
+            if (rel != nullptr && isInline(rel)) {
                 report.addError("Cannot inline relations that appear in aggregator", subatom.getSrcLoc());
             }
         });
@@ -1478,7 +1489,7 @@ void AstSemanticChecker::checkInlining(ErrorReport& report, const AstProgram& pr
     visitDepthFirst(program, [&](const AstNegation& negation) {
         const AstAtom* associatedAtom = negation.getAtom();
         const AstRelation* associatedRelation = program.getRelation(associatedAtom->getQualifiedName());
-        if (associatedRelation != nullptr && associatedRelation->isInline()) {
+        if (associatedRelation != nullptr && isInline(associatedRelation)) {
             std::pair<bool, SrcLocation> atomStatus = checkInvalidUnderscore(associatedAtom);
             if (atomStatus.first) {
                 report.addError(

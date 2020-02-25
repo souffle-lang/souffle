@@ -26,15 +26,13 @@
 #include "AstUtils.h"
 #include "BinaryConstraintOps.h"
 #include "Global.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 #include "SrcLocation.h"
 #include "Util.h"
 #include <cassert>
 #include <utility>
 
 namespace souffle {
-
-class SymbolTable;
 
 /* general functions */
 
@@ -204,18 +202,6 @@ std::string getNextEdbName(AstProgram* program) {
     return newEdbName.str();
 }
 
-// copies over necessary qualifiers from original into new relation
-// note that input/output directives are handled at the end of the MST
-void updateQualifier(AstRelation* originalRelation, AstRelation* newRelation) {
-    int currentQualifier = newRelation->getQualifier();
-
-    if (originalRelation->getRepresentation() == RelationRepresentation::EQREL) {
-        currentQualifier |= EQREL_RELATION;
-    }
-
-    newRelation->setQualifier(currentQualifier);
-}
-
 // create a new relation with a given name based on a previous relation
 AstRelation* createNewRelation(AstRelation* original, const AstQualifiedName& newName) {
     auto* newRelation = new AstRelation();
@@ -227,8 +213,8 @@ AstRelation* createNewRelation(AstRelation* original, const AstQualifiedName& ne
         newRelation->addAttribute(std::unique_ptr<AstAttribute>(attr->clone()));
     }
 
-    // copy over necessary qualifiers
-    updateQualifier(original, newRelation);
+    // copy over internal representation
+    newRelation->setRepresentation(original->getRepresentation());
 
     return newRelation;
 }
@@ -974,7 +960,7 @@ std::string extractAdornment(const AstQualifiedName& magicRelationName) {
 }
 
 // returns the constant represented by a variable of the form "+abdulX_variablevalue_X"
-AstArgument* extractConstant(SymbolTable& symbolTable, const std::string& normalisedConstant) {
+AstArgument* extractConstant(const std::string& normalisedConstant) {
     // strip off the prefix up to (and including) the first underscore
     size_t argStart = normalisedConstant.find('_');
     std::string arg = normalisedConstant.substr(argStart + 1, normalisedConstant.size());
@@ -985,7 +971,7 @@ AstArgument* extractConstant(SymbolTable& symbolTable, const std::string& normal
 
     if (indicatorChar == 's') {
         // string argument
-        return new AstStringConstant(symbolTable, stringRep);
+        return new AstStringConstant(stringRep);
     } else if (indicatorChar == 'n') {
         // numeric argument
         return new AstNumberConstant(static_cast<RamDomain>(stoll(stringRep)));
@@ -1224,8 +1210,8 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                                 argcount++;
                             }
 
-                            // add in relevant qualifiers from original relation
-                            updateQualifier(originalRelation, magicRelation);
+                            // copy over internal representation
+                            magicRelation->setRepresentation(originalRelation->getRepresentation());
 
                             // add the new magic relation to the program
                             program->appendRelation(std::unique_ptr<AstRelation>(magicRelation));
@@ -1320,8 +1306,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
                             // all normalised constants begin with "+abdul" (see AstTransforms.cpp)
                             // +abdulX_variablevalue_Y
                             if (hasPrefix(varName, "+abdul")) {
-                                AstArgument* embeddedConstant =
-                                        extractConstant(translationUnit.getSymbolTable(), varName);
+                                AstArgument* embeddedConstant = extractConstant(varName);
 
                                 // add the constraint to the body of the clause
                                 magicClause->addToBody(std::make_unique<AstBinaryConstraint>(
@@ -1341,7 +1326,7 @@ bool MagicSetTransformer::transform(AstTranslationUnit& translationUnit) {
             size_t originalNumAtoms = getBodyLiterals<AstAtom>(*newClause).size();
 
             // create the first argument of this new clause
-            const AstAtom* newClauseHead = newClause->getHead()->getAtom();
+            const AstAtom* newClauseHead = newClause->getHead();
             AstQualifiedName newMag = createMagicIdentifier(newClauseHead->getQualifiedName(), querynum);
             auto* newMagAtom = new AstAtom(newMag);
 

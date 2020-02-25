@@ -108,26 +108,8 @@ public:
  * Abstract Constant
  */
 class AstConstant : public AstArgument {
-protected:
-    AstConstant(RamDomain i) : ramRepresentation(i) {}
-
 public:
-    /** @return Return the ram representation of this constant */
-    RamDomain getRamRepresentation() const {
-        return ramRepresentation;
-    }
-
-protected:
-    bool equal(const AstNode& node) const override {
-        assert(nullptr != dynamic_cast<const AstConstant*>(&node));
-        const auto& other = static_cast<const AstConstant&>(node);
-        return ramRepresentation == other.ramRepresentation;
-    }
-
-    /** Constant represented as RamDomain value.
-     * In the case of a string this is the entry in symbol table.
-     * In the case of a float/unsigned this is the bit cast of the value. */
-    RamDomain ramRepresentation;
+    AstConstant* clone() const override = 0;
 };
 
 /**
@@ -135,55 +117,74 @@ protected:
  */
 class AstStringConstant : public AstConstant {
 public:
-    AstStringConstant(SymbolTable& symTable, const std::string& c)
-            : AstConstant(symTable.lookup(c)), symTable(symTable) {}
+    explicit AstStringConstant(std::string value) : value(std::move(value)) {}
 
     void print(std::ostream& os) const override {
-        os << "\"" << getConstant() << "\"";
+        os << "\"" << value << "\"";
     }
 
     /** @return String representation of this Constant */
-    const std::string& getConstant() const {
-        return symTable.resolve(ramRepresentation);
+    const std::string& getValue() const {
+        return value;
     }
 
     AstStringConstant* clone() const override {
-        auto* res = new AstStringConstant(symTable, ramRepresentation);
+        auto* res = new AstStringConstant(value);
         res->setSrcLoc(getSrcLoc());
         return res;
     }
 
-private:
-    // TODO (b-scholz): Remove Symbol Table / store as string / change hierarchy
-    // Don't use numbers to store strings in AST
-    AstStringConstant(SymbolTable& symTable, size_t index) : AstConstant(index), symTable(symTable) {}
+    bool operator==(const AstStringConstant& other) const {
+        return getValue() == other.getValue();
+    }
 
-    /** Symbol table */
-    SymbolTable& symTable;
+protected:
+    bool equal(const AstNode& node) const override {
+        assert(nullptr != dynamic_cast<const AstStringConstant*>(&node));
+        const auto& other = static_cast<const AstStringConstant&>(node);
+        return getValue() == other.getValue();
+    }
+
+private:
+    const std::string value;
 };
 
 /**
  * Numeric Constant
  */
-template <typename numericType>  // numericType ⲉ {RamSigned, RamUnsigned, RamFloat}
+template <typename NumericType>  // NumericType ⲉ {RamSigned, RamUnsigned, RamFloat}
 class AstNumericConstant : public AstConstant {
 public:
-    AstNumericConstant(numericType value) : AstConstant(ramBitCast(value)) {}
+    explicit AstNumericConstant(NumericType value) : value(value) {}
 
     void print(std::ostream& os) const override {
-        os << getConstant();
+        os << value;
     }
 
     /** Get the value of the constant. */
-    numericType getConstant() const {
-        return ramBitCast<numericType>(ramRepresentation);
+    NumericType getValue() const {
+        return value;
     }
 
-    AstNumericConstant<numericType>* clone() const override {
-        auto* copy = new AstNumericConstant<numericType>(getConstant());
+    AstNumericConstant<NumericType>* clone() const override {
+        auto* copy = new AstNumericConstant<NumericType>(value);
         copy->setSrcLoc(getSrcLoc());
         return copy;
     }
+
+    bool operator==(const AstNumericConstant<NumericType>& other) const {
+        return getValue() == other.getValue();
+    }
+
+protected:
+    bool equal(const AstNode& node) const override {
+        assert(nullptr != dynamic_cast<const AstNumericConstant<NumericType>*>(&node));
+        const auto& other = static_cast<const AstNumericConstant<NumericType>&>(node);
+        return value == other.value;
+    }
+
+private:
+    const NumericType value;
 };
 
 // This definitions are used by AstVisitor.
@@ -196,7 +197,7 @@ using AstUnsignedConstant = AstNumericConstant<RamUnsigned>;
  */
 class AstNilConstant : public AstConstant {
 public:
-    AstNilConstant() : AstConstant(0) {}
+    AstNilConstant() = default;
 
     void print(std::ostream& os) const override {
         os << "nil";

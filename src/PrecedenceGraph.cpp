@@ -41,8 +41,7 @@ void PrecedenceGraph::run(const AstTranslationUnit& translationUnit) {
 
     for (AstRelation* r : relations) {
         backingGraph.insert(r);
-        for (size_t i = 0; i < r->clauseSize(); i++) {
-            AstClause* c = r->getClause(i);
+        for (const auto& c : r->getClauses()) {
             const std::set<const AstRelation*>& dependencies =
                     getBodyRelations(c, translationUnit.getProgram());
             for (auto source : dependencies) {

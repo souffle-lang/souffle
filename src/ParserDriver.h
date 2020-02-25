@@ -36,7 +36,6 @@ class AstTranslationUnit;
 class AstType;
 class DebugReport;
 class ErrorReport;
-class SymbolTable;
 
 using yyscan_t = void*;
 
@@ -65,18 +64,16 @@ public:
     void addInstantiation(std::unique_ptr<AstComponentInit> ci);
     void addPragma(std::unique_ptr<AstPragma> p);
 
-    souffle::SymbolTable& getSymbolTable();
-
     bool trace_scanning = false;
 
-    std::unique_ptr<AstTranslationUnit> parse(const std::string& filename, FILE* in, SymbolTable& symbolTable,
-            ErrorReport& errorReport, DebugReport& debugReport);
-    std::unique_ptr<AstTranslationUnit> parse(const std::string& code, SymbolTable& symbolTable,
-            ErrorReport& errorReport, DebugReport& debugReport);
-    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(const std::string& filename, FILE* in,
-            SymbolTable& symbolTable, ErrorReport& errorReport, DebugReport& debugReport);
-    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(const std::string& code,
-            SymbolTable& symbolTable, ErrorReport& errorReport, DebugReport& debugReport);
+    std::unique_ptr<AstTranslationUnit> parse(
+            const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport);
+    std::unique_ptr<AstTranslationUnit> parse(
+            const std::string& code, ErrorReport& errorReport, DebugReport& debugReport);
+    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(
+            const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport);
+    static std::unique_ptr<AstTranslationUnit> parseTranslationUnit(
+            const std::string& code, ErrorReport& errorReport, DebugReport& debugReport);
 
     void warning(const SrcLocation& loc, const std::string& msg);
     void error(const SrcLocation& loc, const std::string& msg);

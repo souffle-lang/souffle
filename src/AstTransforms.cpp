@@ -93,9 +93,10 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstTranslationUnit& t
 
     // search for relations only defined by a single rule ..
     for (AstRelation* rel : program.getRelations()) {
-        if (!ioType->isIO(rel) && rel->getClauses().size() == 1u) {
+        const auto& clauses = rel->getClauses();
+        if (!ioType->isIO(rel) && clauses.size() == 1u) {
             // .. of shape r(x,y,..) :- s(x,y,..)
-            AstClause* cl = rel->getClause(0);
+            AstClause* cl = clauses[0];
             std::vector<AstAtom*> bodyAtoms = getBodyLiterals<AstAtom>(*cl);
             if (!isFact(*cl) && cl->getBodyLiterals().size() == 1u && bodyAtoms.size() == 1u) {
                 AstAtom* atom = bodyAtoms[0];
@@ -105,7 +106,7 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstTranslationUnit& t
                     bool onlyVars = true;
                     auto args = cl->getHead()->getArguments();
                     while (!args.empty()) {
-                        const auto& cur = args.back();
+                        const auto cur = args.back();
                         args.pop_back();
                         if (!isVar(*cur)) {
                             if (isRec(*cur)) {
@@ -169,7 +170,9 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(AstTranslationUnit& t
     // break remaining cycles
     for (const auto& rep : cycle_reps) {
         auto rel = program.getRelation(rep);
-        rel->removeClause(rel->getClause(0));
+        const auto& clauses = rel->getClauses();
+        assert(clauses.size() == 1u && "unexpected number of clauses in relation");
+        rel->removeClause(clauses[0]);
     }
 
     // remove unused relations
@@ -398,7 +401,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(AstTranslationUnit& t
     auto* ioTypes = translationUnit.getAnalysis<IOType>();
     bool changed = false;
     for (auto rel : program.getRelations()) {
-        if (rel->clauseSize() > 0 || ioTypes->isInput(rel)) {
+        if (!rel->getClauses().empty() || ioTypes->isInput(rel)) {
             continue;
         }
         changed |= removeEmptyRelationUses(translationUnit, rel);
@@ -892,7 +895,9 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
         newRelation->setSrcLoc(originalRelation->getSrcLoc());
 
         // EqRel relations require two arguments, so remove it from the qualifier
-        newRelation->setQualifier(originalRelation->getQualifier() & ~(EQREL_RELATION));
+        if (newRelation->getRepresentation() == RelationRepresentation::EQREL) {
+            newRelation->setRepresentation(RelationRepresentation::DEFAULT);
+        }
 
         // Keep all non-recursive clauses
         for (AstClause* clause : originalRelation->getClauses()) {
@@ -1127,7 +1132,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 changeCount++;
 
                 // create new variable name (with appropriate suffix)
-                std::string constantValue = stringConstant->getConstant();
+                std::string constantValue = stringConstant->getValue();
                 std::stringstream newVariableName;
                 newVariableName << boundPrefix << changeCount << "_" << constantValue << "_s";
 
@@ -1144,7 +1149,7 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 changeCount++;
 
                 // create new variable name (with appropriate suffix)
-                RamDomain constantValue = numberConstant->getRamRepresentation();
+                RamDomain constantValue = numberConstant->getValue();
                 std::stringstream newVariableName;
                 newVariableName << boundPrefix << changeCount << "_" << constantValue << "_n";
 

@@ -8,7 +8,7 @@
 
 #include "SynthesiserRelation.h"
 #include "Global.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 #include "Util.h"
 #include <algorithm>
 #include <cassert>

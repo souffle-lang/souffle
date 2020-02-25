@@ -38,7 +38,6 @@
 #include "RamTransforms.h"
 #include "RamTranslationUnit.h"
 #include "RamTypes.h"
-#include "SymbolTable.h"
 #include "Synthesiser.h"
 #include "Util.h"
 #include "config.h"
@@ -351,11 +350,10 @@ int main(int argc, char** argv) {
     // ------- parse program -------------
 
     // parse file
-    SymbolTable symTab;
     ErrorReport errReport(Global::config().has("no-warn"));
     DebugReport debugReport;
     std::unique_ptr<AstTranslationUnit> astTranslationUnit =
-            ParserDriver::parseTranslationUnit("<stdin>", in, symTab, errReport, debugReport);
+            ParserDriver::parseTranslationUnit("<stdin>", in, errReport, debugReport);
 
     // close input pipe
     int preprocessor_status = pclose(in);

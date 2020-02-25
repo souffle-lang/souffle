@@ -35,9 +35,8 @@ namespace souffle {
 
 class AstTranslationUnit {
 public:
-    AstTranslationUnit(std::unique_ptr<AstProgram> program, SymbolTable& s, ErrorReport& e, DebugReport& d,
-            bool nowarn = false)
-            : program(std::move(program)), symbolTable(s), errorReport(e), debugReport(d) {}
+    AstTranslationUnit(std::unique_ptr<AstProgram> program, ErrorReport& e, DebugReport& d)
+            : program(std::move(program)), errorReport(e), debugReport(d) {}
 
     virtual ~AstTranslationUnit() = default;
 
@@ -62,16 +61,6 @@ public:
     /** get the AST program */
     const AstProgram* getProgram() const {
         return program.get();
-    }
-
-    /** get symbol table */
-    souffle::SymbolTable& getSymbolTable() {
-        return symbolTable;
-    }
-
-    /** get symbol table */
-    const souffle::SymbolTable& getSymbolTable() const {
-        return symbolTable;
     }
 
     /** get error report */
@@ -105,9 +94,6 @@ private:
 
     /** AST program */
     std::unique_ptr<AstProgram> program;
-
-    /** Symbol table of AST program */
-    SymbolTable& symbolTable;
 
     /** Error report capturing errors while compiling */
     ErrorReport& errorReport;

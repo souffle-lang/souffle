@@ -120,34 +120,87 @@ bool DebugReporter::transform(AstTranslationUnit& translationUnit) {
     return changed;
 }
 
+DebugReportSection formatCodeSection(const std::string& id, const std::string& title, std::string code) {
+    std::stringstream codeHTML;
+    std::string escapedCode = std::move(code);
+    while (true) {
+        size_t i = escapedCode.find("<");
+        if (i == std::string::npos) {
+            break;
+        }
+        escapedCode.replace(i, 1, "&lt;");
+    }
+    codeHTML << "<pre>" << escapedCode << "</pre>\n";
+    return DebugReportSection(id, title, codeHTML.str());
+}
+
+DebugReportSection formatDotGraphSection(
+        const std::string& id, const std::string& title, const std::string& dotSpec) {
+    std::string tempFileName = tempFile();
+    {
+        std::ofstream dotFile(tempFileName);
+        dotFile << dotSpec;
+    }
+
+    std::string cmd = "dot -Tsvg < " + tempFileName;
+    FILE* in = popen(cmd.c_str(), "r");
+    std::stringstream data;
+    while (in != nullptr) {
+        char c = fgetc(in);
+        if (feof(in) != 0) {
+            break;
+        }
+        data << c;
+    }
+    pclose(in);
+    remove(tempFileName.c_str());
+
+    std::stringstream graphHTML;
+    if (data.str().find("<svg") != std::string::npos) {
+        graphHTML << "<img alt='graph image' src='data:image/svg+xml;base64," << toBase64(data.str())
+                  << "'><br/>\n";
+    } else {
+        graphHTML << "<p>(error: unable to generate dot graph image)</p>";
+    }
+    graphHTML << "<a href=\"javascript:toggleVisibility('" << id << "-source"
+              << "')\">(show dot source)</a>\n";
+    graphHTML << "<div id='" << id << "-source"
+              << "' style='display:none'>\n";
+    graphHTML << "<pre>" << dotSpec << "</pre>\n";
+    graphHTML << "</div>\n";
+    return DebugReportSection(id, title, graphHTML.str());
+}
 void DebugReporter::generateDebugReport(
         AstTranslationUnit& translationUnit, const std::string& id, std::string title) {
     std::stringstream datalogSpec;
     translationUnit.getProgram()->print(datalogSpec);
 
-    DebugReportSection datalogSection(id + "-dl", "Datalog", datalogSpec.str());
+    DebugReportSection datalogSection = formatCodeSection(id + "-dl", "Datalog", datalogSpec.str());
 
     std::stringstream typeAnalysis;
     translationUnit.getAnalysis<TypeAnalysis>()->print(typeAnalysis);
-    DebugReportSection typeAnalysisSection(id + "-ta", "Type Analysis", typeAnalysis.str());
+    DebugReportSection typeAnalysisSection =
+            formatCodeSection(id + "-ta", "Type Analysis", typeAnalysis.str());
 
     std::stringstream typeEnvironmentAnalysis;
     translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->print(typeEnvironmentAnalysis);
-    DebugReportSection typeEnvironmentAnalysisSection(
-            id + "-tea", "Type Environment Analysis", typeEnvironmentAnalysis.str());
+    DebugReportSection typeEnvironmentAnalysisSection =
+            formatCodeSection(id + "-tea", "Type Environment Analysis", typeEnvironmentAnalysis.str());
 
     std::stringstream precGraphDot;
     translationUnit.getAnalysis<PrecedenceGraph>()->print(precGraphDot);
-    DebugReportSection precedenceGraphSection(id + "-prec-graph", "Precedence Graph", precGraphDot.str());
+    DebugReportSection precedenceGraphSection =
+            formatDotGraphSection(id + "-prec-graph", "Precedence Graph", precGraphDot.str());
 
     std::stringstream sccGraphDot;
     translationUnit.getAnalysis<SCCGraph>()->print(sccGraphDot);
-    DebugReportSection sccGraphSection(id + "-scc-graph", "SCC Graph", sccGraphDot.str());
+    DebugReportSection sccGraphSection =
+            formatDotGraphSection(id + "-scc-graph", "SCC Graph", sccGraphDot.str());
 
     std::stringstream topsortSCCGraph;
     translationUnit.getAnalysis<TopologicallySortedSCCGraph>()->print(topsortSCCGraph);
-    DebugReportSection topsortSCCGraphSection(
-            id + "-topsort-scc-graph", "SCC Topological Sort Order", topsortSCCGraph.str());
+    DebugReportSection topsortSCCGraphSection =
+            formatCodeSection(id + "-topsort-scc-graph", "SCC Topological Sort Order", topsortSCCGraph.str());
 
     translationUnit.getDebugReport().addSection(DebugReportSection(id, std::move(title),
             {datalogSection, typeAnalysisSection, typeEnvironmentAnalysisSection, precedenceGraphSection,

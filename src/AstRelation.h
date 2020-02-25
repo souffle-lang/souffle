@@ -24,7 +24,7 @@
 #include "AstQualifiedName.h"
 #include "AstType.h"
 #include "Global.h"
-#include "RelationRepresentation.h"
+#include "RelationTag.h"
 
 #include <iostream>
 #include <memory>
@@ -33,38 +33,6 @@
 #include <vector>
 
 #include <cctype>
-
-/** Types of relation qualifiers defined as bits in a word */
-
-/* relation is read from csv file */
-#define INPUT_RELATION (0x1)
-
-/* relation is written to csv file */
-#define OUTPUT_RELATION (0x2)
-
-/* number of tuples are written to stdout */
-#define PRINTSIZE_RELATION (0x4)
-
-/* Rules of a relation defined in a component can be overwritten by sub-component */
-#define OVERRIDABLE_RELATION (0x8)
-
-/* Relation is inlined */
-#define INLINE_RELATION (0x20)
-
-/* Relation uses a brie data structure */
-#define BRIE_RELATION (0x40)
-
-/* Relation uses a btree data structure */
-#define BTREE_RELATION (0x80)
-
-/* Relation uses a union relation */
-#define EQREL_RELATION (0x100)
-
-/* Relation is an info relation for provenance */
-#define INFO_RELATION (0x200)
-
-/* Relation warnings are suppressed */
-#define SUPPRESSED_RELATION (0x800)
 
 namespace souffle {
 
@@ -90,13 +58,9 @@ public:
             }
         }
         os << ") ";
-        if (isOverridable()) {
-            os << "overridable ";
-        }
-        if (isInline()) {
-            os << "inline ";
-        }
-        os << representation << " ";
+
+        os << join(qualifiers, " ") << " ";
+        os << representation;
     }
 
     /** Return the name of the relation */
@@ -120,33 +84,24 @@ public:
         return attributes.size();
     }
 
-    /** Return the declared type at position @p idx */
-    AstAttribute* getAttribute(size_t idx) const {
-        return attributes[idx].get();
-    }
-
     /** Obtains a list of the contained attributes */
     std::vector<AstAttribute*> getAttributes() const {
         return toPtrVector(attributes);
     }
 
-    /** Return qualifier associated with this relation */
-    int getQualifier() const {
-        return qualifier;
+    /** Return qualifiers associated with this relation */
+    const std::set<RelationQualifier>& getQualifiers() const {
+        return qualifiers;
     }
 
-    /** Set qualifier associated with this relation */
-    void setQualifier(int q) {
-        qualifier = q;
-        if ((q & EQREL_RELATION) != 0) {
-            representation = RelationRepresentation::EQREL;
-        } else if ((q & BRIE_RELATION) != 0) {
-            representation = RelationRepresentation::BRIE;
-        } else if ((q & BTREE_RELATION) != 0) {
-            representation = RelationRepresentation::BTREE;
-        } else if ((q & INFO_RELATION) != 0) {
-            representation = RelationRepresentation::INFO;
-        }
+    /** Add qualifier to this relation */
+    void addQualifier(RelationQualifier q) {
+        qualifiers.insert(q);
+    }
+
+    /** Remove qualifier from this relation */
+    void removeQualifier(RelationQualifier q) {
+        qualifiers.erase(q);
     }
 
     /** Get representation for this relation */
@@ -158,36 +113,8 @@ public:
         this->representation = representation;
     }
 
-    /** Check whether relation is an overridable relation */
-    bool isOverridable() const {
-        return (qualifier & OVERRIDABLE_RELATION) != 0;
-    }
-
-    /** Check whether relation warnings are suppressed */
-    bool isSuppressed() const {
-        return (qualifier & SUPPRESSED_RELATION) != 0;
-    }
-
-    /** Check whether relation is an inlined relation */
-    bool isInline() const {
-        return (qualifier & INLINE_RELATION) != 0;
-    }
-
-    /** Check whether relation has a record in its head */
-    bool hasRecordInHead() const {
-        for (auto& cur : clauses) {
-            for (auto* arg : cur->getHead()->getArguments()) {
-                if (dynamic_cast<AstRecordInit*>(arg) != nullptr) {
-                    return true;
-                }
-            };
-        }
-        return false;
-    }
-
-    /** Return i-th clause associated with this relation */
-    AstClause* getClause(size_t idx) const {
-        return clauses[idx].get();
+    bool hasQualifier(RelationQualifier q) const {
+        return qualifiers.find(q) != qualifiers.end();
     }
 
     /** Obtains a list of the associated clauses */
@@ -215,11 +142,6 @@ public:
         return false;
     }
 
-    /** Return the number of clauses associated with this relation */
-    size_t clauseSize() const {
-        return clauses.size();
-    }
-
     AstRelation* clone() const override {
         auto res = new AstRelation();
         res->name = name;
@@ -230,7 +152,9 @@ public:
         for (const auto& cur : clauses) {
             res->clauses.emplace_back(cur->clone());
         }
-        res->qualifier = qualifier;
+        for (auto cur : qualifiers) {
+            res->qualifiers.insert(cur);
+        }
         return res;
     }
 
@@ -269,14 +193,11 @@ protected:
     /** Attributes of the relation */
     std::vector<std::unique_ptr<AstAttribute>> attributes;
 
-    /** Qualifier of relation (i.e., output or not an output relation) */
-    // TODO: Change to a set of qualifiers
-    int qualifier = 0;
-
-    /** Clauses associated with this relation. Clauses could be
-     * either facts or rules.
-     */
+    /** Clauses associated with this relation. Clauses could be either facts or rules. */
     std::vector<std::unique_ptr<AstClause>> clauses;
+
+    /** Qualifiers of relation */
+    std::set<RelationQualifier> qualifiers;
 
     /** Datastructure to use for this relation */
     RelationRepresentation representation{RelationRepresentation::DEFAULT};

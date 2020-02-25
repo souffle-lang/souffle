@@ -19,16 +19,14 @@
 #include "AstProgram.h"
 #include "AstTranslationUnit.h"
 #include "ParserDriver.h"
-#include "SymbolTable.h"
 #include "test.h"
 
 namespace souffle::test {
 
 inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program = ".decl A,B,C(x:number)") {
-    SymbolTable sym;
     ErrorReport e;
     DebugReport d;
-    return ParserDriver::parseTranslationUnit(program, sym, e, d);
+    return ParserDriver::parseTranslationUnit(program, e, d);
 }
 
 inline std::unique_ptr<AstTranslationUnit> makePrintedATU(std::unique_ptr<AstTranslationUnit>& tu) {
@@ -64,12 +62,11 @@ TEST(AstPrint, NumberConstant) {
 }
 
 TEST(AstPrint, StringConstant) {
-    SymbolTable sym;
     ErrorReport e;
     DebugReport d;
-    auto testArgument = std::make_unique<AstStringConstant>(sym, "test string");
+    auto testArgument = std::make_unique<AstStringConstant>("test string");
 
-    auto tu1 = ParserDriver::parseTranslationUnit(".decl A,B,C(x:number)", sym, e, d);
+    auto tu1 = ParserDriver::parseTranslationUnit(".decl A,B,C(x:number)", e, d);
     tu1->getProgram()->appendClause(makeClauseA(std::move(testArgument)));
     auto tu2 = makePrintedATU(tu1);
     EXPECT_EQ(*tu1->getProgram(), *tu2->getProgram());

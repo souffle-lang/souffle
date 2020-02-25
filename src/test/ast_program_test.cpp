@@ -17,7 +17,6 @@
 #include "AstProgram.h"
 #include "AstTranslationUnit.h"
 #include "ParserDriver.h"
-#include "SymbolTable.h"
 #include "test.h"
 
 namespace souffle {
@@ -25,10 +24,9 @@ namespace souffle {
 namespace test {
 
 inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program) {
-    SymbolTable sym;
     ErrorReport e;
     DebugReport d;
-    return ParserDriver::parseTranslationUnit(program, sym, e, d);
+    return ParserDriver::parseTranslationUnit(program, e, d);
 }
 
 inline std::unique_ptr<AstClause> makeClause(std::string name, std::unique_ptr<AstArgument> headArgument) {
@@ -40,11 +38,10 @@ inline std::unique_ptr<AstClause> makeClause(std::string name, std::unique_ptr<A
 }
 
 TEST(AstProgram, Parse) {
-    SymbolTable sym;
     ErrorReport e;
     DebugReport d;
     // check the empty program
-    std::unique_ptr<AstTranslationUnit> empty = ParserDriver::parseTranslationUnit("", sym, e, d);
+    std::unique_ptr<AstTranslationUnit> empty = ParserDriver::parseTranslationUnit("", e, d);
 
     EXPECT_TRUE(empty->getProgram()->getTypes().empty());
     EXPECT_TRUE(empty->getProgram()->getRelations().empty());
@@ -59,7 +56,7 @@ TEST(AstProgram, Parse) {
                    r(X,Y) :- e(X,Y).
                    r(X,Z) :- r(X,Y), r(Y,Z).
             )",
-            sym, e, d);
+            e, d);
 
     auto* prog = tu->getProgram();
     std::cout << *prog << "\n";
@@ -72,17 +69,16 @@ TEST(AstProgram, Parse) {
     EXPECT_FALSE(prog->getRelation("n"));
 }
 
-#define TESTASTCLONEANDEQUAL(SUBTYPE, DL)                                                           \
-    TEST(Ast, CloneAndEqual##SUBTYPE) {                                                             \
-        SymbolTable sym;                                                                            \
-        ErrorReport e;                                                                              \
-        DebugReport d;                                                                              \
-        std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(DL, sym, e, d); \
-        AstProgram& program = *tu->getProgram();                                                    \
-        EXPECT_EQ(program, program);                                                                \
-        std::unique_ptr<AstProgram> clone(program.clone());                                         \
-        EXPECT_NE(clone.get(), &program);                                                           \
-        EXPECT_EQ(*clone, program);                                                                 \
+#define TESTASTCLONEANDEQUAL(SUBTYPE, DL)                                                      \
+    TEST(Ast, CloneAndEqual##SUBTYPE) {                                                        \
+        ErrorReport e;                                                                         \
+        DebugReport d;                                                                         \
+        std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(DL, e, d); \
+        AstProgram& program = *tu->getProgram();                                               \
+        EXPECT_EQ(program, program);                                                           \
+        std::unique_ptr<AstProgram> clone(program.clone());                                    \
+        EXPECT_NE(clone.get(), &program);                                                      \
+        EXPECT_EQ(*clone, program);                                                            \
     }
 
 TESTASTCLONEANDEQUAL(Program,
