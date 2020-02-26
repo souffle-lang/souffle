@@ -121,6 +121,7 @@ but as of January 2020 it is not yet supported.
 template <typename To = RamDomain, typename From>
 inline To ramBitCast(From RamElement) {
     static_assert(isRamType<From> && isRamType<To>, "Bit casting should only be used on Ram Types.");
+    static_assert(sizeof(From) == sizeof(To), "Bitcast requires same size for both types.");
     union {
         From source;
         To destination;
