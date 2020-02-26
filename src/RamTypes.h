@@ -130,6 +130,12 @@ inline To ramBitCast(From RamElement) {
     return Union.destination;
 }
 
+// special case for `bool` as it is (generally speaking) not the same size as `RamDomain`.
+template <typename To = RamDomain>
+inline To ramBitCast(bool RamElement) {
+    return ramBitCast<To>(RamDomain(RamElement));
+}
+
 /** lower and upper boundaries for the ram domain **/
 #define MIN_RAM_DOMAIN (std::numeric_limits<RamDomain>::min())
 #define MAX_RAM_DOMAIN (std::numeric_limits<RamDomain>::max())
