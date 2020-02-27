@@ -877,6 +877,73 @@ struct lambda_traits : public detail::lambda_traits_helper<decltype(&Lambda::ope
 //                              General Algorithms
 // -------------------------------------------------------------------------------
 
+// avoid UB caused by coercion overflow
+template <typename T>
+T clamp(T x, T min, T max) {
+    return std::max(std::min(x, max), min);
+}
+
+// TODO: there has to be a safe/better way of doing this using the standard lib.
+template <typename T, typename U>
+std::enable_if_t<std::is_same<T, U>::value, T> clamp(U x) {
+    return x;
+}
+
+template <typename T, typename U>
+std::enable_if_t<!std::is_same<T, U>::value, T> clamp(U x) {
+    return std::max<U>(std::min<U>(x, std::numeric_limits<T>::max()), std::numeric_limits<T>::min());
+}
+
+// hard-code these since it's faster than trying to make a generalised version
+// and we only need a few cases.
+namespace IMPL {
+template <typename T>
+struct coerceSafe;
+
+template <>
+struct coerceSafe<RamSigned> {
+    RamSigned operator()(RamUnsigned x) {
+        constexpr RamUnsigned MSB = RamUnsigned(1) << (sizeof(RamUnsigned) * CHAR_BIT - 1);
+        return x & MSB ? std::numeric_limits<RamSigned>::max() : x;
+    }
+};
+
+template <>
+struct coerceSafe<RamUnsigned> {
+    RamUnsigned operator()(RamSigned x) {
+        return x < 0 ? 0 : x;
+    }
+};
+
+template <>
+struct coerceSafe<RamFloat> {
+    RamFloat operator()(RamSigned x) {
+        return x;
+    }
+    RamFloat operator()(RamUnsigned x) {
+        return x;
+    }
+};
+
+}  // namespace IMPL
+
+template <typename T, typename U>
+std::enable_if_t<std::is_same<T, U>::value, T> coerceSafe(U x) {
+    return x;
+}
+
+// IEE754 floating points have a larger domain than 2's complement int w/ the same # of bits
+template <typename T, typename U>
+std::enable_if_t<!std::is_same<T, U>::value && std::is_floating_point<U>::value, T> coerceSafe(U x) {
+    static_assert(sizeof(T) <= sizeof(U));
+    return clamp<T>(x);
+}
+
+template <typename T, typename U>
+std::enable_if_t<!std::is_same<T, U>::value && !std::is_floating_point<U>::value, T> coerceSafe(U x) {
+    return IMPL::coerceSafe<T>{}(x);
+}
+
 /**
  * A generic test checking whether all elements within a container satisfy a
  * certain predicate.

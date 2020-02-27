@@ -309,27 +309,27 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                 /** The following are the default C++ conversions. */
                 case FunctorOp::ITOU: {
                     auto result = execute(node->getChild(0), ctxt);
-                    return ramBitCast(static_cast<RamUnsigned>(result));
+                    return ramBitCast(coerceSafe<RamUnsigned>(result));
                 }
                 case FunctorOp::UTOI: {
                     auto result = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    return static_cast<RamSigned>(result);
+                    return ramBitCast(coerceSafe<RamSigned>(result));
                 }
                 case FunctorOp::ITOF: {
                     auto result = execute(node->getChild(0), ctxt);
-                    return ramBitCast(static_cast<RamFloat>(result));
+                    return ramBitCast(coerceSafe<RamFloat>(result));
                 }
                 case FunctorOp::FTOI: {
                     auto result = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    return static_cast<RamSigned>(result);
+                    return ramBitCast(coerceSafe<RamSigned>(result));
                 }
                 case FunctorOp::UTOF: {
                     auto result = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    return ramBitCast(static_cast<RamFloat>(result));
+                    return ramBitCast(coerceSafe<RamFloat>(result));
                 }
                 case FunctorOp::FTOU: {
                     auto result = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    return ramBitCast(static_cast<RamUnsigned>(result));
+                    return ramBitCast(coerceSafe<RamUnsigned>(result));
                 }
 
                     /** Binary Functor Operators */
@@ -341,20 +341,20 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                     // clang-format on
 
                 case FunctorOp::EXP: {
-                    return std::pow(execute(node->getChild(0), ctxt), execute(node->getChild(1), ctxt));
+                    return ramBitCast(coerceSafe<RamSigned>(
+                            std::pow(execute(node->getChild(0), ctxt), execute(node->getChild(1), ctxt))));
                 }
 
                 case FunctorOp::UEXP: {
                     auto first = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
                     auto second = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    // Extra casting required: pow returns a floating point.
-                    return ramBitCast(static_cast<RamUnsigned>(std::pow(first, second)));
+                    return ramBitCast(coerceSafe<RamUnsigned>(std::pow(first, second)));
                 }
 
                 case FunctorOp::FEXP: {
                     auto first = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
                     auto second = ramBitCast<RamFloat>(execute(node->getChild(1), ctxt));
-                    return ramBitCast(static_cast<RamFloat>(std::pow(first, second)));
+                    return ramBitCast(coerceSafe<RamFloat>(std::pow(first, second)));
                 }
 
                     // clang-format off

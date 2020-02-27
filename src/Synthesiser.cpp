@@ -1401,14 +1401,14 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
     case FunctorOp::   opcode: BINARY_OP_EXPR_SHIFT(tySigned  , op) \
     case FunctorOp::U##opcode: BINARY_OP_EXPR_SHIFT(tyUnsigned, op)
 
-#define BINARY_OP_EXP(opcode, ty)                        \
-    case FunctorOp::opcode: {                            \
-        out << "(" #ty ")std::pow(ramBitCast<" #ty ">("; \
-        visit(args[0], out);                             \
-        out << "), ramBitCast<" #ty ">(";                \
-        visit(args[1], out);                             \
-        out << "))";                                     \
-        break;                                           \
+#define BINARY_OP_EXP(opcode, ty)                                   \
+    case FunctorOp::opcode: {                                       \
+        out << "coerceSafe<" #ty ">(std::pow(ramBitCast<" #ty ">("; \
+        visit(args[0], out);                                        \
+        out << "), ramBitCast<" #ty ">(";                           \
+        visit(args[1], out);                                        \
+        out << ")))";                                               \
+        break;                                                      \
     }
 
 #define NARY_OP(opcode, ty, op)            \
@@ -1463,12 +1463,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 UNARY_OP_INTEGRAL(LNOT, !)
 
                 // numeric coercions
-                UNARY_OP(FTOU, RamFloat   , static_cast<RamUnsigned>)
-                UNARY_OP(ITOU, RamSigned  , static_cast<RamUnsigned>)
-                UNARY_OP(FTOI, RamFloat   , static_cast<RamSigned>)
-                UNARY_OP(UTOI, RamUnsigned, static_cast<RamSigned>)
-                UNARY_OP(ITOF, RamSigned  , static_cast<RamFloat>)
-                UNARY_OP(UTOF, RamUnsigned, static_cast<RamFloat>)
+                UNARY_OP(FTOU, RamFloat   , coerceSafe<RamUnsigned>)
+                UNARY_OP(ITOU, RamSigned  , coerceSafe<RamUnsigned>)
+                UNARY_OP(FTOI, RamFloat   , coerceSafe<RamSigned>)
+                UNARY_OP(UTOI, RamUnsigned, coerceSafe<RamSigned>)
+                UNARY_OP(ITOF, RamSigned  , coerceSafe<RamFloat>)
+                UNARY_OP(UTOF, RamUnsigned, coerceSafe<RamFloat>)
 
                 /** Binary Functor Operators */
                 // arithmetic

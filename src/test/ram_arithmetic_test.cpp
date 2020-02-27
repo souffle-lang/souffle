@@ -148,12 +148,12 @@ TEST(Unary, UnsignedLogicalNeg) {
     }
 }
 
-TEST(Unary, SingedTpUnsigned) {
+TEST(Unary, SingedToUnsigned) {
     FunctorOp functor = FunctorOp::ITOU;
 
     for (auto randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
         RamDomain result = evalUnary(functor, randomNumber);
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(randomNumber));
+        EXPECT_EQ(ramBitCast<RamUnsigned>(result), coerceSafe<RamUnsigned>(randomNumber));
     }
 }
 
@@ -162,7 +162,7 @@ TEST(Unary, UnsignedToSigned) {
 
     for (auto randomNumber : testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION)) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
-        EXPECT_EQ(result, static_cast<RamDomain>(randomNumber));
+        EXPECT_EQ(result, coerceSafe<RamDomain>(randomNumber));
     }
 }
 
@@ -171,7 +171,7 @@ TEST(Unary, SignedToFloat) {
 
     for (auto randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
-        EXPECT_EQ(ramBitCast<RamFloat>(result), static_cast<RamFloat>(randomNumber));
+        EXPECT_EQ(ramBitCast<RamFloat>(result), coerceSafe<RamFloat>(randomNumber));
     }
 }
 
@@ -180,7 +180,7 @@ TEST(Unary, FloatToSigned) {
 
     for (auto randomNumber : testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION)) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
-        EXPECT_EQ(result, static_cast<RamDomain>(randomNumber));
+        EXPECT_EQ(result, coerceSafe<RamDomain>(randomNumber));
     }
 }
 
@@ -189,7 +189,7 @@ TEST(Unary, UnsignedToFloat) {
 
     for (auto randomNumber : testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION)) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
-        EXPECT_EQ(ramBitCast<RamFloat>(result), static_cast<RamFloat>(randomNumber));
+        EXPECT_EQ(ramBitCast<RamFloat>(result), coerceSafe<RamFloat>(randomNumber));
     }
 }
 
@@ -198,7 +198,7 @@ TEST(Unary, FloatToUnsigned) {
 
     for (auto randomNumber : testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION)) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(randomNumber));
+        EXPECT_EQ(ramBitCast<RamUnsigned>(result), coerceSafe<RamUnsigned>(randomNumber));
     }
 }
 
@@ -386,7 +386,7 @@ TEST(Binary, SignedExp) {
         auto arg1 = vecArg1[i];
         auto arg2 = vecArg2[i];
         RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, static_cast<RamDomain>(std::pow(arg1, arg2)));
+        EXPECT_EQ(result, coerceSafe<RamDomain>(std::pow(arg1, arg2)));
     }
 }
 
@@ -400,7 +400,7 @@ TEST(Binary, UnsignedExp) {
         auto arg1 = vecArg1[i];
         auto arg2 = vecArg2[i];
         RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(std::pow(arg1, arg2)));
+        EXPECT_EQ(ramBitCast<RamUnsigned>(result), coerceSafe<RamUnsigned>(std::pow(arg1, arg2)));
     }
 }
 
