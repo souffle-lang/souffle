@@ -46,7 +46,7 @@ expr(- (2 ^ 31)).
 // Third Expression
 
 // no spaces
-expr(-2147483648).
+expr(-2147483647).
 
 // one space
-expr(- 2147483648).
+expr(- 2147483647).
