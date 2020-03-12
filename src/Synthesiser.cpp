@@ -1253,8 +1253,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // if it is total we use the contains function
             if (isa->isTotalSignature(&exists)) {
                 out << relName << "->"
-                    << "contains(Tuple<RamDomain," << arity << ">{{" << join(exists.getValues(), ",", rec)
-                    << "}}," << ctxName << ")" << after;
+                    << "contains(Tuple<RamDomain," << arity << ">{{ramBitCast("
+                    << join(exists.getValues(), "),ramBitCast(", rec) << ")}}," << ctxName << ")" << after;
                 PRINT_END_COMMENT(out);
                 return;
             }
