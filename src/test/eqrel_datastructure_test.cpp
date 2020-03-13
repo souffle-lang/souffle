@@ -411,7 +411,7 @@ TEST(SparseDjTest, ParallelDense) {
     for (size_t i = 0; i < N; ++i) {
         data_source.push_back(i);
     }
-    std::random_shuffle(data_source.begin(), data_source.end());
+    std::shuffle(data_source.begin(), data_source.end(), std::random_device());
 
     // call toDense for a load of sparse values, and hope to god they're the same
 #pragma omp parallel for
@@ -658,7 +658,7 @@ TEST(LambdaBTree, ContendParallel) {
     for (size_t i = 0; i < N; ++i) {
         data_source.push_back(i);
     }
-    std::random_shuffle(data_source.begin(), data_source.end());
+    std::shuffle(data_source.begin(), data_source.end(), std::random_device());
 
 #pragma omp parallel for
     for (size_t i = 0; i < N; ++i) {
