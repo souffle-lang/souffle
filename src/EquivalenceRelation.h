@@ -548,6 +548,18 @@ public:
     }
 
     /**
+     * This function is only here in order to unify interfaces in InterpreterIndex.
+     * Unlike the name suggestes, it omit the arguments and simply return the end
+     * iterator of the relation.
+     *
+     * @param omitted
+     * @return the end iterator.
+     */
+    iterator upper_bound(const TupleType&, operation_hints&) const {
+        return end();
+    }
+
+    /**
      * Check emptiness.
      */
     bool empty() const {
