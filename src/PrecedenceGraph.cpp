@@ -190,6 +190,30 @@ void RedundantRelations::print(std::ostream& os) const {
     os << redundantRelations << std::endl;
 }
 
+void RelationDetail::run(const AstTranslationUnit& translationUnit) {
+    const auto& program = *translationUnit.getProgram();
+    for (auto* rel : program.getRelations()) {
+        nameToRelation[rel->getQualifiedName()] = rel;
+        relationToClauses[rel] = std::set<AstClause*>();
+    }
+    for (auto* clause : program.getClauses()) {
+        const auto& relationName = clause->getHead()->getQualifiedName();
+        const auto* relation = nameToRelation.at(relationName);
+        relationToClauses.at(relation).insert(clause);
+    }
+}
+
+void RelationDetail::print(std::ostream& os) const {
+    for (const auto& pair : relationToClauses) {
+        os << "--" << pair.first->getQualifiedName() << "--";
+        os << std::endl;
+        for (const auto* clause : pair.second) {
+            os << *clause << std::endl;
+        }
+        os << std::endl;
+    }
+}
+
 void RecursiveClauses::run(const AstTranslationUnit& translationUnit) {
     visitDepthFirst(*translationUnit.getProgram(), [&](const AstClause& clause) {
         if (computeIsRecursive(clause, translationUnit)) {
@@ -202,8 +226,9 @@ void RecursiveClauses::print(std::ostream& os) const {
     os << recursiveClauses << std::endl;
 }
 
-bool RecursiveClauses::computeIsRecursive(
-        const AstClause& clause, const AstTranslationUnit& translationUnit) const {
+bool RecursiveClauses::computeIsRecursive(const AstClause& clause,
+        const AstTranslationUnit& translationUnit) const {
+    const auto& relationDetail = *translationUnit.getAnalysis<RelationDetail>();
     const AstProgram& program = *translationUnit.getProgram();
 
     // we want to reach the atom of the head through the body
@@ -214,7 +239,7 @@ bool RecursiveClauses::computeIsRecursive(
 
     // set up start list
     for (const auto* cur : getBodyLiterals<AstAtom>(clause)) {
-        auto rel = getRelation(program, cur->getQualifiedName());
+        auto rel = relationDetail.getRelation(cur->getQualifiedName());
         if (rel == trg) {
             return true;
         }
@@ -238,9 +263,9 @@ bool RecursiveClauses::computeIsRecursive(
         }
 
         // check all atoms in the relations
-        for (const AstClause* cl : getClauses(program, *cur)) {
+        for (const AstClause* cl : relationDetail.getClauses(cur)) {
             for (const AstAtom* at : getBodyLiterals<AstAtom>(*cl)) {
-                auto rel = getRelation(program, at->getQualifiedName());
+                auto rel = relationDetail.getRelation(cur->getQualifiedName());
                 if (rel == trg) {
                     return true;
                 }

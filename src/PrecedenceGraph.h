@@ -110,6 +110,32 @@ private:
 };
 
 /**
+ * Analysis pass mapping identifiers with relations and clauses.
+ */
+class RelationDetail : public AstAnalysis {
+public:
+    static constexpr const char* name = "relation-detail";
+
+    RelationDetail() : AstAnalysis(name) {}
+
+    void run(const AstTranslationUnit& translationUnit) override;
+
+    void print(std::ostream& os) const override;
+
+    AstRelation* getRelation(const AstQualifiedName& name) const {
+        return nameToRelation.at(name);
+    }
+
+    const std::set<AstClause*>& getClauses(const AstRelation* rel) const {
+        return relationToClauses.at(rel);
+    }
+
+private:
+    std::map<AstQualifiedName, AstRelation*> nameToRelation;
+    std::map<const AstRelation*, std::set<AstClause*>> relationToClauses;
+};
+
+/**
  * Analysis pass computing the strongly connected component (SCC) graph for the datalog program.
  */
 class SCCGraph : public AstAnalysis {
