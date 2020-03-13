@@ -226,8 +226,8 @@ void RecursiveClauses::print(std::ostream& os) const {
     os << recursiveClauses << std::endl;
 }
 
-bool RecursiveClauses::computeIsRecursive(const AstClause& clause,
-        const AstTranslationUnit& translationUnit) const {
+bool RecursiveClauses::computeIsRecursive(
+        const AstClause& clause, const AstTranslationUnit& translationUnit) const {
     const auto& relationDetail = *translationUnit.getAnalysis<RelationDetail>();
     const AstProgram& program = *translationUnit.getProgram();
 
