@@ -123,16 +123,24 @@ public:
     void print(std::ostream& os) const override;
 
     AstRelation* getRelation(const AstQualifiedName& name) const {
+        assert(nameToRelation.find(name) != nameToRelation.end() && "no relation with given name");
         return nameToRelation.at(name);
     }
 
     const std::set<AstClause*>& getClauses(const AstRelation* rel) const {
-        return relationToClauses.at(rel);
+        assert(rel != nullptr && "invalid relation");
+        return getClauses(rel->getQualifiedName());
+    }
+
+    const std::set<AstClause*>& getClauses(const AstQualifiedName& name) const {
+        assert(nameToClauses.find(name) != nameToClauses.end() &&
+                "no relation or clause heads with given name");
+        return nameToClauses.at(name);
     }
 
 private:
     std::map<AstQualifiedName, AstRelation*> nameToRelation;
-    std::map<const AstRelation*, std::set<AstClause*>> relationToClauses;
+    std::map<AstQualifiedName, std::set<AstClause*>> nameToClauses;
 };
 
 /**
