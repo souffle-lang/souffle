@@ -249,6 +249,7 @@ bool HoistConditionsTransformer::hoistConditions(RamProgram& program) {
 std::unique_ptr<RamExpression> MakeIndexTransformer::getExpression(
         RamCondition* c, size_t& element, int identifier) {
     if (auto* binRelOp = dynamic_cast<RamConstraint*>(c)) {
+        // TODO: FIXME: how does this interact w/ `FEQ`?
         if (binRelOp->getOperator() == BinaryConstraintOp::EQ) {
             if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
                 const RamExpression* rhs = &binRelOp->getRHS();
@@ -290,6 +291,7 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
                 indexable = true;
                 queryPattern[element] = std::move(value);
             } else {
+                // FIXME: `FEQ` handling; need to know if the expr is a float exp or not
                 addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::EQ, std::move(value),
                         std::unique_ptr<RamExpression>(queryPattern[element]->clone())));
             }
@@ -376,6 +378,7 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
                     } else {
                         // found a new constraint that is not dependent on the current scan level
                         // and can be hoisted in a later transformation.
+                        // FIXME: `FEQ` handling; need to know if the expr is a float exp or not
                         addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
                                 std::unique_ptr<RamExpression>(prevPattern[i]->clone()),
                                 std::unique_ptr<RamExpression>(queryPattern[i]->clone())));

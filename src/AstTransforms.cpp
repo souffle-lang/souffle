@@ -1156,11 +1156,16 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
                 std::stringstream newVariableName;
                 newVariableName << boundPrefix << changeCount << "_" << numberConstant->getConstant() << "_n";
 
+                assert(numberConstant->getType() && "numeric constant hasn't been poly-constrained");
+                auto opEq = *numberConstant->getType() == AstNumericConstant::Type::Float
+                                    ? BinaryConstraintOp::FEQ
+                                    : BinaryConstraintOp::EQ;
+
                 // create new constraint (+abdulX = constant)
                 auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
-                constraints.insert(new AstBinaryConstraint(BinaryConstraintOp::EQ,
-                        std::unique_ptr<AstArgument>(newVariable->clone()),
-                        std::unique_ptr<AstArgument>(numberConstant->clone())));
+                constraints.insert(
+                        new AstBinaryConstraint(opEq, std::unique_ptr<AstArgument>(newVariable->clone()),
+                                std::unique_ptr<AstArgument>(numberConstant->clone())));
 
                 // update constant to be the variable created
                 return newVariable;
@@ -1247,6 +1252,9 @@ bool PolymorphicObjectsTransformer::transform(AstTranslationUnit& translationUni
             auto isUnsigned = [&](const AstArgument* argument) {
                 return isUnsignedType(typeAnalysis.getTypes(argument));
             };
+            auto isSymbol = [&](const AstArgument* argument) {
+                return isSymbolType(typeAnalysis.getTypes(argument));
+            };
 
             // rewrite sub-expressions first
             node->apply(*this);
@@ -1308,6 +1316,11 @@ bool PolymorphicObjectsTransformer::transform(AstTranslationUnit& translationUni
                         } else if (isUnsigned(leftArg) && isUnsigned(rightArg)) {
                             BinaryConstraintOp convertedConstraint = convertOverloadedConstraint(
                                     binaryConstraint->getOperator(), TypeAttribute::Unsigned);
+                            binaryConstraint->setOperator(convertedConstraint);
+                            changed = true;
+                        } else if (isSymbol(leftArg) && isSymbol(rightArg)) {
+                            BinaryConstraintOp convertedConstraint = convertOverloadedConstraint(
+                                    binaryConstraint->getOperator(), TypeAttribute::Symbol);
                             binaryConstraint->setOperator(convertedConstraint);
                             changed = true;
                         }

@@ -231,7 +231,8 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     // I) extract equations
     std::vector<Equation> equations;
     visitDepthFirst(clause, [&](const AstBinaryConstraint& constraint) {
-        if (constraint.getOperator() == BinaryConstraintOp::EQ) {
+        if (constraint.getOperator() == BinaryConstraintOp::EQ ||
+                constraint.getOperator() == BinaryConstraintOp::FEQ) {
             equations.push_back(Equation(constraint.getLHS(), constraint.getRHS()));
         }
     });
@@ -342,6 +343,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(cons
     // add all literals, except filtering out t = t constraints
     for (AstLiteral* literal : clause.getBodyLiterals()) {
         if (auto* constraint = dynamic_cast<AstBinaryConstraint*>(literal)) {
+            // don't filter out `FEQ` constraints, since `x = x` can fail when `x` is a NaN
             if (constraint->getOperator() == BinaryConstraintOp::EQ) {
                 if (*constraint->getLHS() == *constraint->getRHS()) {
                     continue;  // skip this one

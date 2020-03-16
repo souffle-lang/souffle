@@ -369,6 +369,10 @@ private:
         virtual std::unique_ptr<RamOperation> createOperation(const AstClause& clause);
         virtual std::unique_ptr<RamCondition> createCondition(const AstClause& originalClause);
 
+        /** translate RAM code for a constant value */
+        std::unique_ptr<RamOperation> filterByConstraints(size_t level, const std::vector<AstArgument*>& args,
+                std::unique_ptr<RamOperation> op, bool constrainByFunctors = true);
+
         const AuxiliaryArity* auxArityAnalysis;
 
     public:
@@ -421,6 +425,9 @@ private:
 
         assert(false && "Unaccounted-for constant");
     }
+
+    /** translate RAM code for a constant value */
+    std::unique_ptr<RamExpression> translateConstant(AstConstant const& c);
 
     /**
      * translate RAM code for the non-recursive clauses of the given relation.

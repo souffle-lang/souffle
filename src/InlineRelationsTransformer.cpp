@@ -93,8 +93,14 @@ void normaliseInlinedHeads(AstProgram& program) {
                     newVar << "<new_var_" << newVarCount++ << ">";
                     clauseHead->addArgument(std::make_unique<AstVariable>(newVar.str()));
 
+                    auto* const c_num = dynamic_cast<const AstNumericConstant*>(constant);
+                    assert((!c_num || c_num->getType()) && "numeric constant wasn't bound to a type");
+                    auto opEq = c_num && *c_num->getType() == AstNumericConstant::Type::Float
+                                        ? BinaryConstraintOp::FEQ
+                                        : BinaryConstraintOp::EQ;
+
                     // Add a body constraint to set the variable's value to be the original constant
-                    newClause->addToBody(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+                    newClause->addToBody(std::make_unique<AstBinaryConstraint>(opEq,
                             std::make_unique<AstVariable>(newVar.str()),
                             std::unique_ptr<AstArgument>(constant->clone())));
                 } else {
@@ -312,6 +318,7 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
     if (res.isValid()) {
         changed = true;
         for (std::pair<AstArgument*, AstArgument*> pair : res.getVector()) {
+            // FIXME: float equiv (`FEQ`)
             constraints.push_back(new AstBinaryConstraint(BinaryConstraintOp::EQ,
                     std::unique_ptr<AstArgument>(pair.first->clone()),
                     std::unique_ptr<AstArgument>(pair.second->clone())));
@@ -818,11 +825,7 @@ NullableVector<std::vector<AstLiteral*>> getInlinedLiteral(AstProgram& program, 
 
             if (atomVersions.getVector().empty()) {
                 // No clauses associated with the atom, so just becomes a true literal
-                std::vector<AstLiteral*> trueBody;
-                // TODO: change this to AstBoolean
-                trueBody.push_back(new AstBinaryConstraint(BinaryConstraintOp::EQ,
-                        std::make_unique<AstNumericConstant>(1), std::make_unique<AstNumericConstant>(1)));
-                addedBodyLiterals.push_back(trueBody);
+                addedBodyLiterals.push_back({new AstBooleanConstraint(true)});
             } else {
                 // Suppose an atom a(x) is inlined and has the following rules:
                 //  - a(x) :- a11(x), a12(x).

@@ -45,7 +45,7 @@ public:
     /**
      * Get the computed types for the given argument.
      */
-    TypeSet getTypes(const AstArgument* argument) const {
+    TypeSet const& getTypes(const AstArgument* argument) const {
         return argumentTypes.at(argument);
     }
 

@@ -661,59 +661,31 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(ProvenanceExistenceCheck)
 
         CASE(Constraint)
+        // clang-format off
+#define EVAL_CHILD(ty, idx) ramBitCast<ty>(execute(node->getChild(idx), ctxt))
+#define COMPARE_NUMERIC(ty, op) return EVAL_CHILD(ty, 0) op EVAL_CHILD(ty, 1)
+#define COMPARE_STRING(op)                                        \
+    return (getSymbolTable().resolve(EVAL_CHILD(RamDomain, 0)) op \
+            getSymbolTable().resolve(EVAL_CHILD(RamDomain, 1)))
+#define COMPARE_EQ_NE(opCode, op)                                         \
+    case BinaryConstraintOp::   opCode: COMPARE_NUMERIC(RamDomain  , op); \
+    case BinaryConstraintOp::F##opCode: COMPARE_NUMERIC(RamFloat   , op);
+#define COMPARE(opCode, op)                                               \
+    case BinaryConstraintOp::   opCode: COMPARE_NUMERIC(RamSigned  , op); \
+    case BinaryConstraintOp::U##opCode: COMPARE_NUMERIC(RamUnsigned, op); \
+    case BinaryConstraintOp::F##opCode: COMPARE_NUMERIC(RamFloat   , op); \
+    case BinaryConstraintOp::S##opCode: COMPARE_STRING(op);
+            // clang-format on
+
             switch (cur.getOperator()) {
-                case BinaryConstraintOp::EQ:
-                    BINARY_OP(==);
-                case BinaryConstraintOp::NE:
-                    BINARY_OP(!=);
-                case BinaryConstraintOp::LT:
-                    BINARY_OP(<);
-                case BinaryConstraintOp::ULT: {
-                    auto left = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    return left < right;
-                }
-                case BinaryConstraintOp::FLT: {
-                    auto left = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamFloat>(execute(node->getChild(1), ctxt));
-                    return left < right;
-                }
-                case BinaryConstraintOp::LE:
-                    BINARY_OP(<=);
-                case BinaryConstraintOp::ULE: {
-                    auto left = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    return left <= right;
-                }
-                case BinaryConstraintOp::FLE: {
-                    auto left = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamFloat>(execute(node->getChild(1), ctxt));
-                    return left <= right;
-                }
-                case BinaryConstraintOp::GT:
-                    BINARY_OP(>);
-                case BinaryConstraintOp::UGT: {
-                    auto left = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    return left > right;
-                }
-                case BinaryConstraintOp::FGT: {
-                    auto left = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamFloat>(execute(node->getChild(1), ctxt));
-                    return left > right;
-                }
-                case BinaryConstraintOp::GE:
-                    BINARY_OP(>=);
-                case BinaryConstraintOp::UGE: {
-                    auto left = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    return left >= right;
-                }
-                case BinaryConstraintOp::FGE: {
-                    auto left = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    auto right = ramBitCast<RamFloat>(execute(node->getChild(1), ctxt));
-                    return left >= right;
-                }
+                COMPARE_EQ_NE(EQ, ==)
+                COMPARE_EQ_NE(NE, !=)
+
+                COMPARE(LT, <)
+                COMPARE(LE, <=)
+                COMPARE(GT, >)
+                COMPARE(GE, >=)
+
                 case BinaryConstraintOp::MATCH: {
                     RamDomain left = execute(node->getChild(0), ctxt);
                     RamDomain right = execute(node->getChild(1), ctxt);
@@ -756,10 +728,16 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                     const std::string& text = getSymbolTable().resolve(right);
                     return text.find(pattern) == std::string::npos;
                 }
-                default:
-                    assert(false && "unsupported operator");
-                    return false;
             }
+
+            assert(false && "unsupported operator");
+            return false;
+
+#undef EVAL_CHILD
+#undef COMPARE_NUMERIC
+#undef COMPARE_STRING
+#undef COMPARE
+#undef COMPARE_EQ_NE
         ESAC(Constraint)
 
         CASE(TupleOperation)

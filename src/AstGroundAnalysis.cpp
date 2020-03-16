@@ -177,7 +177,7 @@ std::map<const AstArgument*, bool> getGroundedTerms(const AstClause& clause) {
         // binary equality relations propagates groundness
         void visitBinaryConstraint(const AstBinaryConstraint& cur) override {
             // only target equality
-            if (cur.getOperator() != BinaryConstraintOp::EQ) {
+            if (cur.getOperator() != BinaryConstraintOp::EQ && cur.getOperator() != BinaryConstraintOp::FEQ) {
                 return;
             }
 

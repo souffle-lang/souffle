@@ -657,6 +657,36 @@ std::unique_ptr<RamCondition> AstTranslator::ProvenanceClauseTranslator::createC
     return nullptr;
 }
 
+std::unique_ptr<RamOperation> AstTranslator::ClauseTranslator::filterByConstraints(size_t const level,
+        const std::vector<AstArgument*>& args, std::unique_ptr<RamOperation> op, bool constrainByFunctors) {
+    size_t pos = 0;
+
+    auto mkFilter = [&](bool isFloatArg, std::unique_ptr<RamExpression> rhs) {
+        return std::make_unique<RamFilter>(
+                std::make_unique<RamConstraint>(isFloatArg ? BinaryConstraintOp::FEQ : BinaryConstraintOp::EQ,
+                        std::make_unique<RamTupleElement>(level, pos), std::move(rhs)),
+                std::move(op));
+    };
+
+    for (auto* a : args) {
+        if (auto* c = dynamic_cast<const AstConstant*>(a)) {
+            auto* const c_num = dynamic_cast<const AstNumericConstant*>(c);
+            assert((!c_num || c_num->getType()) && "numeric constant wasn't bound to a type");
+            op = mkFilter(c_num && *c_num->getType() == AstNumericConstant::Type::Float,
+                    translator.translateConstant(*c));
+        } else if (auto* func = dynamic_cast<const AstFunctor*>(a)) {
+            if (constrainByFunctors) {
+                op = mkFilter(func->getReturnType() == TypeAttribute::Float,
+                        translator.translateValue(func, valueIndex));
+            }
+        }
+
+        ++pos;
+    }
+
+    return op;
+}
+
 /** generate RAM code for a clause */
 std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
         const AstClause& clause, const AstClause& originalClause, const int version) {
@@ -697,6 +727,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
         // all other appearances
         for (const Location& loc : cur.second) {
             if (first != loc && !valueIndex.isAggregator(loc.identifier)) {
+                // FIXME: equiv' for float types (`FEQ`)
                 op = std::make_unique<RamFilter>(
                         std::make_unique<RamConstraint>(
                                 BinaryConstraintOp::EQ, makeRamTupleElement(first), makeRamTupleElement(loc)),
@@ -723,6 +754,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
             for (auto arg : atom->getArguments()) {
                 if (auto* agg = dynamic_cast<AstAggregator*>(arg)) {
                     auto loc = valueIndex.getAggregatorLocation(*agg);
+                    // FIXME: equiv' for float types (`FEQ`)
                     op = std::make_unique<RamFilter>(std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
                                                              std::make_unique<RamTupleElement>(curLevel, pos),
                                                              makeRamTupleElement(loc)),
@@ -777,6 +809,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
                     for (const Location& loc :
                             valueIndex.getVariableReferences().find(var->getName())->second) {
                         if (level != loc.identifier || (int)pos != loc.element) {
+                            // FIXME: equiv' for float types (`FEQ`)
                             std::unique_ptr<RamCondition> newCondition = std::make_unique<RamConstraint>(
                                     BinaryConstraintOp::EQ, makeRamTupleElement(loc),
                                     std::make_unique<RamTupleElement>(level, pos));
@@ -787,6 +820,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
                 } else if (arg != nullptr) {
                     std::unique_ptr<RamExpression> value = translator.translateValue(arg, valueIndex);
                     if (value != nullptr && !isRamUndefValue(value.get())) {
+                        // FIXME: equiv' for float types (`FEQ`)
                         std::unique_ptr<RamCondition> newCondition =
                                 std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
                                         std::make_unique<RamTupleElement>(level, pos), std::move(value));
@@ -826,18 +860,8 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
 
         if (const auto* atom = dynamic_cast<const AstAtom*>(cur)) {
             // add constraints
-            size_t pos = 0;
-            for (auto arg : atom->getArguments()) {
-                if (auto* c = dynamic_cast<const AstConstant*>(arg)) {
-                    op = std::make_unique<RamFilter>(
-                            std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
-                                    std::make_unique<RamTupleElement>(level, pos),
-                                    std::make_unique<RamSignedConstant>(
-                                            translator.getConstantRamRepresentation(*c))),
-                            std::move(op));
-                }
-                ++pos;
-            }
+            // TODO: do we wish to enable constraints by header functor? record inits do so...
+            op = filterByConstraints(level, atom->getArguments(), std::move(op), false);
 
             // check whether all arguments are unnamed variables
             bool isAllArgsUnnamed = true;
@@ -882,21 +906,7 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
             // TODO: support constants in nested records!
         } else if (const auto* rec = dynamic_cast<const AstRecordInit*>(cur)) {
             // add constant constraints
-            for (size_t pos = 0; pos < rec->getArguments().size(); ++pos) {
-                if (const AstConstant* c = dynamic_cast<AstConstant*>(rec->getArguments()[pos])) {
-                    op = std::make_unique<RamFilter>(
-                            std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
-                                    std::make_unique<RamTupleElement>(level, pos),
-                                    std::make_unique<RamSignedConstant>(
-                                            translator.getConstantRamRepresentation(*c))),
-                            std::move(op));
-                } else if (AstFunctor* func = dynamic_cast<AstFunctor*>(rec->getArguments()[pos])) {
-                    op = std::make_unique<RamFilter>(std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
-                                                             std::make_unique<RamTupleElement>(level, pos),
-                                                             translator.translateValue(func, valueIndex)),
-                            std::move(op));
-                }
-            }
+            op = filterByConstraints(level, rec->getArguments(), std::move(op));
 
             // add an unpack level
             const Location& loc = valueIndex.getDefinitionPoint(*rec);
@@ -930,6 +940,23 @@ void AstTranslator::appendStmt(std::unique_ptr<RamStatement>& stmtList, std::uni
             stmtList = std::move(stmt);
         }
     }
+}
+
+std::unique_ptr<RamExpression> AstTranslator::translateConstant(AstConstant const& c) {
+    auto const rawConstant = getConstantRamRepresentation(c);
+
+    if (auto* const c_num = dynamic_cast<const AstNumericConstant*>(&c)) {
+        switch (*c_num->getType()) {
+            case AstNumericConstant::Type::Int:
+                return std::make_unique<RamSignedConstant>(rawConstant);
+            case AstNumericConstant::Type::Uint:
+                return std::make_unique<RamUnsignedConstant>(rawConstant);
+            case AstNumericConstant::Type::Float:
+                return std::make_unique<RamFloatConstant>(rawConstant);
+        }
+    }
+
+    return std::make_unique<RamSignedConstant>(rawConstant);
 }
 
 /** generate RAM code for a non-recursive relation */
@@ -1266,10 +1293,13 @@ std::unique_ptr<RamStatement> AstTranslator::makeSubproofSubroutine(const AstCla
         auto arg = args[i];
 
         if (auto var = dynamic_cast<AstVariable*>(arg)) {
+            // FIXME: float equiv (`FEQ`)
             intermediateClause->addToBody(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
                     std::unique_ptr<AstArgument>(var->clone()), std::make_unique<AstSubroutineArgument>(i)));
         } else if (auto func = dynamic_cast<AstFunctor*>(arg)) {
-            intermediateClause->addToBody(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
+            auto opEq = func->getReturnType() == TypeAttribute::Float ? BinaryConstraintOp::FEQ
+                                                                      : BinaryConstraintOp::EQ;
+            intermediateClause->addToBody(std::make_unique<AstBinaryConstraint>(opEq,
                     std::unique_ptr<AstArgument>(func->clone()), std::make_unique<AstSubroutineArgument>(i)));
         } else if (auto rec = dynamic_cast<AstRecordInit*>(arg)) {
             intermediateClause->addToBody(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
@@ -1291,6 +1321,7 @@ std::unique_ptr<RamStatement> AstTranslator::makeSubproofSubroutine(const AstCla
                 auto auxiliaryArity = auxArityAnalysis->getArity(atom);
                 auto literalLevelIndex = arity - auxiliaryArity + 1;
                 auto atomArgs = atom->getArguments();
+                // FIXME: float equiv (`FEQ`)
                 intermediateClause->addToBody(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
                         std::unique_ptr<AstArgument>(atomArgs[literalLevelIndex]->clone()),
                         std::make_unique<AstSubroutineArgument>(levelIndex)));

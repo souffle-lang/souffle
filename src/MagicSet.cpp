@@ -613,9 +613,11 @@ BindingStore bindComposites(const AstProgram* program) {
 
                 // create new constraint (+functorX = original-functor)
                 auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
-                constraints.insert(new AstBinaryConstraint(BinaryConstraintOp::EQ,
-                        std::unique_ptr<AstArgument>(newVariable->clone()),
-                        std::unique_ptr<AstArgument>(functor->clone())));
+                auto opEq = functor->getReturnType() == TypeAttribute::Float ? BinaryConstraintOp::FEQ
+                                                                             : BinaryConstraintOp::EQ;
+                constraints.insert(
+                        new AstBinaryConstraint(opEq, std::unique_ptr<AstArgument>(newVariable->clone()),
+                                std::unique_ptr<AstArgument>(functor->clone())));
 
                 // update functor to be the variable created
                 return newVariable;

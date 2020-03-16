@@ -287,54 +287,58 @@ void AstSemanticChecker::checkProgram(AstTranslationUnit& translationUnit) {
 
     // - binary relation -
     visitDepthFirst(nodes, [&](const AstBinaryConstraint& constraint) {
-        // only interested in non-equal constraints
         auto op = constraint.getOperator();
-        if (op == BinaryConstraintOp::EQ || op == BinaryConstraintOp::NE) {
-            return;
-        }
-
-        // get left and right side
         auto left = constraint.getLHS();
         auto right = constraint.getRHS();
+        auto opRamTypes = getBinaryConstraintTypes(op);
+        // Skip checks if either side is `Bottom` b/c it just adds noise.
+        // The unable-to-deduce-type checker will point out the issue.
+        if (typeAnalysis.getTypes(left).empty() || typeAnalysis.getTypes(right).empty()) return;
 
-        TypeAttribute binaryOpType = getBinaryConstraintType(constraint.getOperator());
-        // Left
-        if (!eqTypeTypeAttribute(binaryOpType, typeAnalysis.getTypes(left))) {
-            switch (getBinaryConstraintType(constraint.getOperator())) {
-                case TypeAttribute::Signed:
-                    report.addError("Non-numerical operand for comparison", left->getSrcLoc());
-                    break;
-                case TypeAttribute::Symbol:
-                    report.addError("Non-symbolic operand for comparison", left->getSrcLoc());
-                    break;
-                case TypeAttribute::Unsigned:
-                    report.addError("Non-unsigned operand for comparison", left->getSrcLoc());
-                    break;
-                case TypeAttribute::Float:
-                    report.addError("Non-float operand for comparison", left->getSrcLoc());
-                    break;
-                case TypeAttribute::Record:
-                    assert(false && "Invalid operand type");
-            }
-        }
-        // Right
-        if (!eqTypeTypeAttribute(binaryOpType, typeAnalysis.getTypes(right))) {
-            switch (getBinaryConstraintType(constraint.getOperator())) {
-                case TypeAttribute::Signed:
-                    report.addError("Non-numerical operand for comparison", right->getSrcLoc());
-                    break;
-                case TypeAttribute::Symbol:
-                    report.addError("Non-symbolic operand for comparison", right->getSrcLoc());
-                    break;
-                case TypeAttribute::Unsigned:
-                    report.addError("Non-unsigned operand for comparison", right->getSrcLoc());
-                    break;
-                case TypeAttribute::Float:
-                    report.addError("Non-float operand for comparison", right->getSrcLoc());
-                    break;
-                case TypeAttribute::Record:
-                    assert(false && "Invalid operand type");
-            }
+        // give them a slightly nicer error
+        if (isOrderedBinaryConstraintOp(op) && typeAnalysis.getTypes(left) != typeAnalysis.getTypes(right)) {
+            report.addError("Cannot compare different types", constraint.getSrcLoc());
+        } else {
+            auto checkTyAttr = [&](AstArgument const& side) {
+                auto opMatchesType = any_of(opRamTypes, [&](auto& ramType) {
+                    // HACK: Type-analysis can't represent anonymous record types and reports them as `Top`
+                    // types.
+                    //       See `tests/evaluation/aliases` for an example.
+                    auto& sideTy = typeAnalysis.getTypes(&side);
+                    if (ramType == TypeAttribute::Record && sideTy.isAll()) return true;
+
+                    return eqTypeTypeAttribute(ramType, sideTy);
+                });
+
+                if (!opMatchesType) {
+                    std::stringstream ss;
+                    ss << "Constraint requires an operand of type "
+                       << join(opRamTypes, " or ", [&](auto& out, auto& ramTy) {
+                              switch (ramTy) {
+                                  case TypeAttribute::Signed:
+                                      out << "`number`";
+                                      break;
+                                  case TypeAttribute::Symbol:
+                                      out << "`symbol`";
+                                      break;
+                                  case TypeAttribute::Unsigned:
+                                      out << "`unsigned`";
+                                      break;
+                                  case TypeAttribute::Float:
+                                      out << "`float`";
+                                      break;
+                                  case TypeAttribute::Record:
+                                      out << "a record";
+                                      break;
+                              }
+                          });
+                    std::cerr << side << " : " << typeAnalysis.getTypes(&side) << "\n";
+                    report.addError(ss.str(), side.getSrcLoc());
+                }
+            };
+
+            checkTyAttr(*left);
+            checkTyAttr(*right);
         }
     });
 
