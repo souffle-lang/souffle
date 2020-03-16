@@ -83,9 +83,6 @@ public:
         return {};
     }
 
-    /** Output to a given output stream */
-    virtual void print(std::ostream& os) const = 0;
-
     /** Print node onto an output stream */
     friend std::ostream& operator<<(std::ostream& out, const AstNode& node) {
         node.print(out);
@@ -93,6 +90,9 @@ public:
     }
 
 protected:
+    /** Output to a given output stream */
+    virtual void print(std::ostream& os) const = 0;
+
     /** Abstract equality check for two AST nodes */
     virtual bool equal(const AstNode& /* other */) const {
         return true;

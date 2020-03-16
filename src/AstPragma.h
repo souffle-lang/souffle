@@ -32,10 +32,6 @@ class AstPragma : public AstNode {
 public:
     AstPragma(std::string key, std::string value) : key(std::move(key)), value(std::move(value)) {}
 
-    void print(std::ostream& os) const override {
-        os << ".pragma " << key << " " << value << "\n";
-    }
-
     AstPragma* clone() const override {
         auto res = new AstPragma(key, value);
         res->setSrcLoc(getSrcLoc());
@@ -48,7 +44,10 @@ public:
     }
 
 protected:
-    /** An internal function to determine equality to another node */
+    void print(std::ostream& os) const override {
+        os << ".pragma " << key << " " << value << "\n";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstPragma*>(&node));
         const auto& other = static_cast<const AstPragma&>(node);

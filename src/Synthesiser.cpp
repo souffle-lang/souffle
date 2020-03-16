@@ -174,7 +174,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
     class CodeEmitter : public RamVisitor<void, std::ostream&> {
     private:
         Synthesiser& synthesiser;
-        RamIndexAnalysis* isa;
+        RamIndexAnalysis* const isa = synthesiser.getTranslationUnit().getAnalysis<RamIndexAnalysis>();
 
 // macros to add comments to generated code for debugging
 #ifndef PRINT_BEGIN_COMMENT
@@ -189,14 +189,27 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
     os << "/* END " << __FUNCTION__ << " @" << __FILE__ << ":" << __LINE__ << " */\n"
 #endif
 
-        std::function<void(std::ostream&, const RamNode*)> rec;
+        // used to populate tuple literal init expressions
+        std::function<void(std::ostream&, const RamExpression*)> rec;
+        std::function<void(std::ostream&, const RamExpression*)> recWithDefault;
+
         std::ostringstream preamble;
         bool preambleIssued = false;
 
     public:
-        CodeEmitter(Synthesiser& syn)
-                : synthesiser(syn), isa(syn.getTranslationUnit().getAnalysis<RamIndexAnalysis>()) {
-            rec = [&](std::ostream& out, const RamNode* node) { this->visit(*node, out); };
+        CodeEmitter(Synthesiser& syn) : synthesiser(syn) {
+            rec = [&](auto& out, const auto* value) {
+                out << "ramBitCast(";
+                visit(*value, out);
+                out << ")";
+            };
+            recWithDefault = [&](auto& out, const auto* value) {
+                if (!isRamUndefValue(&*value)) {
+                    rec(out, value);
+                } else {
+                    out << "0";
+                }
+            };
         }
 
         // -- relation statements --
@@ -636,16 +649,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_BEGIN_COMMENT(out);
 
             out << "const Tuple<RamDomain," << arity << "> key{{";
-            for (size_t i = 0; i < arity; i++) {
-                if (!isRamUndefValue(rangePattern[i])) {
-                    visit(rangePattern[i], out);
-                } else {
-                    out << "0";
-                }
-                if (i + 1 < arity) {
-                    out << ",";
-                }
-            }
+            out << join(rangePattern.begin(), rangePattern.begin() + arity, ",", recWithDefault);
             out << "}};\n";
 
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
@@ -677,16 +681,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_BEGIN_COMMENT(out);
 
             out << "const Tuple<RamDomain," << arity << "> key{{";
-            for (size_t i = 0; i < arity; i++) {
-                if (!isRamUndefValue(rangePattern[i])) {
-                    visit(rangePattern[i], out);
-                } else {
-                    out << "0";
-                }
-                if (i + 1 < arity) {
-                    out << ",";
-                }
-            }
+            out << join(rangePattern.begin(), rangePattern.begin() + arity, ",", recWithDefault);
             out << "}};\n";
             out << "auto range = " << relName
                 << "->"
@@ -721,16 +716,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             assert(arity > 0 && "AstTranslator failed");
 
             out << "const Tuple<RamDomain," << arity << "> key{{";
-            for (size_t i = 0; i < arity; i++) {
-                if (!isRamUndefValue(rangePattern[i])) {
-                    visit(rangePattern[i], out);
-                } else {
-                    out << "0";
-                }
-                if (i + 1 < arity) {
-                    out << ",";
-                }
-            }
+            out << join(rangePattern.begin(), rangePattern.begin() + arity, ",", recWithDefault);
             out << "}};\n";
 
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
@@ -771,16 +757,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_BEGIN_COMMENT(out);
 
             out << "const Tuple<RamDomain," << arity << "> key{{";
-            for (size_t i = 0; i < arity; i++) {
-                if (!isRamUndefValue(rangePattern[i])) {
-                    visit(rangePattern[i], out);
-                } else {
-                    out << "0";
-                }
-                if (i + 1 < arity) {
-                    out << ",";
-                }
-            }
+            out << join(rangePattern.begin(), rangePattern.begin() + arity, ",", recWithDefault);
             out << "}};\n";
             out << "auto range = " << relName
                 << "->"
@@ -817,7 +794,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             std::string tuple_type = "ram::Tuple<RamDomain," + toString(arity) + ">";
 
             // look up reference
-            out << "auto ref = ";
+            out << "RamDomain const ref = ";
             visit(lookup.getExpression(), out);
             out << ";\n";
 
@@ -894,24 +871,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 out << "for(const auto& env" << identifier << " : "
                     << "*" << relName << ") {\n";
             } else {
-                // a lambda for printing boundary key values
-                auto printKeyTuple = [&]() {
-                    for (size_t i = 0; i < arity; i++) {
-                        if (!isRamUndefValue(aggregate.getRangePattern()[i])) {
-                            visit(aggregate.getRangePattern()[i], out);
-                        } else {
-                            out << "0";
-                        }
-                        if (i + 1 < arity) {
-                            out << ",";
-                        }
-                    }
-                };
-
-                // get index
-                auto index = synthesiser.toIndex(keys);
+                const auto& patterns = aggregate.getRangePattern();
                 out << "const " << tuple_type << " key{{";
-                printKeyTuple();
+                out << join(patterns.begin(), patterns.begin() + arity, ",", recWithDefault);
                 out << "}};\n";
                 out << "auto range = " << relName << "->"
                     << "equalRange_" << keys << "(key," << ctxName << ");\n";
@@ -1090,12 +1052,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
 
             // create projected tuple
-            if (project.getValues().empty()) {
-                out << "Tuple<RamDomain," << arity << "> tuple{{}};\n";
-            } else {
-                out << "Tuple<RamDomain," << arity << "> tuple{{ramBitCast("
-                    << join(project.getValues(), "),ramBitCast(", rec) << ")}};\n";
-            }
+            out << "Tuple<RamDomain," << arity << "> tuple{{" << join(project.getValues(), ",", rec)
+                << "}};\n";
 
             // insert tuple
             out << relName << "->"
@@ -1264,13 +1222,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 << "equalRange";
             out << "_" << isa->getSearchSignature(&exists);
             out << "(Tuple<RamDomain," << arity << ">{{";
-            out << join(exists.getValues(), ",", [&](std::ostream& out, RamExpression* value) {
-                if (!isRamUndefValue(value)) {
-                    visit(*value, out);
-                } else {
-                    out << "0";
-                }
-            });
+            out << join(exists.getValues(), ",", recWithDefault);
             out << "}}," << ctxName << ").empty()" << after;
             PRINT_END_COMMENT(out);
         }
@@ -1292,15 +1244,9 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // out << synthesiser.toIndex(ne.getSearchSignature());
             out << "_" << isa->getSearchSignature(&provExists);
             out << "(Tuple<RamDomain," << arity << ">{{";
-            for (size_t i = 0; i < provExists.getValues().size() - auxiliaryArity + 1; i++) {
-                RamExpression* val = provExists.getValues()[i];
-                if (!isRamUndefValue(val)) {
-                    visit(*val, out);
-                } else {
-                    out << "0";
-                }
-                out << ",";
-            }
+            auto parts = provExists.getValues().size() - auxiliaryArity + 1;
+            out << join(provExists.getValues().begin(), provExists.getValues().begin() + parts, ",",
+                    recWithDefault);
             // extra 0 for provenance height annotations
             for (size_t i = 0; i < auxiliaryArity - 2; i++) {
                 out << "0,";
@@ -1376,6 +1322,78 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         void visitIntrinsicOperator(const RamIntrinsicOperator& op, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
 
+// clang-format off
+#define UNARY_OP(opcode, ty, op)                \
+    case FunctorOp::opcode: {                   \
+        out << "(" #op "(ramBitCast<" #ty ">("; \
+        visit(args[0], out);                    \
+        out << ")))";                           \
+        break;                                  \
+    }
+#define UNARY_OP_I(opcode, op) UNARY_OP(   opcode, RamSigned  , op)
+#define UNARY_OP_U(opcode, op) UNARY_OP(U##opcode, RamUnsigned, op)
+#define UNARY_OP_F(opcode, op) UNARY_OP(F##opcode, RamFloat   , op)
+#define UNARY_OP_INTEGRAL(opcode, op) \
+    UNARY_OP_I(opcode, op)            \
+    UNARY_OP_U(opcode, op)
+
+
+#define BINARY_OP_EXPR_EX(ty, op, rhs_post)      \
+    {                                            \
+        out << "(ramBitCast<" #ty ">(";          \
+        visit(args[0], out);                     \
+        out << ") " #op " ramBitCast<" #ty ">("; \
+        visit(args[1], out);                     \
+        out << rhs_post "))";                    \
+        break;                                   \
+    }
+#define BINARY_OP_EXPR(ty, op) BINARY_OP_EXPR_EX(ty, op, "")
+#define BINARY_OP_EXPR_SHIFT(ty, op) BINARY_OP_EXPR_EX(ty, op, " & RAM_BIT_SHIFT_MASK")
+#define BINARY_OP_EXPR_LOGICAL(ty, op) out << "RamDomain"; BINARY_OP_EXPR(ty, op)
+
+#define BINARY_OP_INTEGRAL(opcode, op)                         \
+    case FunctorOp::   opcode: BINARY_OP_EXPR(RamSigned  , op) \
+    case FunctorOp::U##opcode: BINARY_OP_EXPR(RamUnsigned, op)
+#define BINARY_OP_LOGICAL(opcode, op)                                  \
+    case FunctorOp::   opcode: BINARY_OP_EXPR_LOGICAL(RamSigned  , op) \
+    case FunctorOp::U##opcode: BINARY_OP_EXPR_LOGICAL(RamUnsigned, op)
+#define BINARY_OP_NUMERIC(opcode, op)                          \
+    BINARY_OP_INTEGRAL(opcode, op)                             \
+    case FunctorOp::F##opcode: BINARY_OP_EXPR(RamFloat   , op)
+#define BINARY_OP_BITWISE(opcode, op)                        \
+    case FunctorOp::   opcode: /* fall through */            \
+    case FunctorOp::U##opcode: BINARY_OP_EXPR(RamDomain, op)
+#define BINARY_OP_INTEGRAL_SHIFT(opcode, op, tySigned, tyUnsigned)  \
+    case FunctorOp::   opcode: BINARY_OP_EXPR_SHIFT(tySigned  , op) \
+    case FunctorOp::U##opcode: BINARY_OP_EXPR_SHIFT(tyUnsigned, op)
+
+#define BINARY_OP_EXP(opcode, ty, tyTemp)                                                     \
+    case FunctorOp::opcode: {                                                                 \
+        out << "static_cast<" #ty ">(static_cast<" #tyTemp ">(std::pow(ramBitCast<" #ty ">("; \
+        visit(args[0], out);                                                                  \
+        out << "), ramBitCast<" #ty ">(";                                                     \
+        visit(args[1], out);                                                                  \
+        out << "))))";                                                                        \
+        break;                                                                                \
+    }
+
+#define NARY_OP(opcode, ty, op)            \
+    case FunctorOp::opcode: {              \
+        out << #op "({";                   \
+        for (auto& cur : args) {           \
+            out << "ramBitCast<" #ty ">("; \
+            visit(cur, out);               \
+            out << "), ";                  \
+        }                                  \
+        out << "})";                       \
+        break;                             \
+    }
+#define NARY_OP_ORDERED(opcode, op)     \
+    NARY_OP(   opcode, RamSigned  , op) \
+    NARY_OP(U##opcode, RamUnsigned, op) \
+    NARY_OP(F##opcode, RamFloat   , op)
+            // clang-format on
+
             auto args = op.getArguments();
             switch (op.getOperator()) {
                 /** Unary Functor Operators */
@@ -1383,31 +1401,11 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     visit(args[0], out);
                     break;
                 }
+                // TODO: change the signature of `STRLEN` to return an unsigned?
                 case FunctorOp::STRLEN: {
-                    out << "static_cast<RamDomain>(symTable.resolve(";
+                    out << "static_cast<RamSigned>(symTable.resolve(";
                     visit(args[0], out);
                     out << ").size())";
-                    break;
-                }
-                case FunctorOp::FNEG:
-                case FunctorOp::NEG: {
-                    out << "(-(";
-                    visit(args[0], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::UBNOT:
-                case FunctorOp::BNOT: {
-                    out << "(~(";
-                    visit(args[0], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::ULNOT:
-                case FunctorOp::LNOT: {
-                    out << "static_cast<RamDomain>(!(";
-                    visit(args[0], out);
-                    out << "))";
                     break;
                 }
                 case FunctorOp::TOSTRING: {
@@ -1422,190 +1420,60 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     out << ")))";
                     break;
                 }
-                case FunctorOp::FTOU:
-                case FunctorOp::ITOU: {
-                    out << "(static_cast<RamUnsigned>(";
-                    visit(args[0], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::FTOI:
-                case FunctorOp::UTOI: {
-                    out << "(static_cast<RamSigned>(";
-                    visit(args[0], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::ITOF:
-                case FunctorOp::UTOF: {
-                    out << "(static_cast<RamFloat>(";
-                    visit(args[0], out);
-                    out << "))";
-                    break;
-                }
+
+                    // clang-format off
+                UNARY_OP_I(NEG, -)
+                UNARY_OP_F(NEG, -)
+
+                UNARY_OP_INTEGRAL(BNOT, ~)
+                UNARY_OP_INTEGRAL(LNOT, (RamDomain)!)
+
+                // Numeric coercions.
+                // Behaviour is similar to C++ except we saturate instead of overflowing.
+                UNARY_OP(FTOI, RamFloat   , static_cast<RamSigned>)
+                UNARY_OP(UTOI, RamUnsigned, static_cast<RamSigned>)
+                UNARY_OP(FTOU, RamFloat   , static_cast<RamUnsigned>)
+                UNARY_OP(ITOU, RamSigned  , static_cast<RamUnsigned>)
+                UNARY_OP(ITOF, RamSigned  , static_cast<RamFloat>)
+                UNARY_OP(UTOF, RamUnsigned, static_cast<RamFloat>)
+
                 /** Binary Functor Operators */
                 // arithmetic
-                case FunctorOp::FADD:
-                case FunctorOp::UADD:
-                case FunctorOp::ADD: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") + (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::FSUB:
-                case FunctorOp::USUB:
-                case FunctorOp::SUB: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") - (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::FMUL:
-                case FunctorOp::UMUL:
-                case FunctorOp::MUL: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") * (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::FDIV:
-                case FunctorOp::UDIV:
-                case FunctorOp::DIV: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") / (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::FEXP: {
-                    out << "static_cast<RamFloat>(std::pow(";
-                    visit(args[0], out);
-                    out << ",";
-                    visit(args[1], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::UEXP:
-                case FunctorOp::EXP: {
-                    out << "static_cast<RamDomain>(static_cast<int64_t>(std::pow(";
-                    visit(args[0], out);
-                    out << ",";
-                    visit(args[1], out);
-                    out << ")))";
-                    break;
-                }
-                case FunctorOp::UMOD:
-                case FunctorOp::MOD: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") % (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::UBAND:
-                case FunctorOp::BAND: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") & (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::UBOR:
-                case FunctorOp::BOR: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") | (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                case FunctorOp::UBXOR:
-                case FunctorOp::BXOR: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") ^ (";
-                    visit(args[1], out);
-                    out << ")";
-                    break;
-                }
-                // TODO: clamp/limit RHS to prevent UB?
-                case FunctorOp::UBSHIFT_L:
-                case FunctorOp::BSHIFT_L: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") << (";
-                    visit(args[1], out);
-                    out << " & RAM_BIT_SHIFT_MASK)";
-                    break;
-                }
-                case FunctorOp::UBSHIFT_R:
-                case FunctorOp::BSHIFT_R:
-                case FunctorOp::UBSHIFT_R_UNSIGNED: {
-                    out << "(";
-                    visit(args[0], out);
-                    out << ") >> (";
-                    visit(args[1], out);
-                    out << " & RAM_BIT_SHIFT_MASK)";
-                    break;
-                }
-                case FunctorOp::BSHIFT_R_UNSIGNED: {
-                    out << "ramBitCast<RamSigned>(ramBitCast<RamUnsigned>(";
-                    visit(args[0], out);
-                    out << ") >> ramBitCast<RamUnsigned>(";
-                    visit(args[1], out);
-                    out << " & RAM_BIT_SHIFT_MASK))";
-                    break;
-                }
-                case FunctorOp::ULAND:
-                case FunctorOp::LAND: {
-                    out << "static_cast<RamDomain>((";
-                    visit(args[0], out);
-                    out << ") && (";
-                    visit(args[1], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::ULOR:
-                case FunctorOp::LOR: {
-                    out << "static_cast<RamDomain>((";
-                    visit(args[0], out);
-                    out << ") || (";
-                    visit(args[1], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::FMAX:
-                case FunctorOp::UMAX:
-                case FunctorOp::MAX: {
-                    out << "std::max({";
-                    for (auto& cur : args) {
-                        visit(cur, out);
-                        out << ", ";
-                    }
-                    out << "})";
-                    break;
-                }
-                case FunctorOp::FMIN:
-                case FunctorOp::UMIN:
-                case FunctorOp::MIN: {
-                    out << "std::min({";
-                    for (auto& cur : args) {
-                        visit(cur, out);
-                        out << ", ";
-                    }
-                    out << "})";
-                    break;
-                }
+
+                BINARY_OP_NUMERIC(ADD, +)
+                BINARY_OP_NUMERIC(SUB, -)
+                BINARY_OP_NUMERIC(MUL, *)
+                BINARY_OP_NUMERIC(DIV, /)
+                BINARY_OP_INTEGRAL(MOD, %)
+
+                BINARY_OP_EXP(FEXP, RamFloat   , RamFloat)
+#if RAM_DOMAIN_SIZE == 32
+                BINARY_OP_EXP(UEXP, RamUnsigned, int64_t)
+                BINARY_OP_EXP( EXP, RamSigned  , int64_t)
+#elif RAM_DOMAIN_SIZE == 64
+                BINARY_OP_EXP(UEXP, RamUnsigned, RamUnsigned)
+                BINARY_OP_EXP( EXP, RamSigned  , RamSigned)
+#else
+#error "unhandled domain size"
+#endif
+
+                BINARY_OP_LOGICAL(LAND, &&)
+                BINARY_OP_LOGICAL(LOR , ||)
+
+                BINARY_OP_BITWISE(BAND, &)
+                BINARY_OP_BITWISE(BOR , |)
+                BINARY_OP_BITWISE(BXOR, ^)
+                // Handle left-shift as unsigned to match Java semantics of `<<`, namely:
+                //  "... `n << s` is `n` left-shifted `s` bit positions; ..."
+                // Using `RamSigned` would imply UB due to signed overflow when shifting negatives.
+                BINARY_OP_INTEGRAL_SHIFT(BSHIFT_L         , <<, RamUnsigned, RamUnsigned)
+                // For right-shift, we do need sign extension.
+                BINARY_OP_INTEGRAL_SHIFT(BSHIFT_R         , >>, RamSigned  , RamUnsigned)
+                BINARY_OP_INTEGRAL_SHIFT(BSHIFT_R_UNSIGNED, >>, RamUnsigned, RamUnsigned)
+
+                NARY_OP_ORDERED(MAX, std::max)
+                NARY_OP_ORDERED(MIN, std::min)
+                    // clang-format on
 
                 // strings
                 case FunctorOp::CAT: {
@@ -1656,7 +1524,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 }
                 switch (argTypes[i]) {
                     case TypeAttribute::Signed:
-                        out << "((RamDomain)";
+                        out << "((RamSigned)";
                         visit(args[i], out);
                         out << ")";
                         break;
@@ -1671,7 +1539,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         out << ")";
                         break;
                     case TypeAttribute::Symbol:
-                        out << "symTable.resolve((RamDomain)";
+                        out << "symTable.resolve(";
                         visit(args[i], out);
                         out << ").c_str()";
                         break;
@@ -1806,7 +1674,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         for (const TypeAttribute typeAttribute : argsTypes) {
             switch (typeAttribute) {
                 case TypeAttribute::Signed:
-                    args.push_back("souffle::RamDomain");
+                    args.push_back("souffle::RamSigned");
                     break;
                 case TypeAttribute::Unsigned:
                     args.push_back("souffle::RamUnsigned");
@@ -2311,8 +2179,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         os << "false,\n";
         os << "R\"()\",\n";
     }
-    os << std::stoi(Global::config().get("jobs")) << ",\n";
-    os << "-1";
+    os << std::stoi(Global::config().get("jobs"));
     os << ");\n";
 
     os << "if (!opt.parse(argc,argv)) return 1;\n";

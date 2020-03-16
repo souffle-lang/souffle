@@ -43,13 +43,6 @@ public:
             std::string name = "", std::vector<AstQualifiedName> params = std::vector<AstQualifiedName>())
             : name(std::move(name)), typeParams(std::move(params)) {}
 
-    void print(std::ostream& os) const override {
-        os << name;
-        if (!typeParams.empty()) {
-            os << "<" << join(typeParams, ",") << ">";
-        }
-    }
-
     /** get component name */
     const std::string& getName() const {
         return name;
@@ -77,6 +70,13 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << name;
+        if (!typeParams.empty()) {
+            os << "<" << join(typeParams, ",") << ">";
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstComponentType*>(&node));
         const auto& other = static_cast<const AstComponentType&>(node);
@@ -96,10 +96,6 @@ private:
  */
 class AstComponentInit : public AstNode {
 public:
-    void print(std::ostream& os) const override {
-        os << ".init " << instanceName << " = " << *componentType;
-    }
-
     /** get instance name */
     const std::string& getInstanceName() const {
         return instanceName;
@@ -138,6 +134,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << ".init " << instanceName << " = " << *componentType;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstComponentInit*>(&node));
         const auto& other = static_cast<const AstComponentInit&>(node);
@@ -156,38 +156,6 @@ protected:
  */
 class AstComponent : public AstNode {
 public:
-    void print(std::ostream& os) const override {
-        os << ".comp " << *componentType << " ";
-        if (!baseComponents.empty()) {
-            os << ": " << join(baseComponents, ",", print_deref<std::unique_ptr<AstComponentType>>()) << " ";
-        }
-        os << "{\n";
-        if (!components.empty()) {
-            os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
-        }
-        if (!instantiations.empty()) {
-            os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
-        }
-        if (!types.empty()) {
-            os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
-        }
-        if (!relations.empty()) {
-            os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
-        }
-        if (!overrideRules.empty()) {
-            os << ".override ";
-            os << join(overrideRules, ",") << "\n";
-        }
-        if (!clauses.empty()) {
-            os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
-        }
-        if (!ios.empty()) {
-            os << join(ios, "\n\n", print_deref<std::unique_ptr<AstIO>>()) << "\n";
-        }
-
-        os << "}\n";
-    }
-
     /** get component type */
     const AstComponentType* getComponentType() const {
         return componentType.get();
@@ -372,6 +340,38 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << ".comp " << *componentType << " ";
+        if (!baseComponents.empty()) {
+            os << ": " << join(baseComponents, ",", print_deref<std::unique_ptr<AstComponentType>>()) << " ";
+        }
+        os << "{\n";
+        if (!components.empty()) {
+            os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
+        }
+        if (!instantiations.empty()) {
+            os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
+        }
+        if (!types.empty()) {
+            os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
+        }
+        if (!relations.empty()) {
+            os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
+        }
+        if (!overrideRules.empty()) {
+            os << ".override ";
+            os << join(overrideRules, ",") << "\n";
+        }
+        if (!clauses.empty()) {
+            os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
+        }
+        if (!ios.empty()) {
+            os << join(ios, "\n\n", print_deref<std::unique_ptr<AstIO>>()) << "\n";
+        }
+
+        os << "}\n";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstComponent*>(&node));
         const auto& other = static_cast<const AstComponent&>(node);

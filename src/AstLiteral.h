@@ -54,35 +54,29 @@ public:
         setSrcLoc(srcLoc);
     }
 
-    /** Return the name of this atom */
+    /** get qualified name */
     const AstQualifiedName& getQualifiedName() const {
         return name;
     }
 
-    /** Return the arity of the atom */
+    /** get arity of the atom */
     size_t getArity() const {
         return arguments.size();
     }
 
-    /** Set atom name */
+    /** set qualified name */
     void setQualifiedName(const AstQualifiedName& n) {
         name = n;
     }
 
-    /** Add argument to the atom */
+    /** add argument to the atom */
     void addArgument(std::unique_ptr<AstArgument> arg) {
         arguments.push_back(std::move(arg));
     }
 
-    /** Provides access to the list of arguments of this atom */
+    /** get arguments */
     std::vector<AstArgument*> getArguments() const {
         return toPtrVector(arguments);
-    }
-
-    void print(std::ostream& os) const override {
-        os << getQualifiedName() << "(";
-        os << join(arguments, ",", print_deref<std::unique_ptr<AstArgument>>());
-        os << ")";
     }
 
     AstAtom* clone() const override {
@@ -109,16 +103,22 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << getQualifiedName() << "(";
+        os << join(arguments, ",", print_deref<std::unique_ptr<AstArgument>>());
+        os << ")";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstAtom*>(&node));
         const auto& other = static_cast<const AstAtom&>(node);
         return name == other.name && equal_targets(arguments, other.arguments);
     }
 
-    /** Name of the atom */
+    /** name */
     AstQualifiedName name;
 
-    /** Arguments of the atom */
+    /** arguments */
     std::vector<std::unique_ptr<AstArgument>> arguments;
 };
 
@@ -130,15 +130,9 @@ class AstNegation : public AstLiteral {
 public:
     AstNegation(std::unique_ptr<AstAtom> atom) : atom(std::move(atom)) {}
 
-    /** Returns the nested atom as the referenced atom */
-    // TODO (azreika): change to const AstAtom*
+    /** get negated atom */
     AstAtom* getAtom() const {
         return atom.get();
-    }
-
-    void print(std::ostream& os) const override {
-        os << "!";
-        atom->print(os);
     }
 
     AstNegation* clone() const override {
@@ -156,13 +150,17 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << "!" << *atom;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstNegation*>(&node));
         const auto& other = static_cast<const AstNegation&>(node);
-        return *atom == *other.atom;
+        return equal_ptr(atom, other.atom);
     }
 
-    /** A pointer to the negated Atom */
+    /** negated atom */
     std::unique_ptr<AstAtom> atom;
 };
 
@@ -172,19 +170,9 @@ protected:
  *
  * Specialised for provenance: used for existence check that tuple doesn't already exist
  */
-class AstProvenanceNegation : public AstLiteral {
+class AstProvenanceNegation : public AstNegation {
 public:
-    AstProvenanceNegation(std::unique_ptr<AstAtom> atom) : atom(std::move(atom)) {}
-
-    /** Returns the nested atom as the referenced atom */
-    const AstAtom* getAtom() const {
-        return atom.get();
-    }
-
-    void print(std::ostream& os) const override {
-        os << "prov!";
-        atom->print(os);
-    }
+    AstProvenanceNegation(std::unique_ptr<AstAtom> atom) : AstNegation(std::move(atom)) {}
 
     AstProvenanceNegation* clone() const override {
         auto* res = new AstProvenanceNegation(std::unique_ptr<AstAtom>(atom->clone()));
@@ -192,45 +180,29 @@ public:
         return res;
     }
 
-    void apply(const AstNodeMapper& map) override {
-        atom = map(std::move(atom));
-    }
-
-    std::vector<const AstNode*> getChildNodes() const override {
-        return {atom.get()};
-    }
-
 protected:
-    bool equal(const AstNode& node) const override {
-        assert(dynamic_cast<const AstProvenanceNegation*>(&node));
-        const auto& other = static_cast<const AstProvenanceNegation&>(node);
-        return *atom == *other.atom;
+    void print(std::ostream& os) const override {
+        os << "prov!" << *atom;
     }
-
-    /** A pointer to the negated Atom */
-    std::unique_ptr<AstAtom> atom;
 };
 
 /**
- * Subclass of Constraint that represents a constant 'true'
- * or 'false' value.
+ * Boolean Constraint
  *
- * TODO (b-scholz): Let's make two separate classes AstTrue/AstFalse
+ * Representing either 'true' or 'false' values
  */
 class AstBooleanConstraint : public AstConstraint {
 public:
     AstBooleanConstraint(bool truthValue) : truthValue(truthValue) {}
 
+    /** check whether constraint holds */
     bool isTrue() const {
         return truthValue;
     }
 
+    /** set truth value */
     void set(bool value) {
         truthValue = value;
-    }
-
-    void print(std::ostream& os) const override {
-        os << (truthValue ? "true" : "false");
     }
 
     AstBooleanConstraint* clone() const override {
@@ -240,13 +212,17 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << (truthValue ? "true" : "false");
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstBooleanConstraint*>(&node));
         const auto& other = static_cast<const AstBooleanConstraint&>(node);
         return truthValue == other.truthValue;
     }
 
-    /** Truth value */
+    /** truth value */
     bool truthValue;
 };
 
@@ -260,30 +236,24 @@ public:
             BinaryConstraintOp o, std::unique_ptr<AstArgument> ls, std::unique_ptr<AstArgument> rs)
             : operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {}
 
-    /** Return LHS argument */
+    /** get LHS argument */
     AstArgument* getLHS() const {
         return lhs.get();
     }
 
-    /** Return RHS argument */
+    /** get RHS argument */
     AstArgument* getRHS() const {
         return rhs.get();
     }
 
-    /** Return binary operator */
+    /** get binary operator */
     BinaryConstraintOp getOperator() const {
         return operation;
     }
 
-    /** Update the binary operator */
+    /** set binary operator */
     void setOperator(BinaryConstraintOp op) {
         operation = op;
-    }
-
-    void print(std::ostream& os) const override {
-        lhs->print(os);
-        os << " " << toBinaryConstraintSymbol(operation) << " ";
-        rhs->print(os);
     }
 
     AstBinaryConstraint* clone() const override {
@@ -303,19 +273,25 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << *lhs;
+        os << " " << toBinaryConstraintSymbol(operation) << " ";
+        os << *rhs;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstBinaryConstraint*>(&node));
         const auto& other = static_cast<const AstBinaryConstraint&>(node);
-        return operation == other.operation && *lhs == *other.lhs && *rhs == *other.rhs;
+        return operation == other.operation && equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);
     }
 
-    /** The operator in this relation */
+    /** constraint operator */
     BinaryConstraintOp operation;
 
-    /** Left-hand side argument of a binary operation */
+    /** left-hand side of binary constraint */
     std::unique_ptr<AstArgument> lhs;
 
-    /** Right-hand side argument of a binary operation */
+    /** right-hand side of binary constraint */
     std::unique_ptr<AstArgument> rhs;
 };
 

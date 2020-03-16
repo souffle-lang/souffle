@@ -10,8 +10,7 @@
  *
  * @file AstClause.h
  *
- * Defines class Clause that represents rules including facts, predicates, and
- * queries in a Datalog program.
+ * Defines AST Clauses
  *
  ***********************************************************************/
 
@@ -37,10 +36,6 @@ namespace souffle {
  */
 class AstExecutionOrder : public AstNode {
 public:
-    void print(std::ostream& out) const override {
-        out << "(" << join(order) << ")";
-    }
-
     /** appends index of an atom */
     void appendAtomIndex(int index) {
         order.push_back(index);
@@ -59,6 +54,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& out) const override {
+        out << "(" << join(order) << ")";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstExecutionOrder*>(&node));
         const auto& other = static_cast<const AstExecutionOrder&>(node);
@@ -76,14 +75,6 @@ private:
  */
 class AstExecutionPlan : public AstNode {
 public:
-    void print(std::ostream& out) const override {
-        if (!plans.empty()) {
-            out << " .plan ";
-            out << join(plans, ", ",
-                    [](std::ostream& os, const auto& arg) { os << arg.first << ":" << *arg.second; });
-        }
-    }
-
     /** updates execution order for rule version */
     void setOrderFor(int version, std::unique_ptr<AstExecutionOrder> plan) {
         plans[version] = std::move(plan);
@@ -122,6 +113,14 @@ public:
     }
 
 protected:
+    void print(std::ostream& out) const override {
+        if (!plans.empty()) {
+            out << " .plan ";
+            out << join(plans, ", ",
+                    [](std::ostream& os, const auto& arg) { os << arg.first << ":" << *arg.second; });
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstExecutionPlan*>(&node));
         const auto& other = static_cast<const AstExecutionPlan&>(node);
@@ -144,20 +143,6 @@ private:
  */
 class AstClause : public AstNode {
 public:
-    void print(std::ostream& os) const override {
-        if (head != nullptr) {
-            head->print(os);
-        }
-        if (!bodyLiterals.empty()) {
-            os << " :- \n   ";
-            os << join(getBodyLiterals(), ",\n   ", print_deref<AstLiteral*>());
-        }
-        os << ".";
-        if (getExecutionPlan() != nullptr) {
-            getExecutionPlan()->print(os);
-        }
-    }
-
     /** Add a Literal to the body of the clause */
     void addToBody(std::unique_ptr<AstLiteral> literal) {
         bodyLiterals.push_back(std::move(literal));
@@ -223,19 +208,34 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        if (head != nullptr) {
+            os << *head;
+        }
+        if (!bodyLiterals.empty()) {
+            os << " :- \n   ";
+            os << join(getBodyLiterals(), ",\n   ", print_deref<AstLiteral*>());
+        }
+        os << ".";
+        if (plan != nullptr) {
+            os << *plan;
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstClause*>(&node));
         const auto& other = static_cast<const AstClause&>(node);
-        return *head == *other.head && equal_targets(bodyLiterals, other.bodyLiterals);
+        return equal_ptr(head, other.head) && equal_targets(bodyLiterals, other.bodyLiterals) &&
+               equal_ptr(plan, other.plan);
     }
 
-    /** The head of the clause */
+    /** head of the clause */
     std::unique_ptr<AstAtom> head;
 
-    /** The literals in the body of this clause */
+    /** body literals of clause */
     std::vector<std::unique_ptr<AstLiteral>> bodyLiterals;
 
-    /** The user defined execution plan -- if any */
+    /** user defined execution plan (if not defined, plan is null) */
     std::unique_ptr<AstExecutionPlan> plan;
 };
 

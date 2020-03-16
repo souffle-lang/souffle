@@ -50,3 +50,11 @@ expr(-2147483648).
 
 // one space
 expr(- 2147483648).
+
+
+.decl neg_float(x: float)
+.output neg_float
+
+neg_float(3.0).
+neg_float(-3.5).
+neg_float(-x) :- neg_float(x).

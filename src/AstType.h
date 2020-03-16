@@ -63,11 +63,6 @@ public:
     /** Creates a new primitive type */
     AstPrimitiveType(const AstQualifiedName& name, TypeAttribute type) : AstType(name), type(type) {}
 
-    /** Prints a summary of this type to the given stream */
-    void print(std::ostream& os) const override {
-        os << ".type " << getQualifiedName() << (type == TypeAttribute::Signed ? "= number" : "");
-    }
-
     /** Tests whether this type is a numeric type */
     bool isNumeric() const {
         return isNumericType(type);
@@ -85,6 +80,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << ".type " << getQualifiedName() << (type == TypeAttribute::Signed ? "= number" : "");
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstPrimitiveType*>(&node));
         const auto& other = static_cast<const AstPrimitiveType&>(node);
@@ -103,10 +102,6 @@ private:
  */
 class AstUnionType : public AstType {
 public:
-    void print(std::ostream& os) const override {
-        os << ".type " << getQualifiedName() << " = " << join(types, " | ");
-    }
-
     /** Obtains a reference to the list element types */
     const std::vector<AstQualifiedName>& getTypes() const {
         return types;
@@ -132,6 +127,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << ".type " << getQualifiedName() << " = " << join(types, " | ");
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstUnionType*>(&node));
         const auto& other = static_cast<const AstUnionType&>(node);
@@ -161,20 +160,6 @@ public:
         }
     };
 
-    void print(std::ostream& os) const override {
-        os << ".type " << getQualifiedName() << " = "
-           << "[";
-        for (unsigned i = 0; i < fields.size(); i++) {
-            if (i != 0) {
-                os << ",";
-            }
-            os << fields[i].name;
-            os << ":";
-            os << fields[i].type;
-        }
-        os << "]";
-    }
-
     /** add field to record type */
     void add(const std::string& name, const AstQualifiedName& type) {
         fields.push_back(Field({name, type}));
@@ -200,6 +185,20 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << ".type " << getQualifiedName() << " = "
+           << "[";
+        for (unsigned i = 0; i < fields.size(); i++) {
+            if (i != 0) {
+                os << ",";
+            }
+            os << fields[i].name;
+            os << ":";
+            os << fields[i].type;
+        }
+        os << "]";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstRecordType*>(&node));
         const auto& other = static_cast<const AstRecordType&>(node);

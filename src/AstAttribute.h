@@ -38,10 +38,6 @@ class AstAttribute : public AstNode {
 public:
     AstAttribute(std::string n, AstQualifiedName t) : name(std::move(n)), typeName(std::move(t)) {}
 
-    void print(std::ostream& os) const override {
-        os << name << ":" << typeName;
-    }
-
     /** get attribute name */
     const std::string& getAttributeName() const {
         return name;
@@ -64,6 +60,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << name << ":" << typeName;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstAttribute*>(&node));
         const auto& other = static_cast<const AstAttribute&>(node);

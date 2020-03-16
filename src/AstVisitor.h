@@ -154,8 +154,8 @@ protected:
 
     // literals
     LINK(Atom, Literal)
+    LINK(ProvenanceNegation, Negation)
     LINK(Negation, Literal)
-    LINK(ProvenanceNegation, Literal)
     LINK(Literal, Node);
 
     LINK(BooleanConstraint, Constraint)

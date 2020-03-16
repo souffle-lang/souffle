@@ -37,31 +37,6 @@ public:
     }
     AstIO() = default;
 
-    void print(std::ostream& os) const override {
-        switch (type) {
-            case UndefinedIO:
-                os << ".undefined ";
-                break;
-            case InputIO:
-                os << ".input ";
-                break;
-            case OutputIO:
-                os << ".output ";
-                break;
-            case PrintsizeIO:
-                os << ".printsize ";
-                break;
-            default:
-                assert("Unknown I/O operation type");
-        }
-        os << name;
-        if (!directives.empty()) {
-            os << "(" << join(directives, ",", [](std::ostream& out, const auto& arg) {
-                out << arg.first << "=\"" << arg.second << "\"";
-            }) << ")";
-        }
-    }
-
     /** get I/O type */
     AstIOType getType() const {
         return type;
@@ -112,6 +87,31 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        switch (type) {
+            case UndefinedIO:
+                os << ".undefined ";
+                break;
+            case InputIO:
+                os << ".input ";
+                break;
+            case OutputIO:
+                os << ".output ";
+                break;
+            case PrintsizeIO:
+                os << ".printsize ";
+                break;
+            default:
+                assert("Unknown I/O operation type");
+        }
+        os << name;
+        if (!directives.empty()) {
+            os << "(" << join(directives, ",", [](std::ostream& out, const auto& arg) {
+                out << arg.first << "=\"" << arg.second << "\"";
+            }) << ")";
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstIO*>(&node));
         const auto& other = static_cast<const AstIO&>(node);

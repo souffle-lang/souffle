@@ -18,12 +18,13 @@ Usage:
   souffle-compile [options] <FILE>.cpp
 Options:
   -h           show usage
-  -g           Build in debug mode
+  -g           build in debug mode
   -l           additional shared libraries
   -L           library paths
+  -t           build in test mode, implies '-gw' and compiles using '-Werror'
   -v           verbose output
   -w           enable warnings
-  -s <value>   Use SWIG interface to generate into <value> language\n"
+  -s <value>   use SWIG interface to generate into <value> language\n"
 
   exit 1;
 }
@@ -64,7 +65,7 @@ error "installation error: souffle header files cannot be found" $?
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
 # default getopt is an old BSD getopt, so need this for portability
-while getopts "hwl:L:vgs:" opt; do
+while getopts "hwtl:L:vgs:" opt; do
   case "$opt" in
     h|\?) # Show usage and exit
       usage;
@@ -78,7 +79,12 @@ while getopts "hwl:L:vgs:" opt; do
     l) # enable shared library
       LIBS="$LIBS -l${OPTARG}";
     ;;
+    t) # enable testing mode (debug + warnings + `-Werror`)
+      CXXFLAGS="$(echo $CXXFLAGS|sed 's/-O[0-9s]//g') -g -O0 -Wall -Wextra -Werror";
+      WARNINGS="1"
+    ;;
     w) # enable warnings
+      CXXFLAGS="$(echo $CXXFLAGS) -Wall -Wextra"
       WARNINGS="1"
     ;;
     v) # Verbose output
@@ -123,7 +129,7 @@ then
   do
     cp "$SWIGDIR/$file" "$TMP_DIR"
   done
-  
+
   cd "$TMP_DIR"
   swig -c++ -"$SWIGLANG" "SwigInterface.i"
 
@@ -150,27 +156,30 @@ then
   do
     mv "$file" "$dir"
   done
-  
+
   rm -rf "$TMP_DIR"
   exit 0
 fi
 
 # Compile
 rm -f $dir/$exe
-$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 -I$HEADER_DIR $OMP_FLAG $LDFLAGS $LIBS 2> $dir/$exe.$$.ccerr
+CCERR=$(mktemp)
+# HACK: don't exit if the compile fails, we need to report the error
+( $CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 -I$HEADER_DIR $OMP_FLAG $LDFLAGS $LIBS 2> $CCERR ) || true
+
 if test -f $dir/$exe
 then
   if [ "$WARNINGS" = 1 ]
   then
      echo "$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 $LIBS -I$HEADER_DIR"
-     cat $dir/$exe.$$.ccerr 1>&2
+     cat $CCERR 1>&2
   fi
-  rm $dir/$exe.$$.ccerr
+  rm $CCERR
 else
   echo "compiler error: cannot compile source file $1" 1>&2
   echo "$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 $LIBS -I$HEADER_DIR"
-  cat $dir/$exe.$$.ccerr 1>&2
-  rm -f $dir/$exe.$$.ccerr
+  cat $CCERR 1>&2
+  rm -f $CCERR
   exit 1
 fi
 exit 0

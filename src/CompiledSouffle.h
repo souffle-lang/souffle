@@ -202,13 +202,13 @@ public:
     iterator end() const {
         return iterator();
     }
-    void insert(const t_tuple& t) {
+    void insert(const t_tuple& /* t */) {
         data = true;
     }
-    void insert(const t_tuple& t, context& /* ctxt */) {
+    void insert(const t_tuple& /* t */, context& /* ctxt */) {
         data = true;
     }
-    void insert(const RamDomain* ramDomain) {
+    void insert(const RamDomain* /* ramDomain */) {
         data = true;
     }
     bool insert() {
@@ -216,10 +216,10 @@ public:
         data = true;
         return !result;
     }
-    bool contains(const t_tuple& t) const {
+    bool contains(const t_tuple& /* t */) const {
         return data;
     }
-    bool contains(const t_tuple& t, context& /* ctxt */) const {
+    bool contains(const t_tuple& /* t */, context& /* ctxt */) const {
         return data;
     }
     std::size_t size() const {
@@ -231,7 +231,7 @@ public:
     void purge() {
         data = false;
     }
-    void printHintStatistics(std::ostream& o, std::string prefix) const {}
+    void printHintStatistics(std::ostream& /* o */, std::string /* prefix */) const {}
 };
 
 /** info relations */
@@ -316,7 +316,7 @@ public:
     void purge() {
         data.clear();
     }
-    void printHintStatistics(std::ostream& o, std::string prefix) const {}
+    void printHintStatistics(std::ostream& /* o */, std::string /* prefix */) const {}
 };
 
 }  // namespace souffle

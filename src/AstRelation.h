@@ -48,21 +48,6 @@ class AstRelation : public AstNode {
 public:
     AstRelation() = default;
 
-    void print(std::ostream& os) const override {
-        os << ".decl " << this->getQualifiedName() << "(";
-        if (!attributes.empty()) {
-            os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
-
-            for (size_t i = 1; i < attributes.size(); ++i) {
-                os << "," << attributes[i]->getAttributeName() << ":" << attributes[i]->getTypeName();
-            }
-        }
-        os << ") ";
-
-        os << join(qualifiers, " ") << " ";
-        os << representation;
-    }
-
     /** Return the name of the relation */
     const AstQualifiedName& getQualifiedName() const {
         return name;
@@ -145,7 +130,21 @@ public:
     }
 
 protected:
-    /** Implements the node comparison for this node type */
+    void print(std::ostream& os) const override {
+        os << ".decl " << this->getQualifiedName() << "(";
+        if (!attributes.empty()) {
+            os << attributes[0]->getAttributeName() << ":" << attributes[0]->getTypeName();
+
+            for (size_t i = 1; i < attributes.size(); ++i) {
+                os << "," << attributes[i]->getAttributeName() << ":" << attributes[i]->getTypeName();
+            }
+        }
+        os << ") ";
+
+        os << join(qualifiers, " ") << " ";
+        os << representation;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstRelation*>(&node));
         const auto& other = static_cast<const AstRelation&>(node);

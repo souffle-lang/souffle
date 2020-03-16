@@ -43,10 +43,6 @@ class AstVariable : public AstArgument {
 public:
     AstVariable(std::string name) : name(std::move(name)) {}
 
-    void print(std::ostream& os) const override {
-        os << name;
-    }
-
     /** set variable name */
     void setName(const std::string& name) {
         this->name = name;
@@ -64,6 +60,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << name;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstVariable*>(&node));
         const auto& other = static_cast<const AstVariable&>(node);
@@ -79,14 +79,15 @@ protected:
  */
 class AstUnnamedVariable : public AstArgument {
 public:
-    void print(std::ostream& os) const override {
-        os << "_";
-    }
-
     AstUnnamedVariable* clone() const override {
         auto* res = new AstUnnamedVariable();
         res->setSrcLoc(getSrcLoc());
         return res;
+    }
+
+protected:
+    void print(std::ostream& os) const override {
+        os << "_";
     }
 };
 
@@ -95,14 +96,15 @@ public:
  */
 class AstCounter : public AstArgument {
 public:
-    void print(std::ostream& os) const override {
-        os << "$";
-    }
-
     AstCounter* clone() const override {
         auto* res = new AstCounter();
         res->setSrcLoc(getSrcLoc());
         return res;
+    }
+
+protected:
+    void print(std::ostream& os) const override {
+        os << "$";
     }
 };
 
@@ -118,11 +120,17 @@ public:
         return constant;
     }
 
+protected:
     void print(std::ostream& os) const override {
         os << getConstant();
     }
 
-protected:
+    bool equal(const AstNode& node) const override {
+        assert(nullptr != dynamic_cast<const AstConstant*>(&node));
+        const auto& other = static_cast<const AstConstant&>(node);
+        return constant == other.constant;
+    }
+
     AstConstant(std::string value) : constant(std::move(value)){};
 
 private:
@@ -136,10 +144,6 @@ class AstStringConstant : public AstConstant {
 public:
     explicit AstStringConstant(std::string value) : AstConstant(std::move(value)) {}
 
-    void print(std::ostream& os) const override {
-        os << "\"" << getConstant() << "\"";
-    }
-
     AstStringConstant* clone() const override {
         auto* res = new AstStringConstant(getConstant());
         res->setSrcLoc(getSrcLoc());
@@ -147,10 +151,8 @@ public:
     }
 
 protected:
-    bool equal(const AstNode& node) const override {
-        assert(nullptr != dynamic_cast<const AstStringConstant*>(&node));
-        const auto& other = static_cast<const AstStringConstant&>(node);
-        return getConstant() == other.getConstant();
+    void print(std::ostream& os) const override {
+        os << "\"" << getConstant() << "\"";
     }
 };
 
@@ -188,7 +190,7 @@ protected:
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstNumericConstant*>(&node));
         const auto& other = static_cast<const AstNumericConstant&>(node);
-        return getConstant() == other.getConstant() && getType() == other.getType();
+        return AstConstant::equal(node) && type == other.type;
     }
 
 private:
@@ -286,19 +288,6 @@ public:
         assert(isValidFunctorOpArity(function, args.size()) && "invalid number of arguments for functor");
     }
 
-    void print(std::ostream& os) const override {
-        if (isInfixFunctorOp(function)) {
-            os << "(";
-            os << join(args, getSymbolForFunctorOp(function), print_deref<std::unique_ptr<AstArgument>>());
-            os << ")";
-        } else {
-            os << getSymbolForFunctorOp(function);
-            os << "(";
-            os << join(args, ",", print_deref<std::unique_ptr<AstArgument>>());
-            os << ")";
-        }
-    }
-
     /** get function */
     FunctorOp getFunction() const {
         return function;
@@ -330,7 +319,19 @@ public:
     }
 
 protected:
-    /** Implements the node comparison for this node type */
+    void print(std::ostream& os) const override {
+        if (isInfixFunctorOp(function)) {
+            os << "(";
+            os << join(args, getSymbolForFunctorOp(function), print_deref<std::unique_ptr<AstArgument>>());
+            os << ")";
+        } else {
+            os << getSymbolForFunctorOp(function);
+            os << "(";
+            os << join(args, ",", print_deref<std::unique_ptr<AstArgument>>());
+            os << ")";
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstIntrinsicFunctor*>(&node));
         const auto& other = static_cast<const AstIntrinsicFunctor&>(node);
@@ -349,11 +350,6 @@ public:
     explicit AstUserDefinedFunctor(std::string name) : AstFunctor(), name(std::move(name)){};
     AstUserDefinedFunctor(std::string name, std::vector<std::unique_ptr<AstArgument>> args)
             : AstFunctor(std::move(args)), name(std::move(name)){};
-
-    /** print user-defined functor */
-    void print(std::ostream& os) const override {
-        os << '@' << name << "(" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << ")";
-    }
 
     /** get name */
     const std::string& getName() const {
@@ -395,6 +391,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << '@' << name << "(" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << ")";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstUserDefinedFunctor*>(&node));
         const auto& other = static_cast<const AstUserDefinedFunctor&>(node);
@@ -413,10 +413,6 @@ protected:
  */
 class AstRecordInit : public AstTerm {
 public:
-    void print(std::ostream& os) const override {
-        os << "[" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << "]";
-    }
-
     AstRecordInit* clone() const override {
         auto res = new AstRecordInit();
         for (auto& cur : args) {
@@ -424,6 +420,11 @@ public:
         }
         res->setSrcLoc(getSrcLoc());
         return res;
+    }
+
+protected:
+    void print(std::ostream& os) const override {
+        os << "[" << join(args, ",", print_deref<std::unique_ptr<AstArgument>>()) << "]";
     }
 };
 
@@ -434,10 +435,6 @@ class AstTypeCast : public AstArgument {
 public:
     AstTypeCast(std::unique_ptr<AstArgument> value, AstQualifiedName type)
             : value(std::move(value)), type(std::move(type)) {}
-
-    void print(std::ostream& os) const override {
-        os << "as(" << *value << "," << type << ")";
-    }
 
     /** Get value */
     AstArgument* getValue() const {
@@ -471,6 +468,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << "as(" << *value << "," << type << ")";
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstTypeCast*>(&node));
         const auto& other = static_cast<const AstTypeCast&>(node);
@@ -486,43 +487,12 @@ protected:
 
 /**
  * An argument aggregating a value from a sub-query.
- * TODO (b-scholz): fix body literal interface;
  * remove getters/setters for individual literals
  */
 class AstAggregator : public AstArgument {
 public:
     /** Creates a new aggregation node */
     AstAggregator(AggregateOp fun) : fun(fun), expression(nullptr) {}
-
-    void print(std::ostream& os) const override {
-        switch (fun) {
-            case AggregateOp::sum:
-                os << "sum";
-                break;
-            case AggregateOp::min:
-                os << "min";
-                break;
-            case AggregateOp::max:
-                os << "max";
-                break;
-            case AggregateOp::count:
-                os << "count";
-                break;
-            default:
-                break;
-        }
-        if (expression) {
-            os << " " << *expression;
-        }
-        os << " : ";
-        if (body.size() > 1) {
-            os << "{ ";
-        }
-        os << join(body, ", ", print_deref<std::unique_ptr<AstLiteral>>());
-        if (body.size() > 1) {
-            os << " }";
-        }
-    }
 
     /** Get aggregate operator */
     AggregateOp getOperator() const {
@@ -585,6 +555,36 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        switch (fun) {
+            case AggregateOp::sum:
+                os << "sum";
+                break;
+            case AggregateOp::min:
+                os << "min";
+                break;
+            case AggregateOp::max:
+                os << "max";
+                break;
+            case AggregateOp::count:
+                os << "count";
+                break;
+            default:
+                break;
+        }
+        if (expression) {
+            os << " " << *expression;
+        }
+        os << " : ";
+        if (body.size() > 1) {
+            os << "{ ";
+        }
+        os << join(body, ", ", print_deref<std::unique_ptr<AstLiteral>>());
+        if (body.size() > 1) {
+            os << " }";
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstAggregator*>(&node));
         const auto& other = static_cast<const AstAggregator&>(node);
@@ -592,13 +592,13 @@ protected:
     }
 
 private:
-    /** The aggregation operator of this aggregation step */
+    /** Aggregation operator */
     AggregateOp fun;
 
-    /** The expression to be aggregated */
+    /** Aggregation expression */
     std::unique_ptr<AstArgument> expression;
 
-    /** A list of body-literals forming a sub-query which's result is projected and aggregated */
+    /** Body literal of sub-query */
     std::vector<std::unique_ptr<AstLiteral>> body;
 };
 
@@ -608,10 +608,6 @@ private:
 class AstSubroutineArgument : public AstArgument {
 public:
     AstSubroutineArgument(size_t index) : index(index) {}
-
-    void print(std::ostream& os) const override {
-        os << "arg_" << index;
-    }
 
     /** Return argument index */
     size_t getNumber() const {
@@ -625,6 +621,10 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        os << "arg_" << index;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstSubroutineArgument*>(&node));
         const auto& other = static_cast<const AstSubroutineArgument&>(node);

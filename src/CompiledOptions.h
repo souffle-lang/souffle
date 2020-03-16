@@ -70,8 +70,7 @@ protected:
 
 public:
     // all argument constructor
-    CmdOptions(const char* s, const char* id, const char* od, bool pe, const char* pfn, size_t nj,
-            size_t si = (size_t)-1)
+    CmdOptions(const char* s, const char* id, const char* od, bool pe, const char* pfn, size_t nj)
             : src(s), input_dir(id), output_dir(od), profiling(pe), profile_name(pfn), num_jobs(nj) {}
 
     /**

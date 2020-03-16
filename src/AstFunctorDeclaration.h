@@ -38,29 +38,6 @@ public:
         assert(name.length() > 0 && "functor name is empty");
     }
 
-    void print(std::ostream& out) const override {
-        auto convert = [&](TypeAttribute type) {
-            switch (type) {
-                case TypeAttribute::Signed:
-                    return "number";
-                case TypeAttribute::Symbol:
-                    return "symbol";
-                case TypeAttribute::Float:
-                    return "float";
-                case TypeAttribute::Unsigned:
-                    return "unsigned";
-                default:
-                    abort();
-            }
-        };
-        out << ".declfun " << name << "(";
-        std::vector<std::string> args(argsTypes.size());
-        std::transform(argsTypes.begin(), argsTypes.end(), args.begin(), convert);
-
-        out << join(args, ",");
-        out << "):" << convert(returnType) << std::endl;
-    }
-
     /** get name */
     const std::string& getName() const {
         return name;
@@ -88,6 +65,29 @@ public:
     }
 
 protected:
+    void print(std::ostream& out) const override {
+        auto convert = [&](TypeAttribute type) {
+            switch (type) {
+                case TypeAttribute::Signed:
+                    return "number";
+                case TypeAttribute::Symbol:
+                    return "symbol";
+                case TypeAttribute::Float:
+                    return "float";
+                case TypeAttribute::Unsigned:
+                    return "unsigned";
+                default:
+                    abort();
+            }
+        };
+        out << ".declfun " << name << "(";
+        std::vector<std::string> args(argsTypes.size());
+        std::transform(argsTypes.begin(), argsTypes.end(), args.begin(), convert);
+
+        out << join(args, ",");
+        out << "):" << convert(returnType) << std::endl;
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstFunctorDeclaration*>(&node));
         const auto& other = static_cast<const AstFunctorDeclaration&>(node);

@@ -49,13 +49,23 @@ public:
     /** @brief templated method to compute/retrieve an analysis for a translation unit */
     template <class Analysis>
     Analysis* getAnalysis() const {
+        static const bool debug = Global::config().has("debug-report");
         std::string name = Analysis::name;
         auto it = analyses.find(name);
         if (it == analyses.end()) {
             // analysis does not exist yet, create instance and run it.
             auto analysis = std::make_unique<Analysis>(Analysis::name);
             analysis->run(*this);
-            // Check it hasn't been created by someone else, and insert if not
+            // output analysis in debug report
+            if (debug) {
+                std::stringstream ramAnalysisStr;
+                ramAnalysisStr << *analysis;
+                if (!ramAnalysisStr.str().empty()) {
+                    debugReport.addSection(
+                            analysis->getName(), "RAM Analysis " + analysis->getName(), ramAnalysisStr.str());
+                }
+            }
+            // check it hasn't been created by someone else, and insert if not
             it = analyses.find(name);
             if (it == analyses.end()) {
                 analyses[name] = std::move(analysis);

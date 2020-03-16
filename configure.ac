@@ -32,7 +32,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 dnl Do not set default CFLAGS and CXXFLAGS
 ENV_CXXFLAGS="$CXXFLAGS"
-CXXFLAGS=" -Wall -Wextra "
+CXXFLAGS=""
 
 # Disable provenance
 AC_ARG_ENABLE(
@@ -349,7 +349,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h float.h inttypes.h libintl.h limits.h mall
 
 SOUFFLE_CXXFLAGS="$CXXFLAGS"
 AC_SUBST(SOUFFLE_CXXFLAGS)
-CXXFLAGS="$CXXFLAGS $ENV_CXXFLAGS"
+CXXFLAGS="-Wall -Wextra $CXXFLAGS $ENV_CXXFLAGS"
 
 AC_OUTPUT(
   [ src/souffle-compile src/souffle-config debian/changelog man/souffle.1 man/souffle-compile.1 man/souffle-config.1 man/souffle-profile.1],

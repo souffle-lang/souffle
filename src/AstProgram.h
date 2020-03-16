@@ -48,33 +48,6 @@ class AstIO;
  */
 class AstProgram : public AstNode {
 public:
-    void print(std::ostream& os) const override {
-        if (!pragmaDirectives.empty()) {
-            os << join(pragmaDirectives, "\n\n", print_deref<std::unique_ptr<AstPragma>>()) << "\n";
-        }
-        if (!components.empty()) {
-            os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
-        }
-        if (!instantiations.empty()) {
-            os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
-        }
-        if (!types.empty()) {
-            os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
-        }
-        if (!functors.empty()) {
-            os << join(functors, "\n", print_deref<std::unique_ptr<AstFunctorDeclaration>>()) << "\n";
-        }
-        if (!relations.empty()) {
-            os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
-        }
-        if (!clauses.empty()) {
-            os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
-        }
-        if (!ios.empty()) {
-            os << join(ios, "\n\n", print_deref<std::unique_ptr<AstIO>>()) << "\n";
-        }
-    }
-
     /** get types */
     std::vector<AstType*> getTypes() const {
         return toPtrVector(types);
@@ -241,6 +214,33 @@ public:
     }
 
 protected:
+    void print(std::ostream& os) const override {
+        if (!pragmaDirectives.empty()) {
+            os << join(pragmaDirectives, "\n\n", print_deref<std::unique_ptr<AstPragma>>()) << "\n";
+        }
+        if (!components.empty()) {
+            os << join(components, "\n", print_deref<std::unique_ptr<AstComponent>>()) << "\n";
+        }
+        if (!instantiations.empty()) {
+            os << join(instantiations, "\n", print_deref<std::unique_ptr<AstComponentInit>>()) << "\n";
+        }
+        if (!types.empty()) {
+            os << join(types, "\n", print_deref<std::unique_ptr<AstType>>()) << "\n";
+        }
+        if (!functors.empty()) {
+            os << join(functors, "\n", print_deref<std::unique_ptr<AstFunctorDeclaration>>()) << "\n";
+        }
+        if (!relations.empty()) {
+            os << join(relations, "\n", print_deref<std::unique_ptr<AstRelation>>()) << "\n";
+        }
+        if (!clauses.empty()) {
+            os << join(clauses, "\n\n", print_deref<std::unique_ptr<AstClause>>()) << "\n";
+        }
+        if (!ios.empty()) {
+            os << join(ios, "\n\n", print_deref<std::unique_ptr<AstIO>>()) << "\n";
+        }
+    }
+
     bool equal(const AstNode& node) const override {
         assert(nullptr != dynamic_cast<const AstProgram*>(&node));
         const auto& other = static_cast<const AstProgram&>(node);

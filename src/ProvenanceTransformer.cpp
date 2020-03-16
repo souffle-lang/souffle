@@ -93,11 +93,11 @@ std::unique_ptr<AstRelation> makeInfoRelation(
     auto getArgInfo = [&](AstArgument* arg) -> std::string {
         if (auto* var = dynamic_cast<AstVariable*>(arg)) {
             std::stringstream varName;
-            var->print(varName);
+            varName << *var;
             return varName.str();
         } else if (auto* constant = dynamic_cast<AstConstant*>(arg)) {
             std::stringstream constName;
-            constant->print(constName);
+            constName << *constant;
             return constName.str();
         } else if (nullptr != dynamic_cast<AstUnnamedVariable*>(arg)) {
             return "_";
@@ -175,7 +175,7 @@ std::unique_ptr<AstRelation> makeInfoRelation(
 
     // generate and add clause representation
     std::stringstream ss;
-    originalClause.print(ss);
+    ss << originalClause;
 
     infoRelation->addAttribute(std::make_unique<AstAttribute>("clause_repr", AstQualifiedName("symbol")));
     infoClauseHead->addArgument(std::make_unique<AstStringConstant>(ss.str()));

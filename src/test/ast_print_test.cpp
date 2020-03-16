@@ -32,7 +32,7 @@ inline std::unique_ptr<AstTranslationUnit> makeATU(std::string program = ".decl 
 
 inline std::unique_ptr<AstTranslationUnit> makePrintedATU(std::unique_ptr<AstTranslationUnit>& tu) {
     std::stringstream ss;
-    tu->getProgram()->print(ss);
+    ss << *tu->getProgram();
     return makeATU(ss.str());
 }
 
