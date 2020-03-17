@@ -190,7 +190,7 @@ void RedundantRelations::print(std::ostream& os) const {
     os << redundantRelations << std::endl;
 }
 
-void RelationDetail::run(const AstTranslationUnit& translationUnit) {
+void RelationDetailCache::run(const AstTranslationUnit& translationUnit) {
     const auto& program = *translationUnit.getProgram();
     for (auto* rel : program.getRelations()) {
         nameToRelation[rel->getQualifiedName()] = rel;
@@ -205,7 +205,7 @@ void RelationDetail::run(const AstTranslationUnit& translationUnit) {
     }
 }
 
-void RelationDetail::print(std::ostream& os) const {
+void RelationDetailCache::print(std::ostream& os) const {
     for (const auto& pair : nameToClauses) {
         os << "--" << pair.first << "--";
         os << std::endl;
@@ -230,7 +230,7 @@ void RecursiveClauses::print(std::ostream& os) const {
 
 bool RecursiveClauses::computeIsRecursive(
         const AstClause& clause, const AstTranslationUnit& translationUnit) const {
-    const auto& relationDetail = *translationUnit.getAnalysis<RelationDetail>();
+    const auto& relationDetail = *translationUnit.getAnalysis<RelationDetailCache>();
     const AstProgram& program = *translationUnit.getProgram();
 
     // we want to reach the atom of the head through the body

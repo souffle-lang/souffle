@@ -112,11 +112,11 @@ private:
 /**
  * Analysis pass mapping identifiers with relations and clauses.
  */
-class RelationDetail : public AstAnalysis {
+class RelationDetailCache : public AstAnalysis {
 public:
     static constexpr const char* name = "relation-detail";
 
-    RelationDetail() : AstAnalysis(name) {}
+    RelationDetailCache() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
