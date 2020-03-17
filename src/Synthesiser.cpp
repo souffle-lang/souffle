@@ -1312,6 +1312,18 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         }
 
         void visitIntrinsicOperator(const RamIntrinsicOperator& op, std::ostream& out) override {
+#define MINMAX_SYMBOL(op)                   \
+    {                                       \
+        out << "symTable.lookup(" #op "({"; \
+        for (auto& cur : args) {            \
+            out << "symTable.resolve(";     \
+            visit(cur, out);                \
+            out << "), ";                   \
+        }                                   \
+        out << "}))";                       \
+        break;                              \
+    }
+
             PRINT_BEGIN_COMMENT(out);
 
 // clang-format off
@@ -1467,6 +1479,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 NARY_OP_ORDERED(MIN, std::min)
                     // clang-format on
 
+                case FunctorOp::SMAX:
+                    MINMAX_SYMBOL(std::max)
+
+                case FunctorOp::SMIN:
+                    MINMAX_SYMBOL(std::min)
+
                 // strings
                 case FunctorOp::CAT: {
                     out << "symTable.lookup(";
@@ -1497,6 +1515,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 }
             }
             PRINT_END_COMMENT(out);
+
+#undef MINMAX_SYMBOL
         }
 
         void visitUserDefinedOperator(const RamUserDefinedOperator& op, std::ostream& out) override {

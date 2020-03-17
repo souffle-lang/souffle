@@ -37,7 +37,7 @@ namespace souffle::test {
 #define TESTS_PER_OPERATION 20
 
 /** Function to evaluate a single RamExpression. */
-RamDomain evalExpression(std::unique_ptr<RamExpression> expression) {
+RamDomain evalExpression(std::unique_ptr<RamExpression> expression, SymbolTable& symTab) {
     // Set up RamProgram and translation unit
     std::vector<std::unique_ptr<RamExpression>> returnValues;
     returnValues.emplace_back(std::move(expression));
@@ -52,7 +52,6 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression) {
     std::unique_ptr<RamProgram> prog =
             std::make_unique<RamProgram>(std::move(rels), std::make_unique<RamSequence>(), std::move(subs));
 
-    SymbolTable symTab;
     ErrorReport errReport;
     DebugReport debugReport;
 
@@ -69,10 +68,20 @@ RamDomain evalExpression(std::unique_ptr<RamExpression> expression) {
     return ret.at(0);
 }
 
+/** Function to evaluate a single RamExpression. */
+RamDomain evalExpression(std::unique_ptr<RamExpression> expression) {
+    SymbolTable symTab;
+    return evalExpression(std::move(expression), symTab);
+}
+
+RamDomain evalMultiArg(
+        FunctorOp functor, std::vector<std::unique_ptr<RamExpression>> args, SymbolTable& symTab) {
+    return evalExpression(std::make_unique<RamIntrinsicOperator>(functor, std::move(args)), symTab);
+}
+
 RamDomain evalMultiArg(FunctorOp functor, std::vector<std::unique_ptr<RamExpression>> args) {
-    std::unique_ptr<RamExpression> expression =
-            std::make_unique<RamIntrinsicOperator>(functor, std::move(args));
-    return evalExpression(std::move(expression));
+    SymbolTable symTab;
+    return evalMultiArg(functor, std::move(args), symTab);
 }
 
 /** Evaluate a single argument expression */
@@ -626,6 +635,21 @@ TEST(MultiArg, FloatMax) {
     EXPECT_EQ(ramBitCast<RamFloat>(result), static_cast<RamFloat>(100));
 }
 
+TEST(MultiArg, SymbolMax) {
+    FunctorOp functor = FunctorOp::SMAX;
+    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+
+    SymbolTable symTab;
+
+    for (RamDomain i = -100; i <= 100; ++i) {
+        args.push_back(std::make_unique<RamSignedConstant>(symTab.lookup(std::to_string(i))));
+    }
+
+    auto&& result = symTab.resolve(evalMultiArg(functor, std::move(args), symTab));
+
+    EXPECT_EQ(result, "99");
+}
+
 TEST(MultiArg, Min) {
     FunctorOp functor = FunctorOp::MIN;
     std::vector<std::unique_ptr<souffle::RamExpression>> args;
@@ -663,6 +687,21 @@ TEST(MultiArg, FloatMin) {
     RamDomain result = evalMultiArg(functor, std::move(args));
 
     EXPECT_EQ(ramBitCast<RamFloat>(result), static_cast<RamFloat>(-100));
+}
+
+TEST(MultiArg, SymbolMin) {
+    FunctorOp functor = FunctorOp::SMIN;
+    std::vector<std::unique_ptr<souffle::RamExpression>> args;
+
+    SymbolTable symTab;
+
+    for (RamDomain i = -100; i <= 100; ++i) {
+        args.push_back(std::make_unique<RamSignedConstant>(symTab.lookup(std::to_string(i))));
+    }
+
+    auto&& result = symTab.resolve(evalMultiArg(functor, std::move(args), symTab));
+
+    EXPECT_EQ(result, "-1");
 }
 
 }  // namespace souffle::test

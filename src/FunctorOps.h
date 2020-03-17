@@ -83,6 +83,8 @@ enum class FunctorOp {
     FEXP,                // exponent
     FMAX,                // max of two floats
     FMIN,                // min of two floats
+    SMAX,                // max of two symbols
+    SMIN,                // min of two symbols
 
     CAT,  // string concatenation
 
@@ -161,6 +163,8 @@ inline bool isValidFunctorOpArity(const FunctorOp op, const size_t arity) {
         case FunctorOp::UMIN:
         case FunctorOp::FMAX:
         case FunctorOp::FMIN:
+        case FunctorOp::SMAX:
+        case FunctorOp::SMIN:
         case FunctorOp::CAT:
             return arity >= 2;
     }
@@ -253,13 +257,17 @@ inline std::string getSymbolForFunctorOp(const FunctorOp op) {
         case FunctorOp::LOR:
         case FunctorOp::ULOR:
             return "lor";
+
+        /* N-ary Functor Operators */
         case FunctorOp::MAX:
         case FunctorOp::UMAX:
         case FunctorOp::FMAX:
+        case FunctorOp::SMAX:
             return "max";
         case FunctorOp::MIN:
         case FunctorOp::UMIN:
         case FunctorOp::FMIN:
+        case FunctorOp::SMIN:
             return "min";
         case FunctorOp::CAT:
             return "cat";
@@ -336,6 +344,8 @@ inline TypeAttribute functorReturnType(const FunctorOp op) {
         case FunctorOp::FDIV:
         case FunctorOp::FEXP:
             return TypeAttribute::Float;
+        case FunctorOp::SMAX:
+        case FunctorOp::SMIN:
         case FunctorOp::TOSTRING:
         case FunctorOp::CAT:
         case FunctorOp::SUBSTR:
@@ -432,6 +442,8 @@ inline TypeAttribute functorOpArgType(const size_t arg, const FunctorOp op) {
         case FunctorOp::FMAX:
         case FunctorOp::FMIN:
             return TypeAttribute::Float;
+        case FunctorOp::SMAX:
+        case FunctorOp::SMIN:
         case FunctorOp::CAT:
             return TypeAttribute::Symbol;
     }
@@ -535,6 +547,8 @@ inline FunctorOp convertOverloadedFunctor(const FunctorOp functor, const TypeAtt
                 return FunctorOp::FMAX;
             } else if (toType == TypeAttribute::Unsigned) {
                 return FunctorOp::UMAX;
+            } else if (toType == TypeAttribute::Symbol) {
+                return FunctorOp::SMAX;
             }
             assert(false && "Invalid functor conversion");
             break;
@@ -543,6 +557,8 @@ inline FunctorOp convertOverloadedFunctor(const FunctorOp functor, const TypeAtt
                 return FunctorOp::FMIN;
             } else if (toType == TypeAttribute::Unsigned) {
                 return FunctorOp::UMIN;
+            } else if (toType == TypeAttribute::Symbol) {
+                return FunctorOp::SMIN;
             }
             assert(false && "Invalid functor conversion");
             break;

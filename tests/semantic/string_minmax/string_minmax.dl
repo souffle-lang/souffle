@@ -1,0 +1,9 @@
+#define TEST_CASE(op)                               \
+    .decl sym_##op(x: symbol)                       \
+    .output sym_##op                                \
+    sym_##op(x) :- x = op("b", "a").                \
+    sym_##op(x) :- x = op("b", "bb").               \
+    sym_##op(x) :- x = op("a3", "a2", "a0", "a1").
+
+TEST_CASE(max)
+TEST_CASE(min)

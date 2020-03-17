@@ -1284,17 +1284,17 @@ bool PolymorphicObjectsTransformer::transform(AstTranslationUnit& translationUni
                 // Handle functor
                 if (auto* functor = dynamic_cast<AstIntrinsicFunctor*>(node.get())) {
                     if (isOverloadedFunctor(functor->getFunction())) {
-                        // All args must be of the same type.
-                        if (all_of(functor->getArguments(), isFloat)) {
-                            FunctorOp convertedFunctor =
-                                    convertOverloadedFunctor(functor->getFunction(), TypeAttribute::Float);
-                            functor->setFunction(convertedFunctor);
-                            changed = true;
+                        auto attemptOverload = [&](TypeAttribute ty, auto& fn) {
+                            // All args must be of the same type.
+                            if (!all_of(functor->getArguments(), fn)) return false;
 
-                        } else if (all_of(functor->getArguments(), isUnsigned)) {
-                            FunctorOp convertedFunctor =
-                                    convertOverloadedFunctor(functor->getFunction(), TypeAttribute::Unsigned);
-                            functor->setFunction(convertedFunctor);
+                            functor->setFunction(convertOverloadedFunctor(functor->getFunction(), ty));
+                            return true;
+                        };
+
+                        if (attemptOverload(TypeAttribute::Float, isFloat) ||
+                                attemptOverload(TypeAttribute::Unsigned, isUnsigned) ||
+                                attemptOverload(TypeAttribute::Symbol, isSymbol)) {
                             changed = true;
                         }
                     }
