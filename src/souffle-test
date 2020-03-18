@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# helper for running souffle against a specific test case
+
+GIVEN=$1
+shift
+
+TEST_ROOT=${GIVEN%%/}${GIVEN:+/}
+TEST_FACT=$(echo $TEST_ROOT)facts
+TEST_FILE=$(echo $TEST_ROOT)$(basename $GIVEN)
+TEST_SRC=$TEST_FILE.dl
+TEST_OUT=$TEST_FILE.out
+TEST_ERR=$TEST_FILE.err
+
+set -e
+echo $(dirname $0)/souffle $TEST_SRC -D $TEST_ROOT -F $TEST_FACT $@
+$(dirname $0)/souffle $TEST_SRC -D $TEST_ROOT -F $TEST_FACT $@ 1> $TEST_OUT 2> $TEST_ERR
