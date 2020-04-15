@@ -254,27 +254,31 @@ public:
     /** allocate memory for a new object of type T but no initialization */
     T* allocate() {
 #pragma omp critical(MemoryPool)
-        T* result;
-        if (idx < N) {
-            void* data = current->data;
-            result = &(static_cast<T*>(data))[idx++];
-        } else {
-            current = new memory_chunk(current);
-            assert(current != nullptr && "Memory allocation failed");
-            void* data = current->data;
-            idx = 1;
-            result = &(static_cast<T*>(data))[0];
+        {
+            T* result;
+            if (idx < N) {
+                void* data = current->data;
+                result = &(static_cast<T*>(data))[idx++];
+            } else {
+                current = new memory_chunk(current);
+                assert(current != nullptr && "Memory allocation failed");
+                void* data = current->data;
+                idx = 1;
+                result = &(static_cast<T*>(data))[0];
+            }
+            return result;
         }
-        return result;
     }
 
     /** free all memory chunks */
     void free() {
 #pragma omp critical(MemoryPool)
-        while (current->next != nullptr) {
-            memory_chunk* next = current->next;
-            delete current;
-            current = next;
+        {
+            while (current->next != nullptr) {
+                memory_chunk* next = current->next;
+                delete current;
+                current = next;
+            }
         }
     }
 };
