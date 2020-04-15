@@ -82,7 +82,13 @@ Generate SWIG interface for the specified language. Possible values for \fI<LANG
 .B -t\fI<none|explain|explore|subtreeHeights>\fP, --provenance=\fI<none|explain|explore|subtreeHeights>\fP
 Enable provenance instrumentation and interaction
 .TP
-.B --show=\fI<parse-errors|precedence-graph|scc-graph|transformed-datalog|transformed-ram|type-analysis>\fP
+.B --show=\fI<option>\fP
+        parse-errors - errors generated in the parsing stage
+        transformed-datalog - datalog equivalent to the final, transformed, program
+        type-analysis - types deduced from the input datalog
+        precedence-graph - precedence graph for all rules and relations
+        scc-graph - scc graph for RAM execution
+        transformed-ram - the final RAM after all transformations are applied
 Print selected program information.
 .TP
 .B -u\fI<FILE>\fP, --profile-use=\fI<FILE>\fP
