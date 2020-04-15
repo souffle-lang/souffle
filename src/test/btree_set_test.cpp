@@ -462,10 +462,8 @@ TEST(BTreeSet, Load) {
             data.push_back(i);
         }
 
-
-   
         test_set t;
-        for (auto x : data) { 
+        for (auto x : data) {
             t.insert(x);
         }
         //        t.printTree();
