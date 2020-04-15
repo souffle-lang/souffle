@@ -253,6 +253,7 @@ public:
 
     /** allocate memory for a new object of type T but no initialization */
     T* allocate() {
+#pragma omp critical(MemoryPool)
         T* result;
         if (idx < N) {
             void* data = current->data;
@@ -269,6 +270,7 @@ public:
 
     /** free all memory chunks */
     void free() {
+#pragma omp critical(MemoryPool)
         while (current->next != nullptr) {
             memory_chunk* next = current->next;
             delete current;
