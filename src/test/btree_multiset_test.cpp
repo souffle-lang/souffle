@@ -350,7 +350,10 @@ TEST(BTreeMultiSet, Load) {
         for (int i = 0; i < N; i++) {
             data.push_back(i);
         }
-        auto t = test_set::load(data.begin(), data.end());
+        test_set t;
+        for (auto x: data) {
+            t.insert(x);
+        }
         EXPECT_EQ(data.size(), t.size());
         EXPECT_TRUE(t.check());
         int last = -1;
@@ -513,19 +516,5 @@ TEST(Performance, Basic) {
     checkPerformance(t3, "souffle btree_multiset - 256 - binary", in, out);
 }
 
-TEST(Performance, Load) {
-    int N = 1 << 20;
-
-    std::vector<int> data;
-    for (int i = 0; i < N; i++) {
-        data.push_back(i);
-    }
-
-    // take time for conventional load
-    time("conventional load", [&]() { btree_multiset<int> t(data.begin(), data.end()); });
-
-    // take time for structured load
-    time("bulk-load", [&]() { auto t = btree_multiset<int>::load(data.begin(), data.end()); });
-}
 }  // namespace test
 }  // end namespace souffle

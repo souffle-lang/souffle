@@ -2104,37 +2104,6 @@ public:
         return ok;
     }
 
-    /**
-     * A static member enabling the bulk-load of ordered data into an empty
-     * tree. This function is much more efficient in creating a index over
-     * an ordered set of elements than an iterative insertion of values.
-     *
-     * @tparam Iter .. the type of iterator specifying the range
-     *                     it must be a random-access iterator
-     */
-    template <typename R, typename Iter>
-    static typename std::enable_if<std::is_same<typename std::iterator_traits<Iter>::iterator_category,
-                                           std::random_access_iterator_tag>::value,
-            R>::type
-    load(const Iter& a, const Iter& b, btree* container) {
-        // quick exit - empty range
-        if (a == b) {
-            return R();
-        }
-
-        // resolve tree recursively
-        auto root = buildSubTree(a, b - 1, container);
-
-        // find leftmost node
-        node* leftmost = root;
-        while (!leftmost->isLeaf()) {
-            leftmost = leftmost->getChild(0);
-        }
-
-        // build result
-        return R(b - a, root, static_cast<leaf_node*>(leftmost));
-    }
-
 protected:
     /**
      * Create a new inner node
@@ -2188,63 +2157,6 @@ private:
         return !node->isEmpty() && !less(k, node->keys[0]) && less(k, node->keys[node->numElements - 1]);
     }
 
-    // Utility function for the load operation above.
-    template <typename Iter>
-    static node* buildSubTree(const Iter& a, const Iter& b, btree* container) {
-        const int N = node::maxKeys;
-
-        // divide range in N+1 sub-ranges
-        int length = (b - a) + 1;
-
-        // terminal case: length is less then maxKeys
-        if (length <= N) {
-            // create a leaf node
-            node* res = container->create_leaf();
-            res->numElements = length;
-
-            for (int i = 0; i < length; ++i) {
-                res->keys[i] = a[i];
-            }
-
-            return res;
-        }
-
-        // recursive case - compute step size
-        int numKeys = N;
-        int step = ((length - numKeys) / (numKeys + 1));
-
-        while (numKeys > 1 && (step < N / 2)) {
-            numKeys--;
-            step = ((length - numKeys) / (numKeys + 1));
-        }
-
-        // create inner node
-        node* res = container->create_inner();
-        res->numElements = numKeys;
-
-        Iter c = a;
-        for (int i = 0; i < numKeys; i++) {
-            // get dividing key
-            res->keys[i] = c[step];
-
-            // get sub-tree
-            auto child = buildSubTree(c, c + (step - 1), container);
-            child->parent = res;
-            child->position = i;
-            res->getChildren()[i] = child;
-
-            c = c + (step + 1);
-        }
-
-        // and the remaining part
-        auto child = buildSubTree(c, b);
-        child->parent = res;
-        child->position = numKeys;
-        res->getChildren()[numKeys] = child;
-
-        // done
-        return res;
-    }
 };  // namespace souffle
 
 // Instantiation of static member search.
@@ -2298,22 +2210,11 @@ public:
     // A move constructor.
     btree_set(btree_set&& other) : super(std::move(other)) {}
 
-private:
-    // A constructor required by the bulk-load facility.
-    template <typename s, typename n, typename l>
-    btree_set(s size, n* root, l* leftmost) : super(size, root, leftmost) {}
-
 public:
     // Support for the assignment operator.
     btree_set& operator=(const btree_set& other) {
         super::operator=(other);
         return *this;
-    }
-
-    // Support for the bulk-load operator.
-    template <typename Iter>
-    btree_set load(const Iter& a, const Iter& b) {
-        return super::template load<btree_set>(a, b, this);
     }
 };
 
@@ -2360,22 +2261,11 @@ public:
     // A move constructor.
     btree_multiset(btree_multiset&& other) : super(std::move(other)) {}
 
-private:
-    // A constructor required by the bulk-load facility.
-    template <typename s, typename n, typename l>
-    btree_multiset(s size, n* root, l* leftmost) : super(size, root, leftmost) {}
-
 public:
     // Support for the assignment operator.
     btree_multiset& operator=(const btree_multiset& other) {
         super::operator=(other);
         return *this;
-    }
-
-    // Support for the bulk-load operator.
-    template <typename Iter>
-    btree_multiset load(const Iter& a, const Iter& b) {
-        return super::template load<btree_multiset>(a, b, this);
     }
 };
 

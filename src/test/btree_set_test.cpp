@@ -462,7 +462,12 @@ TEST(BTreeSet, Load) {
             data.push_back(i);
         }
 
-        auto t = test_set::load(data.begin(), data.end());
+
+   
+        test_set t;
+        for (auto x : data) { 
+            t.insert(x);
+        }
         //        t.printTree();
 
         EXPECT_EQ(data.size(), t.size());
@@ -701,22 +706,6 @@ TEST(Performance, Basic) {
 
     using t3 = btree_set<Entry, detail::comparator<Entry>, std::allocator<Entry>, 256, detail::binary_search>;
     checkPerformance(t3, "souffle btree_set - 256 - binary", in, out);
-}
-
-TEST(Performance, Load) {
-    //        int N = 1<<24;
-    int N = 1 << 20;
-
-    std::vector<int> data;
-    for (int i = 0; i < N; i++) {
-        data.push_back(i);
-    }
-
-    // take time for conventional load
-    time("conventional load", [&]() { btree_set<int> t(data.begin(), data.end()); });
-
-    // take time for structured load
-    time("bulk-load", [&]() { auto t = btree_set<int>::load(data.begin(), data.end()); });
 }
 
 TEST(BTreeSet, Parallel) {
