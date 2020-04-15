@@ -326,12 +326,11 @@ protected:
         // a flag indicating whether this is a inner node or not
         const bool inner;
 
+
         /**
          * A simple constructor for nodes
          */
         base(bool inner) : parent(nullptr), numElements(0), position(0), inner(inner) {}
-
-        virtual ~base() = default;
 
         bool isLeaf() const {
             return !inner;
@@ -361,6 +360,9 @@ protected:
      * for both, inner and leaf nodes.
      */
     struct node : public base {
+        // btree container the node resides in  
+        btree *container;
+
         /**
          * The number of keys/node desired by the user.
          */
@@ -376,15 +378,15 @@ protected:
         Key keys[maxKeys];
 
         // a simple constructor
-        node(bool inner) : base(inner) {}
+        node(btree* container, bool inner) : base(inner), container(container) {}
 
         /**
          * A deep-copy operation creating a clone of this node.
          */
         node* clone() const {
             // create a clone of this node
-            node* res = (this->isInner()) ? static_cast<node*>(new inner_node())
-                                          : static_cast<node*>(new leaf_node());
+            node* res = (this->isInner()) ? static_cast<node*>(container->create_inner())
+                                          : static_cast<node*>(container->create_leaf());
 
             // copy basic fields
             res->position = this->position;
@@ -555,8 +557,8 @@ protected:
             int split_point = getSplitPoint(idx);
 
             // create a new sibling node
-            node* sibling = (this->inner) ? static_cast<node*>(new inner_node())
-                                          : static_cast<node*>(new leaf_node());
+            node* sibling = (this->inner) ? static_cast<node*>(container->create_inner())
+                                          : static_cast<node*>(container->create_leaf());
 
 #ifdef IS_PARALLEL
             // lock sibling
@@ -732,7 +734,7 @@ protected:
                 assert(*root == this);
 
                 // create a new root node
-                auto* new_root = new inner_node();
+                auto* new_root = container->create_inner();
                 new_root->numElements = 1;
                 new_root->keys[0] = keys[this->numElements];
 
@@ -1059,14 +1061,7 @@ protected:
         node* children[node::maxKeys + 1];
 
         // a simple default constructor initializing member fields
-        inner_node() : node(true) {}
-
-        // clear up child nodes recursively
-        ~inner_node() override {
-            for (unsigned i = 0; i <= this->numElements; ++i) {
-                delete children[i];
-            }
-        }
+        inner_node(btree* container) : node(container, true) {}
     };
 
     /**
@@ -1075,7 +1070,7 @@ protected:
      */
     struct leaf_node : public node {
         // a simple default constructor initializing member fields
-        leaf_node() : node(false) {}
+        leaf_node(btree* container) : node(container, false) {}
     };
 
     // ------------------- iterators ------------------------
@@ -1319,7 +1314,7 @@ public:
             }
 
             // create new node
-            leftmost = new leaf_node();
+            leftmost = create_leaf();
             leftmost->numElements = 1;
             leftmost->keys[0] = k;
             root = leftmost;
@@ -1569,7 +1564,7 @@ public:
         // special handling for inserting first element
         if (empty()) {
             // create new node
-            leftmost = new leaf_node();
+            leftmost = create_leaf();
             leftmost->numElements = 1;
             leftmost->keys[0] = k;
             root = leftmost;
@@ -1913,10 +1908,12 @@ public:
      * Clears this tree.
      */
     void clear() {
-        delete root;
+        // TODO (b-scholz): free memory pool here
         root = nullptr;
         leftmost = nullptr;
     }
+
+public:
 
     /**
      * Swaps the content of this tree with the given tree. This
@@ -2067,14 +2064,14 @@ public:
     static typename std::enable_if<std::is_same<typename std::iterator_traits<Iter>::iterator_category,
                                            std::random_access_iterator_tag>::value,
             R>::type
-    load(const Iter& a, const Iter& b) {
+    load(const Iter& a, const Iter& b, btree *container) {
         // quick exit - empty range
         if (a == b) {
             return R();
         }
 
         // resolve tree recursively
-        auto root = buildSubTree(a, b - 1);
+        auto root = buildSubTree(a, b - 1, container);
 
         // find leftmost node
         node* leftmost = root;
@@ -2087,6 +2084,20 @@ public:
     }
 
 protected:
+    /**
+     * Create a new inner node 
+     */ 
+    inner_node *create_inner() { 
+        return new inner_node(this); 
+    }
+
+    /**
+     * Create a new leaf node 
+     */ 
+    leaf_node *create_leaf() { 
+        return new leaf_node(this); 
+    }
+
     /**
      * Determines whether the range covered by the given node is also
      * covering the given key value.
@@ -2127,7 +2138,7 @@ private:
 
     // Utility function for the load operation above.
     template <typename Iter>
-    static node* buildSubTree(const Iter& a, const Iter& b) {
+    static node* buildSubTree(const Iter& a, const Iter& b, btree *container) {
         const int N = node::maxKeys;
 
         // divide range in N+1 sub-ranges
@@ -2136,7 +2147,7 @@ private:
         // terminal case: length is less then maxKeys
         if (length <= N) {
             // create a leaf node
-            node* res = new leaf_node();
+            node* res = container->create_leaf();
             res->numElements = length;
 
             for (int i = 0; i < length; ++i) {
@@ -2156,7 +2167,7 @@ private:
         }
 
         // create inner node
-        node* res = new inner_node();
+        node* res = container->create_inner();
         res->numElements = numKeys;
 
         Iter c = a;
@@ -2165,7 +2176,7 @@ private:
             res->keys[i] = c[step];
 
             // get sub-tree
-            auto child = buildSubTree(c, c + (step - 1));
+            auto child = buildSubTree(c, c + (step - 1), container);
             child->parent = res;
             child->position = i;
             res->getChildren()[i] = child;
@@ -2249,8 +2260,8 @@ public:
 
     // Support for the bulk-load operator.
     template <typename Iter>
-    static btree_set load(const Iter& a, const Iter& b) {
-        return super::template load<btree_set>(a, b);
+    btree_set load(const Iter& a, const Iter& b) {
+        return super::template load<btree_set>(a, b, this);
     }
 };
 
@@ -2311,8 +2322,8 @@ public:
 
     // Support for the bulk-load operator.
     template <typename Iter>
-    static btree_multiset load(const Iter& a, const Iter& b) {
-        return super::template load<btree_multiset>(a, b);
+    btree_multiset load(const Iter& a, const Iter& b) {
+        return super::template load<btree_multiset>(a, b, this);
     }
 };
 

@@ -85,7 +85,7 @@ public:
             }
 
             // create new node
-            this->leftmost = new typename parenttype::leaf_node();
+            this->leftmost = this->create_leaf();
             this->leftmost->numElements = 1;
             // call the functor as we've successfully inserted
             typename Functor::result_type res = f(k);
@@ -369,7 +369,7 @@ public:
         // special handling for inserting first element
         if (this->empty()) {
             // create new node
-            this->leftmost = new typename parenttype::leaf_node();
+            this->leftmost = this->create_leaf();
             this->leftmost->numElements = 1;
             // call the functor as we've successfully inserted
             typename Functor::result_type res = f(k);
