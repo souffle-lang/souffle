@@ -230,6 +230,52 @@ struct updater {
 };
 
 /**
+ * Memory pool
+ */
+
+template <class T, int N>
+class memory_pool {
+    /** chunk of memory */
+    struct memory_chunk {
+        uint8_t data[sizeof(T) * N];
+        memory_chunk* next;
+        memory_chunk(memory_chunk* next = nullptr) : next(next) {}
+    };
+
+    memory_chunk* current;
+    std::size_t idx;
+
+public:
+    memory_pool() : current(new memory_chunk()), idx(0) {
+        static_assert(N > 0, "no elements in the memory arena");
+    }
+
+    /** allocate memory for a new object of type T but no initialization */
+    T* allocate() {
+        T* result;
+        if (idx < N) {
+            void* data = current->data;
+            result = &(static_cast<T*>(data))[idx++];
+        } else {
+            current = new memory_chunk(current);
+            idx = 0;
+            void* data = current->data;
+            result = static_cast<T*>(data);
+        }
+        return result;
+    }
+
+    /** free all memory arenas */
+    void free() {
+        while (current->next != nullptr) {
+            memory_chunk* next = current->next;
+            delete current;
+            current = next;
+        }
+    }
+};
+
+/**
  * The actual implementation of a b-tree data structure.
  *
  * @tparam Key             .. the element type to be stored in this tree
@@ -326,7 +372,6 @@ protected:
         // a flag indicating whether this is a inner node or not
         const bool inner;
 
-
         /**
          * A simple constructor for nodes
          */
@@ -360,8 +405,8 @@ protected:
      * for both, inner and leaf nodes.
      */
     struct node : public base {
-        // btree container the node resides in  
-        btree *container;
+        // btree container the node resides in
+        btree* container;
 
         /**
          * The number of keys/node desired by the user.
@@ -1193,6 +1238,9 @@ public:
     using operation_hints = btree_operation_hints<1>;
 
 protected:
+    memory_pool<inner_node, 512> memory_inner;
+    memory_pool<leaf_node, 512> memory_leaf;
+
 #ifdef IS_PARALLEL
     // a pointer to the root node of this tree
     node* volatile root;
@@ -1908,13 +1956,13 @@ public:
      * Clears this tree.
      */
     void clear() {
-        // TODO (b-scholz): free memory pool here
+        memory_inner.free();
+        memory_leaf.free();
         root = nullptr;
         leftmost = nullptr;
     }
 
 public:
-
     /**
      * Swaps the content of this tree with the given tree. This
      * is a much more efficient operation than creating a copy and
@@ -2064,7 +2112,7 @@ public:
     static typename std::enable_if<std::is_same<typename std::iterator_traits<Iter>::iterator_category,
                                            std::random_access_iterator_tag>::value,
             R>::type
-    load(const Iter& a, const Iter& b, btree *container) {
+    load(const Iter& a, const Iter& b, btree* container) {
         // quick exit - empty range
         if (a == b) {
             return R();
@@ -2085,17 +2133,17 @@ public:
 
 protected:
     /**
-     * Create a new inner node 
-     */ 
-    inner_node *create_inner() { 
-        return new inner_node(this); 
+     * Create a new inner node
+     */
+    inner_node* create_inner() {
+        return new (memory_inner.allocate()) inner_node(this);
     }
 
     /**
-     * Create a new leaf node 
-     */ 
-    leaf_node *create_leaf() { 
-        return new leaf_node(this); 
+     * Create a new leaf node
+     */
+    leaf_node* create_leaf() {
+        return new (memory_leaf.allocate()) leaf_node(this);
     }
 
     /**
@@ -2138,7 +2186,7 @@ private:
 
     // Utility function for the load operation above.
     template <typename Iter>
-    static node* buildSubTree(const Iter& a, const Iter& b, btree *container) {
+    static node* buildSubTree(const Iter& a, const Iter& b, btree* container) {
         const int N = node::maxKeys;
 
         // divide range in N+1 sub-ranges
