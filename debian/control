@@ -2,14 +2,14 @@ Source: souffle
 Maintainer: Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>
 Section: misc
 Priority: optional
-Standards-Version: 3.9.5
-Build-Depends: autoconf, automake, bison, debhelper (>= 9), flex, libsqlite3-dev, zlib1g-dev, libncurses5-dev, bash-completion
+Standards-Version: 4.3.0
+Build-Depends: autoconf, automake, bison, debhelper (>= 9), flex, g++ (>= 7), libsqlite3-dev, zlib1g-dev, libncurses5-dev, bash-completion
 Homepage: https://souffle-lang.org/
 Vcs-Git: https://github.com/souffle-lang/souffle.git
 
 Package: souffle
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, g++, mcpp, zlib1g-dev, libffi-dev, libsqlite3-dev, libncurses5-dev
+Depends: ${shlibs:Depends}, ${misc:Depends}, g++ (>= 7), mcpp, zlib1g-dev, libffi-dev, libsqlite3-dev, libncurses5-dev
 Description: Translator of declarative Datalog programs into the C++ language.
  Soufflé is a translator of declarative Datalog programs into the C++ language.
  Soufflé is used as a domain-specific language for static program analysis, over

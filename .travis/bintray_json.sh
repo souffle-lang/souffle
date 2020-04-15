@@ -42,7 +42,7 @@ then
   FILES="[{\"includePattern\": \"./(.*\.tar.gz)\", \"uploadPattern\": \"\$1\"}],"
 
 else
-  DIST=xenial,bionic,cosmic,disco
+  DIST="$4"
 
   FILES="[{\"includePattern\": \"deploy/(.*\.deb)\", \"uploadPattern\": \"pool/main/s/souffle/\$1\",
     \"matrixParams\": {
@@ -83,8 +83,9 @@ EOF
 
 if [ "$1" = debian ];
 then
-  print_json "deb"  "`git describe --tags --always`" "bintray-deb-stable.json"
-  print_json "deb-unstable" "`git describe --tags --always`" "bintray-deb-unstable.json"
+  VERSION=$(grep VERSION_CODENAME /etc/os-release |sed 's/VERSION_CODENAME=//')
+  print_json "deb"  "`git describe --tags --always`" "bintray-deb-stable.json" "$VERSION"
+  print_json "deb-unstable" "`git describe --tags --always`" "bintray-deb-unstable.json" "$VERSION"
 elif [ "$1" = fedora ];
 then
   print_json "rpm"  "`git describe --tags --always`" "bintray-rpm-stable.json" "fedora"

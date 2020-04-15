@@ -10,7 +10,7 @@ set -x
 
 # Ensure we have the tags before attempting to use them
 # Avoids issues with shallow clones not finding tags.
-git fetch --tags --unshallow
+git fetch --tags --unshallow || true
 echo -n "Version: "
 git describe --tags --abbrev=0 --always
 

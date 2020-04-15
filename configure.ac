@@ -166,9 +166,8 @@ if test -n "$SOUFFLE_PACKAGING"; then
       DISTRIBUTION=osx
     ;;
     linux*)
-      AC_CHECK_PROG(LSB_RELEASE, lsb_release, lsb_release)
-      AS_IF([test -z "$LSB_RELEASE"], [AC_MSG_ERROR([lsb_release required to detect LINUX distribution not found.])])
-      DISTRIBUTION=[`lsb_release -i | sed 's/^.*:[ \t]\+//' | tr '[A-Z]' '[a-z]'`]
+      DISTRIBUTION=[`. /etc/os-release; echo $ID`]
+      AS_IF([test -z "$DISTRIBUTION"], [DISTRIBUTION=unknown])
     ;;
     *BSD* | *bsd* )
       DISTRIBUTION=bsd
