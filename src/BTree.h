@@ -248,6 +248,7 @@ class memory_pool {
 public:
     memory_pool() : current(new memory_chunk()), idx(0) {
         static_assert(N > 0, "no elements in the memory arena");
+        assert(current != nullptr && "Memory allocation failed");
     }
 
     /** allocate memory for a new object of type T but no initialization */
@@ -258,9 +259,10 @@ public:
             result = &(static_cast<T*>(data))[idx++];
         } else {
             current = new memory_chunk(current);
-            idx = 0;
+            assert(current != nullptr && "Memory allocation failed");
             void* data = current->data;
-            result = static_cast<T*>(data);
+            idx = 1;
+            result = &(static_cast<T*>(data))[0];
         }
         return result;
     }
@@ -1238,8 +1240,8 @@ public:
     using operation_hints = btree_operation_hints<1>;
 
 protected:
-    memory_pool<inner_node, 512> memory_inner;
-    memory_pool<leaf_node, 512> memory_leaf;
+    memory_pool<inner_node, 16> memory_inner;
+    memory_pool<leaf_node, 16> memory_leaf;
 
 #ifdef IS_PARALLEL
     // a pointer to the root node of this tree
