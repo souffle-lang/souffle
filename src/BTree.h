@@ -247,7 +247,7 @@ class memory_pool {
 
 public:
     memory_pool() : current(new memory_chunk()), idx(0) {
-        static_assert(N > 0, "no elements in the memory arena");
+        static_assert(N > 0, "no elements in the memory chunks");
         assert(current != nullptr && "Memory allocation failed");
     }
 
@@ -267,7 +267,7 @@ public:
         return result;
     }
 
-    /** free all memory arenas */
+    /** free all memory chunks */
     void free() {
         while (current->next != nullptr) {
             memory_chunk* next = current->next;
@@ -1240,8 +1240,8 @@ public:
     using operation_hints = btree_operation_hints<1>;
 
 protected:
-    memory_pool<inner_node, 16> memory_inner;
-    memory_pool<leaf_node, 16> memory_leaf;
+    memory_pool<inner_node, 512> memory_inner;
+    memory_pool<leaf_node, 512> memory_leaf;
 
 #ifdef IS_PARALLEL
     // a pointer to the root node of this tree
