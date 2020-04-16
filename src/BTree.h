@@ -24,6 +24,7 @@
 #include <iostream>
 #include <iterator>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -230,58 +231,120 @@ struct updater {
 };
 
 /**
- * Memory pool
- */
-
+ * Memory pool for inner/leaf nodes 
+ */ 
 template <class T, int N>
 class memory_pool {
-    /** chunk of memory */
     struct memory_chunk {
         uint8_t data[sizeof(T) * N];
         memory_chunk* next;
         memory_chunk(memory_chunk* next = nullptr) : next(next) {}
     };
-
     memory_chunk* current;
     std::size_t idx;
 
 public:
-    memory_pool() : current(new memory_chunk()), idx(0) {
+    memory_pool() : current(nullptr), idx(0) {
         static_assert(N > 0, "no elements in the memory chunks");
-        assert(current != nullptr && "Memory allocation failed");
+    }
+
+    ~memory_pool() {
+        free();
     }
 
     /** allocate memory for a new object of type T but no initialization */
     T* allocate() {
-#pragma omp critical(MemoryPool)
-        {
-            T* result;
-            if (idx < N) {
-                void* data = current->data;
-                result = &(static_cast<T*>(data))[idx++];
-            } else {
-                current = new memory_chunk(current);
-                assert(current != nullptr && "Memory allocation failed");
-                void* data = current->data;
-                idx = 1;
-                result = &(static_cast<T*>(data))[0];
-            }
-            return result;
+        if (current == nullptr) {
+            current = new memory_chunk();
+            idx = 0;
         }
+        T* result;
+        if (idx < N) {
+            void* data = current->data;
+            result = &(static_cast<T*>(data))[idx++];
+        } else {
+            current = new memory_chunk(current);
+            assert(current != nullptr && "Memory allocation failed");
+            void* data = current->data;
+            idx = 1;
+            result = &(static_cast<T*>(data))[0];
+        }
+        return result;
     }
 
     /** free all memory chunks */
     void free() {
-#pragma omp critical(MemoryPool)
-        {
-            while (current->next != nullptr) {
-                memory_chunk* next = current->next;
-                delete current;
-                current = next;
-            }
+        while (current != nullptr) {
+            memory_chunk* next = current->next;
+            delete current;
+            current = next;
+        }
+        idx = 0;
+    }
+};
+
+/**
+ * Thread local memory pools
+ *
+ * This is a lock-free implementation of allocate() using thread local
+ * memory. A single lock is required for registering a thread the first
+ * time; subsequent calls are lock-free.
+ * 
+ * TODO: The arena of a thread is not delted after it expires; however 
+ *       its memory pools are. The memory consumption of arenas are
+ *       negligible since they are per instantiated type and thread.
+ *       However, this needs to be addressed. 
+ */
+
+template <class T, int N>
+class threadlocal_pool {
+    struct pool_arena {
+        std::unordered_map<threadlocal_pool*, memory_pool<T, N>> map;
+        pool_arena* next;
+        pool_arena(pool_arena* next = nullptr) : next(next) {}
+    };
+    static pool_arena* arenas;
+    static Lock lock;
+
+public:
+    threadlocal_pool() {}
+    ~threadlocal_pool() {
+        free();
+    }
+
+    /** lock-free version of allocate except for the first allocate
+        using local memory */
+    T* allocate() {
+        static thread_local pool_arena* current;
+        if (current == nullptr) {
+            // register arena for the current thread 
+            // (only first time when allocate is invoked)
+            current = new pool_arena(arenas);
+            auto lease = lock.acquire();
+            (void)lease;
+            arenas = current;
+        }
+        // this is local to the thread / hence no race
+        return current->map[this].allocate();
+    }
+
+    /** free memory pools of all threads; this is not thread-safe */
+    void free() {
+        // go through all arenas and delete
+        // all thread-local memory pools.
+        pool_arena* current = arenas;
+        while (current != nullptr) {
+            current->map.erase(this);
+            current = current->next;
         }
     }
 };
+
+template <class T, int N>
+typename threadlocal_pool<T, N>::pool_arena* threadlocal_pool<T, N>::arenas;
+
+template <class T, int N>
+Lock threadlocal_pool<T, N>::lock;
 
 /**
  * The actual implementation of a b-tree data structure.
@@ -1246,16 +1309,25 @@ public:
     using operation_hints = btree_operation_hints<1>;
 
 protected:
-    memory_pool<inner_node, 512> memory_inner;
-    memory_pool<leaf_node, 512> memory_leaf;
+    static constexpr size_t poolChunkSize = 1 << 17;
+    static constexpr size_t poolInnerSize =
+            (poolChunkSize > sizeof(inner_node)) ? (poolChunkSize / sizeof(inner_node)): 4;
+    static constexpr size_t poolLeafSize =
+            (poolChunkSize > sizeof(leaf_node)) ? (poolChunkSize / sizeof(leaf_node)): 4;
 
 #ifdef IS_PARALLEL
+    threadlocal_pool<inner_node, poolInnerSize> memory_inner;
+    threadlocal_pool<leaf_node, poolLeafSize> memory_leaf;
+
     // a pointer to the root node of this tree
     node* volatile root;
 
     // a lock to synchronize update operations on the root pointer
     lock_type root_lock;
 #else
+    memory_pool<inner_node, poolInnerSize> memory_inner;
+    memory_pool<leaf_node, poolLeafSize> memory_leaf;
+
     // a pointer to the root node of this tree
     node* root;
 
