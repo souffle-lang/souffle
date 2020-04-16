@@ -18,6 +18,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <type_traits>
@@ -119,14 +120,12 @@ but as of January 2020 it is not yet supported.
  * ramBitCast<T>(ramBitCast<RamDomain>(a)) == a
  **/
 template <typename To = RamDomain, typename From>
-inline To ramBitCast(From RamElement) {
+To ramBitCast(From source) {
     static_assert(isRamType<From> && isRamType<To>, "Bit casting should only be used on Ram Types.");
-    union {
-        From source;
-        To destination;
-    } Union;
-    Union.source = RamElement;
-    return Union.destination;
+    static_assert(sizeof(To) == sizeof(From), "Can't bit cast types with different size.");
+    To destination;
+    memcpy(&destination, &source, sizeof(destination));
+    return destination;
 }
 
 /** lower and upper boundaries for the ram types **/
