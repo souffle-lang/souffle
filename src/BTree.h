@@ -231,8 +231,8 @@ struct updater {
 };
 
 /**
- * Memory pool for inner/leaf nodes 
- */ 
+ * Memory pool for inner/leaf nodes
+ */
 template <class T, int N>
 class memory_pool {
     struct memory_chunk {
@@ -289,11 +289,11 @@ public:
  * This is a lock-free implementation of allocate() using thread local
  * memory. A single lock is required for registering a thread the first
  * time; subsequent calls are lock-free.
- * 
- * TODO: The arena of a thread is not delted after it expires; however 
+ *
+ * TODO: The arena of a thread is not delted after it expires; however
  *       its memory pools are. The memory consumption of arenas are
  *       negligible since they are per instantiated type and thread.
- *       However, this needs to be addressed. 
+ *       However, this needs to be addressed.
  */
 
 template <class T, int N>
@@ -317,7 +317,7 @@ public:
     T* allocate() {
         static thread_local pool_arena* current;
         if (current == nullptr) {
-            // register arena for the current thread 
+            // register arena for the current thread
             // (only first time when allocate is invoked)
             current = new pool_arena(arenas);
             auto lease = lock.acquire();
@@ -1311,9 +1311,9 @@ public:
 protected:
     static constexpr size_t poolChunkSize = 1 << 17;
     static constexpr size_t poolInnerSize =
-            (poolChunkSize > sizeof(inner_node)) ? (poolChunkSize / sizeof(inner_node)): 4;
+            (poolChunkSize > sizeof(inner_node)) ? (poolChunkSize / sizeof(inner_node)) : 4;
     static constexpr size_t poolLeafSize =
-            (poolChunkSize > sizeof(leaf_node)) ? (poolChunkSize / sizeof(leaf_node)): 4;
+            (poolChunkSize > sizeof(leaf_node)) ? (poolChunkSize / sizeof(leaf_node)) : 4;
 
 #ifdef IS_PARALLEL
     threadlocal_pool<inner_node, poolInnerSize> memory_inner;
