@@ -376,15 +376,15 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
         out << "(const t_tuple& lower, const t_tuple& upper, context& h) const {\n";
 
         // count size of search pattern
-        size_t indSize = 0;
+        size_t eqSize = 0;
         for (size_t column = 0; column < arity; column++) {
-            if (search[column] != AttributeConstraint::None) {
-                indSize++;
+            if (search[column] == AttributeConstraint::Equal) {
+                eqSize++;
             }
         }
 
         // use the more efficient find() method if the search pattern is full
-        if (indSize == arity) {
+        if (eqSize == arity) {
             out << "auto pos = ind_" << indNum << ".find(lower, h.hints_" << indNum << ");\n";
             out << "auto fin = ind_" << indNum << ".end();\n";
             out << "if (pos != fin) {fin = pos; ++fin;}\n";
@@ -667,15 +667,15 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         out << "(const t_tuple& lower, const t_tuple& upper, context& h) const {\n";
 
         // count size of search pattern
-        size_t indSize = 0;
+        size_t eqSize = 0;
         for (size_t column = 0; column < arity; column++) {
-            if (search[column] != AttributeConstraint::None) {
-                indSize++;
+            if (search[column] == AttributeConstraint::Equal) {
+                eqSize++;
             }
         }
 
         // use the more efficient find() method if the search pattern is full
-        if (indSize == arity) {
+        if (eqSize == arity) {
             out << "auto pos = find(lower, h);\n";
             out << "auto fin = end();\n";
             out << "if (pos != fin) {fin = pos; ++fin;}\n";

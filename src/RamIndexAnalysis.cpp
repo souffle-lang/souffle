@@ -151,7 +151,15 @@ void MinIndexSelection::solve() {
         // For this node check if other nodes are strict subsets
         for (auto itt : searches) {
             if (search.isStrictSubset(itt)) {
-                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                bool containsInequality = false;
+                for (size_t i = 0; i < search.arity(); ++i) {
+                    if (search[i] == AttributeConstraint::Inequal) {
+                        containsInequality = true;
+                    }
+                }
+                if (!containsInequality) {
+                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                }
             }
         }
     }
@@ -189,7 +197,14 @@ void MinIndexSelection::solve() {
         for (size_t i = 0; i < l; i++) {
             k.set(orders[idx][i], AttributeConstraint::Equal);
         }
-        assert(k == search && "incorrect lexicographical order");
+        for (size_t i = 0; i < search.arity(); ++i) {
+            if (k[i] == AttributeConstraint::None && search[i] != AttributeConstraint::None) {
+                assert("incorrect lexicographical order");
+            }
+            if (k[i] != AttributeConstraint::None && search[i] == AttributeConstraint::None) {
+                assert("incorrect lexicographical order");
+            }
+        }
     }
 }
 
@@ -390,7 +405,6 @@ SearchSignature RamIndexAnalysis::getSearchSignature(const RamIndexOperation* se
 
     auto lower = search->getRangePattern().first;
     auto upper = search->getRangePattern().second;
-
     SearchSignature keys(arity);
     for (size_t i = 0; i < arity; ++i) {
         // if both bounds are undefined

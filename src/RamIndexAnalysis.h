@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include "Global.h"
 #include "RamAnalysis.h"
+#include "RamRelation.h"
 #include "utility/MiscUtil.h"
 #include <cassert>
 #include <cstdint>
@@ -81,10 +83,19 @@ public:
         return false;
     }
 
-    // needed for asserts
     inline bool operator==(const SearchSignature& other) const {
         assert(constraints.size() == other.constraints.size());
-        return constraints == other.constraints;
+        for (size_t i = 0; i < constraints.size(); ++i) {
+            if (constraints[i] == AttributeConstraint::None &&
+                    other.constraints[i] != AttributeConstraint::None) {
+                return false;
+            }
+            if (constraints[i] != AttributeConstraint::None &&
+                    other.constraints[i] == AttributeConstraint::None) {
+                return false;
+            }
+        }
+        return true;
     }
 
     inline bool empty() const {
@@ -291,6 +302,18 @@ public:
     /** @Brief Add new key to an Index Set */
     inline void addSearch(SearchSignature cols) {
         if (!cols.empty()) {
+            for (SearchSignature s : searches) {
+                // if we have an equivalent search
+                if (s == cols) {
+                    for (size_t i = 0; i < s.arity(); ++i) {
+                        if (s[i] == AttributeConstraint::Inequal) {
+                            cols.set(i, AttributeConstraint::Inequal);
+                        }
+                    }
+                    searches.erase(s);
+                    break;
+                }
+            }
             searches.insert(cols);
         }
     }
@@ -352,7 +375,8 @@ public:
      *  NOTE: For now, all inequalities will be discharged but later the lex-orders will be inspected
      * If an inequality is not in the last position of a lex-order only then is it discharged
      */
-    AttributeSet getAttributesToDischarge() {
+    AttributeSet getAttributesToDischarge(const RamRelation& rel) {
+        // by default we have all attributes w/inequalities discharged
         AttributeSet attributesToDischarge;
         for (auto search : searches) {
             size_t arity = search.arity();
@@ -360,6 +384,21 @@ public:
                 if (search[i] == AttributeConstraint::Inequal) {
                     attributesToDischarge.insert(i);
                 }
+            }
+        }
+        // if we don't have a btree then we don't retain any inequalities
+        if (rel.getRepresentation() != RelationRepresentation::BTREE) {
+            return attributesToDischarge;
+        }
+        if (Global::config().has("provenance")) {
+            return attributesToDischarge;
+        }
+        for (LexOrder order : orders) {
+            auto end = order.back();
+            // don't discharge if we have a numeric attribute in the last position
+            if (rel.getAttributeTypes()[end] == "i:number") {
+                // if this is an inequality then it won't be discharged
+                attributesToDischarge.erase(end);
             }
         }
         return attributesToDischarge;

@@ -404,8 +404,8 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
         std::unique_ptr<RamExpression> upperExpression;
         std::tie(lowerExpression, upperExpression) = getLowerUpperExpression(cond.get(), element, identifier);
 
-        // we have new bounds if both are not nullptr
-        if (!isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
+        // we have new bounds if at least one is defined
+        if (!isRamUndefValue(lowerExpression.get()) || !isRamUndefValue(upperExpression.get())) {
             // if no previous bounds are set then just assign them, consider both bounds to be set (but not
             // necessarily defined) in all remaining cases
             indexable = true;
@@ -502,6 +502,7 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
     if (condition == nullptr) {
         condition = std::make_unique<RamTrue>();
     }
+
     return condition;
 }
 
@@ -570,7 +571,6 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
 
         if (indexable) {
             // Merge Index Pattern here
-
             std::unique_ptr<RamOperation> op = std::unique_ptr<RamOperation>(filter->getOperation().clone());
             if (!isRamTrue(condition.get())) {
                 op = std::make_unique<RamFilter>(std::move(condition), std::move(op));
@@ -631,8 +631,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
             // find a RamIndexOperation
             if (const RamIndexOperation* indexOperation = dynamic_cast<RamIndexOperation*>(node.get())) {
-                auto attributesToDischarge =
-                        idxAnalysis->getIndexes(indexOperation->getRelation()).getAttributesToDischarge();
+                auto attributesToDischarge = idxAnalysis->getIndexes(indexOperation->getRelation())
+                                                     .getAttributesToDischarge(indexOperation->getRelation());
 
                 auto pattern = indexOperation->getRangePattern();
                 std::unique_ptr<RamCondition> condition;
