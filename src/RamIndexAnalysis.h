@@ -401,6 +401,7 @@ public:
                 attributesToDischarge.erase(end);
             }
         }
+
         return attributesToDischarge;
     }
 

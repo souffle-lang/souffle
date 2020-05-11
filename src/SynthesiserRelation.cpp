@@ -391,7 +391,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "return make_range(pos, fin);\n";
         } else {
             // generate lower and upper bounds for range search
-            out << "t_tuple low(lower); t_tuple high(lower);\n";
+            out << "t_tuple low(lower); t_tuple high(upper);\n";
             // check which indices to pad out
             for (size_t column = 0; column < arity; column++) {
                 // if bit number column is not set

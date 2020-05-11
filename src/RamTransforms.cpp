@@ -727,6 +727,9 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                     if (*(pattern.first[i]) == *(pattern.second[i])) {
                         foundRealIndexableOperation = true;
                         break;
+                    } else {
+                        foundRealIndexableOperation = true;
+                        break;
                     }
                 }
                 if (!foundRealIndexableOperation) {
