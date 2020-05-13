@@ -150,7 +150,16 @@ void MinIndexSelection::solve() {
     for (auto search : searches) {
         // For this node check if other nodes are strict subsets
         for (auto itt : searches) {
-            if (search.isStrictSubset(itt)) {
+            if (SearchSignature::isStrictSubset(search, itt)) {
+                // less general searches only have out edges to more general counterpart
+                if (lessGeneralSearches.count(search) > 0) {
+                    continue;
+                }
+                // more general searches only have in edges from less general counterpart
+                if (moreGeneralSearches.count(itt) > 0) {
+                    continue;
+                }
+
                 bool containsInequality = false;
                 for (size_t i = 0; i < search.arity(); ++i) {
                     if (search[i] == AttributeConstraint::Inequal) {
@@ -162,6 +171,12 @@ void MinIndexSelection::solve() {
                 }
             }
         }
+    }
+
+    // add edges from less -> more general pairs
+    for (auto less : lessGeneralSearches) {
+        auto more = lessToMoreGeneralSearch.at(less);
+        matching.addEdge(signatureToIndexA[less], signatureToIndexB[more]);
     }
 
     // Perform the Hopcroft-Karp on the graph and receive matchings (mapped A->B and B->A)

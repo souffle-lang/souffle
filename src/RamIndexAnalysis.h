@@ -108,16 +108,16 @@ public:
         return true;
     }
 
-    inline bool isStrictSubset(const SearchSignature& other) const {
-        assert(constraints.size() == other.constraints.size());
-        size_t len = constraints.size();
+    static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
+        assert(lhs.arity() == rhs.arity());
+        size_t len = lhs.arity();
         for (size_t i = 0; i < len; ++i) {
-            if ((constraints[i] != AttributeConstraint::None) &&
-                    (other.constraints[i] == AttributeConstraint::None)) {
+            if ((lhs.constraints[i] != AttributeConstraint::None) &&
+                    (rhs.constraints[i] == AttributeConstraint::None)) {
                 return false;
             }
         }
-        return constraints != other.constraints;
+        return lhs.constraints != rhs.constraints;
     }
 
     static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
@@ -136,7 +136,8 @@ public:
                 continue;
             }
 
-            assert(false && "lhs and rhs should not have inequal/equal pair constraints");
+            // in the special case where we have equality/inequality bounds consider the delta to be 0
+            delta.constraints[i] = AttributeConstraint::None;
         }
         return delta;
     }
@@ -290,6 +291,7 @@ private:
 class MinIndexSelection {
 public:
     using AttributeIndex = uint32_t;
+    using SignatureMap = std::map<SearchSignature, SearchSignature>;
     using SignatureIndexMap = std::map<SearchSignature, AttributeIndex>;
     using IndexSignatureMap = std::map<AttributeIndex, SearchSignature>;
     using LexOrder = std::vector<AttributeIndex>;
@@ -302,16 +304,36 @@ public:
     /** @Brief Add new key to an Index Set */
     inline void addSearch(SearchSignature cols) {
         if (!cols.empty()) {
-            for (SearchSignature s : searches) {
+            // if identical search already exists then early exit
+            if (searches.count(cols) > 0) {
+                return;
+            }
+
+            for (SearchSignature other : searches) {
                 // if we have an equivalent search
-                if (s == cols) {
-                    for (size_t i = 0; i < s.arity(); ++i) {
-                        if (s[i] == AttributeConstraint::Inequal) {
-                            cols.set(i, AttributeConstraint::Inequal);
+                if (other == cols) {
+                    bool newSearchMoreGeneral = true;
+                    for (size_t i = 0; i < other.arity(); ++i) {
+                        // other is more general
+                        if (other[i] == AttributeConstraint::Inequal &&
+                                cols[i] != AttributeConstraint::Inequal) {
+                            newSearchMoreGeneral = false;
                         }
                     }
-                    searches.erase(s);
-                    break;
+
+                    // old -> new
+                    if (newSearchMoreGeneral) {
+                        lessGeneralSearches.insert(other);
+                        moreGeneralSearches.insert(cols);
+                        lessToMoreGeneralSearch.insert({other, cols});
+                        // new -> old
+                    } else {
+                        lessGeneralSearches.insert(cols);
+                        moreGeneralSearches.insert(other);
+                        lessToMoreGeneralSearch.insert({cols, other});
+                    }
+                    searches.insert(cols);
+                    return;
                 }
             }
             searches.insert(cols);
@@ -387,7 +409,8 @@ public:
             }
         }
         // if we don't have a btree then we don't retain any inequalities
-        if (rel.getRepresentation() != RelationRepresentation::BTREE) {
+        if (rel.getRepresentation() != RelationRepresentation::BTREE &&
+                rel.getRepresentation() != RelationRepresentation::DEFAULT) {
             return attributesToDischarge;
         }
         if (Global::config().has("provenance")) {
@@ -406,13 +429,16 @@ public:
     }
 
 protected:
-    SignatureIndexMap signatureToIndexA;  // mapping of a SearchSignature on A to its unique index
-    SignatureIndexMap signatureToIndexB;  // mapping of a SearchSignature on B to its unique index
-    IndexSignatureMap indexToSignature;   // mapping of a unique index to its SearchSignature
-    SearchSet searches;                   // set of search patterns on table
-    OrderCollection orders;               // collection of lexicographical orders
-    ChainOrderMap chainToOrder;           // maps order index to set of searches covered by chain
-    MaxMatching matching;                 // matching problem for finding minimal number of orders
+    SignatureIndexMap signatureToIndexA;   // mapping of a SearchSignature on A to its unique index
+    SignatureIndexMap signatureToIndexB;   // mapping of a SearchSignature on B to its unique index
+    IndexSignatureMap indexToSignature;    // mapping of a unique index to its SearchSignature
+    SearchSet searches;                    // set of search patterns on table
+    SearchSet lessGeneralSearches;         // set of less general searches (only accepting in edges)
+    SearchSet moreGeneralSearches;         // set of more general searches (only accepting out edges)
+    SignatureMap lessToMoreGeneralSearch;  // mapping of a less general search to its more general search
+    OrderCollection orders;                // collection of lexicographical orders
+    ChainOrderMap chainToOrder;            // maps order index to set of searches covered by chain
+    MaxMatching matching;                  // matching problem for finding minimal number of orders
 
     /** @Brief count the number of constraints in key */
     static size_t card(SearchSignature cols) {

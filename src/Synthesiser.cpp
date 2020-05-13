@@ -631,13 +631,23 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             PRINT_BEGIN_COMMENT(out);
 
-            out << "const Tuple<RamDomain," << arity << "> lower{{";
+            out << "Tuple<RamDomain," << arity << "> lower{{";
             out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
             out << "}};\n";
 
-            out << "const Tuple<RamDomain," << arity << "> upper{{";
+            out << "Tuple<RamDomain," << arity << "> upper{{";
             out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
             out << "}};\n";
+
+            for (size_t column = 0; column < arity; column++) {
+                // if we have an inequality where either side is not set
+                if (isRamUndefValue(rangePatternLower[column])) {
+                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                }
+                if (isRamUndefValue(rangePatternUpper[column])) {
+                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                }
+            }
 
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
 
@@ -669,13 +679,23 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             PRINT_BEGIN_COMMENT(out);
 
-            out << "const Tuple<RamDomain," << arity << "> lower{{";
+            out << "Tuple<RamDomain," << arity << "> lower{{";
             out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
             out << "}};\n";
 
-            out << "const Tuple<RamDomain," << arity << "> upper{{";
+            out << "Tuple<RamDomain," << arity << "> upper{{";
             out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
             out << "}};\n";
+
+            for (size_t column = 0; column < arity; column++) {
+                // if we have an inequality where either side is not set
+                if (isRamUndefValue(rangePatternLower[column])) {
+                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                }
+                if (isRamUndefValue(rangePatternUpper[column])) {
+                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                }
+            }
 
             out << "auto range = " << relName
                 << "->"
@@ -710,13 +730,23 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             // check list of keys
             assert(arity > 0 && "AstTranslator failed");
 
-            out << "const Tuple<RamDomain," << arity << "> lower{{";
+            out << "Tuple<RamDomain," << arity << "> lower{{";
             out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
             out << "}};\n";
 
-            out << "const Tuple<RamDomain," << arity << "> upper{{";
+            out << "Tuple<RamDomain," << arity << "> upper{{";
             out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
             out << "}};\n";
+
+            for (size_t column = 0; column < arity; column++) {
+                // if we have an inequality where either side is not set
+                if (isRamUndefValue(rangePatternLower[column])) {
+                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                }
+                if (isRamUndefValue(rangePatternUpper[column])) {
+                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                }
+            }
 
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
 
@@ -756,13 +786,23 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             PRINT_BEGIN_COMMENT(out);
 
-            out << "const Tuple<RamDomain," << arity << "> lower{{";
+            out << "Tuple<RamDomain," << arity << "> lower{{";
             out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
             out << "}};\n";
 
-            out << "const Tuple<RamDomain," << arity << "> upper{{";
+            out << "Tuple<RamDomain," << arity << "> upper{{";
             out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
             out << "}};\n";
+
+            for (size_t column = 0; column < arity; column++) {
+                // if we have an inequality where either side is not set
+                if (isRamUndefValue(rangePatternLower[column])) {
+                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                }
+                if (isRamUndefValue(rangePatternUpper[column])) {
+                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                }
+            }
 
             out << "auto range = " << relName
                 << "->"
@@ -896,13 +936,23 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 const auto& patternsLower = aggregate.getRangePattern().first;
                 const auto& patternsUpper = aggregate.getRangePattern().second;
 
-                out << "const " << tuple_type << " lower{{";
+                out << tuple_type << " lower{{";
                 out << join(patternsLower.begin(), patternsLower.begin() + arity, ",", recWithDefault);
                 out << "}};\n";
 
-                out << "const " << tuple_type << " upper{{";
+                out << tuple_type << " upper{{";
                 out << join(patternsUpper.begin(), patternsUpper.begin() + arity, ",", recWithDefault);
                 out << "}};\n";
+
+                for (size_t column = 0; column < arity; column++) {
+                    // if we have an inequality where either side is not set
+                    if (isRamUndefValue(patternsLower[column])) {
+                        out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                    }
+                    if (isRamUndefValue(patternsUpper[column])) {
+                        out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                    }
+                }
 
                 out << "auto range = " << relName << "->"
                     << "lowerUpperRange_" << keys << "(lower,upper," << ctxName << ");\n";

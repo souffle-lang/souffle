@@ -823,10 +823,23 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             RamDomain hig[arity];
             for (size_t i = 0; i < arity; i++) {
                 if (node->getChild(i) != nullptr) {
-                    low[i] = execute(node->getChild(i), ctxt);
-                    hig[i] = execute(node->getChild(i + arity), ctxt);
+                    if (isRamUndefValue(dynamic_cast<const RamExpression*>(node->getChild(i)->getShadow()))) {
+                        low[i] = MIN_RAM_SIGNED;
+                    } else {
+                        low[i] = execute(node->getChild(i), ctxt);
+                    }
                 } else {
                     low[i] = MIN_RAM_SIGNED;
+                }
+
+                if (node->getChild(i + arity) != nullptr) {
+                    if (isRamUndefValue(
+                                dynamic_cast<const RamExpression*>(node->getChild(i + arity)->getShadow()))) {
+                        hig[i] = MAX_RAM_SIGNED;
+                    } else {
+                        hig[i] = execute(node->getChild(i + arity), ctxt);
+                    }
+                } else {
                     hig[i] = MAX_RAM_SIGNED;
                 }
             }
@@ -852,11 +865,24 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             RamDomain low[arity];
             RamDomain hig[arity];
             for (size_t i = 0; i < arity; i++) {
-                if (node->getChild(i)) {
-                    low[i] = execute(node->getChild(i), ctxt);
-                    hig[i] = execute(node->getChild(i + arity), ctxt);
+                if (node->getChild(i) != nullptr) {
+                    if (isRamUndefValue(dynamic_cast<const RamExpression*>(node->getChild(i)->getShadow()))) {
+                        low[i] = MIN_RAM_SIGNED;
+                    } else {
+                        low[i] = execute(node->getChild(i), ctxt);
+                    }
                 } else {
                     low[i] = MIN_RAM_SIGNED;
+                }
+
+                if (node->getChild(i + arity) != nullptr) {
+                    if (isRamUndefValue(
+                                dynamic_cast<const RamExpression*>(node->getChild(i + arity)->getShadow()))) {
+                        hig[i] = MAX_RAM_SIGNED;
+                    } else {
+                        hig[i] = execute(node->getChild(i + arity), ctxt);
+                    }
+                } else {
                     hig[i] = MAX_RAM_SIGNED;
                 }
             }
@@ -932,10 +958,23 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             RamDomain hig[arity];
             for (size_t i = 0; i < arity; i++) {
                 if (node->getChild(i) != nullptr) {
-                    low[i] = execute(node->getChild(i), ctxt);
-                    hig[i] = execute(node->getChild(i + arity), ctxt);
+                    if (isRamUndefValue(dynamic_cast<const RamExpression*>(node->getChild(i)->getShadow()))) {
+                        low[i] = MIN_RAM_SIGNED;
+                    } else {
+                        low[i] = execute(node->getChild(i), ctxt);
+                    }
                 } else {
                     low[i] = MIN_RAM_SIGNED;
+                }
+
+                if (node->getChild(i + arity) != nullptr) {
+                    if (isRamUndefValue(
+                                dynamic_cast<const RamExpression*>(node->getChild(i + arity)->getShadow()))) {
+                        hig[i] = MAX_RAM_SIGNED;
+                    } else {
+                        hig[i] = execute(node->getChild(i + arity), ctxt);
+                    }
+                } else {
                     hig[i] = MAX_RAM_SIGNED;
                 }
             }
@@ -966,10 +1005,23 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             RamDomain hig[arity];
             for (size_t i = 0; i < arity; i++) {
                 if (node->getChild(i) != nullptr) {
-                    low[i] = execute(node->getChild(i), ctxt);
-                    hig[i] = execute(node->getChild(i + arity), ctxt);
+                    if (isRamUndefValue(dynamic_cast<const RamExpression*>(node->getChild(i)->getShadow()))) {
+                        low[i] = MIN_RAM_SIGNED;
+                    } else {
+                        low[i] = execute(node->getChild(i), ctxt);
+                    }
                 } else {
                     low[i] = MIN_RAM_SIGNED;
+                }
+
+                if (node->getChild(i + arity) != nullptr) {
+                    if (isRamUndefValue(
+                                dynamic_cast<const RamExpression*>(node->getChild(i + arity)->getShadow()))) {
+                        hig[i] = MAX_RAM_SIGNED;
+                    } else {
+                        hig[i] = execute(node->getChild(i + arity), ctxt);
+                    }
+                } else {
                     hig[i] = MAX_RAM_SIGNED;
                 }
             }
@@ -1032,10 +1084,23 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
             for (size_t i = 0; i < arity; i++) {
                 if (node->getChild(i) != nullptr) {
-                    low[i] = execute(node->getChild(i), ctxt);
-                    hig[i] = execute(node->getChild(i + arity), ctxt);
+                    if (isRamUndefValue(dynamic_cast<const RamExpression*>(node->getChild(i)->getShadow()))) {
+                        low[i] = MIN_RAM_SIGNED;
+                    } else {
+                        low[i] = execute(node->getChild(i), ctxt);
+                    }
                 } else {
                     low[i] = MIN_RAM_SIGNED;
+                }
+
+                if (node->getChild(i + arity) != nullptr) {
+                    if (isRamUndefValue(
+                                dynamic_cast<const RamExpression*>(node->getChild(i + arity)->getShadow()))) {
+                        hig[i] = MAX_RAM_SIGNED;
+                    } else {
+                        hig[i] = execute(node->getChild(i + arity), ctxt);
+                    }
+                } else {
                     hig[i] = MAX_RAM_SIGNED;
                 }
             }
