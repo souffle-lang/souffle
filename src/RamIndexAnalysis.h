@@ -68,15 +68,25 @@ public:
     inline bool operator<(const SearchSignature& other) const {
         assert(constraints.size() == other.constraints.size());
         size_t len = constraints.size();
-        for (size_t i = 0; i < len; ++i) {
-            size_t index = len - i - 1;  // get right to left index order
 
+        for (size_t i = 0; i < len; ++i) {
+            if (constraints[i] != AttributeConstraint::None &&
+                    other.constraints[i] == AttributeConstraint::None) {
+                return false;
+            }
+            if (constraints[i] == AttributeConstraint::None &&
+                    other.constraints[i] != AttributeConstraint::None) {
+                return true;
+            }
+        }
+
+        for (size_t i = 0; i < len; ++i) {
             // if ours has a constraint and other's has a constraint then it is smaller
-            if (constraints[index] < other.constraints[index]) {
+            if (constraints[i] < other.constraints[i]) {
                 return true;
             }
             // if ours has a constraint and other's has no constraint then it is larger
-            else if (constraints[index] > other.constraints[index]) {
+            else if (constraints[i] > other.constraints[i]) {
                 return false;
             }
         }
@@ -109,21 +119,7 @@ public:
     }
     static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs) {
         assert(lhs.arity() == rhs.arity());
-        size_t len = lhs.arity();
-        bool lhsSetBit = false;
-        bool rhsSetBit = false;
-        for (size_t i = 0; i < len; ++i) {
-            if (lhs.constraints[i] != AttributeConstraint::None &&
-                    rhs.constraints[i] == AttributeConstraint::None) {
-                lhsSetBit = true;
-            }
-            if (lhs.constraints[i] == AttributeConstraint::None &&
-                    rhs.constraints[i] != AttributeConstraint::None) {
-                rhsSetBit = true;
-            }
-        }
-        // if either set contains an element the other doesn't they are incomparable
-        return !lhsSetBit && !rhsSetBit;
+        return isStrictSubset(lhs, rhs) || isStrictSubset(rhs, lhs);
     }
 
     static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
@@ -184,7 +180,7 @@ private:
 inline std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
     size_t len = signature.constraints.size();
     for (size_t i = 0; i < len; ++i) {
-        switch (signature.constraints[len - 1 - i]) {
+        switch (signature.constraints[i]) {
             case AttributeConstraint::None: out << 0; break;
             case AttributeConstraint::Equal: out << 1; break;
             case AttributeConstraint::Inequal: out << 2; break;
@@ -435,7 +431,6 @@ public:
                 attributesToDischarge.erase(end);
             }
         }
-
         return attributesToDischarge;
     }
 
@@ -496,6 +491,9 @@ protected:
 
     /** @Brief get all chains from the matching */
     const ChainOrderMap getChainsFromMatching(const MaxMatching::Matchings& match, const SearchSet& nodes);
+
+    /** @Brief merge chains to produce a minimal chain cover */
+    const ChainOrderMap mergeChains(ChainOrderMap& chains);
 
     /** @Brief get all nodes which are unmatched from A-> B */
     const SearchSet getUnmatchedKeys(const MaxMatching::Matchings& match, const SearchSet& nodes) {

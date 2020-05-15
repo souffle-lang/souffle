@@ -171,9 +171,9 @@ void MinIndexSelection::solve() {
                         containsInequality = true;
                     }
                 }
-                // if (!containsInequality) {
-                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
-                //}
+                if (!containsInequality) {
+                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                }
             }
         }
     }
@@ -188,12 +188,12 @@ void MinIndexSelection::solve() {
     // Assume: alg.calculate is not called on an empty graph
     assert(!searches.empty());
     const MaxMatching::Matchings& matchings = matching.solve();
-
     // Extract the chains given the nodes and matchings
-    const ChainOrderMap chains = getChainsFromMatching(matchings, searches);
-
+    ChainOrderMap chains = getChainsFromMatching(matchings, searches);
     // Should never get no chains back as we never call calculate on an empty graph
     assert(!chains.empty());
+    // std::cout << "End: " << chains.size() << "\n;
+
     for (const auto& chain : chains) {
         std::vector<uint32_t> ids;
         SearchSignature initDelta = *(chain.begin());
@@ -265,7 +265,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
             std::set<SearchSignature> a;
             a.insert(node);
             chainToOrder.push_back(a);
-            return chainToOrder;
+            return mergeChains(chainToOrder);
         }
     }
 
@@ -283,7 +283,124 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 
     assert(!chainToOrder.empty());
 
-    return chainToOrder;
+    return mergeChains(chainToOrder);
+}
+
+const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
+        MinIndexSelection::ChainOrderMap& chains) {
+    // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
+            const auto lhs = *lhs_it;
+            for (auto rhs_it = chains.begin(); rhs_it != chains.end(); ++rhs_it) {
+                const auto rhs = *rhs_it;
+               
+                if (lhs == rhs) {
+		   continue;
+		}              
+                // merge the two chains
+                Chain mergedChain;
+
+                // apply merge algorithm ensuring that both elements are always comparable
+                bool successfulMerge = true;
+                auto left = lhs.begin();
+                auto right = rhs.begin();
+                
+                std::cout << "LHS: ";
+                bool first = true;
+                for (auto i : lhs) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        std::cout << "-->";
+                    }
+                    std::cout << i;
+                }
+                std::cout << "  RHS: ";
+                first = true;
+                for (auto i : rhs) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        std::cout << "-->";
+                    }
+                    std::cout << i;
+                }
+                std::cout << "\n";
+ 
+
+		while (left != lhs.end() && right != rhs.end()) {
+                    // if we can't compare them then we cannot merge and exit
+                    if (!SearchSignature::isComparable(*left, *right)) {
+			std::cout << "Failed with Left: " << *left << " Right: " << *right << "\n";
+			successfulMerge = false;
+                        break;
+                    }
+                    // if left element is smaller, insert it and iterate to next in left chain
+                    if (*left < *right) {
+                        mergedChain.insert(*left);
+                        ++left;
+                        continue;
+                    }
+                    // if right element is smaller, insert it and iterate to next in right chain
+                    if (*right < *left) {
+                        mergedChain.insert(*right);
+                        ++right;
+                        continue;
+                    }
+                }
+
+                // failed to merge so find another pair of chains
+                if (!successfulMerge) {
+                    continue;
+                }
+
+                // if left chain is exhausted then merge the rest of right chain
+                if (left == lhs.end()) {
+                    while (right != rhs.end()) {
+                        mergedChain.insert(*right);
+                        ++right;
+                    }
+                    break;
+                }
+                // if right chain is exhuasted then merge the rest of left chain
+                if (right == rhs.end()) {
+                    while (left != lhs.end()) {
+                        mergedChain.insert(*left);
+                        ++left;
+                    }
+                    break;
+                }
+
+                changed = true;
+                
+                std::cout << "\nMerged:";
+                first = true;
+                for (auto i : mergedChain) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        std::cout << "-->";
+                    }
+                    std::cout << i;
+                }
+                std::cout << "\n";
+                
+                // remove previous 2 chains
+                chains.erase(lhs_it);
+                chains.erase(rhs_it);
+                // insert merge chain
+                chains.push_back(mergedChain);
+                break;
+            }
+            if (changed) {
+                break;
+            }
+        }
+    }
+    return chains;
 }
 
 void RamIndexAnalysis::run(const RamTranslationUnit& translationUnit) {

@@ -631,8 +631,9 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 [&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {
             // find a RamIndexOperation
             if (const RamIndexOperation* indexOperation = dynamic_cast<RamIndexOperation*>(node.get())) {
-                auto attributesToDischarge = idxAnalysis->getIndexes(indexOperation->getRelation())
-                                                     .getAttributesToDischarge(indexOperation->getRelation());
+                auto indexSelection = idxAnalysis->getIndexes(indexOperation->getRelation());
+                auto attributesToDischarge =
+                        indexSelection.getAttributesToDischarge(indexOperation->getRelation());
 
                 auto pattern = indexOperation->getRangePattern();
                 std::unique_ptr<RamCondition> condition;
@@ -644,6 +645,9 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 for (RamExpression* p : indexOperation->getRangePattern().second) {
                     updatedPattern.second.emplace_back(p->clone());
                 }
+
+                // std::cout << "#Discharged: " << (int)attributesToDischarge.size();
+                // std::cout << "\t#Indexes: " << indexSelection.getAllOrders().size() << "\n";
 
                 for (auto i : attributesToDischarge) {
                     // move constraints out of the indexed inequality and into a conjuction

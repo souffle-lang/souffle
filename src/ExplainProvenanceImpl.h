@@ -820,7 +820,6 @@ private:
                 return std::make_tuple(ruleNum, levelNum, subtreeLevels);
             }
         }
-
         // if no tuple exists
         return std::make_tuple(-1, -1, std::vector<RamDomain>());
     }
