@@ -107,6 +107,24 @@ public:
         }
         return true;
     }
+    static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs) {
+        assert(lhs.arity() == rhs.arity());
+        size_t len = lhs.arity();
+        bool lhsSetBit = false;
+        bool rhsSetBit = false;
+        for (size_t i = 0; i < len; ++i) {
+            if (lhs.constraints[i] != AttributeConstraint::None &&
+                    rhs.constraints[i] == AttributeConstraint::None) {
+                lhsSetBit = true;
+            }
+            if (lhs.constraints[i] == AttributeConstraint::None &&
+                    rhs.constraints[i] != AttributeConstraint::None) {
+                rhsSetBit = true;
+            }
+        }
+        // if either set contains an element the other doesn't they are incomparable
+        return !lhsSetBit && !rhsSetBit;
+    }
 
     static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
         assert(lhs.arity() == rhs.arity());
@@ -312,14 +330,7 @@ public:
             for (SearchSignature other : searches) {
                 // if we have an equivalent search
                 if (other == cols) {
-                    bool newSearchMoreGeneral = true;
-                    for (size_t i = 0; i < other.arity(); ++i) {
-                        // other is more general
-                        if (other[i] == AttributeConstraint::Inequal &&
-                                cols[i] != AttributeConstraint::Inequal) {
-                            newSearchMoreGeneral = false;
-                        }
-                    }
+                    bool newSearchMoreGeneral = other < cols;
 
                     // old -> new
                     if (newSearchMoreGeneral) {

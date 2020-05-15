@@ -160,15 +160,20 @@ void MinIndexSelection::solve() {
                     continue;
                 }
 
+                // dont draw an edge from more to less general counterpart
+                if (moreGeneralSearches.count(search) > 0 && lessGeneralSearches.count(itt) > 0) {
+                    continue;
+                }
+
                 bool containsInequality = false;
                 for (size_t i = 0; i < search.arity(); ++i) {
                     if (search[i] == AttributeConstraint::Inequal) {
                         containsInequality = true;
                     }
                 }
-                if (!containsInequality) {
-                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
-                }
+                // if (!containsInequality) {
+                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                //}
             }
         }
     }
