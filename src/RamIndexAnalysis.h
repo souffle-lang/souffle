@@ -467,6 +467,7 @@ protected:
                 return i;
             }
         }
+        std::cout << "Couldn't find: " << cols << "\n";
         fatal("cannot find matching lexicographical order");
     }
 
