@@ -34,6 +34,138 @@
 
 namespace souffle {
 
+SearchSignature::SearchSignature(size_t arity) : constraints(arity, AttributeConstraint::None) {}
+
+size_t SearchSignature::arity() const {
+    return constraints.size();
+}
+
+// array subscript operator
+AttributeConstraint SearchSignature::operator[](std::size_t pos) const {
+    assert(pos < constraints.size());
+    return constraints[pos];
+}
+
+// comparison operators
+bool SearchSignature::operator<(const SearchSignature& other) const {
+    assert(constraints.size() == other.constraints.size());
+    size_t len = constraints.size();
+
+    for (size_t i = 0; i < len; ++i) {
+        if (constraints[i] != AttributeConstraint::None &&
+                other.constraints[i] == AttributeConstraint::None) {
+            return false;
+        }
+        if (constraints[i] == AttributeConstraint::None &&
+                other.constraints[i] != AttributeConstraint::None) {
+            return true;
+        }
+    }
+
+    for (size_t i = 0; i < len; ++i) {
+        // if ours has a constraint and other's has a constraint then it is smaller
+        if (constraints[i] < other.constraints[i]) {
+            return true;
+        }
+        // if ours has a constraint and other's has no constraint then it is larger
+        else if (constraints[i] > other.constraints[i]) {
+            return false;
+        }
+    }
+    return false;
+}
+
+bool SearchSignature::operator==(const SearchSignature& other) const {
+    assert(constraints.size() == other.constraints.size());
+    for (size_t i = 0; i < constraints.size(); ++i) {
+        if (constraints[i] == AttributeConstraint::None &&
+                other.constraints[i] != AttributeConstraint::None) {
+            return false;
+        }
+        if (constraints[i] != AttributeConstraint::None &&
+                other.constraints[i] == AttributeConstraint::None) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SearchSignature::empty() const {
+    size_t len = constraints.size();
+    for (size_t i = 0; i < len; ++i) {
+        if (constraints[i] != AttributeConstraint::None) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SearchSignature::isComparable(const SearchSignature& lhs, const SearchSignature& rhs) {
+    assert(lhs.arity() == rhs.arity());
+    return isStrictSubset(lhs, rhs) || isStrictSubset(rhs, lhs);
+}
+
+bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
+    assert(lhs.arity() == rhs.arity());
+    size_t len = lhs.arity();
+    for (size_t i = 0; i < len; ++i) {
+        if ((lhs.constraints[i] != AttributeConstraint::None) &&
+                (rhs.constraints[i] == AttributeConstraint::None)) {
+            return false;
+        }
+    }
+    return lhs.constraints != rhs.constraints;
+}
+
+SearchSignature SearchSignature::getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
+    assert(lhs.arity() == rhs.arity());
+    SearchSignature delta(lhs.arity());
+    for (size_t i = 0; i < lhs.arity(); ++i) {
+        // if constraints are the same then delta is nothing
+        if (lhs.constraints[i] == rhs.constraints[i]) {
+            delta.constraints[i] = AttributeConstraint::None;
+            continue;
+        }
+
+        // if rhs has no constraint then delta has lhs constraint
+        if (rhs.constraints[i] == AttributeConstraint::None) {
+            delta.constraints[i] = lhs.constraints[i];
+            continue;
+        }
+
+        // in the special case where we have equality/inequality bounds consider the delta to be 0
+        delta.constraints[i] = AttributeConstraint::None;
+    }
+    return delta;
+}
+
+SearchSignature SearchSignature::getFullSearchSignature(size_t arity) {
+    SearchSignature res(arity);
+    for (size_t i = 0; i < arity; ++i) {
+        res.constraints[i] = AttributeConstraint::Equal;
+    }
+    return res;
+}
+
+// set a constraint
+SearchSignature& SearchSignature::set(size_t pos, AttributeConstraint constraint) {
+    assert(pos < constraints.size());
+    constraints[pos] = constraint;
+    return *this;
+}
+
+std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
+    size_t len = signature.constraints.size();
+    for (size_t i = 0; i < len; ++i) {
+        switch (signature.constraints[i]) {
+            case AttributeConstraint::None: out << 0; break;
+            case AttributeConstraint::Equal: out << 1; break;
+            case AttributeConstraint::Inequal: out << 2; break;
+        }
+    }
+    return out;
+}
+
 void MaxMatching::addEdge(Node u, Node v) {
     assert(u >= 1 && v >= 1 && "Nodes must be greater than or equal to 1");
     if (graph.find(u) == graph.end()) {
@@ -286,20 +418,17 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
     return mergeChains(chainToOrder);
 }
 
+// Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
-    // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
     bool changed = true;
     while (changed) {
         changed = false;
         for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
             const auto lhs = *lhs_it;
-            for (auto rhs_it = chains.begin(); rhs_it != chains.end(); ++rhs_it) {
+            for (auto rhs_it = lhs_it; rhs_it != chains.end(); ++rhs_it) {
                 const auto rhs = *rhs_it;
 
-                if (lhs == rhs) {
-                    continue;
-                }
                 // merge the two chains
                 Chain mergedChain;
 
@@ -362,7 +491,52 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
+
+    size_t inequalities = 0;
+    for (const auto& chain : chains) {
+        auto end = *chain.rbegin();
+        bool hasIndexedInequality = false;
+        for (size_t i = 0; i < end.arity(); ++i) {
+            if (end[i] == AttributeConstraint::Inequal) {
+                hasIndexedInequality = true;
+            }
+        }
+        if (hasIndexedInequality) {
+            ++inequalities;
+        }
+    }
+
     return chains;
+}
+
+MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(const RamRelation& rel) {
+    // by default we have all attributes w/inequalities discharged
+    AttributeSet attributesToDischarge;
+    for (auto search : searches) {
+        size_t arity = search.arity();
+        for (size_t i = 0; i < arity; ++i) {
+            if (search[i] == AttributeConstraint::Inequal) {
+                attributesToDischarge.insert(i);
+            }
+        }
+    }
+    // if we don't have a btree then we don't retain any inequalities
+    if (rel.getRepresentation() != RelationRepresentation::BTREE &&
+            rel.getRepresentation() != RelationRepresentation::DEFAULT) {
+        return attributesToDischarge;
+    }
+    if (Global::config().has("provenance")) {
+        return attributesToDischarge;
+    }
+    for (LexOrder order : orders) {
+        auto end = order.back();
+        // don't discharge if we have a numeric attribute in the last position
+        if (rel.getAttributeTypes()[end] == "i:number") {
+            // if this is an inequality then it won't be discharged
+            attributesToDischarge.erase(end);
+        }
+    }
+    return attributesToDischarge;
 }
 
 void RamIndexAnalysis::run(const RamTranslationUnit& translationUnit) {

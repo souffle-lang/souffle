@@ -29,6 +29,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -52,142 +53,31 @@ enum class AttributeConstraint { None, Equal, Inequal };
  * no value exists (i.e. attribute is unbounded) in the search. */
 class SearchSignature {
 public:
-    explicit SearchSignature(size_t arity) : constraints(arity, AttributeConstraint::None) {}
-
-    inline size_t arity() const {
-        return constraints.size();
-    }
+    explicit SearchSignature(size_t arity);
+    size_t arity() const;
 
     // array subscript operator
-    inline AttributeConstraint operator[](std::size_t pos) const {
-        assert(pos < constraints.size());
-        return constraints[pos];
-    }
+    AttributeConstraint operator[](std::size_t pos) const;
 
     // comparison operators
-    inline bool operator<(const SearchSignature& other) const {
-        assert(constraints.size() == other.constraints.size());
-        size_t len = constraints.size();
+    bool operator<(const SearchSignature& other) const;
+    bool operator==(const SearchSignature& other) const;
 
-        for (size_t i = 0; i < len; ++i) {
-            if (constraints[i] != AttributeConstraint::None &&
-                    other.constraints[i] == AttributeConstraint::None) {
-                return false;
-            }
-            if (constraints[i] == AttributeConstraint::None &&
-                    other.constraints[i] != AttributeConstraint::None) {
-                return true;
-            }
-        }
-
-        for (size_t i = 0; i < len; ++i) {
-            // if ours has a constraint and other's has a constraint then it is smaller
-            if (constraints[i] < other.constraints[i]) {
-                return true;
-            }
-            // if ours has a constraint and other's has no constraint then it is larger
-            else if (constraints[i] > other.constraints[i]) {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    inline bool operator==(const SearchSignature& other) const {
-        assert(constraints.size() == other.constraints.size());
-        for (size_t i = 0; i < constraints.size(); ++i) {
-            if (constraints[i] == AttributeConstraint::None &&
-                    other.constraints[i] != AttributeConstraint::None) {
-                return false;
-            }
-            if (constraints[i] != AttributeConstraint::None &&
-                    other.constraints[i] == AttributeConstraint::None) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    inline bool empty() const {
-        size_t len = constraints.size();
-        for (size_t i = 0; i < len; ++i) {
-            if (constraints[i] != AttributeConstraint::None) {
-                return false;
-            }
-        }
-        return true;
-    }
-    static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs) {
-        assert(lhs.arity() == rhs.arity());
-        return isStrictSubset(lhs, rhs) || isStrictSubset(rhs, lhs);
-    }
-
-    static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
-        assert(lhs.arity() == rhs.arity());
-        size_t len = lhs.arity();
-        for (size_t i = 0; i < len; ++i) {
-            if ((lhs.constraints[i] != AttributeConstraint::None) &&
-                    (rhs.constraints[i] == AttributeConstraint::None)) {
-                return false;
-            }
-        }
-        return lhs.constraints != rhs.constraints;
-    }
-
-    static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
-        assert(lhs.arity() == rhs.arity());
-        SearchSignature delta(lhs.arity());
-        for (size_t i = 0; i < lhs.arity(); ++i) {
-            // if constraints are the same then delta is nothing
-            if (lhs.constraints[i] == rhs.constraints[i]) {
-                delta.constraints[i] = AttributeConstraint::None;
-                continue;
-            }
-
-            // if rhs has no constraint then delta has lhs constraint
-            if (rhs.constraints[i] == AttributeConstraint::None) {
-                delta.constraints[i] = lhs.constraints[i];
-                continue;
-            }
-
-            // in the special case where we have equality/inequality bounds consider the delta to be 0
-            delta.constraints[i] = AttributeConstraint::None;
-        }
-        return delta;
-    }
-
-    static SearchSignature getFullSearchSignature(size_t arity) {
-        SearchSignature res(arity);
-        for (size_t i = 0; i < arity; ++i) {
-            res.constraints[i] = AttributeConstraint::Equal;
-        }
-        return res;
-    }
+    bool empty() const;
+    static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs);
+    static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs);
+    static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs);
+    static SearchSignature getFullSearchSignature(size_t arity);
 
     // set a constraint
-    inline SearchSignature& set(size_t pos, AttributeConstraint constraint) {
-        assert(pos < constraints.size());
-        constraints[pos] = constraint;
-        return *this;
-    }
-
+    SearchSignature& set(size_t pos, AttributeConstraint constraint);
     friend std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
 
 private:
     std::vector<AttributeConstraint> constraints;
 };
 
-inline std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
-    size_t len = signature.constraints.size();
-    for (size_t i = 0; i < len; ++i) {
-        switch (signature.constraints[i]) {
-            case AttributeConstraint::None: out << 0; break;
-            case AttributeConstraint::Equal: out << 1; break;
-            case AttributeConstraint::Inequal: out << 2; break;
-        }
-    }
-    return out;
-}
+std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
 
 /**
  * @class MaxMatching
@@ -210,7 +100,7 @@ class MaxMatching {
 public:
     using Node = uint32_t;
     /* The nodes of the bi-partite graph are index signatures of RAM operation */
-    using Nodes = std::set<Node, std::greater<Node>>;
+    using Nodes = std::unordered_set<Node>;
     /* Distance between nodes */
     using Distance = int;
     /**
@@ -218,7 +108,7 @@ public:
      * graph maps to another node. If no map exist for a node, there is no adjacent edge
      * exists for that node.
      */
-    using Matchings = std::map<Node, Node, std::greater<Node>>;
+    using Matchings = std::unordered_map<Node, Node>;
 
     /* Node constant representing no match */
     const Node NullVertex = 0;
@@ -274,11 +164,11 @@ private:
     /**
      * Edges in the bi-partite graph
      */
-    using Edges = std::set<Node>;
+    using Edges = std::unordered_set<Node>;
     /**
      * Bi-partite graph of instance
      */
-    using Graph = std::map<Node, Edges>;
+    using Graph = std::unordered_map<Node, Edges>;
     /**
      * distance function of nodes
      */
@@ -401,38 +291,8 @@ public:
         orders.push_back(std::move(totalOrder));
     }
     /** Return the attribute position for each inequality that should be discharged.
-     *  NOTE: For now, all inequalities will be discharged but later the lex-orders will be inspected
-     * If an inequality is not in the last position of a lex-order only then is it discharged
      */
-    AttributeSet getAttributesToDischarge(const RamRelation& rel) {
-        // by default we have all attributes w/inequalities discharged
-        AttributeSet attributesToDischarge;
-        for (auto search : searches) {
-            size_t arity = search.arity();
-            for (size_t i = 0; i < arity; ++i) {
-                if (search[i] == AttributeConstraint::Inequal) {
-                    attributesToDischarge.insert(i);
-                }
-            }
-        }
-        // if we don't have a btree then we don't retain any inequalities
-        if (rel.getRepresentation() != RelationRepresentation::BTREE &&
-                rel.getRepresentation() != RelationRepresentation::DEFAULT) {
-            return attributesToDischarge;
-        }
-        if (Global::config().has("provenance")) {
-            return attributesToDischarge;
-        }
-        for (LexOrder order : orders) {
-            auto end = order.back();
-            // don't discharge if we have a numeric attribute in the last position
-            if (rel.getAttributeTypes()[end] == "i:number") {
-                // if this is an inequality then it won't be discharged
-                attributesToDischarge.erase(end);
-            }
-        }
-        return attributesToDischarge;
-    }
+    AttributeSet getAttributesToDischarge(const RamRelation& rel);
 
 protected:
     SignatureIndexMap signatureToIndexA;   // mapping of a SearchSignature on A to its unique index
