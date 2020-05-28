@@ -246,9 +246,13 @@ bool MaxMatching::dfSearch(Node u) {
 
 const MaxMatching::Matchings& MaxMatching::solve() {
     while (bfSearch()) {
+        std::vector<Node> keys(graph.size());
         for (auto& it : graph) {
-            if (getMatch(it.first) == NullVertex) {
-                dfSearch(it.first);
+            keys.push_back(it.first);
+        }
+        for (auto node : keys) {
+            if (getMatch(node) == NullVertex) {
+                dfSearch(node);
             }
         }
     }
@@ -303,9 +307,9 @@ void MinIndexSelection::solve() {
                         containsInequality = true;
                     }
                 }
-                if (!containsInequality) {
-                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
-                }
+                // if (!containsInequality) {
+                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                //}
             }
         }
     }
@@ -324,7 +328,6 @@ void MinIndexSelection::solve() {
     ChainOrderMap chains = getChainsFromMatching(matchings, searches);
     // Should never get no chains back as we never call calculate on an empty graph
     assert(!chains.empty());
-    // std::cout << "End: " << chains.size() << "\n;
 
     for (const auto& chain : chains) {
         std::vector<uint32_t> ids;
@@ -422,6 +425,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
     bool changed = true;
+    /*
     while (changed) {
         changed = false;
         for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
@@ -492,19 +496,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         }
     }
 
-    size_t inequalities = 0;
-    for (const auto& chain : chains) {
-        auto end = *chain.rbegin();
-        bool hasIndexedInequality = false;
-        for (size_t i = 0; i < end.arity(); ++i) {
-            if (end[i] == AttributeConstraint::Inequal) {
-                hasIndexedInequality = true;
-            }
-        }
-        if (hasIndexedInequality) {
-            ++inequalities;
-        }
-    }
+    */
 
     return chains;
 }
@@ -530,8 +522,13 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(cons
     }
     for (LexOrder order : orders) {
         auto end = order.back();
+        auto startswith = [](const std::string& str, const std::string& pre) -> bool {
+            return str.rfind(pre, 0) == 0;
+        };
         // don't discharge if we have a numeric attribute in the last position
-        if (rel.getAttributeTypes()[end] == "i:number") {
+        std::string type = rel.getAttributeTypes()[end];
+        if (startswith(type, "i:")) {
+            // std::cout << type << "\n";
             // if this is an inequality then it won't be discharged
             attributesToDischarge.erase(end);
         }

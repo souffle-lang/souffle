@@ -254,28 +254,28 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
         // for provenance, all indices must be full so we use btree_set
         // also strong/weak comparators and updater methods
+
+        out << "using t_comparator_" << i << " = index_utils::comparator<" << join(ind) << ">;\n";
         if (isProvenance) {
             if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {  // index for bottom up
                                                                                    // phase
-                out << "using t_ind_" << i << " = btree_set<t_tuple, index_utils::comparator<" << join(ind);
-                out << ">, std::allocator<t_tuple>, 256, typename "
+                out << "using t_ind_" << i << " = btree_set<t_tuple, t_comparator_" << i
+                    << ", std::allocator<t_tuple>, 256, typename "
                        "souffle::detail::default_strategy<t_tuple>::type, index_utils::comparator<";
                 out << join(ind.begin(), ind.end() - auxiliaryArity) << ">, updater_" << getTypeName()
                     << ">;\n";
             } else {  // index for top down phase
-                out << "using t_ind_" << i << " = btree_set<t_tuple, index_utils::comparator<" << join(ind);
-                out << ">, std::allocator<t_tuple>, 256, typename "
+                out << "using t_ind_" << i << " = btree_set<t_tuple, t_comparator_" << i
+                    << ", std::allocator<t_tuple>, 256, typename "
                        "souffle::detail::default_strategy<t_tuple>::type, index_utils::comparator<";
                 out << join(ind.begin(), ind.end()) << ">, updater_" << getTypeName() << ">;\n";
             }
             // without provenance, some indices may be not full, so we use btree_multiset for those
         } else {
             if (ind.size() == arity) {
-                out << "using t_ind_" << i << " = btree_set<t_tuple, index_utils::comparator<" << join(ind)
-                    << ">>;\n";
+                out << "using t_ind_" << i << " = btree_set<t_tuple, t_comparator_" << i << ">;\n";
             } else {
-                out << "using t_ind_" << i << " = btree_multiset<t_tuple, index_utils::comparator<"
-                    << join(ind) << ">>;\n";
+                out << "using t_ind_" << i << " = btree_multiset<t_tuple, t_comparator_" << i << ">;\n";
             }
         }
         out << "t_ind_" << i << " ind_" << i << ";\n";
@@ -287,7 +287,10 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
     // create a struct storing hints for each btree
     out << "struct context {\n";
     for (size_t i = 0; i < numIndexes; i++) {
-        out << "t_ind_" << i << "::operation_hints hints_" << i << ";\n";
+        out << "t_ind_" << i << "::operation_hints hints_" << i << "_lower"
+            << ";\n";
+        out << "t_ind_" << i << "::operation_hints hints_" << i << "_upper"
+            << ";\n";
     }
     out << "};\n";
     out << "context createContext() { return context(); }\n";
@@ -299,10 +302,12 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
     out << "}\n";  // end of insert(t_tuple&)
 
     out << "bool insert(const t_tuple& t, context& h) {\n";
-    out << "if (ind_" << masterIndex << ".insert(t, h.hints_" << masterIndex << ")) {\n";
+    out << "if (ind_" << masterIndex << ".insert(t, h.hints_" << masterIndex << "_lower"
+        << ")) {\n";
     for (size_t i = 0; i < numIndexes; i++) {
         if (i != masterIndex && provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
-            out << "ind_" << i << ".insert(t, h.hints_" << i << ");\n";
+            out << "ind_" << i << ".insert(t, h.hints_" << i << "_lower"
+                << ");\n";
         }
     }
     out << "return true;\n";
@@ -330,7 +335,8 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
     // contains methods
     out << "bool contains(const t_tuple& t, context& h) const {\n";
-    out << "return ind_" << masterIndex << ".contains(t, h.hints_" << masterIndex << ");\n";
+    out << "return ind_" << masterIndex << ".contains(t, h.hints_" << masterIndex << "_lower"
+        << ");\n";
     out << "}\n";
 
     out << "bool contains(const t_tuple& t) const {\n";
@@ -345,7 +351,8 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
     // find methods
     out << "iterator find(const t_tuple& t, context& h) const {\n";
-    out << "return ind_" << masterIndex << ".find(t, h.hints_" << masterIndex << ");\n";
+    out << "return ind_" << masterIndex << ".find(t, h.hints_" << masterIndex << "_lower"
+        << ");\n";
     out << "}\n";
 
     out << "iterator find(const t_tuple& t) const {\n";
@@ -383,26 +390,40 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             }
         }
 
-        // use the more efficient find() method if the search pattern is full
+        out << "t_comparator_" << indNum << " comparator;\n";
+        out << "int cmp = comparator(lower, upper);\n";
+
+        // if search signature is full we can apply this specialization
         if (eqSize == arity) {
-            out << "auto pos = ind_" << indNum << ".find(lower, h.hints_" << indNum << ");\n";
-            out << "auto fin = ind_" << indNum << ".end();\n";
-            out << "if (pos != fin) {fin = pos; ++fin;}\n";
-            out << "return make_range(pos, fin);\n";
-        } else {
-            // generate lower and upper bounds for range search
-            out << "t_tuple low(lower); t_tuple high(upper);\n";
-            // check which indices to pad out
-            for (size_t column = 0; column < arity; column++) {
-                // if bit number column is not set
-                if (search[column] == AttributeConstraint::None) {
-                    out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-                    out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-                }
-            }
-            out << "return make_range(ind_" << indNum << ".lower_bound(low, h.hints_" << indNum << "), ind_"
-                << indNum << ".upper_bound(high, h.hints_" << indNum << "));\n";
+            // use the more efficient find() method if lower == upper
+            out << "if (cmp == 0) {\n";
+            out << "    auto pos = ind_" << indNum << ".find(lower, h.hints_" << indNum << "_lower);\n";
+            out << "    auto fin = ind_" << indNum << ".end();\n";
+            out << "    if (pos != fin) {fin = pos; ++fin;}\n";
+            out << "    return make_range(pos, fin);\n";
+            out << "}\n";
         }
+        // if lower_bound > upper_bound then we return an empty range
+        out << "if (cmp > 0) {\n";
+        out << "    return make_range(ind_" << indNum << ".end(), ind_" << indNum << ".end());\n";
+        out << "}\n";
+        // otherwise use the general method
+
+        // generate lower and upper bounds for range search
+        out << "t_tuple low(lower); t_tuple high(upper);\n";
+        // check which indices to pad out
+        for (size_t column = 0; column < arity; column++) {
+            // if bit number column is not set
+            if (search[column] == AttributeConstraint::None) {
+                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
+                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
+            }
+        }
+
+        out << "return make_range(ind_" << indNum << ".lower_bound(low, h.hints_" << indNum << "_lower"
+            << "), ind_" << indNum << ".upper_bound(high, h.hints_" << indNum << "_upper"
+            << "));\n";
+
         out << "}\n";
 
         out << "range<t_ind_" << indNum << "::iterator> lowerUpperRange_" << search;
@@ -461,7 +482,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
     // end struct
     out << "};\n";
-}
+}  // namespace souffle
 
 // -------- Indirect Indexed B-Tree Relation --------
 
@@ -551,16 +572,15 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             indexToNumMap[getMinIndexSelection().getAllOrders()[i]] = i;
         }
 
+        out << "using t_comparator_" << i << " = index_utils::comparator<" << join(ind) << ">;\n";
+
         if (ind.size() == arity) {
             out << "using t_ind_" << i
-                << " = btree_set<const t_tuple*, index_utils::deref_compare<typename "
-                   "index_utils::comparator<"
-                << join(ind) << ">>>;\n";
+                << " = btree_set<const t_tuple*, index_utils::deref_compare<t_comparator_" << i << " >>;\n";
         } else {
             out << "using t_ind_" << i
-                << " = btree_multiset<const t_tuple*, index_utils::deref_compare<typename "
-                   "index_utils::comparator<"
-                << join(ind) << ">>>;\n";
+                << " = btree_multiset<const t_tuple*, index_utils::deref_compare<t_comparator_" << i
+                << " >>;\n";
         }
 
         out << "t_ind_" << i << " ind_" << i << ";\n";
@@ -575,7 +595,10 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
     // Create a struct storing the context hints for each index
     out << "struct context {\n";
     for (size_t i = 0; i < numIndexes; i++) {
-        out << "t_ind_" << i << "::operation_hints hints_" << i << ";\n";
+        out << "t_ind_" << i << "::operation_hints hints_" << i << "_lower"
+            << ";\n";
+        out << "t_ind_" << i << "::operation_hints hints_" << i << "_upper"
+            << ";\n";
     }
     out << "};\n";
     out << "context createContext() { return context(); }\n";
@@ -592,11 +615,13 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
     out << "auto lease = insert_lock.acquire();\n";
     out << "if (contains(t, h)) return false;\n";
     out << "masterCopy = &dataTable.insert(t);\n";
-    out << "ind_" << masterIndex << ".insert(masterCopy, h.hints_" << masterIndex << ");\n";
+    out << "ind_" << masterIndex << ".insert(masterCopy, h.hints_" << masterIndex << "_lower"
+        << ");\n";
     out << "}\n";
     for (size_t i = 0; i < numIndexes; i++) {
         if (i != masterIndex) {
-            out << "ind_" << i << ".insert(masterCopy, h.hints_" << i << ");\n";
+            out << "ind_" << i << ".insert(masterCopy, h.hints_" << i << "_lower"
+                << ");\n";
         }
     }
     out << "return true;\n";
@@ -623,7 +648,8 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
 
     // contains methods
     out << "bool contains(const t_tuple& t, context& h) const {\n";
-    out << "return ind_" << masterIndex << ".contains(&t, h.hints_" << masterIndex << ");\n";
+    out << "return ind_" << masterIndex << ".contains(&t, h.hints_" << masterIndex << "_lower"
+        << ");\n";
     out << "}\n";
 
     out << "bool contains(const t_tuple& t) const {\n";
@@ -638,7 +664,8 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
 
     // find methods
     out << "iterator find(const t_tuple& t, context& h) const {\n";
-    out << "return ind_" << masterIndex << ".find(&t, h.hints_" << masterIndex << ");\n";
+    out << "return ind_" << masterIndex << ".find(&t, h.hints_" << masterIndex << "_lower"
+        << ");\n";
     out << "}\n";
 
     out << "iterator find(const t_tuple& t) const {\n";
@@ -674,26 +701,41 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             }
         }
 
+        out << "t_comparator_" << indNum << " comparator;\n";
+        out << "int cmp = comparator(lower, upper);\n";
         // use the more efficient find() method if the search pattern is full
         if (eqSize == arity) {
-            out << "auto pos = find(lower, h);\n";
-            out << "auto fin = end();\n";
-            out << "if (pos != fin) {fin = pos; ++fin;}\n";
-            out << "return make_range(pos, fin);\n";
-        } else {
-            // generate lower and upper bounds for range search
-            out << "t_tuple low(lower); t_tuple high(lower);\n";
-            // check which indices to pad out
-            for (size_t column = 0; column < arity; column++) {
-                // if bit number column is not set
-                if (search[column] == AttributeConstraint::None) {
-                    out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-                    out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-                }
-            }
-            out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&low, h.hints_"
-                << indNum << "), ind_" << indNum << ".upper_bound(&high, h.hints_" << indNum << "));\n";
+            // if lower == upper we can just do a find
+            out << "if (cmp == 0) {\n";
+            out << "    auto pos = find(lower, h);\n";
+            out << "    auto fin = end();\n";
+            out << "    if (pos != fin) {fin = pos; ++fin;}\n";
+            out << "    return make_range(pos, fin);\n";
+            out << "}\n";
         }
+        // if lower > upper then we have an empty range
+        out << "if (cmp > 0) {\n";
+        out << "    return range<iterator_" << indNum << ">(ind_" << indNum << ".end(), ind_" << indNum
+            << ".end());\n";
+        out << "}\n";
+
+        // generate lower and upper bounds for range search
+        out << "t_tuple low(lower); t_tuple high(upper);\n";
+        // check which indices to pad out
+        for (size_t column = 0; column < arity; column++) {
+            // if bit number column is not set
+            if (search[column] == AttributeConstraint::None) {
+                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
+                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
+            }
+        }
+
+        // otherwise do the default method
+        out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&low, h.hints_"
+            << indNum << "_lower"
+            << "), ind_" << indNum << ".upper_bound(&high, h.hints_" << indNum << "_upper"
+            << "));\n";
+
         out << "}\n";
 
         out << "range<iterator_" << indNum << "> lowerUpperRange_" << search;
@@ -746,7 +788,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
 
     // end struct
     out << "};\n";
-}
+}  // namespace souffle
 
 // -------- Brie Relation --------
 
