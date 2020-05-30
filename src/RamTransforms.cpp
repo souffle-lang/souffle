@@ -661,7 +661,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                         ++inequalities;
                     }
                 }
-                /*
+
+                std::cout << "Relation: " << indexOperation->getRelation().getName() << "\t";
                 std::cout << "Indexes: " << chains.size() << "\t";
                 std::cout << "Inequalities: " << inequalities << "\t";
                 std::cout << "Chains: ";
@@ -683,7 +684,7 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                     std::cout << "|";
                 }
                 std::cout << "\n";
-                */
+
                 for (auto i : attributesToDischarge) {
                     // move constraints out of the indexed inequality and into a conjuction
                     std::unique_ptr<RamConstraint> lowerBound;

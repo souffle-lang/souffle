@@ -307,9 +307,9 @@ void MinIndexSelection::solve() {
                         containsInequality = true;
                     }
                 }
-                // if (!containsInequality) {
-                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
-                //}
+                if (!containsInequality) {
+                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                }
             }
         }
     }
@@ -425,12 +425,11 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
     bool changed = true;
-    /*
     while (changed) {
         changed = false;
         for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
             const auto lhs = *lhs_it;
-            for (auto rhs_it = lhs_it; rhs_it != chains.end(); ++rhs_it) {
+            for (auto rhs_it = lhs_it + 1; rhs_it != chains.end(); ++rhs_it) {
                 const auto rhs = *rhs_it;
 
                 // merge the two chains
@@ -495,8 +494,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
-
-    */
 
     return chains;
 }
