@@ -1,0 +1,9 @@
+// Check if unquoted numbers are rejected by the parser
+.type Node <: symbol
+
+.decl F (node1:Node, node2:number)
+.input F ()
+
+// Not ok, number
+F("1000","0002").
+

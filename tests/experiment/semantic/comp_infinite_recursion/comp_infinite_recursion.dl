@@ -1,0 +1,5 @@
+.comp A<T> {
+    .init x = T
+}
+
+.init a = A<A>

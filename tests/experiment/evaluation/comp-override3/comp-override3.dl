@@ -1,0 +1,38 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.comp A {
+    .decl Rel(x:number) overridable
+.output Rel()
+    Rel(1).
+}
+
+.comp B {
+    .decl Rel(x:number)
+.output Rel()
+    Rel(2).
+}
+
+.comp C : A {
+    Rel(3).
+}
+
+.comp D : B {
+    Rel(4).
+}
+
+.comp E : C {
+    .init d = D
+    Rel(5).
+}
+
+.comp F : E {
+    .override Rel
+    Rel(6).
+}
+
+.init e = E
+.init f = F

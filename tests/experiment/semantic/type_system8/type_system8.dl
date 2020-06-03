@@ -1,0 +1,38 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 8
+//
+// Check if old type declaration work.
+//
+
+
+.number_type A
+.symbol_type B
+.type C
+
+
+
+.type BC = B | C
+
+.decl relA(a: A)
+relA(1).
+
+
+.decl relB(b: B)
+relB("Meow").
+
+
+.decl relC(c: C)
+relC("Meow2").
+
+.decl relBC(bc: BC)
+relBC(x) :- relB(x).
+relBC(x) :- relC(x).
+
+
+.output relA, relB, relC, relBC

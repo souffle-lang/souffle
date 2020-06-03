@@ -1,0 +1,11 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl A(x:number, y:number, z:number) eqrel output
+.input A()
+.type name <: symbol
+.decl B(x:number, y:name) eqrel output
+.input B()

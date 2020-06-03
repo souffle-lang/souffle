@@ -1,0 +1,26 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test that chained relation declarations have correct types and arity
+
+.decl A, B, C(x:number, y:number)
+.decl D, E, F()
+
+// Set values to test arity and uniqueness
+A(1, 2).
+B(3, 4).
+C(5, 6).
+
+// Test copying values to test arity and uniqeness again
+B(x, y) :- A(x, y).
+C(x, y) :- A(x, y).
+
+// Test nullaries
+D().
+E() :- D().
+F() :- false.
+
+.output A, B, C, D, E, F

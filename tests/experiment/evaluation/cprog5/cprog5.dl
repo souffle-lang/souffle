@@ -1,0 +1,29 @@
+// x= 200, z = 50, y = 10
+// while(x > z){
+//   while(z > y) { y++; }
+//   z++
+// }
+// assert(z = y = z)
+
+.decl loop(i:number, x:number, y:number, z:number)
+.decl R()
+.output R()
+
+loop(0, 0, 0, 0).
+
+loop(1, 5, y, z) :- loop(0, _, y, z).
+loop(2, x, y, 3) :- loop(1, x, y, _).
+loop(3, x, 1, z) :- loop(0, _, _, z), loop(1, x, _, _).
+
+loop(7, x, y, z)  :- loop(3, x, y, z), x <= z.
+loop(4, x, y, z)  :- loop(3, x, y, z), x > z.
+loop(4, x, y+1, z)  :- loop(4, x, y, z), z > y.
+loop(5, x, y, z)  :- loop(4, x, y, z), z <= y.
+loop(3, x, y, z+1)  :- loop(5, x, y, z).
+
+R() :- loop(7, x, _, z),  x = z.
+
+
+
+
+

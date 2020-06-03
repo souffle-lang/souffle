@@ -1,0 +1,59 @@
+//
+// Type System 2
+//
+// This test checks that types are handled correctly. It was
+// created for issue #293 "Type Checker Fails to Give Errors
+// for Records of Lesser Size Than is Required".
+//
+
+.type single_number = [ X:number ]
+.type double_number = [ X:number, Y:number ]
+.type triple_number = [ X:number, Y:number, Z:number ]
+
+.type single_symbol = [ X:symbol ]
+.type double_symbol = [ X:symbol, Y:symbol ]
+.type triple_symbol = [ X:symbol, Y:symbol, Z:symbol ]
+
+.decl SingleNumberRelation( X:single_number )
+.decl DoubleNumberRelation( X:double_number )
+.decl TripleNumberRelation( X:triple_number )
+
+.decl SingleSymbolRelation( X:single_symbol )
+.decl DoubleSymbolRelation( X:double_symbol )
+.decl TripleSymbolRelation( X:triple_symbol )
+
+// Single Number Relation
+
+SingleNumberRelation([1]).             // no error
+SingleNumberRelation([1, 1]).          // error
+SingleNumberRelation([1, 1, 1]).       // error
+
+// Double Number Relation
+
+DoubleNumberRelation([1]).             // error
+DoubleNumberRelation([1, 1]).          // no error
+DoubleNumberRelation([1, 1, 1]).       // error
+
+// Triple Number Relation
+
+TripleNumberRelation([1]).             // error
+TripleNumberRelation([1, 1]).          // error
+TripleNumberRelation([1, 1, 1]).       // no error
+
+// Single Symbol Relation
+
+SingleSymbolRelation(["1"]).           // no error
+SingleSymbolRelation(["1", "1"]).      // error
+SingleSymbolRelation(["1", "1", "1"]). // error
+
+// Double Symbol Relation
+
+DoubleSymbolRelation(["1"]).           // error
+DoubleSymbolRelation(["1", "1"]).      // no error
+DoubleSymbolRelation(["1", "1", "1"]). // error
+
+// Triple Symbol Relation
+
+TripleSymbolRelation(["1"]).           // error
+TripleSymbolRelation(["1", "1"]).      // error
+TripleSymbolRelation(["1", "1", "1"]). // no error

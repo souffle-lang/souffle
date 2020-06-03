@@ -1,0 +1,4 @@
+Error: Ambiguous constant (unable to deduce type) in file fact_number.dl at line 8
+F(1000,"0002").
+--^-------------
+1 errors generated, evaluation aborted

@@ -1,0 +1,9 @@
+Indexes: 1	Inequalities: 0	Chains: |100-->102-->111|
+Indexes: 1	Inequalities: 0	Chains: |1000-->1111|
+Indexes: 2	Inequalities: 1	Chains: |002|100-->111|
+Indexes: 1	Inequalities: 0	Chains: |100-->102-->111|
+Indexes: 1	Inequalities: 0	Chains: |100-->102-->111|
+Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+Indexes: 1	Inequalities: 0	Chains: |1100-->1102-->1111|

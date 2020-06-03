@@ -1,0 +1,54 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// 2 sets, A and B
+.decl A (X:number)
+.decl B (X:number)
+
+// Set operations
+.decl AintersectionB(X:number)
+.decl AunionB(X:number)
+.decl AminusB(X:number)
+.decl BminusA(X:number)
+
+// Cartesian product
+.decl AxB(X:number, Y:number)
+
+// Output all of them
+.output AintersectionB
+.output AunionB
+.output AminusB
+.output BminusA
+.output AxB
+
+// A = {1, 2, 3, 4}
+A(1).
+A(2).
+A(3).
+A(4).
+
+// B = {2, 3, 4, 5}
+B(2).
+B(3).
+B(4).
+B(5).
+
+
+// Must be in both A and B
+AintersectionB(X) :- A(X), B(X).
+
+// Can be in A or B
+AunionB(X) :- A(X).
+AunionB(X) :- B(X).
+
+// Must be in A and not B
+AminusB(X) :- A(X), !B(X).
+
+// Must be in B and not A
+BminusA(X) :- B(X), !A(X).
+
+// Cartesian product of A and B (AxB), all the unique pairs where order matters
+AxB(X, Y) :- A(X), B(Y).

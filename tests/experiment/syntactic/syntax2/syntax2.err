@@ -1,0 +1,4 @@
+Error: syntax error, unexpected / in file syntax2.dl at line 8
+reachable(X,Y)   :- edge(X,Z),      /
+------------------------------------^-
+1 errors generated, evaluation aborted

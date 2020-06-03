@@ -1,0 +1,10 @@
+Error loading data: Error converting <0x1> in column 2 in line 1; cannot parse fact file Signed1.facts!
+
+Error loading data: Error converting <0b1> in column 1 in line 2; cannot parse fact file Signed2.facts!
+
+Error loading data: Error converting <-0x1> in column 1 in line 1; cannot parse fact file Signed3.facts!
+
+Error loading data: Error converting <3.01> in column 1 in line 3; cannot parse fact file Signed4.facts!
+
+Error loading data: Error converting <0.12e> in column 1 in line 3; cannot parse fact file Float.facts!
+

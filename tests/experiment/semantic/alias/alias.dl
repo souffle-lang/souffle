@@ -1,0 +1,10 @@
+.decl A(x:number)
+A(1).
+
+.decl B(x:number)
+B(1).
+
+.decl C(x:number, y:number)
+.printsize C
+
+C(s, i) :- A(s), B(i), s band i = i.

@@ -1,0 +1,3 @@
+Warning: No rules/facts defined for relation empty in file eqrel_tests.dl at line 43
+.decl empty(x : number, y : number) eqrel
+------^-----------------------------------

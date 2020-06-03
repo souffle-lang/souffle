@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests inlining ungrounded relations.
+// This is valid so long as the inliner relation is grounded after inlining.
+
+// valid if `y` is grounded in caller
+// TODO: future work should allow `y` to be grounded if `x` is grounded in caller
+.decl a(x: number, y: number) inline
+a(x, y) :- x = y + 1.
+
+// require both `x` and `y` to be grounded in caller
+.decl b(x:number, y:number) inline
+b(x, y) :- 0 < x, 0 < y.
+
+.decl r0(x:number)
+r0(x) :- a(x, 0). // valid: `y` is grounded in `r0`.
+r0(x) :- b(x, 0). // invalid: `x` is not grounded
+
+.output r0

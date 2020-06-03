@@ -1,0 +1,28 @@
+.decl A (n:number)
+.output A ()
+.decl B (n:number)
+.output B ()
+.decl S1 (n:number)
+.output S1 ()
+.decl S2 (n:number)
+.output S2 ()
+.decl S3 (n:number)
+.output S3 ()
+.decl S4 (n:number)
+.output S4 ()
+
+A(0b011110001).
+A(0b11100010).
+A(0b00110011).
+
+B(0b01000100).
+B(0b11110001).
+B(0b10101011).
+
+S1(x band y) :- A(x), B(y).
+S2(x bor y) :- A(x), B(y).
+S3(x) :- A(x), B(y), (bnot x) band (bnot y) = bnot (x bor y).
+S4(x) :- A(x), bnot bnot x != bnot x.
+
+
+

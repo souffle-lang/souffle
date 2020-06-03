@@ -1,0 +1,85 @@
+Error: Ambiguous record in file type_system2.dl at line 28
+SingleNumberRelation([1, 1]).          // error
+---------------------^--------------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 28
+SingleNumberRelation([1, 1]).          // error
+----------------------^-------------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 28
+SingleNumberRelation([1, 1]).          // error
+-------------------------^----------------------
+Error: Ambiguous record in file type_system2.dl at line 29
+SingleNumberRelation([1, 1, 1]).       // error
+---------------------^--------------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 29
+SingleNumberRelation([1, 1, 1]).       // error
+----------------------^-------------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 29
+SingleNumberRelation([1, 1, 1]).       // error
+-------------------------^----------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 29
+SingleNumberRelation([1, 1, 1]).       // error
+----------------------------^-------------------
+Error: Wrong number of arguments given to record in file type_system2.dl at line 33
+DoubleNumberRelation([1]).             // error
+---------------------^--------------------------
+Error: Ambiguous record in file type_system2.dl at line 35
+DoubleNumberRelation([1, 1, 1]).       // error
+---------------------^--------------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 35
+DoubleNumberRelation([1, 1, 1]).       // error
+----------------------^-------------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 35
+DoubleNumberRelation([1, 1, 1]).       // error
+-------------------------^----------------------
+Error: Ambiguous constant (unable to deduce type) in file type_system2.dl at line 35
+DoubleNumberRelation([1, 1, 1]).       // error
+----------------------------^-------------------
+Error: Wrong number of arguments given to record in file type_system2.dl at line 39
+TripleNumberRelation([1]).             // error
+---------------------^--------------------------
+Error: Wrong number of arguments given to record in file type_system2.dl at line 40
+TripleNumberRelation([1, 1]).          // error
+---------------------^--------------------------
+Error: Ambiguous record in file type_system2.dl at line 46
+SingleSymbolRelation(["1", "1"]).      // error
+---------------------^--------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 46
+SingleSymbolRelation(["1", "1"]).      // error
+----------------------^-------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 46
+SingleSymbolRelation(["1", "1"]).      // error
+---------------------------^--------------------
+Error: Ambiguous record in file type_system2.dl at line 47
+SingleSymbolRelation(["1", "1", "1"]). // error
+---------------------^--------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 47
+SingleSymbolRelation(["1", "1", "1"]). // error
+----------------------^-------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 47
+SingleSymbolRelation(["1", "1", "1"]). // error
+---------------------------^--------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 47
+SingleSymbolRelation(["1", "1", "1"]). // error
+--------------------------------^---------------
+Error: Wrong number of arguments given to record in file type_system2.dl at line 51
+DoubleSymbolRelation(["1"]).           // error
+---------------------^--------------------------
+Error: Ambiguous record in file type_system2.dl at line 53
+DoubleSymbolRelation(["1", "1", "1"]). // error
+---------------------^--------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 53
+DoubleSymbolRelation(["1", "1", "1"]). // error
+----------------------^-------------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 53
+DoubleSymbolRelation(["1", "1", "1"]). // error
+---------------------------^--------------------
+Error: Symbol constant (type mismatch) in file type_system2.dl at line 53
+DoubleSymbolRelation(["1", "1", "1"]). // error
+--------------------------------^---------------
+Error: Wrong number of arguments given to record in file type_system2.dl at line 57
+TripleSymbolRelation(["1"]).           // error
+---------------------^--------------------------
+Error: Wrong number of arguments given to record in file type_system2.dl at line 58
+TripleSymbolRelation(["1", "1"]).      // error
+---------------------^--------------------------
+28 errors generated, evaluation aborted

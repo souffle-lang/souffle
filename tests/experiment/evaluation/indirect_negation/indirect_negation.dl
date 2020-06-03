@@ -1,0 +1,36 @@
+
+.decl edge ( a:number , b:number )
+.input edge ()
+.decl mark ( a:number )
+.input mark ()
+
+
+// make sure there is a index <1> and <0,1> on the edge relation
+
+.decl i1 ( a:number )
+.output i1
+i1(X) :- mark(X), edge(_,X).
+
+.decl i01 ( a:number )
+.output i01
+i01(X) :- mark(X), edge(X,X).
+
+
+// those caused a bug once -- but now both should be the same
+
+.decl MarkedNoInA ( a:number )
+.output MarkedNoInA ()
+
+MarkedNoInA(X) :-
+    mark(X),
+    ! edge(X,_).
+
+
+.decl MarkedNoInB ( a:number )
+.output MarkedNoInB ()
+MarkedNoInB(X) :-
+    mark(X),
+    ! in(X).
+
+.decl in( a:number )
+in(X) :- edge(X,_).

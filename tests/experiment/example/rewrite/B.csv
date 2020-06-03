@@ -1,0 +1,2 @@
+[!, [<, [+, [num, nil, nil, 10, ], [B, nil, nil, 20, ], 0, ], [+, [num, nil, nil, 30, ], [B, nil, nil, 40, ], 0, ], 0, ], nil, 0, ]	[!, [<, [+, [num, nil, nil, 10, ], [B, nil, nil, 20, ], 0, ], [+, [num, nil, nil, 30, ], [B, nil, nil, 40, ], 0, ], 0, ], nil, 0, ]
+[!, [<, [+, [num, nil, nil, 10, ], [B, nil, nil, 20, ], 0, ], [+, [num, nil, nil, 30, ], [B, nil, nil, 40, ], 0, ], 0, ], nil, 0, ]	[>=, [+, [num, nil, nil, 10, ], [B, nil, nil, 20, ], 0, ], [+, [num, nil, nil, 30, ], [B, nil, nil, 40, ], 0, ], 0, ]

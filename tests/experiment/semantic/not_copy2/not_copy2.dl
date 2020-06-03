@@ -1,0 +1,28 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This test case may be used to check if relations that are not copies
+// of another relation are treated as such by the final RAM program.
+
+// A
+.decl A(a:number)
+
+A(1).
+
+// B
+.decl B(b:number)
+
+// B should not be treated as a copy of A despite the fact that
+// `B(x) :- x = 10, A(x).` is going to be transformed to
+// `B(10) :- A(10).` after constant propagation.
+
+B(x) :- x = 10, A(x).
+
+// C
+.decl C(c:number)
+.output C()
+
+C(x) :- B(x).

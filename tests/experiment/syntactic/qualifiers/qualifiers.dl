@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl A(x:number, y:number) eqrel
+A(1,2).
+.decl B(x:number, y:number) btree
+B(1,2).
+.decl C(x:number, y:number) brie
+C(1,2).
+.decl F(x:number, y:number) brie brie
+.decl G(x:number, y:number) brie btree
+.decl H(x:number, y:number) brie eqrel
+.decl K(x:number, y:number) btree brie
+.decl L(x:number, y:number) btree btree
+.decl M(x:number, y:number) btree eqrel
+.decl P(x:number, y:number) eqrel brie
+.decl Q(x:number, y:number) eqrel btree
+.decl R(x:number, y:number) eqrel eqrel
+
+.output A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD

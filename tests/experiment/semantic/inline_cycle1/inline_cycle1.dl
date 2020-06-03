@@ -1,0 +1,56 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests cyclic inlining.
+// The precedence graph has two disjoint subgraphs; the first has
+// valid inlining directives while the other does not.
+
+// As {m, n, o} is a cycle consisting entirely of inlined relations,
+// the inlining process cannot be ordered, and so an error should be
+// thrown.
+
+// Valid subgraph
+.decl a(x:number)
+.decl b(x:number)
+.decl c(x:number) inline
+.decl d(x:number) inline
+.decl e(x:number)
+.decl f(x:number)
+.decl g(x:number)
+.decl h(x:number)
+.input a()
+.output h()
+
+h(x) :- f(x).
+g(x) :- f(x).
+f(x) :- d(x).
+d(x) :- b(x).
+b(x) :- c(x).
+c(x) :- e(x).
+e(x) :- d(x).
+b(x) :- a(x).
+
+// Invalid subgraph
+.decl i(x:number)
+.decl j(x:number)
+.decl k(x:number)
+.decl l(x:number)
+.decl m(x:number) inline
+.decl n(x:number) inline
+.decl o(x:number) inline
+.decl p(x:number)
+.input i()
+.output p()
+
+p(x) :- n(x).
+n(x) :- m(x).
+m(x) :- o(x).
+o(x) :- n(x).
+m(x) :- i(x).
+j(x) :- i(x).
+j(x) :- l(x).
+l(x) :- k(x).
+k(x) :- j(x).

@@ -1,0 +1,34 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl CurrentNode(DistanceToSink:number, deadline:number)
+
+CurrentNode(20,10).
+.output CurrentNode()
+
+
+.decl NeighborNode(DistanceToSink:number,DelayToNeighbor:number, id:symbol)
+
+NeighborNode(8,1,"a").
+NeighborNode(7,8,"b").
+NeighborNode(11,10,"c").
+NeighborNode(4,2,"d").
+.output NeighborNode()
+
+
+
+.decl CandidateNode(DistanceToNeighbor:number,DelayToNeighbor:number, id:symbol)
+CandidateNode(distance1-distance,delay,id) :-
+	NeighborNode(distance,delay,id),  CurrentNode(distance1,deadline), distance<distance1, ((distance1-distance)/delay)>=(distance1/deadline).
+.output CandidateNode()
+
+
+
+.decl NextHop(id:symbol, speed:number)
+NextHop(id,speed) :-
+	CandidateNode(distance1,delay1,id), speed = max (distance/delay) : CandidateNode(distance,delay,_), speed=distance1/delay1.
+.output NextHop()
+

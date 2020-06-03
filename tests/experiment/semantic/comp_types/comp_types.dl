@@ -1,0 +1,35 @@
+
+// declare a component with an inner type
+.comp A<Param> {
+	.type inner = [ x : Param ]
+	.decl rel ( a : inner )
+	rel(["x"]).
+}
+
+// instantiate the component several times
+.type type1 <: symbol
+.type type2 <: symbol
+
+.init x = A<type1>
+.init y = A<type2>
+.init z = A<type1>
+
+
+// this should be fine
+.decl relX( a : x.inner )
+.decl relY( a : y.inner )
+.decl relZ( a : z.inner )
+
+
+// all relations should have different types
+relX(x) :- relX(x).
+relX(x) :- relY(x).
+relX(x) :- relZ(x).
+
+relY(x) :- relX(x).
+relY(x) :- relY(x).
+relY(x) :- relZ(x).
+
+relZ(x) :- relX(x).
+relZ(x) :- relY(x).
+relZ(x) :- relZ(x).

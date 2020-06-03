@@ -1,0 +1,19 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+
+// Test reading of string with whitespace inside records
+
+
+.type tuple = [f: symbol, s: symbol, t: symbol]
+
+.decl A(t: tuple)
+.input A
+
+.decl B(t: tuple)
+B(t) :- A(t).
+.output B(IO=stdout)
+

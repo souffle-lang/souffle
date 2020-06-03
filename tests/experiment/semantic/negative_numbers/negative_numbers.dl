@@ -1,0 +1,60 @@
+//
+// Negative Numbers
+//
+// This test checks that negative numbers and minus signs are handled correctly.
+//
+
+.decl expr(x:number)
+.output expr()
+
+// First Expression
+
+// no spaces
+expr(-2^31).
+
+// one space
+expr(- 2^31).
+expr(-2 ^31).
+expr(-2^ 31).
+
+// two spaces
+expr(- 2 ^31).
+expr(-2 ^ 31).
+expr(- 2^ 31).
+
+// three spaces
+expr(- 2 ^ 31).
+
+// Second Expression
+
+// no spaces
+expr(-(2^31)).
+
+// one space
+expr(- (2^31)).
+expr(-(2 ^31)).
+expr(-(2^ 31)).
+
+// two spaces
+expr(- (2 ^31)).
+expr(-(2 ^ 31)).
+expr(- (2^ 31)).
+
+// three spaces
+expr(- (2 ^ 31)).
+
+// Third Expression
+
+// no spaces
+expr(-2147483648).
+
+// one space
+expr(- 2147483648).
+
+
+.decl neg_float(x: float)
+.output neg_float
+
+neg_float(3.0).
+neg_float(-3.5).
+neg_float(-x) :- neg_float(x).

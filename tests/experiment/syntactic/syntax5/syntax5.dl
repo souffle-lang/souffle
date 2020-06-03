@@ -1,0 +1,11 @@
+// Check errors at the last location of included files
+// are reported at correct location
+.type Node <: symbol
+
+.decl reachable   (node1:Node, node2:Node)
+.input reachable   ()
+.decl same_clique (node1:Node, node2:Node)
+.input same_clique ()
+.decl edge        (node1:Node, node2:Node)
+.input edge        ()
++

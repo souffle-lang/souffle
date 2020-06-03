@@ -1,0 +1,45 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 12
+//
+// Check sub-typing with unions
+// Issue #832
+//
+
+
+
+.type S1 <: symbol
+.type S2 <: symbol
+.type S3 <: symbol
+
+.type U = S1 | S2
+.type V = S1 | S3
+
+.decl A(x : S2)
+A("a").
+A("m").
+
+.decl B(x : U)
+B(x) :- A(x).
+
+.decl D(x: S1)
+D("m").
+D("meow ").
+
+.decl E(x: S3)
+E("n").
+
+.decl C(x : S1)
+C(x) :- B(x).                      // Error
+C(x) :- !A(x), B(x).               // Error
+C(x) :- D(x), !B(x).               // Ok
+C(x) :- D(x), B(x).                // Ok
+C(y) :- D(x), B(x), y = x.         // Ok
+C(cat("meow2 ", x)) :- D(x), B(x). // Ok
+
+.output C(IO = stdout)

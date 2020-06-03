@@ -1,0 +1,37 @@
+Warning: No rules/facts defined for relation B in file rule_grounded.dl at line 4
+.decl B (a:T, b:T)
+------^------------
+Warning: No rules/facts defined for relation C in file rule_grounded.dl at line 5
+.decl C (a:T, b:T)
+------^------------
+Error: Ungrounded variable z in file rule_grounded.dl at line 11
+A(x,z) :- B(x,y), !C(y,z).
+----^----------------------
+Error: Ungrounded variable x in file rule_grounded.dl at line 14
+A(x,z) :- B(z,y), z > x.
+--^----------------------
+Warning: Variable y only occurs once in file rule_grounded.dl at line 14
+A(x,z) :- B(z,y), z > x.
+--------------^----------
+Error: Ungrounded variable l in file rule_grounded.dl at line 17
+A(x,z) :- B(x,y), C(y,z), !C(y,l).
+-------------------------------^---
+Warning: Variable l only occurs once in file rule_grounded.dl at line 17
+A(x,z) :- B(x,y), C(y,z), !C(y,l).
+-------------------------------^---
+Error: Ungrounded variable l in file rule_grounded.dl at line 20
+A(x,z) :- B(x,y), C(y,z), y > l.
+------------------------------^--
+Warning: Variable l only occurs once in file rule_grounded.dl at line 20
+A(x,z) :- B(x,y), C(y,z), y > l.
+------------------------------^--
+Error: Ungrounded variable z in file rule_grounded.dl at line 34
+A(x,z) :- B(x, _), z = cat(x, y).
+----^-----------------------------
+Error: Ungrounded variable y in file rule_grounded.dl at line 34
+A(x,z) :- B(x, _), z = cat(x, y).
+------------------------------^---
+Warning: Variable y only occurs once in file rule_grounded.dl at line 34
+A(x,z) :- B(x, _), z = cat(x, y).
+------------------------------^---
+6 errors generated, evaluation aborted

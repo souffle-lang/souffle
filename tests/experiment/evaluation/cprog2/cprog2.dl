@@ -1,0 +1,22 @@
+//int x, y, z = 0;
+//y = 10
+//z = 20
+//x = 30
+//while(x > z){ z++ }
+//while(z > y){ y++ }
+//assert(x = y = z)
+
+.decl loop(i:number, x:number, y:number, z:number)
+.decl Res()
+.output Res()
+
+loop(0, 0, 0, 0).
+loop(1, x, 10, z) :- loop(0, x, _, z).
+loop(2, x, 20, z) :- loop(1, x, _, z).
+loop(3, 30, y, z) :- loop(2, _, y, _), loop(1, _, _, z).
+loop(4, x, y, z) :- loop(2, _, y, z), loop(3, x, y, z), x > z.
+loop(4, x, y, z+1) :- loop(4, x, y, z), x > z.
+loop(5, x, y, z) :- loop(4, x, y, z), x <= z.
+loop(5, x, y+1, z) :- loop(5, x, y, z) , z > y.
+loop(6, x, y, z) :- loop(5, x, y, z), z <= y.
+Res() :- loop(6, x, y ,z), x = y, y = z.

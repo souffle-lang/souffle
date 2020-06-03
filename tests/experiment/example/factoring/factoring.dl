@@ -1,0 +1,25 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl gen(x : number)
+gen(1).
+gen(x+1) :- gen(x), !lim(x).
+
+.decl lim(x : number)
+lim(100).
+
+//factors excluding 1
+.decl factor(num : number, fc : number)
+factor(x, fc) :- gen(x), gen(fc), x % fc = 0, fc != 1.
+
+//finds if there exist two numbers which multiply to x
+.decl prod(num : number)
+prod(x) :- gen(x), gen(a), gen(b), b != x, a != x, x = a*b.
+
+//finds the prime factors
+.decl p_factor(x : number, fc : number)
+.output p_factor()
+p_factor(x, fc) :- factor(x, fc), !prod(fc).

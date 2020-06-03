@@ -1,0 +1,3 @@
+Warning: No rules/facts defined for relation B in file aggregate1.dl at line 2
+.decl B(x:number)
+------^-----------

@@ -66,6 +66,7 @@ public:
     bool empty() const;
     static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs);
     static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs);
+    static bool isWindowQuery(const SearchSignature& s);
     static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs);
     static SearchSignature getFullSearchSignature(size_t arity);
 

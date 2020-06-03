@@ -1,0 +1,34 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// example taken from tests/example/flights
+
+.type Node <: symbol
+.decl flight      (node1:Node, node2:Node, node3:Node)
+.decl QAflies   (node1:Node, node2:Node)
+.output QAflies   ()
+.decl VAflies   (node1:Node, node2:Node)
+.output VAflies   ()
+.decl QAonly   (node1:Node, node2:Node)
+.output QAonly   ()
+
+QAflies(X,Y) :- flight("QA",X,Y).
+QAflies(X,Y) :- flight("QA",X,Z), QAflies(Z,Y).
+
+VAflies(X,Y) :- flight("VA",X,Y).
+VAflies(X,Y) :- flight("VA",X,Z), VAflies(Z,Y).
+
+QAonly(X,Y)  :- QAflies(X,Y), ! VAflies(X,Y).
+
+flight("QA","AU","CHI").
+flight("QA","AU","JPN").
+flight("QA","JPN","DEN").
+flight("QA","JPN","CHI").
+flight("QA","AU","CHI").
+flight("VA","AU","CHI").
+flight("VA","JPN","ZA").
+flight("VA","JPN","DEN").
+flight("VA","DEN","ZA").

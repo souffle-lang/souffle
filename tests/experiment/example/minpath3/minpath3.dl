@@ -1,0 +1,191 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Shortest Path Computation
+//
+
+.type Node <: symbol
+.type Distance <: number
+
+//
+// start node
+//
+.decl start(u:Node)
+.input start
+
+//
+//  edge relation of directed graph
+//
+
+.decl edge(u:Node, v:Node, dist:Distance)
+.input edge
+
+//
+// node relation
+//
+
+.decl node(u:Node)
+
+node(u) :-
+   edge(u, _, _);
+   edge(_, u, _).
+
+//
+// order predecessor nodes by ordinal Distance
+//
+
+.decl lessPred(u1:Node, u2:Node, v:Node)
+
+lessPred(u1, u2, v) :-
+   edge(u1, v, _),
+   edge(u2, v, _),
+   ord(u1) < ord(u2).
+
+//
+// compute strict transitive predecessor nodes
+//
+
+.decl transPred(u1:Node, u2:Node, v:Node)
+
+transPred(u1, u3, v) :-
+   lessPred(u1, u2, v),
+   lessPred(u2, u3, v).
+
+//
+// successor relation among predecessor node
+//
+
+.decl succPred(before:Node, after:Node, v:Node)
+succPred(u1, u2, v) :-
+   lessPred(u1, u2, v),
+   !transPred(u1, u2, v).
+
+//
+// determine first predecessor of a node
+//
+
+.decl firstPred(u:Node, v:Node)
+
+firstPred(u, v) :-
+   edge(u, v, _),
+   !succPred(_, u, v).
+
+//
+// determine last predecessor of a node
+//
+
+.decl lastPred(u:Node, v:Node)
+
+lastPred(u, v) :-
+   edge(u, v, _),
+   !succPred(u, _, v).
+
+//
+// step function that computes stepwise the shortest distance
+// of a node.
+//
+
+.decl step(i:number, u:Node, w:Distance, next:Node)
+
+/* compute shortest distance for first predecessor node
+ * NB: this step is performed assuming that the computation
+ * hasn't finished yet.
+ */
+step(i+1, v, d1 + d2, u) :-
+   again(i),
+   shortestStepPath(i, u, d2),
+   firstPred(u, v),
+   edge(u, v, d1).
+
+/* compute shortest distance for subsequent predecessor nodes;
+ * one of the previous predecessors was smaller than shortest path from
+ * current predecessor.
+ */
+
+step(i, v, d, u2) :-
+   step(i, v, d, u1),
+   succPred(u1, u2, v),
+   edge(u2, v, d1),
+   shortestStepPath(i-1, u2, d2),
+   d <= d1 + d2.
+
+/* compute shortest distance for subsequent predecessor nodes;
+ * all previous predecessors' shortest paths are longer than the
+ * shortest path of current predecessors.
+ */
+
+step(i, v, d1 + d2, u2) :-
+   step(i, v, d, u1),
+   succPred(u1, u2, v),
+   edge(u2, v, d1),
+   shortestStepPath(i-1, u2, d2),
+   d1 + d2 < d.
+
+//
+// compute shortest distance of a node in the i-th step
+//
+
+.decl shortestStepPath(i:Distance, u:Node, d:Distance)
+
+/* initial shortest distance for start node for first step */
+shortestStepPath(i, u, 0) :-
+   again(i),
+   start(u).
+
+/* initial shortest distance for all other nodes for subsequent steps */
+shortestStepPath(0, u, largeDist) :-
+   node(u),
+   !start(u),
+   largeDist = sum d: {edge(_,_,d)}.
+
+/* shortest distance for all other steps */
+shortestStepPath(i, v, d) :-
+   step(i, v, d, u),
+   lastPred(u, v).
+
+//
+// Predicate which determines whether another step is required.
+//
+
+.decl again(i:Distance)
+
+/* at least two iterations are required */
+again(0).
+again(1).
+
+/* if we find at least one node whose result has changed in the
+ * previous step, a new step is required.
+ */
+
+again(i+1) :-
+   shortestStepPath(i, u, wi),
+   shortestStepPath(i-1, u, wi_1),
+   i > 0,
+   wi < wi_1.
+
+//
+// last step
+//
+
+.decl lastStep(i:number)
+
+lastStep(i) :-
+   again(i),
+   !again(i+1).
+
+//
+// shortest path
+//
+
+.decl shortestPath(u:Node, dist:Distance)
+
+shortestPath(u, d) :-
+   lastStep(i),
+   shortestStepPath(i, u, d).
+
+.output shortestPath
+

@@ -1,0 +1,16 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 7
+//
+// Check if type system fails gracefully in the case of undeclared relation
+//
+
+
+F(x) :- x = 100.
+
+.output F

@@ -1,0 +1,14 @@
+.type String <: symbol
+
+.decl Benchmark(n : String, query: String, backend: String, trans: String, time: number, mem : number)
+.input Benchmark()
+.decl Metrics(snapshot: String, numIns : number, numEni: number)
+.input Metrics()
+
+.decl DOM(n:number)
+.output DOM()
+.decl SUM(n:number)
+.output SUM()
+
+DOM(ins) :- Benchmark(s, _, "z3", _, _, _), Metrics(s, ins, _).
+SUM(V) :- V = sum ins : DOM(ins).

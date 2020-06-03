@@ -1,0 +1,19 @@
+.type Name <: symbol
+
+
+.decl n ( x : Name )
+
+
+n("Homer").
+n("Marge").
+n("Bart").
+n("Lisa").
+n("Maggie").
+
+
+.decl r ( x : number )
+.output r ()
+
+r(1) :- n(x), n(y), ord(x) < ord(y).
+r(2) :- n(x), n(y), ord(x) > ord(y).
+

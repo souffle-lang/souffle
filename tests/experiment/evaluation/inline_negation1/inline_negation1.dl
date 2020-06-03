@@ -1,0 +1,27 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests valid inlining of negated literals.
+
+.decl a(x:number) inline
+a(3).
+a(4).
+
+.decl b(x:number) inline
+b(1).
+b(2).
+b(3).
+b(4).
+b(5).
+
+.decl empty(x:number) inline
+
+.decl c(x:number)
+// Should become:
+//  - c(x) :- b(x) ^ !(x = 3 | x = 4) ^ true <=> c(x) :- b(x), x != 3, x != 4.
+c(x) :- b(x), !a(x), !empty(0).
+
+.output c()

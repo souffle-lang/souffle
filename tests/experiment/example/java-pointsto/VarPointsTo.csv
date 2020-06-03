@@ -1,0 +1,20 @@
+A.method1()V|%1	A.method1()V|new X|0
+A.method2()V|%1	A.method2()V|new X|0
+A.method3()V|%0	A.method3()V|new Z|0
+X.foo()V|%1	X.foo()V|new Z|0
+Z.bar()V|%1	Z.bar()V|new java.lang.String|0
+Z.bar()V|%Jaffa-JavaString	Hello
+java.lang.String.<init>(Ljava/lang/String;)V|@param0	Hello
+X.<init>()V|@this	A.method1()V|new X|0
+X.<init>()V|@this	A.method2()V|new X|0
+Z.<init>()V|@this	A.method3()V|new Z|0
+Z.<init>()V|@this	X.foo()V|new Z|0
+java.lang.String.<init>(Ljava/lang/String;)V|@this	Z.bar()V|new java.lang.String|0
+X.<init>()V|0	A.method1()V|new X|0
+X.<init>()V|0	A.method2()V|new X|0
+Z.<init>()V|0	A.method3()V|new Z|0
+Z.<init>()V|0	X.foo()V|new Z|0
+java.lang.Object.<init>()V|@this	A.method1()V|new X|0
+java.lang.Object.<init>()V|@this	A.method2()V|new X|0
+java.lang.Object.<init>()V|@this	A.method3()V|new Z|0
+java.lang.Object.<init>()V|@this	X.foo()V|new Z|0

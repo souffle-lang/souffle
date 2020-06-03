@@ -1,0 +1,15 @@
+.type set <: symbol
+
+.decl X(node1:set, node2:set)
+.output X()
+.decl Y(node1:set, node2:set)
+.output Y()
+.decl Z(node1:set, node2:set)
+.output Z()
+
+Y(a,b) :- X(a,b).
+Y(a,c) :- X(a,b), Y(b,c).
+Z(a,b) :- !X(a,b), Y(a,b).
+
+X("a","b").
+X("b","d").

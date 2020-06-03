@@ -1,0 +1,29 @@
+.type String <: symbol
+
+.decl f(v:String, f:String)
+.decl succ (v:String, f:String)
+.decl arg (v:String, i:String, a:String)
+.decl args (a:String, b:String, c:String)
+.decl eq  (a:String, b:String)
+.output eq  ()
+
+
+succ("1", "2").
+succ("2", "3").
+succ("3", "4").
+
+f("x", "g").
+f("y", "f").
+
+arg("x", "1", "A").
+arg("x", "2", "B").
+arg("x", "3", "Z").
+
+arg("y", "1", "C").
+arg("y", "2", "D").
+arg("y", "3", "W").
+
+eq(a, b) :- f(v, a), f(w, b), args(v, w, "3").
+
+args(v, w, i) :- succ(p, i), arg(v, i, k), arg(w, i, k), args(v, w, p).
+args(v, w, "1") :- arg(v, "1", _), arg(w, "1", _).

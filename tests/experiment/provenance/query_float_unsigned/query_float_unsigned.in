@@ -1,0 +1,11 @@
+query Float(x)
+;
+;
+;
+;
+query Unsigned(x)
+;
+;
+;
+;
+exit

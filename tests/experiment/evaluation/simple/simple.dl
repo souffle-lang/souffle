@@ -1,0 +1,20 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Simple datalog example.
+
+.type the_type <: symbol
+
+.decl the_input(x:the_type)
+.input the_input()
+.decl the_output(x:the_type)
+.output the_output()
+.decl hello_world(x:the_type)
+.decl is_hello_world(x:the_type)
+
+hello_world("helloworld").
+is_hello_world(X) :- the_input(X), hello_world(X).
+the_output(X) :- is_hello_world(X).

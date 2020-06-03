@@ -1,0 +1,24 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Find all disconnected node pairs
+.type Node <: symbol
+
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
+
+// Find the connected nodes
+.decl Connected(n:Node, m:Node)
+Connected(n, n) :- Edge(n, _, _).
+Connected(n, n) :- Edge(_, n, _).
+Connected(n, m) :- Edge(n, m, _).
+Connected(n, m) :- Edge(n, z, _), Connected(z, m).
+
+// Find nodes without a connection
+.decl DisConnected(n:Node, m:Node)
+.output DisConnected()
+DisConnected(n, m) :- Edge(n, _, _), Edge(_, m, _), !Connected(n, m).
+DisConnected(n, m) :- Edge(n, _, _), Edge(m, _, _), !Connected(n, m).

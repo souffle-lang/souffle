@@ -1,0 +1,7 @@
+Error: Ungrounded variable <inlined_x_1> in file inline_ungrounded.dl at line 17
+b(x, y) :- 0 < x, 0 < y.
+---------------^---------
+Error: Ungrounded variable x in file inline_ungrounded.dl at line 21
+r0(x) :- b(x, 0). // invalid: `x` is not grounded
+---^----------------------------------------------
+2 errors generated, evaluation aborted

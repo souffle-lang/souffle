@@ -1,0 +1,57 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// A copy of the `nqueens' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+// Solves the n-queens problem
+
+// Side length of the board.
+.decl size( n : number )
+.input size()
+
+
+// The maximal compatible sets -- n queens.
+.decl solution( qs : QueenList )
+.printsize solution
+solution(qs) :- compatible(qs, s), size(s).
+
+
+// Natural numbers from 1 to the size of the board.
+.decl up_to_size( x : number )
+up_to_size(1).
+up_to_size(x + 1) :- up_to_size(x), !size(x).
+
+
+// A cartesian coordinate for a board square.
+.type Position = [ x : number, y : number ]
+
+
+// This relation holds the position of each square of the board.
+.decl on_board( p : Position )
+on_board([x, y]) :- up_to_size(x), up_to_size(y).
+
+
+// Mutually-non-attacking list of queen positions.
+.type QueenList = [ p : Position, qs : QueenList ]
+
+
+// Arguments are not on the same diagonal.
+.decl non_diagonals( p : Position, q : Position )
+non_diagonals([px, py], [qx, qy]) :- px - qx != py - qy, qx - px != py - qy, on_board([px, py]), on_board([qx, qy]).
+
+
+// Holds if p and q do not attack each other.
+.decl sympathetic( p : Position, q : Position )
+sympathetic(p, q) :- non_diagonals(p, q), px != qx, py != qy, p=[px, py], q=[qx,qy].
+
+
+// Holds if the head of qs is mutually non-attacking with its tail, which should itself be compatible.
+// Generated column by column, left to right.
+.decl compatible( qs : QueenList, n : number )
+compatible([p, nil], 1) :- on_board(p). //, p = [1,y].
+compatible([p, [head, tail]], n+1) :- sympathetic(p, head), compatible([p, tail], n), compatible([head, tail], n), p = [px, py], head = [hx, hy], px > hx.

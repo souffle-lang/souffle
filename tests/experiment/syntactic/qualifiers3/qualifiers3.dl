@@ -1,0 +1,30 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test for successful execution of qualifiers.
+
+.decl A(x:number, y:number)
+A(1,2).
+A(2,3).
+A(1,2).
+A(2,3).
+.decl B(x:number, y:number) btree
+B(1,2).
+B(2,3).
+B(1,2).
+B(2,3).
+.decl C(x:number, y:number) brie
+C(1,2).
+C(2,3).
+C(1,2).
+C(2,3).
+.decl D(x:number, y:number) eqrel
+D(1,2).
+D(2,3).
+D(1,2).
+D(2,3).
+
+.output A,B,C,D

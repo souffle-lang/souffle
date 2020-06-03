@@ -1,0 +1,28 @@
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 13
+.decl F(x:number, y:number) brie brie
+---------------------------------^----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 14
+.decl G(x:number, y:number) brie btree
+---------------------------------^-----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 15
+.decl H(x:number, y:number) brie eqrel
+---------------------------------^-----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 16
+.decl K(x:number, y:number) btree brie
+----------------------------------^----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 17
+.decl L(x:number, y:number) btree btree
+----------------------------------^-----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 18
+.decl M(x:number, y:number) btree eqrel
+----------------------------------^-----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 19
+.decl P(x:number, y:number) eqrel brie
+----------------------------------^----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 20
+.decl Q(x:number, y:number) eqrel btree
+----------------------------------^-----
+Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 21
+.decl R(x:number, y:number) eqrel eqrel
+----------------------------------^-----
+9 errors generated, evaluation aborted

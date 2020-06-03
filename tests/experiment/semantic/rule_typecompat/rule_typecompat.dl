@@ -1,0 +1,65 @@
+.type T <: symbol
+.type S <: symbol
+.type R <: symbol
+.type Q <: symbol
+.decl H (t:T)
+.decl A (t:T)
+.decl B (s:S)
+.decl C (q:Q)
+.decl D (r:R)
+.decl E (r:R, s:S)
+.decl F (r:R, t:T)
+.decl G (t:T, r:R)
+
+// Types of A and B differ
+A(x) :- B(x).
+
+// First argument of F clash
+A(x) :- F(x,x).
+// Ok
+A(x) :- F(y,x).
+
+// Second argument of G clash
+A(x) :- G(x,x).
+// Ok
+A(x) :- G(x,y).
+
+// Second argument in the head
+G(x,x) :- A(x).
+// ok
+G(x,y) :- A(x).
+
+// Both, A and B clash
+A(x) :- B(x), C(x).
+
+// Ok
+A(x) :- A(x), B(y), C(z).
+
+// Clash in G
+F(x,y) :- F(x,z), G(z,y).
+// ok
+F(x,y) :- F(x,z), G(z,x).
+
+// Ok. Types of w and v are defined by x and y
+F(x,y) :- F(x,v), F(w,y), A(v), D(w).
+
+// Not Ok. Types of w and v are derived from by x and y
+F(x,y) :- F(x,v), F(w,y), A(v), D(v).
+F(x,y) :- F(x,v), F(w,y), A(w), D(w).
+F(x,y) :- F(x,v), F(w,y), A(w), D(v).
+
+// Same for negations
+F(x,y) :- F(x,v), F(w,y), !H(v), !D(v).
+F(x,y) :- F(x,v), F(w,y), !H(w), !D(w).
+F(x,y) :- F(x,v), F(w,y), !H(w), !D(v).
+
+// Type clash in binary relation
+F(x,y) :- F(x,y),  x > y.
+// Type clash of derived types in binary relation
+F(x,y) :- F(x,v), F(w,y), w != v.
+
+// Undefined type
+F(x,y) :- F(x,y),  x > t.
+F(x,y) :- F(x,y),  t < x.
+
+

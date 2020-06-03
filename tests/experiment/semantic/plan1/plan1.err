@@ -1,0 +1,4 @@
+Error: Invalid execution order in plan in file plan1.dl at line 15
+A(v1,v4) :- B(v1,v2), v1 < v2, C(v2,v3), D(v3,v4), !E(v1,v4). .plan 0:(1,2,4)
+----------------------------------------------------------------------^-------
+1 errors generated, evaluation aborted

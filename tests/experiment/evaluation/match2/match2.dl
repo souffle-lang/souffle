@@ -1,0 +1,23 @@
+//
+// Test-case for string matching
+//
+
+.type String <: symbol
+
+.decl inputData   (t:String)
+.decl pattern   (t:String)
+.decl outputData  (t:String)
+.output outputData  ()
+
+outputData(x) :- pattern(y), inputData(x), match(y, x).
+
+inputData("aaaa").
+inputData("a").
+inputData("abba").
+inputData("bcab").
+inputData("bdab").
+inputData("cdab").
+
+pattern("a.*").
+pattern("b.*").
+pattern("b.*[").

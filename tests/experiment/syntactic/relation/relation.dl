@@ -1,0 +1,21 @@
+// Relations specification
+// <Identifier>(<Number>)? ( <RField,...> ) <Qualifiers>
+// <Qualifiers>
+// output|input
+
+.type M <: symbol
+.type N <: symbol
+
+.decl A(a:M)
+.output A()
+.input A()
+.decl B(a:M,b:N)
+.output B()
+.decl C(a:M,b:N)
+.output C()
+.decl D(a:M,b:N)
+.output D()
+.input D()
+.decl E(a:M)
+.decl F(a:M,b:N)
+.decl G(a:M,b:N)

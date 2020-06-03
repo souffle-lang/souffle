@@ -1,0 +1,28 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests the min and max binary functors.
+
+.decl test_pair(x:number, y:number)
+.input test_pair()
+
+// Finds the difference of two given numbers.
+// If the result is negative, 0 is returned instead.
+.decl bounded_difference(x:number, y:number, result:number)
+bounded_difference(x, y, max(x-y, 0)) :- test_pair(x,y).
+
+// Finds the sum of two given numbers.
+// The result is capped at 50.
+.decl bounded_sum(x:number, y:number, result:number)
+bounded_sum(x, y, min(x+y, 50)) :- test_pair(x,y).
+
+// Finds |x - y|
+.decl absolute_difference(x:number, y:number, result:number)
+absolute_difference(x, y, max(x-y, y-x)) :- test_pair(x,y).
+
+.output bounded_difference()
+.output bounded_sum()
+.output absolute_difference()

@@ -1,0 +1,65 @@
+
+// some subsets
+.decl A( x : number )
+.decl B( x : number )
+.decl C( x : number )
+.decl D( x : number )
+.decl E( x : number )
+
+
+// A
+A(0).
+
+// B
+B(1).
+B(2).
+B(3).
+
+// C
+C(4).
+C(5).
+C(6).
+
+// D
+D(3).
+D(4).
+
+// E
+E(6).
+E(7).
+
+// the universe
+.decl U( x : number )
+.output U()
+U(X) :- A(X) ; B(X) ; C(X) ; D(X); E(X) .
+
+// an empty set
+.decl N( x : number )
+.output N()
+N(X) :- A(X), B(X).
+
+
+.decl R1( x : number )
+.output R1()
+R1(X) :- A(X) ; B(X) , D(X) .
+
+.decl R2( x : number )
+.output R2()
+R2(X) :- U(X) , !( B(X) ; D(X) ) .
+
+.decl R3( x : number )
+.output R3()
+R3(X) :- U(X) , !( B(X) , D(X) ) .
+
+.decl R4( x : number )
+.output R4()
+R4(X) :- U(X) , !( B(X) ; D(X) ) .
+
+.decl R5( x : number )
+.output R5()
+R5(X) :- U(X) , !!!( B(X) ; D(X) ) .
+
+.decl R6( x : number )
+.output R6()
+R6(X) :- (!B(X) ; D(X)) , U(X) .
+

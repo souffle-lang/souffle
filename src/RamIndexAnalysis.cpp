@@ -117,6 +117,17 @@ bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSig
     return lhs.constraints != rhs.constraints;
 }
 
+bool SearchSignature::isWindowQuery(const SearchSignature& s) {
+    size_t len = s.arity();
+    for (size_t i = 0; i < len; ++i) {
+        if ((s.constraints[i] != AttributeConstraint::None) &&
+                (s.constraints[i] != AttributeConstraint::Inequal)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 SearchSignature SearchSignature::getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
     assert(lhs.arity() == rhs.arity());
     SearchSignature delta(lhs.arity());
@@ -448,13 +459,27 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                     }
                     // if left element is smaller, insert it and iterate to next in left chain
                     if (*left < *right) {
+                        
+			// can't merge if we lose an index on a window query
+                        if (SearchSignature::isWindowQuery(*left)) {
+			   successfulMerge = false;
+			   break;
+			}
+
                         mergedChain.insert(*left);
                         ++left;
                         continue;
                     }
                     // if right element is smaller, insert it and iterate to next in right chain
                     if (*right < *left) {
-                        mergedChain.insert(*right);
+                        
+			// can't merge if we lose an index on a window query
+                        if (SearchSignature::isWindowQuery(*right)) {
+			   successfulMerge = false;
+			   break;
+			}    
+			    
+			mergedChain.insert(*right);
                         ++right;
                         continue;
                     }
@@ -525,7 +550,6 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(cons
         // don't discharge if we have a numeric attribute in the last position
         std::string type = rel.getAttributeTypes()[end];
         if (startswith(type, "i:")) {
-            // std::cout << type << "\n";
             // if this is an inequality then it won't be discharged
             attributesToDischarge.erase(end);
         }

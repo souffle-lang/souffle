@@ -1,0 +1,223 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl alignas(x:number)
+alignas(1).
+.decl alignof(x:number)
+alignof(1).
+.decl asm(x:number)
+asm(1).
+.decl atomic_cancel(x:number)
+atomic_cancel(1).
+.decl atomic_commit(x:number)
+atomic_commit(1).
+.decl atomic_noexcept(x:number)
+atomic_noexcept(1).
+.decl auto(x:number)
+auto(1).
+.decl bool(x:number)
+bool(1).
+.decl break(x:number)
+break(1).
+.decl case(x:number)
+case(1).
+.decl catch(x:number)
+catch(1).
+.decl char(x:number)
+char(1).
+.decl char16_t(x:number)
+char16_t(1).
+.decl char32_t(x:number)
+char32_t(1).
+.decl class(x:number)
+class(1).
+.decl concept(x:number)
+concept(1).
+.decl const(x:number)
+const(1).
+.decl constexpr(x:number)
+constexpr(1).
+.decl const_cast(x:number)
+const_cast(1).
+.decl continue(x:number)
+continue(1).
+.decl decltype(x:number)
+decltype(1).
+.decl default(x:number)
+default(1).
+.decl delete(x:number)
+delete(1).
+.decl do(x:number)
+do(1).
+.decl double(x:number)
+double(1).
+.decl dynamic_cast(x:number)
+dynamic_cast(1).
+.decl enum(x:number)
+enum(1).
+.decl explicit(x:number)
+explicit(1).
+.decl export(x:number)
+export(1).
+.decl extern(x:number)
+extern(1).
+.decl float(x:number)
+float(1).
+.decl for(x:number)
+for(1).
+.decl friend(x:number)
+friend(1).
+.decl goto(x:number)
+goto(1).
+.decl int(x:number)
+int(1).
+.decl import(x:number)
+import(1).
+.decl long(x:number)
+long(1).
+.decl module(x:number)
+module(1).
+.decl mutable(x:number)
+mutable(1).
+.decl namespace(x:number)
+namespace(1).
+.decl new(x:number)
+new(1).
+.decl noexcept(x:number)
+noexcept(1).
+.decl nullptr(x:number)
+nullptr(1).
+.decl operator(x:number)
+operator(1).
+.decl or(x:number)
+or(1).
+.decl private(x:number)
+private(1).
+.decl protected(x:number)
+protected(1).
+.decl public(x:number)
+public(1).
+.decl register(x:number)
+register(1).
+.decl reinterpret_cast(x:number)
+reinterpret_cast(1).
+.decl requires(x:number)
+requires(1).
+.decl return(x:number)
+return(1).
+.decl short(x:number)
+short(1).
+.decl signed(x:number)
+signed(1).
+.decl sizeof(x:number)
+sizeof(1).
+.decl static(x:number)
+static(1).
+.decl static_assert(x:number)
+static_assert(1).
+.decl static_cast(x:number)
+static_cast(1).
+.decl struct(x:number)
+struct(1).
+.decl switch(x:number)
+switch(1).
+.decl synchronized(x:number)
+synchronized(1).
+.decl template(x:number)
+template(1).
+.decl this(x:number)
+this(1).
+.decl thread_local(x:number)
+thread_local(1).
+.decl throw(x:number)
+throw(1).
+.decl try(x:number)
+try(1).
+.decl typedef(x:number)
+typedef(1).
+.decl typeid(x:number)
+typeid(1).
+.decl typename(x:number)
+typename(1).
+.decl union(x:number)
+union(1).
+.decl unsigned(x:number)
+unsigned(1).
+.decl using(x:number)
+using(1).
+.decl virtual(x:number)
+virtual(1).
+.decl void(x:number)
+void(1).
+.decl volatile(x:number)
+volatile(1).
+.decl wchar_t(x:number)
+wchar_t(1).
+.decl while(x:number)
+while(1).
+.decl xor(x:number)
+xor(1).
+.decl compl(x:number)
+compl(1).
+.decl bitor(x:number)
+bitor(1).
+.decl bitand(x:number)
+bitand(1).
+.decl and_eq(x:number)
+and_eq(1).
+.decl or_eq(x:number)
+or_eq(1).
+.decl xor_eq(x:number)
+xor_eq(1).
+.decl not(x:number)
+not(1).
+.decl and(x:number)
+and(1).
+.decl not_eq(x:number)
+not_eq(1).
+.decl override(x:number)
+override(1).
+.decl final(x:number)
+final(1).
+.decl transaction_safe(x:number)
+transaction_safe(1).
+.decl transaction_safe_dynamic(x:number)
+transaction_safe_dynamic(1).
+.decl if(x:number)
+if(1).
+.decl elif(x:number)
+elif(1).
+.decl else(x:number)
+else(1).
+.decl endif(x:number)
+endif(1).
+.decl defined(x:number)
+defined(1).
+.decl ifdef(x:number)
+ifdef(1).
+.decl ifndef(x:number)
+ifndef(1).
+.decl define(x:number)
+define(1).
+.decl undef(x:number)
+undef(1).
+.decl include(x:number)
+include(1).
+.decl line(x:number)
+line(1).
+.decl error(x:number)
+error(1).
+.decl pragma(x:number)
+pragma(1).
+.decl _Pragma(x:number)
+_Pragma(1).
+.decl worked(x:number)
+.output worked()
+worked(X) :- workaround([X]).
+// TODO (#467, #468): the following is a hack to disable stratification as over a hundred subprograms are produced for this test
+.type number_record = [ x:number ]
+.decl workaround(x:number_record)
+workaround([X]) :- alignas(X), alignof(X), asm(X), atomic_cancel(X), atomic_commit(X), atomic_noexcept(X), auto(X), bool(X), break(X), case(X), catch(X), char(X), char16_t(X), char32_t(X), class(X), concept(X), const(X), constexpr(X), const_cast(X), continue(X), decltype(X), default(X), delete(X), do(X), double(X), dynamic_cast(X), enum(X), explicit(X), export(X), extern(X), float(X), for(X), friend(X), goto(X), int(X), import(X), long(X), module(X), mutable(X), namespace(X), new(X), noexcept(X), nullptr(X), operator(X), or(X), private(X), protected(X), public(X), register(X), reinterpret_cast(X), requires(X), return(X), short(X), signed(X), sizeof(X), static(X), static_assert(X), static_cast(X), struct(X), switch(X), synchronized(X), template(X), this(X), thread_local(X), throw(X), try(X), typedef(X), typeid(X), typename(X), union(X), unsigned(X), using(X), virtual(X), void(X), volatile(X), wchar_t(X), while(X), xor(X), compl(X), bitor(X), bitand(X), and_eq(X), or_eq(X), xor_eq(X), not(X), and(X), not_eq(X), override(X), final(X), transaction_safe(X), transaction_safe_dynamic(X), if(X), elif(X), else(X), endif(X), defined(X), ifdef(X), ifndef(X), define(X), undef(X), include(X), line(X), error(X), pragma(X), _Pragma(X).

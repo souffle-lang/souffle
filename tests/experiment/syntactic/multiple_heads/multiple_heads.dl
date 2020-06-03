@@ -1,0 +1,7 @@
+
+.decl node ( a : number )
+.decl edge ( a : number, b : number )
+
+node(1).
+edge(X,Y) :- edge(Y,X).
+node(X), node(Y), edge(X,Y) :- edge(X,Y).

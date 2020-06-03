@@ -1,0 +1,9 @@
+Warning: Deprecated type declaration used in file type_system8.dl at line 14
+.number_type A
+^--------------
+Warning: Deprecated type declaration used in file type_system8.dl at line 15
+.symbol_type B
+^--------------
+Warning: Deprecated type declaration used in file type_system8.dl at line 16
+.type C
+^-------

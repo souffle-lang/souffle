@@ -1,0 +1,9 @@
+.decl A(x:number)
+A(10.10.10.10).
+A(2.1.1.1).
+
+.decl B(x:number)
+.output B()
+
+B(x) :- A(x), 2.1.1.1 = x.
+

@@ -1,0 +1,19 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl numbers(x:number)
+.decl sum_result(x:number)
+
+.output sum_result()
+
+numbers(-1).
+numbers(1).
+numbers(2).
+numbers(3).
+numbers(4).
+numbers(5).
+
+sum_result(x) :- x = sum a : { numbers(a), a > 0 }.

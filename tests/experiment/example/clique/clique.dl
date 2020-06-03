@@ -1,0 +1,33 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//// Test Case adopted from Ocaml datalog
+
+.type Node <: symbol
+
+.decl reachable   (node1:Node, node2:Node)
+.output reachable   ()
+.decl same_clique (node1:Node, node2:Node)
+.output same_clique ()
+.decl edge        (node1:Node, node2:Node)
+.output edge        ()
+
+reachable(X,Y)   :- edge(X,Y).
+reachable(X,Y)   :- edge(X,Z), reachable(Z,Y).
+same_clique(X,Y) :- reachable(X,Y), reachable(Y,X).
+
+edge("0", "1").
+edge("1", "2").
+edge("2", "3").
+edge("3", "4").
+edge("4", "5").
+edge("5", "0").
+edge("5", "6").
+edge("6", "7").
+edge("7", "8").
+edge("8", "9").
+edge("9", "10").
+edge("10", "7").

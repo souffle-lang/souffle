@@ -1,0 +1,39 @@
+//
+// Union Types
+//
+// This test checks that types are handled correctly. It was
+// created for issue #201 "Type system: Fails when Union type
+// expands to different primitive types".
+//
+
+.type one <: number
+.type two <: number
+.type three <: symbol
+
+.type all = one | two
+
+.decl A (i:one)
+.decl B (i:two)
+.decl C (i:three)
+.decl D (i:three)
+
+.decl G (i:one)
+.decl F (i:all)
+.decl E (i:all)
+
+A(1).
+A(2).
+
+B(2).
+B(3).
+
+// A(X) is a source and is more general than sink F(X), so it's ok.
+F(X) :- A(X). // no error
+F(X) :- B(X). // no error
+G(X) :- E(X). // error
+
+// F(X) is the only source, thus type(X) = all, but we have two sinks in form of negation that require a more specific subtype, thus we have error.
+E(X) :- F(X), !A(X), !B(X). // error.
+E(X) :- F(X), A(X), B(X). // error
+
+C(X) :- D(X), !A(X). // error

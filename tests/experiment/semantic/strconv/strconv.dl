@@ -1,0 +1,24 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// check correctness of string to number and number to string conversions
+//
+
+.decl A(x:number)
+
+A(x) :- x=to_number("10").
+A(x) :- x=to_number("-10").
+
+.output A
+
+.decl B(x:symbol)
+
+B(x) :- x=to_string(10).
+B(x) :- x=to_string(-10).
+B(x) :- x=to_string(4711).
+
+.output B

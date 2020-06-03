@@ -1,0 +1,22 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests valid execution plans
+
+.decl a(x:number)
+a(0).
+a(x+2) :- b(x), a(x), c(x+1).
+    .plan 1:(2,1,3),
+          2:(1,2,3)
+.output a()
+
+.decl b(x:number)
+b(0).
+b(x-1) :- a(x).
+
+.decl c(x:number)
+c(0).
+c(x+1) :- a(x).

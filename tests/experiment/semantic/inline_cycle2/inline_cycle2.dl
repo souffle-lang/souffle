@@ -1,0 +1,29 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests valid cyclic inlining.
+
+// Though the precedence graph contains the cycle {b, c, d, e},
+// no cycle exists that consists solely of inlined relations,
+// and so this program is valid.
+
+.decl a(x:number)
+.input a()
+
+.decl b(x:number) inline
+.decl c(x:number)
+.decl d(x:number) inline
+.decl e(x:number)
+
+.decl f(x:number)
+.output f()
+
+f(x) :- d(x).
+d(x) :- c(x).
+c(x) :- b(x).
+b(x) :- e(x).
+e(x) :- d(x).
+b(x) :- a(x).

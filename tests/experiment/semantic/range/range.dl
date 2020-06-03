@@ -1,0 +1,59 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests for the `range` generative functor. It is polymorphic for all numerics.
+// Arity Overloads:
+//    `range(from, to)` equiv to `range(from, to, sign(to - from))`
+//    `range(from, to, step)`
+// `to` is exclusive. This matches Python's slice semantics.
+
+// relation format: {op}_{ty}
+// Types are: float (f), signed (i), and unsigned (u)
+// Operations are:
+//  a) hi -> lo w/ explicit step
+//  b) hi -> lo w/ default step
+//  c) lo -> hi w/ default step
+//  d) hi -> lo w/ step = 0
+//  e) lo -> hi w/ step = 0
+//  f) various empty ranges (w/ and w/o steps)
+
+
+.decl a_f, b_f, c_f, d_f, e_f, f_f (x: float)
+.output a_f, b_f, c_f, d_f, e_f, f_f
+a_f(x) :- x = range(5.0, 3.75, -0.5).
+b_f(x) :- x = range(5.0, 3.75).
+c_f(x) :- x = range(3.75, 5.0).
+d_f(x) :- x = range(5.0, 3.75, 0.0).
+e_f(x) :- x = range(3.75, 5.0, 0.0).
+f_f(x) :- x = range(5.0, 5.0).
+f_f(x) :- x = range(5.0, 5.0, -0.5).
+f_f(x) :- x = range(5.0, 5.0, 0.0).
+f_f(x) :- x = range(5.0, 5.0, 0.5).
+
+.decl a_i, b_i, c_i, d_i, e_i, f_i (x: number)
+.output a_i, b_i, c_i, d_i, e_i, f_i
+a_i(x) :- x = range(5, 1, -1).
+b_i(x) :- x = range(5, 1).
+c_i(x) :- x = range(1, 5).
+d_i(x) :- x = range(5, 1, 0).
+e_i(x) :- x = range(1, 5, 0).
+f_i(x) :- x = range(1, 1, 0).
+f_i(x) :- x = range(5, 5).
+f_i(x) :- x = range(5, 5, -1).
+f_i(x) :- x = range(5, 5, 0).
+f_i(x) :- x = range(5, 5, 1).
+
+
+.decl a_u, b_u, c_u, d_u, e_u, f_u (x: unsigned)
+.output a_u, b_u, c_u, d_u, e_u, f_u
+a_u(x) :- x = range(1, 5, 2).
+b_u(x) :- x = range(5, 1).
+c_u(x) :- x = range(1, 5).
+d_u(x) :- x = range(5, 1, 0).
+e_u(x) :- x = range(1, 5, 0).
+f_u(x) :- x = range(5, 5).
+f_u(x) :- x = range(5, 5, 0).
+f_u(x) :- x = range(5, 5, 1).

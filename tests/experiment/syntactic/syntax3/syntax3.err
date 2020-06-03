@@ -1,0 +1,4 @@
+Error: syntax error, unexpected +, expecting :- or "," in file syntax3.dl at line 13
+same_clique(X,Y) + reachable(X,Y), reachable(Y,X).
+-----------------^---------------------------------
+1 errors generated, evaluation aborted

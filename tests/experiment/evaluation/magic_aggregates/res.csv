@@ -1,0 +1,16 @@
+min	2
+minA	3
+minB	2
+minAB	3
+minAB+	5
+max	6
+maxA	6
+maxB	4
+maxAB	4
+maxAB+	10
+count	8
+countA	4
+countB	3
+countC	0
+countNotA	4
+countNotB	5

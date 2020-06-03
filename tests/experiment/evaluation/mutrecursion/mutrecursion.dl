@@ -1,0 +1,19 @@
+//
+// Mutual recursion
+//
+// Datalog formulation
+
+.type set <: symbol
+
+.decl p  (node:set)
+.output p  ()
+.decl q  (node:set)
+.output q  ()
+
+p("a").
+p("b").
+q("c").
+q("d").
+
+p(X) :- q(X).
+q(X) :- p(X).

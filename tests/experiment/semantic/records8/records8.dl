@@ -1,0 +1,20 @@
+
+.type N <: number
+
+.decl n( x : N )
+
+n(1).
+n(2).
+n(3).
+n(4).
+n(5).
+
+.type pair = [ first : N, second : N ]
+
+.decl p ( p : pair )
+p([x,x]) :- n(x).
+
+.decl r ( x : N, y : N )
+.output r ()
+r(x,y) :- p([x,y]).
+

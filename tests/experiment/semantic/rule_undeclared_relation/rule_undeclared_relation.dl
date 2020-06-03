@@ -1,0 +1,9 @@
+
+.decl b(X:symbol)
+
+// this should produce an error
+a(X) :- b(X).
+
+// as well as this
+b(X) :- c(X).
+

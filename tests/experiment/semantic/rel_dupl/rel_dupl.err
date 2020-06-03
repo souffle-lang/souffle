@@ -1,0 +1,7 @@
+Error: Redefinition of relation R in file rel_dupl.dl at line 6
+.decl R(typeA:Type, typeB:Type)
+------^-------------------------
+Previous definition in file rel_dupl.dl at line 5
+.decl R(typeA:Type, typeB:Type)
+------^-------------------------
+1 errors generated, evaluation aborted

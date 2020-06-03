@@ -1,0 +1,3 @@
+Warning: No rules/facts defined for relation g in file existential.dl at line 47
+.decl g(x:number)
+------^-----------

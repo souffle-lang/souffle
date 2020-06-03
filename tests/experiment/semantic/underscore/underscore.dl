@@ -1,0 +1,12 @@
+.type T <: symbol
+.type R <: symbol
+
+.decl F (r:R, t:T)
+
+// Underscores can not appear in
+// ... binary relations
+F(x,y) :- F(x,y),  x > _.
+// ... or in facts
+F("string",_).
+// ... or in heads of rules
+F(_,y) :- F(_,y).

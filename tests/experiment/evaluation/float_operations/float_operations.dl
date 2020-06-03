@@ -1,0 +1,37 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test operations on floats.
+
+.decl Add(x: number)
+Add(ftoi(x)) :- x = -1.5 + 1.5.    // 0
+Add(ftoi(x)) :- x = 0.125 + 325.0. // 325
+Add(ftoi(x)) :- x = 0.333 + 0.777. // 1
+Add(ftoi(x)) :- x = -1.232 + (-123.7). // -124
+
+.decl Minus(x: number)
+Minus(ftoi(x - 0.4)) :- x = 0.0 ; x = 325.0 ; x = 1.0; x = -124.0.
+Minus(ftoi(x - (-2.0))) :- x = 0.0 ; x = 325.0 ; x = 1.0; x = -124.0.
+
+.decl Multiply(x: number)
+Multiply(ftoi(x)) :- x = 3.0 * 0.5.         // 1
+Multiply(ftoi(x)) :- x = 100.0 * -(0.409).  // -40
+Multiply(ftoi(x)) :- x = -0.3 * (-8.0).     // 2
+
+.decl Divide(x: number)
+Divide(ftoi(x)) :- x = 100.0 / 0.5 + 0.5.
+
+.decl Exp(x: number)
+Exp(ftoi(x)) :- x = (2.0 ^ 4.0) + 0.5. // 16 
+
+.decl Max(x: number)
+Max(ftoi(x)) :- x = max(1.0, 2.3, -1.5, 120.35). // 120
+
+.decl Min(x: number)
+Min(ftoi(x)) :- x = min(1.0, 2.3, -1.5, 120.35). // -1
+
+
+.output Minus, Add, Multiply, Divide, Exp, Max, Min

@@ -1,0 +1,35 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// The Takeuchi benchmark function.
+// Each tak(n, 0, n+1) requires T(n) recursive calls, which sequence this program generates.
+
+
+/* X, Y, Z : Parameters of the tak function;
+ * V       : The value of tak(X, Y, Z);
+ * Q       : The number of branches used in evaluating V */
+.decl tak(X:number, Y:number, Z:number, V:number, Q:number)
+
+tak(X,Y,Z,Y,0) :- Y >= X, natural(X), natural(Y), natural(Z).
+tak(X,Y,Z,V,Q1+Q2+Q3+Q4+1) :- tak(X-1,Y,Z,V1,Q1), tak(Y-1,Z,X,V2,Q2), tak(Z-1,X,Y,V3,Q3),
+                              tak(V1,V2,V3,V,Q4), Y < X.
+
+
+/* Restrict the range in which tak is evaluated. */
+.decl natural(N:number)
+
+natural(-8).
+natural(n+1) :- natural(n), n < 8.
+
+
+/* N : index
+ * Q : the value of the N'th Takeuchi number. */
+.decl query(N: number, Q:number)
+.output query()
+
+query(N, Q) :- tak(N, 0, N+1, _, Q), N >= 0, N < 10.
+
+

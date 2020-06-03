@@ -1,0 +1,8 @@
+Error: Unable to stratify relation(s) {chosen,diffchoice}
+Relation diffchoice in file choice.dl at line 16
+.decl diffchoice(s:Integer, p:Integer)
+------^--------------------------------
+has cyclic negation in file choice.dl at line 25
+chosen(s, p) :- student(s, m, _), professor(p, m), !diffchoice(s, p).
+----------------------------------------------------^-----------------
+1 errors generated, evaluation aborted

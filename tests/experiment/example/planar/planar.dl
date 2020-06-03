@@ -1,0 +1,85 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Determines whether a graph is planar i.e. has no lines that intersect
+
+// Define an edge by its two x,y endpoints
+.decl edge(x1 : number, y1 : number, x2 : number, y2 : number)
+.input edge()
+
+// Check if two edges join only at an endpoint; this does not count as an intersection
+.decl sharedNode(x1 : number, y1 : number, x2 : number, y2 : number,
+	x3 : number, y3 : number, x4 : number, y4 : number)
+sharedNode(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	x3 - x1 = 0, y3 - y1 = 0.
+sharedNode(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	x4 - x1 = 0, y4 - y1 = 0.
+sharedNode(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	x3 - x2 = 0, y3 - y2 = 0.
+sharedNode(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	x4 - x2 = 0, y4 - y2 = 0.
+
+// Check if there exists two intersecting lines, using the idea of orientation from computational geometry
+.decl intersect(x1 : number, y1 : number, x2 : number, y2 : number,
+	x3 : number, y3 : number, x4 : number, y4 : number)
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2) > 0,
+	(y2 - y1) * (x4 - x2) - (x2 - x1) * (y4 - y2) < 0,
+	(y4 - y3) * (x1 - x4) - (x4 - x3) * (y1 - y4) > 0,
+	(y4 - y3) * (x2 - x4) - (x4 - x3) * (y2 - y4) < 0.
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2) > 0,
+	(y2 - y1) * (x4 - x2) - (x2 - x1) * (y4 - y2) < 0, (y4 - y3) * (x1 - x4) - (x4 - x3) * (y1 - y4) < 0, (y4 - y3) * (x2 - x4) - (x4 - x3) * (y2 - y4) > 0.
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2) < 0,
+	(y2 - y1) * (x4 - x2) - (x2 - x1) * (y4 - y2) > 0,
+	(y4 - y3) * (x1 - x4) - (x4 - x3) * (y1 - y4) > 0,
+	(y4 - y3) * (x2 - x4) - (x4 - x3) * (y2 - y4) < 0.
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2) < 0,
+	(y2 - y1) * (x4 - x2) - (x2 - x1) * (y4 - y2) > 0,
+	(y4 - y3) * (x1 - x4) - (x4 - x3) * (y1 - y4) < 0,
+	(y4 - y3) * (x2 - x4) - (x4 - x3) * (y2 - y4) > 0.
+// The following lines check the case if the endpoint of one line lies on the other line (other than that line's endpoints)
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2) = 0,
+	x3 > min(x1, x2), x3 < max(x1, x2),
+	y3 > min(y1, y2), y3 < max(y1, y2).
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y2 - y1) * (x4 - x2) - (x2 - x1) * (y4 - y2) = 0,
+	x4 > min(x1, x2), x4 < max(x1, x2),
+	y4 > min(y1, y2), y4 < max(y1, y2).
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y4 - y3) * (x1 - x4) - (x4 - x3) * (y1 - y4) = 0,
+	x1 > min(x3, x4), x1 < max(x3, x4),
+	y1 > min(y3, y4), y1 < max(y3, y4).
+intersect(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	(y4 - y3) * (x2 - x4) - (x4 - x3) * (y2 - y4) = 0,
+	x2 > min(x3, x4), x1 < max(x3, x4),
+	y2 > min(y3, y4), y2 < max(y3, y4).
+
+// Main function checking if graph is planar
+.decl planar(x1 : number, y1 : number, x2 : number, y2 : number,
+	x3 : number, y3 : number, x4 : number, y4 : number)
+// If not planar, program outputs the pairs of lines that intersect
+.output planar()
+planar(x1, y1, x2, y2, x3, y3, x4, y4) :-
+	edge(x1, y1, x2, y2), edge(x3, y3, x4, y4),
+	intersect(x1, y1, x2, y2, x3, y3, x4, y4),
+	!sharedNode(x1, y1, x2, y2, x3, y3, x4, y4),
+	x1 <= x3, y1 <= y3.

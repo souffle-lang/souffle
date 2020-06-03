@@ -1,0 +1,21 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Find the shorted outward edge for every Node
+.type Node <: symbol
+
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
+
+.decl OutDegree(n:Node, l:number)
+.output OutDegree()
+
+OutDegree(x, l) :- Edge(x, _, _), l = sum 1 : Edge(x, _, _).
+
+.decl InDegree(n:Node, l:number)
+.output InDegree()
+
+InDegree(x, l) :- Edge(_, x, _), l = sum 1 : Edge(_, x, _).

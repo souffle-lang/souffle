@@ -1,0 +1,4 @@
+[1, Cmeow] , [0, CmeowMeow] , nil
+[-3, Cblue] , nil , [1, Cmeow]
+nil , [2, Capple] , [2, Capple]
+nil , nil , nil

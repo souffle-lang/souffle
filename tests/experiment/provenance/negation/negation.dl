@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests the provenance explain interface for a simple path example.
+
+.pragma "provenance" "explain"
+
+.decl person(x:symbol)
+person("john").
+person("jim").
+person("tim").
+
+.decl being(x:symbol)
+being(x) :- person(x).
+being("tomothy_the_cat").
+being("ollie_the_doggo").
+
+.decl animal(x:symbol)
+animal(x) :- being(x), !person(x).
+.output animal

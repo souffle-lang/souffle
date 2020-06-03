@@ -1,0 +1,31 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// An instance of the same-generation problem.
+
+// The `parent` facts generate a complete binary tree with height 15,
+// with nodes labelled from top to bottom, left to right.
+// The program verifies that the bottom left node (16384) is in the
+// same generation as the bottom right node (32767).
+
+// Using magic set brings this down from an exponential problem to a linear one.
+.pragma "magic-transform" "*"
+
+.decl samegen(x:number, y:number)
+
+.decl node(x:number)
+.input node()
+
+.decl parent(x:number, y:number)
+.input parent()
+
+.decl query()
+.output query()
+
+samegen(x, x) :- node(x).
+samegen(x, y) :- parent(x, a), samegen(a, b), parent(y, b).
+
+query() :- samegen(16384,32767).

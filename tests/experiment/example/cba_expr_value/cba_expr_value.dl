@@ -1,0 +1,121 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// An example constraint-based analysis:
+//
+// Given the Lambda term: (\ denotes a lambda)
+//
+//	(\x. x 3 2) (\y.\z.z)
+//
+// what is its value?
+//
+
+
+// Step A) model the input code
+
+.type Kind <: symbol
+
+.decl kind(k:Kind)
+
+kind("Lit").
+kind("Var").
+kind("Abs").
+kind("App").
+
+// the global term register - id, kind and index in corresponding relation
+.decl term( id:number, k:Kind, i:number )
+
+
+.type Value <: symbol
+
+.decl lits( i:number, n:Value )
+
+lits( 0, "3" ).
+lits( 1, "2" ).
+
+term( 0, "Lit", 0 ).
+term( 1, "Lit", 1 ).
+
+
+.type VarName <: symbol
+.decl vars( i:number, n:VarName )
+
+vars( 0, "x" ).
+vars( 1, "y" ).
+vars( 2, "z" ).
+
+term( 2, "Var", 0 ).
+term( 3, "Var", 1 ).
+term( 4, "Var", 2 ).
+
+
+.decl abs( i:number, v:number, b:number)
+
+abs( 0, 0, 8 ).
+abs( 1, 1, 7 ).
+abs( 2, 2, 4 ).
+
+term( 5, "Abs", 0 ).
+term( 6, "Abs", 1 ).
+term( 7, "Abs", 2 ).
+
+
+.decl app( i:number, t1:number, t2:number )
+
+app( 0, 9, 1 ).
+app( 1, 2, 0 ).
+app( 2, 5, 6 ).
+
+term( 8, "App", 0 ).
+term( 9, "App", 1 ).
+term(10, "App", 2 ).
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Step B) Analysis - get the value computed by the term
+
+
+.decl data_var( i:number, v:Value )
+.decl data_term( i:number, v:Value )
+.output data_term()
+
+.decl ctrl_var( i:number, f:number )
+.decl ctrl_term( i:number, f:number )
+
+
+//////////// D - Data Analysis //////////////
+
+// the value of a literal is the value it is representing
+data_term( i, v ) :- term(i,"Lit",l), lits( l, v ).
+
+// the value of a variable is the value in the variable assignment
+data_term( i, v ) :- term(i,"Var",x), data_var( x, v ).
+
+// the value of an application is the value of the body of the targeted abstraction
+data_term( i, v ) :- term(i,"App",x), app(x,t1,_), ctrl_term(t1, f), abs( f, _, b), data_term( b, v ).
+
+// the value of an abstraction is not defined
+
+// parameter binding
+data_var( i, v ) :- app( _, a, b ), ctrl_term( a, f ), abs( f, i, _), data_term( b, v).
+
+
+//////////// C - Control Flow Analysis //////////////
+
+// the value of a variable is the value in the variable assignment
+ctrl_term( i, v ) :- term(i,"Var",x), ctrl_var( x, v ).
+
+// the value of an application is the value of the body of the targeted abstraction
+ctrl_term( i, v ) :- term(i,"App",x), app(x,t1,_), ctrl_term(t1, f), abs( f, _, b), ctrl_term( b, v ).
+
+// the control flow value of an abstraction is the term itself
+ctrl_term( i, v ) :- term( i, "Abs", v ).
+
+// parameter binding
+ctrl_var( i, v ) :- app( _, a, b ), ctrl_term( a, f ), abs( f, i, _), ctrl_term( b, v).
+

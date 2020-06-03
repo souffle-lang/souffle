@@ -1,0 +1,22 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 4
+//
+// This test checks that legacy code is handled correctly (#1296).
+// In the previous version of souffle the following was a valid program.
+// To not break users projects, we want to only issue warning for now.
+//
+
+
+.type M <: number
+.type Var <: number
+
+.decl numeric(m:M, v:Var)
+numeric(m, v) :- m = v - 1, v = 2.
+
+.output numeric(delimiter=", ")

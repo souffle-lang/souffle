@@ -1,0 +1,27 @@
+Warning: No rules/facts defined for relation b in file singleton.dl at line 12
+.decl b(x:number)
+------^-----------
+Warning: Variable x only occurs once in file singleton.dl at line 16
+query("t1") :- a(x).
+-----------------^---
+Warning: Variable x only occurs once in file singleton.dl at line 19
+query("t4") :- b(x).
+-----------------^---
+Warning: Variable x only occurs once in file singleton.dl at line 22
+query("t7") :- a(x), b(y).
+-----------------^---------
+Warning: Variable y only occurs once in file singleton.dl at line 22
+query("t7") :- a(x), b(y).
+-----------------------^---
+Warning: Variable x only occurs once in file singleton.dl at line 23
+query("t8") :- a(x), a(y).
+-----------------^---------
+Warning: Variable y only occurs once in file singleton.dl at line 23
+query("t8") :- a(x), a(y).
+-----------------------^---
+Warning: Variable x only occurs once in file singleton.dl at line 24
+query("t9") :- b(x), b(y).
+-----------------^---------
+Warning: Variable y only occurs once in file singleton.dl at line 24
+query("t9") :- b(x), b(y).
+-----------------------^---

@@ -1,0 +1,20 @@
+{ "proof":
+	{ "premises": "path(\"a\", \"d\")",
+	  "rule-number": "(R2)",
+	  "children": [
+		{ "axiom": "edge(\"a\", \"b\")"},
+		{ "premises": "path(\"b\", \"d\")",
+		  "rule-number": "(R2)",
+		  "children": [
+			{ "axiom": "edge(\"b\", \"c\")"},
+			{ "premises": "path(\"c\", \"d\")",
+			  "rule-number": "(R1)",
+			  "children": [
+				{ "axiom": "edge(\"c\", \"d\")"}			]
+			}		]
+		}	]
+	},"rules": [
+	{ "rule-number": "(R1)", "rule": "path(x,y) :- \n   edge(x,y)."},
+	{ "rule-number": "(R2)", "rule": "path(x,z) :- \n   edge(x,y),\n   path(y,z)."}
+]
+}

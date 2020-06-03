@@ -1,0 +1,25 @@
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 34
+a(x,y) :- y = count : { c(x,_) }.
+--^-------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 35
+a(x,y) :- y = sum z : { c(x,z) }.
+--^-------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 36
+a(x,y) :- y = max z : { c(x,z) }.
+--^-------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 37
+a(x,y) :- y = min z : { c(x,z) }.
+--^-------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 40
+a(x,y) :- b(x), x = sum z : { c(y, z) }.
+----^------------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 43
+a(x, y) :- b(x+1), y = count : { c(x, _) }.
+--^-----------------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 43
+a(x, y) :- b(x+1), y = count : { c(x, _) }.
+-------------^------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file witness_check.dl at line 46
+a(x, y) :- r < 10, d(x), y = min z : { e(r), c(r, z) }.
+-----------^--------------------------------------------
+8 errors generated, evaluation aborted

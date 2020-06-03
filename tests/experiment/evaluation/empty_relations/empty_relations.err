@@ -1,0 +1,12 @@
+Warning: No rules/facts defined for relation A in file empty_relations.dl at line 5
+.decl A(x:number)
+------^-----------
+Warning: Variable x only occurs once in file empty_relations.dl at line 7
+B(1) :- A(x).
+----------^---
+Warning: No rules/facts defined for relation C in file empty_relations.dl at line 14
+.decl C(x:number)
+------^-----------
+Warning: Variable x only occurs once in file empty_relations.dl at line 19
+    D(1) :- C(x).
+--------------^---

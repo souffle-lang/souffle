@@ -1,0 +1,42 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests aggregates involving multiple relations of various types
+
+.type R = [ x : number ]
+
+.decl NumbersA(x : number)
+.decl NumbersB(x : number)
+.decl SymbolsA(x : symbol)
+.decl SymbolsB(x : symbol)
+.decl RecordsA(x : R)
+.decl RecordsB(x : R)
+.decl CountNumbers(x : number)
+.decl CountSymbols(x : number)
+.decl CountRecords(x : number)
+
+NumbersA(1).
+NumbersB(2).
+SymbolsA("a").
+SymbolsA("b").
+SymbolsB("b").
+SymbolsB("c").
+RecordsA([1]).
+RecordsA([2]).
+RecordsA([3]).
+RecordsB([2]).
+RecordsB([3]).
+RecordsB([4]).
+RecordsB([5]).
+RecordsB(nil).
+
+CountNumbers(x) :- x = count : { NumbersA(y), NumbersB(y) } .
+CountSymbols(x) :- x = count : { SymbolsA(y), SymbolsB(y) } .
+CountRecords(x) :- x = count : { RecordsA(y), RecordsB(y) } .
+
+.output CountNumbers
+.output CountSymbols
+.output CountRecords

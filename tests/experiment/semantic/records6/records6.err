@@ -1,0 +1,3 @@
+Warning: Variable ?lastFld only occurs once in file records6.dl at line 12
+   AccessPathShouldBeRebased2([ ?from, [ [ ?rest, ?nextFld ], ?lastFld ] ], ?from, ?to),
+--------------------------------------------------------------^--------------------------

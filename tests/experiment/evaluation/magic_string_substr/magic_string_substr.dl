@@ -1,0 +1,29 @@
+// A copy of the `string_substr' test, this time using
+// the magic set transformation
+.pragma "magic-transform" "*"
+
+.decl A(x:symbol)
+A("abc123").
+A("bc123a").
+A("c123ab").
+A("123abc").
+A("23abc1").
+A("3abc12").
+
+.decl B(x:symbol)
+B(substr(x,2,2)) :- A(x).
+
+.output B()
+
+.decl Nullary()
+Nullary().
+
+.decl C(x:symbol)
+C(substr("12",22,12)) :- Nullary().
+
+.output C()
+
+// TODO (lyndonhenry): The code following this comment is a hack to disable the `-e` option, which happens automatically when a program contains record types. The `substr` functor returns an empty string when called with an invalid index. As such, the invalid substring indices used on line 19 of this test will cause a tuple containing the empty string to occur in the relation of `C`, which is otherwise empty. Using the `-efile` and `-m*` options together causes the intermediate IDB file `C+_f.facts` to be written to `output-dir`, where this file contains a single blank line for the tuple with the empty string in `C`. When this same file is then read as intermediate EDB by successor strata, This is not a bug with either the `-efile` or `-m*` options, nor their use together, but rather something else. The issue is that when empty strings are derived as IDB they can be written as output, however empty strings cannot be read as input EDB.
+.type T = [ x:number ]
+.decl P(x:T)
+P([0]).

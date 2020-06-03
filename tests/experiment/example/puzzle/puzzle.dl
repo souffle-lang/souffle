@@ -1,0 +1,57 @@
+//// Farmer-Wolf-Goat-Cabbage Puzzle
+//// Adopted from DES
+
+.type Node <: symbol
+
+.decl safe  (node1:Node, node2:Node, node3:Node, node4:Node)
+.output safe  ()
+.decl state (node1:Node, node2:Node, node3:Node, node4:Node)
+.output state ()
+.decl opp   (node1:Node, node2:Node)
+.output opp   ()
+
+// Initial state
+state("n","n","n","n").
+// Farmer takes Wolf
+state(X,X,U,V) :-
+  safe(X,X,U,V),
+  opp(X,X1),
+  state(X1,X1,U,V).
+// Farmer takes Goat
+state(X,Y,X,V) :-
+  safe(X,Y,X,V),
+  opp(X,X1),
+  state(X1,Y,X1,V).
+// Farmer takes Cabbage
+state(X,Y,U,X) :-
+  safe(X,Y,U,X),
+  opp(X,X1),
+  state(X1,Y,U,X1).
+// Farmer goes by himself
+state(X,Y,U,V) :-
+  safe(X,Y,U,V),
+  opp(X,X1),
+  state(X1,Y,U,V).
+
+// Opposite shores (n/s)
+opp("n","s").
+opp("s","n").
+
+// Farmer is with Goat
+
+// TODO: This triggers segfault
+// safe(X,Y,X,V) :- safe(X,_,X,_).
+
+// Rewrite non-ground rule  'safe(X,Y,X,V)' to:
+safe("n","s","n","s").
+safe("n","n","n","n").
+safe("n","s","n","n").
+safe("n","n","n","s").
+safe("s","s","s","s").
+safe("s","n","s","n").
+safe("s","s","s","n").
+safe("s","n","s","s").
+
+// Farmer is not with Goat
+safe(X,X,X1,X) :- opp(X,X1).
+

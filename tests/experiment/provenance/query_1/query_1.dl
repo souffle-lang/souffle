@@ -1,0 +1,27 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests the provenance explain interface for a simple path example.
+
+.pragma "provenance" "explain"
+
+.decl edge(x:symbol, y:symbol)
+edge("start", "B0").
+edge("B0", "B1").
+edge("B1", "B2").
+edge("B2", "B4").
+edge("B2", "B6").
+edge("B3", "B4").
+edge("B4", "B4").
+edge("B4", "B5").
+edge("B5", "B6").
+edge("B6", "B1").
+edge("B6", "end").
+
+.decl path(x:symbol, y:symbol)
+path(x, y) :- edge(x, y).
+path(x, z) :- edge(x, y), path(y, z).
+.output path()

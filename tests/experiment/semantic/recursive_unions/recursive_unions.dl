@@ -1,0 +1,37 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests errors when defining cyclic union types.
+
+// recursive union: {U1,U2}
+.type U3 <: symbol
+.type U = U1 | U2
+.type U1 = U2 | U3
+.type U2 = U1 | U3
+
+// recursive union: {V1}
+.type V1 = V1 | symbol
+
+// recursive union: {R}
+.type R = R
+
+// recursive union: {B,a,D}
+.type F <: symbol
+.type C <: symbol
+.type T = B | F
+.type B = C | a
+.type a = D
+.type D = B | C
+.type E = a | T
+
+// this should be fine
+.type Good = Yes | Yes | Great
+.type Great = Fantastic | Awesome | EverythingIsFine
+.type Fantastic = Yes
+
+.type Awesome <: symbol
+.type EverythingIsFine <: symbol
+.type Yes <: symbol

@@ -1,0 +1,3 @@
+.decl B(x:number, y:number)
+.input B()
+.printsize B

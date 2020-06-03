@@ -1,0 +1,6 @@
+warning: wrong pattern provided for match("b.*[","aaaa").
+warning: wrong pattern provided for match("b.*[","a").
+warning: wrong pattern provided for match("b.*[","abba").
+warning: wrong pattern provided for match("b.*[","bcab").
+warning: wrong pattern provided for match("b.*[","bdab").
+warning: wrong pattern provided for match("b.*[","cdab").

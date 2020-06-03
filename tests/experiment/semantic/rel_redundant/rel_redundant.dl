@@ -1,0 +1,36 @@
+// verify the relation copy eraser doesn't inline relations with unifications in their head.
+
+.decl A(x: number, y: number)
+A(0, 0).
+A(1, 0).
+
+.decl B(x: number, y: number)
+B(z, z) :- A(z, z).
+
+.decl C(a: number, b: number)
+.output C
+C(a, b) :- B(a, b).
+
+// same idea, but now verify that we handle records correctly
+.type R0 = [x:number, y:number]
+.decl d,e(x:number, y:R0)
+.decl record0(x:number, y:number)
+.output record0
+
+d(0,[0,1]).
+d(0,[1,0]).
+d(1,[1,1]).
+e(x0, [x,x]) :- d(x0, [x,x]).
+record0(x, y) :- e(x, [y,_]).
+
+
+.type R1 = [x:number]
+.decl f,g(x:number, y:R1)
+.decl record1(x:number, y:number)
+.output record1
+
+f(0,[0]).
+f(0,[1]).
+f(1,[1]).
+g(x, [x]) :- f(x, [x]).
+record1(x, y) :- g(x, [y]).

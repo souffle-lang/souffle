@@ -1,0 +1,4 @@
+output provenance.txt
+format json
+explain path("a", "d")
+exit

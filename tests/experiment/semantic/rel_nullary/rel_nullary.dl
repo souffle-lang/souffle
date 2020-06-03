@@ -1,0 +1,95 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// RHS nullaries
+.decl B(x:number)
+.output B()
+B(1).
+
+.decl A()
+.output A()
+A() :- B(_).
+
+.decl C()
+.output C()
+C() :- B(2).
+
+
+// Empty and defined nullaries from input
+.decl Def()
+.printsize Def
+.input Def()
+.decl Undef()
+.printsize Undef
+.input Undef()
+
+// A defined nullary relation.
+.decl E()
+.printsize E
+E().
+
+// LHS nullaries
+.decl F()
+F().
+
+// Empty nullary relation without input
+.decl G()
+.printsize G
+
+// Nullaries as conditions.
+.decl H(x:number)
+.output H()
+H(1) :- F().
+H(2) :- G().
+H(3) :- G(), F().
+H(4) :- !G().
+H(5) :- !G(), F().
+
+.decl I(x:number)
+I(1).
+I(2).
+
+.decl I2(x:number)
+
+.decl J(x:number)
+J(10).
+J(20).
+J(30) :- !I2(_).
+
+.decl K()
+K().
+
+.decl L(x:number)
+.output L()
+L(x+y) :- I(x), K(), J(y).
+
+
+// Recursively defined nullary relations.
+.decl M()
+.printsize M
+M() :- M().
+
+.decl N()
+.output N()
+N().
+N() :- N().
+
+.decl P()
+.printsize P
+P().
+P() :- Q().
+
+.decl Q()
+.output Q()
+Q() :- P().
+
+.decl R(x:number)
+.output R()
+R(10).
+R(x) :- S(), R(x).
+
+.decl S()
+S() :- R(_).

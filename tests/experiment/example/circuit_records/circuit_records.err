@@ -1,0 +1,12 @@
+Warning: Variable xv only occurs once in file circuit_records.dl at line 76
+    l = [[x,xv],tail].
+------------^----------
+Warning: Variable tail only occurs once in file circuit_records.dl at line 76
+    l = [[x,xv],tail].
+----------------^------
+Warning: Variable xv only occurs once in file circuit_records.dl at line 82
+    l = [[x,xv],tail],
+------------^----------
+Warning: Variable tail only occurs once in file circuit_records.dl at line 82
+    l = [[x,xv],tail],
+----------------^------

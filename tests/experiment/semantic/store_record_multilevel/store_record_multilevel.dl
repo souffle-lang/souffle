@@ -1,0 +1,20 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test writing of nested records
+
+.type Tree = [ left: Tree, val: number, right: Tree ]
+
+
+.decl T(t: Tree, height: number)
+T(nil, 0).
+T([left, m + 1,right], m + 1) :- T(left, m), T(right, m),
+                               m < 10.
+
+.decl O(t: Tree)
+O(t) :- T(t, _).
+
+.output O

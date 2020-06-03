@@ -1,0 +1,6 @@
+Warning: No rules/facts defined for relation G in file rel_nullary.dl at line 39
+.decl G()
+------^---
+Warning: No rules/facts defined for relation I2 in file rel_nullary.dl at line 55
+.decl I2(x:number)
+------^------------

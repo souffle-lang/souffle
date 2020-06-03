@@ -1,0 +1,40 @@
+//// Hypothetical Queries
+//// Source: [Bonn99], extended and adapted
+//// Adopted from DES
+
+.type Node <: symbol
+
+.decl student (node1:Node)
+.output student ()
+.decl course (node1:Node)
+.output course ()
+.decl pre (node1:Node, node2:Node)
+.output pre ()
+.decl take (node1:Node, node2:Node)
+.output take ()
+.decl grad (node1:Node)
+.output grad ()
+
+student("adam").
+student("bob").
+student("pete").
+student("scott").
+student("tony").
+
+course("eng").
+course("his").
+course("lp").
+
+take("adam","eng").
+take("pete","his").
+take("pete","eng").
+take("scott","his").
+take("scott","lp").
+take("tony","his").
+
+pre("eng","lp").
+pre("hist","eng").
+
+pre(Pre,Post) :- pre(Pre,X), pre(X,Post).
+
+grad(S) :- take(S,"his"), take(S,"eng").

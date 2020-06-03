@@ -1,0 +1,16 @@
+.type N <: symbol
+.type R = [ f : N ]
+.type L = [ f : N , r : L ]
+
+.decl a ( a : N, b : R , l : L )
+
+// this is ok
+a("N",nil,nil).
+a("N",nil,["N",nil]).
+a("N",nil,["N",["N",nil]]).
+
+// this is not
+a(nil,nil,nil).
+a("N",nil,[nil,nil]).
+a("N",nil,["N",[nil,nil]]).
+

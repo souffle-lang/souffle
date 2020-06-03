@@ -1,0 +1,15 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.type Word <: symbol
+
+.decl words (i:number, w:Word)
+.input words
+
+.decl bigram (w:Word, w1:Word)
+.output bigram
+
+bigram(w, w1) :- words(i, w), words(i+1, w1).

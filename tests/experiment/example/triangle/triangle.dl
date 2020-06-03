@@ -1,0 +1,22 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//triangle
+
+.type Text <: symbol
+
+.decl addrecurse(b:number, result:Text, level:number)
+
+addrecurse(b,cat(cat("*",result),"*"),level+1) :- addrecurse(b,result,level), level!=b.
+
+addrecurse(12,"*",0).
+
+
+.decl out(result:Text)
+.output out()
+
+out(result) :- addrecurse(_,result,_).
+

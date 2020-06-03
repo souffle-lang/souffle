@@ -1,0 +1,106 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Check Structural Equivalence of Compositional Terms
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Given two compositional terms
+//  X = f(.. g(... h(... )))
+//  Y = f(.. g(... h(... )))
+// check structural equivalence by
+// linearizing compositional terms
+// and checking equivalence component
+// by component.
+
+// Types
+.type Variable <: symbol
+.type Functor <: symbol
+
+// EDB Relations
+.decl fn(v:Variable, f:Functor)
+.decl arg(v:Variable, p:number, a:Variable)
+.decl numParam(v:Variable, p:number)
+
+// IDB Relations
+.decl equal(v1:Variable, v2:Variable)
+.output equal()
+.decl equalParam(v1:Variable, v2:Variable, p:number)
+.output equalParam()
+.decl nextEqualParam(v1:Variable, v2:Variable, p:number)
+.output nextEqualParam()
+
+//
+// Equivalence relation between two expressions
+//
+
+// Case 1: function has no parameters
+// conditions: (1) same functor symbol, (2) no parameters for both expressions
+equal(v1,v2) :-
+   fn(v1, f),
+   fn(v2, f),
+   numParam(v1, 0),
+   numParam(v2, 0).
+
+// Case 2: function has parameters
+// conditions: (1) same functor symbol, (2) same number of parameters,
+//             (3) parameter equivalence
+
+equal(v1, v2) :-
+   fn(v1, f),
+   fn(v2, f),
+   numParam(v1, p),
+   numParam(v2, p),
+   equalParam(v1, v2, p).
+
+
+// compute equivalence for parameters
+
+// Case 1: check equivalence for first parameter
+equalParam(v1, v2, 1) :-
+   equal(a1, a2),
+   arg(v1, 1, a1),
+   arg(v2, 1, a2).
+
+// Case 2: check equivalence for subsequent parameters
+nextEqualParam(v1, v2, prev + 1) :-
+   equalParam(v1, v2, prev).
+
+equalParam(v1, v2, next) :-
+   equal(a1, a2),
+   arg(v1, next, a1),
+   arg(v2, next, a2),
+   nextEqualParam(v1, v2, next).
+
+// Facts for simple example:
+//  f(g(),h()) = f(g(),h())
+
+// Normalize example by variable substitution:
+//  {f(g(),h()) = f(g(),h())} <=>
+//  {f(a1, a2) = f(b1, b2), a1=g(), a2=h(), b1=g(), b2=h()} <=>
+//  {x = y, a1=g(), a2=h(), b1=g(), b2=h(), x = f(a1, a2), y = f(b1, b2)}
+
+// x = f(a1, a2)
+fn("x", "f").
+arg("x", 1, "a1").
+arg("x", 2, "a2").
+numParam("x", 2).
+
+// y = f(b1, b2)
+fn("y", "f").
+arg("y", 1, "b1").
+arg("y", 2, "b2").
+numParam("y", 2).
+
+// a1 = g()
+fn("a1", "g").
+numParam("a1", 0).
+
+// a2 = g()
+fn("a2", "h").
+numParam("a2", 0).
+
+// b1 = g()
+fn("b1", "g").
+numParam("b1", 0).
+
+// b2 = g()
+fn("b2", "h").
+numParam("b2", 0).

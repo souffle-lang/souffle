@@ -1,0 +1,16 @@
+// Check whether empty facts are detected
+.type Node <: symbol
+
+.decl reachable   (node1:Node, node2:Node)
+.input reachable   ()
+.decl same_clique (node1:Node, node2:Node)
+.input same_clique ()
+.decl edge        (node1:Node, node2:Node)
+.input edge        ()
+
+reachable(X,Y)   :- edge(X,Y).
+reachable(X,Y)   :- edge(X,Z), reachable(Z,Y).
+same_clique(X,Y) :- reachable(X,Y), reachable(Y,X).
+
+edge( ).
+

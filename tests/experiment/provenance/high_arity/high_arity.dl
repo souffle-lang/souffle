@@ -1,0 +1,24 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests the provenance explain interface for a simple path example.
+
+.pragma "provenance" "explain"
+
+.decl A, B(a:number, b:number, c:number, d:number, e:number, f:number, g:number)
+.decl C(a:number, b:number)
+
+.output B
+
+A(1, 2, 3, 4, 5, 6, 7).
+A(2, 4, 6, 8, 10, 12, 14).
+C(1, 2).
+C(2, 2).
+C(3, 2).
+C(3, 4).
+
+B(a, b, c, d, e, f, g) :- A(a, b, c, d, e, f, g).
+B(a, b, b, b, b, b, b) :- C(a, b), B(_, b, _, _, _, _, _).

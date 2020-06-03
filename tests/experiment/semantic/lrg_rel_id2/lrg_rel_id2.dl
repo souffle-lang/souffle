@@ -1,0 +1,20 @@
+//
+// Souffle - A Datalog Compiler
+// Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n1: number, n2: number)
+
+ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(1,2).
+ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(2,3).
+
+.decl AnotherReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n1: number, n2: number)
+.printsize AnotherReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames
+
+AnotherReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n, m) :-
+  ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(n, _),
+  ReallyLongNameForARelationToCheckIfThereIsAnyProblemWithSuchLongNames(m, _),
+   n < m.
+

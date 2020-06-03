@@ -1,0 +1,21 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Find the shortest paths between all nodes, the slow way
+.type Node <: symbol
+
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
+
+// Find all paths
+.decl Length   (n:Node, m:Node, l:number)
+Length(x,y,t)  :- t=l, Edge(x,y,l).
+Length(x,y,t+l)  :- Edge(x,z,l), Length(z,y,t).
+
+// Filter out the longest path
+.decl ShortestPath(n:Node, m:Node, l:number)
+.output ShortestPath()
+ShortestPath(x, y, a) :- Length(x, y, _), a = min Z : Length(x, y, Z).

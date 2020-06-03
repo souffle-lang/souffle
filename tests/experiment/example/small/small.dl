@@ -1,0 +1,26 @@
+//// Test Case adopted from Ocaml datalog
+
+.type Node <: symbol
+
+.decl mother   (node1:Node, node2:Node)
+.output mother   ()
+.decl father   (node1:Node, node2:Node)
+.output father   ()
+.decl parent   (node1:Node, node2:Node)
+.output parent   ()
+.decl ancestor (node1:Node, node2:Node)
+.output ancestor ()
+
+parent(X,Y) :- mother(X,Y).
+parent(X,Y) :- father(X,Y).
+ancestor(X,Y) :- parent(X,Y).
+ancestor(X,Y) :- parent(X,Z), ancestor(Z,Y).
+
+mother("claudette", "ann").
+mother("jeannette", "bill").
+mother("mireille", "john").
+father("john", "ann").
+father("john", "bill").
+father("jean-jacques", "alphonse").
+father("alphonse", "mireille").
+father("brad", "john").

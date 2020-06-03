@@ -1,0 +1,4 @@
+[1, Bmeow], [0, BmeowMeow], nil
+[-3, Bblue], nil, [1, Bmeow]
+nil, [2, Bapple], [2, Bapple]
+nil, nil, nil

@@ -1,0 +1,46 @@
+//
+// Relational Algebra Operations
+//
+// Datalog Formulation
+
+// Relations
+
+.type Node <: symbol
+
+.decl a  (node1:Node)
+.output a  ()
+.decl b  (node1:Node)
+.output b  ()
+.decl c  (node1:Node, node2:Node)
+.output c  ()
+.decl projection  (node1:Node)
+.output projection  ()
+.decl cartesian   (node1:Node, node2:Node)
+.output cartesian   ()
+.decl inner_join  (node1:Node)
+.output inner_join  ()
+
+a("a1").
+a("a2").
+a("a3").
+
+b("b1").
+b("b2").
+b("a1").
+
+c("a1","b2").
+c("a1","a1").
+c("a2","b2").
+
+// (Extended) Relational Algebra Operations
+
+// pi(X)(c(X,Y)) : Projection of the first argument of c
+projection(X) :- c(X,_).
+
+// a x b : Cartesian product of relations a and b
+cartesian(X,Y) :- a(X), b(Y).
+
+// a |x| b : Natural inner join of relations a and b
+inner_join(X) :- a(X), b(X).
+
+

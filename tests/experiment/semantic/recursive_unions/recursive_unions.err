@@ -1,0 +1,22 @@
+Error: Recursive union U1 in file recursive_unions.dl at line 12
+.type U1 = U2 | U3
+^------------------
+Error: Recursive union U2 in file recursive_unions.dl at line 13
+.type U2 = U1 | U3
+^------------------
+Error: Recursive union V1 in file recursive_unions.dl at line 16
+.type V1 = V1 | symbol
+^----------------------
+Error: Recursive union R in file recursive_unions.dl at line 19
+.type R = R
+^-----------
+Error: Recursive union B in file recursive_unions.dl at line 25
+.type B = C | a
+^---------------
+Error: Recursive union a in file recursive_unions.dl at line 26
+.type a = D
+^-----------
+Error: Recursive union D in file recursive_unions.dl at line 27
+.type D = B | C
+^---------------
+7 errors generated, evaluation aborted

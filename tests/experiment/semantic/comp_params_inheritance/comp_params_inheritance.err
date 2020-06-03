@@ -1,0 +1,4 @@
+Error: Undefined relation impl.R in file comp_params_inheritance.dl at line 10
+    Base(x) :- impl.R(x).
+---------------^----------
+1 errors generated, evaluation aborted

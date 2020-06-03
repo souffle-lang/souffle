@@ -1,0 +1,10 @@
+Error: Invalid execution order in plan in file execution_plan.dl at line 14
+        .plan 1: (1,2,2), 2: (3,2), 3: (2,3,1,3)
+-----------------^-------------------------------
+Error: Invalid execution order in plan in file execution_plan.dl at line 14
+        .plan 1: (1,2,2), 2: (3,2), 3: (2,3,1,3)
+-----------------------------^-------------------
+Error: Invalid execution order in plan in file execution_plan.dl at line 14
+        .plan 1: (1,2,2), 2: (3,2), 3: (2,3,1,3)
+---------------------------------------^---------
+3 errors generated, evaluation aborted

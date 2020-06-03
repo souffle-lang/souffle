@@ -1,0 +1,27 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests rules containing body literals that are independent of the
+// head arguments (i.e. they are 'constant' wrt. head arguments).
+
+.decl a(x:number)
+a(x) :- b(x), c(y), d(y).
+
+.decl b(x:number)
+b(0).
+b(x+1) :- a(x), x < 1000000.
+
+.decl c(x:number)
+c(0).
+c(x+2) :- c(x), x < 1000.
+
+.decl d(x:number)
+d(0).
+d(x+3) :- d(x), x < 1000.
+
+.decl query(x:number)
+.output query()
+query(x) :- a(x), x < 10.

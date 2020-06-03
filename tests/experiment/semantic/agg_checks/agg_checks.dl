@@ -1,0 +1,32 @@
+// some input relation
+.decl a(a:symbol,b:number)
+a("A",1).
+
+// a result relation
+.decl r(a:symbol,b:number)
+
+
+// lack of atoms
+r("X",Y) :- Y = min X : { X != Y }.
+r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
+
+// variable not mentioned
+r("X",Y) :- Y = min X : { a("A",2) }.
+
+// variable not grounded
+r("X",Y) :- Y = min X : { a("A",Y), Y>X }.
+
+// wront type
+r("X",Y) :- Y = min X : a(X,_).
+
+// this is OK
+r("X",Y) :- Y = min X : a(_,X).
+r("X",X) :- X = min X : a(_,X).     // aggregations vars are scoped
+
+
+// not stratisfied
+r("X",Y) :- Y = min Y : r("X",Y).
+
+// nonexistent relation in aggregation body
+r("X",count: { nonexistent(_,_) }).
+r("X",count: { nonexistent(_,_) } * 3).

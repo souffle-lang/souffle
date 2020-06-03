@@ -1,0 +1,12 @@
+// Operators supported in binary relations
+.type N <: number
+
+.decl Path (a:N, b:N)
+.decl Edge (a:N, b:N)
+
+Path(a,c) :- Edge(a,c), a > c.
+Path(a,c) :- Edge(a,c), a < c.
+Path(a,c) :- Edge(a,c), a = c.
+Path(a,c) :- Edge(a,c), a != c.
+Path(a,c) :- Edge(a,c), a <= c.
+Path(a,c) :- Edge(a,c), a >= c.

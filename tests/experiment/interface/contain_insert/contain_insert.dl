@@ -1,0 +1,6 @@
+.type Node <: symbol
+.decl edge (node1:Node, node2:Node)
+.input edge ()
+.decl path (node1:Node, node2:Node)
+.output path ()
+path(X,Y) :- edge(X,Y).

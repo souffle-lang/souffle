@@ -1,0 +1,15 @@
+.type N <: symbol
+
+.decl Path (a:N, b:N)
+.decl Edge (a:N, b:N)
+
+Path(a,c) :- Edge(a,b), Path(b,c).
+
+Path(a,c) :- Edge(a,c), a > c.
+
+Path(a,c) :- Edge(a,c), !Edge(a,c).
+Path(a,c) :- Edge(a,c), Edge("a","c").
+Path(a,c) :- Edge(a,c), Edge("a",_).
+Path(a,c) :- Edge(a,c), Edge(_,"c").
+
+Path(a,c) :- . // empty rules are forbidden

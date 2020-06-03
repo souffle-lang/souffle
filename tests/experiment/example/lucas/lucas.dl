@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Compute a Lucas Sequence.
+
+// Maximum sequence element.
+.decl lim(l:number)
+.input lim()
+
+// Coefficients for the sequence.
+.decl pq(p:number, q:number)
+.input pq()
+
+// Relation composing the i'th element of this sequence.
+// Base cases given in the .facts file.
+.decl lucas(i:number, n:number)
+.output lucas()
+.input lucas()
+
+lucas(I+1, P*N - Q*M) :- lucas(I, N), lucas(I-1, M), pq(P, Q), !lim(I).

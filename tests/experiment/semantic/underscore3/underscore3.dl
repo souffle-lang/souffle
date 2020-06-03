@@ -1,0 +1,20 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.type Dog <: symbol
+.type Name <: symbol
+
+.decl person(x:Name)
+person("josef").
+
+.decl bites(x:Dog, y:Name)
+bites("struppi", "josef").
+bites("struppi", "maria").
+bites("alfi", "karl").
+
+.decl bad(x:Dog)
+.output bad()
+bad(Dog) :- bites(Dog, _Anybody), person(_Anybody).

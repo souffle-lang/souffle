@@ -1,0 +1,5 @@
+// Negative test case for a duplicate definition of a relation
+
+.type Type <: symbol
+
+.decl R(type:Type, type:Type)

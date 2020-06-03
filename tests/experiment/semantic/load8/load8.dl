@@ -1,0 +1,15 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+
+// Test reading, where relation's delimiter coincides with records delimiter
+
+.decl A(x:number, y:number)
+.input A(headers=true, delimiter=", ")
+
+.decl B(x:number, y:number)
+.output B()
+B(x,y) :- A(x,y).

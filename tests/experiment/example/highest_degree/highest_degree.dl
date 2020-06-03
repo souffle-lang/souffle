@@ -1,0 +1,26 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Find the highest in and out degree nodes in the graph
+.type Node <: symbol
+
+.decl Edge(n:Node, m:Node, w:number)
+.input Edge()
+
+.decl OutDegree(n:Node, l:number)
+OutDegree(x, l) :- Edge(x, _, _), l = sum 1 : Edge(x, _, _).
+
+.decl InDegree(n:Node, l:number)
+InDegree(x, l) :- Edge(_, x, _), l = sum 1 : Edge(_, x, _).
+
+.decl HighestOutDegree(d:number)
+.output HighestOutDegree()
+HighestOutDegree(d) :- OutDegree(_, _), d = max D : OutDegree(_, D).
+
+.decl HighestInDegree(d:number)
+.output HighestInDegree()
+HighestInDegree(d) :- InDegree(_, _), d = max D : InDegree(_, D).
+

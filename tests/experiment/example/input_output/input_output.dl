@@ -1,0 +1,194 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+//
+// input_output.dl
+//
+// Test for propagation of tuples between program strata
+// under multiple input and output configurations.
+//
+// Relations are names by the following schema, with
+// <x|y> denoting the exclusive or of x and y, and
+// [x] denoting the optional occurrence of x.
+//
+// [<Receiver|Sender|Receive|Send|ReceiveSend>] [<Input|Output|InputOutput>] <NumberSymbol|SymbolNumber>
+//
+// Sender relations propagate tuples to Receive and ReceiveSend
+// relations, while Send and ReceiveSend relations propagate
+// tuples to Receiver relations.
+//
+// Input relations are marked with .input, Output relations
+// with .output, and InputOutput relations with both .input
+// and .output.
+//
+// NumberSymbol and SymbolNumber relations have a number and
+// symbol, or, symbol and number, as their first and second
+// arguments respectively.
+//
+
+.decl SenderNumberSymbol(x:number, y:symbol)
+.input SenderNumberSymbol()
+
+.decl ReceiverNumberSymbol(x:number, y:symbol)
+.output ReceiverNumberSymbol()
+
+.decl InputNumberSymbol(x:number, y:symbol)
+.input InputNumberSymbol()
+InputNumberSymbol(1, "b").
+
+.decl OutputNumberSymbol(x:number, y:symbol)
+.output OutputNumberSymbol()
+OutputNumberSymbol(1, "b").
+
+.decl InputOutputNumberSymbol(x:number, y:symbol)
+.input InputOutputNumberSymbol()
+.output InputOutputNumberSymbol()
+InputOutputNumberSymbol(1, "b").
+
+.decl ReceiveNumberSymbol(x:number, y:symbol)
+ReceiveNumberSymbol(1, "b").
+ReceiveNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+
+.decl SendNumberSymbol(x:number, y:symbol)
+SendNumberSymbol(1, "b").
+ReceiverNumberSymbol(x, y) :- SendNumberSymbol(x, y).
+
+.decl ReceiveSendNumberSymbol(x:number, y:symbol)
+ReceiveSendNumberSymbol(1, "b").
+ReceiveSendNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+
+.decl InputReceiveNumberSymbol(x:number, y:symbol)
+.input InputReceiveNumberSymbol()
+InputReceiveNumberSymbol(1, "b").
+InputReceiveNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+
+.decl OutputReceiveNumberSymbol(x:number, y:symbol)
+.output OutputReceiveNumberSymbol()
+OutputReceiveNumberSymbol(1, "b").
+OutputReceiveNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+
+.decl InputOutputReceiveNumberSymbol(x:number, y:symbol)
+.input InputOutputReceiveNumberSymbol()
+.output InputOutputReceiveNumberSymbol()
+InputOutputReceiveNumberSymbol(1, "b").
+InputOutputReceiveNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+
+.decl InputSendNumberSymbol(x:number, y:symbol)
+.input InputSendNumberSymbol()
+InputSendNumberSymbol(1, "b").
+ReceiverNumberSymbol(x, y) :- InputSendNumberSymbol(x, y).
+
+.decl OutputSendNumberSymbol(x:number, y:symbol)
+.output OutputSendNumberSymbol()
+OutputSendNumberSymbol(1, "b").
+ReceiverNumberSymbol(x, y) :- OutputSendNumberSymbol(x, y).
+
+.decl InputOutputSendNumberSymbol(x:number, y:symbol)
+.input InputOutputSendNumberSymbol()
+.output InputOutputSendNumberSymbol()
+InputOutputSendNumberSymbol(1, "b").
+ReceiverNumberSymbol(x, y) :- InputOutputSendNumberSymbol(x, y).
+
+.decl InputReceiveSendNumberSymbol(x:number, y:symbol)
+.input InputReceiveSendNumberSymbol()
+InputReceiveSendNumberSymbol(1, "b").
+InputReceiveSendNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+ReceiverNumberSymbol(x, y) :- InputReceiveSendNumberSymbol(x, y).
+
+.decl OutputReceiveSendNumberSymbol(x:number, y:symbol)
+.output OutputReceiveSendNumberSymbol()
+OutputReceiveSendNumberSymbol(1, "b").
+OutputReceiveSendNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+ReceiverNumberSymbol(x, y) :- OutputReceiveSendNumberSymbol(x, y).
+
+.decl InputOutputReceiveSendNumberSymbol(x:number, y:symbol)
+.input InputOutputReceiveSendNumberSymbol()
+.output InputOutputReceiveSendNumberSymbol()
+InputOutputReceiveSendNumberSymbol(1, "b").
+InputOutputReceiveSendNumberSymbol(x, y) :- SenderNumberSymbol(x, y).
+ReceiverNumberSymbol(x, y) :- InputOutputReceiveSendNumberSymbol(x, y).
+
+.decl SenderSymbolNumber(x:symbol, y:number)
+.input SenderSymbolNumber()
+
+.decl ReceiverSymbolNumber(x:symbol, y:number)
+.output ReceiverSymbolNumber()
+
+.decl InputSymbolNumber(x:symbol, y:number)
+.input InputSymbolNumber()
+InputSymbolNumber("b", 1).
+
+.decl OutputSymbolNumber(x:symbol, y:number)
+.output OutputSymbolNumber()
+OutputSymbolNumber("b", 1).
+
+.decl InputOutputSymbolNumber(x:symbol, y:number)
+.input InputOutputSymbolNumber()
+.output InputOutputSymbolNumber()
+InputOutputSymbolNumber("b", 1).
+
+.decl ReceiveSymbolNumber(x:symbol, y:number)
+ReceiveSymbolNumber("b", 1).
+ReceiveSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+
+.decl SendSymbolNumber(x:symbol, y:number)
+SendSymbolNumber("b", 1).
+ReceiverSymbolNumber(x, y) :- SendSymbolNumber(x, y).
+
+.decl ReceiveSendSymbolNumber(x:symbol, y:number)
+ReceiveSendSymbolNumber("b", 1).
+ReceiveSendSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+
+.decl InputReceiveSymbolNumber(x:symbol, y:number)
+.input InputReceiveSymbolNumber()
+InputReceiveSymbolNumber("b", 1).
+InputReceiveSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+
+.decl OutputReceiveSymbolNumber(x:symbol, y:number)
+.output OutputReceiveSymbolNumber()
+OutputReceiveSymbolNumber("b", 1).
+OutputReceiveSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+
+.decl InputOutputReceiveSymbolNumber(x:symbol, y:number)
+.input InputOutputReceiveSymbolNumber()
+.output InputOutputReceiveSymbolNumber()
+InputOutputReceiveSymbolNumber("b", 1).
+InputOutputReceiveSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+
+.decl InputSendSymbolNumber(x:symbol, y:number)
+.input InputSendSymbolNumber()
+InputSendSymbolNumber("b", 1).
+ReceiverSymbolNumber(x, y) :- InputSendSymbolNumber(x, y).
+
+.decl OutputSendSymbolNumber(x:symbol, y:number)
+.output OutputSendSymbolNumber()
+OutputSendSymbolNumber("b", 1).
+ReceiverSymbolNumber(x, y) :- OutputSendSymbolNumber(x, y).
+
+.decl InputOutputSendSymbolNumber(x:symbol, y:number)
+.input InputOutputSendSymbolNumber()
+.output InputOutputSendSymbolNumber()
+InputOutputSendSymbolNumber("b", 1).
+ReceiverSymbolNumber(x, y) :- InputOutputSendSymbolNumber(x, y).
+
+.decl InputReceiveSendSymbolNumber(x:symbol, y:number)
+.input InputReceiveSendSymbolNumber()
+InputReceiveSendSymbolNumber("b", 1).
+InputReceiveSendSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+ReceiverSymbolNumber(x, y) :- InputReceiveSendSymbolNumber(x, y).
+
+.decl OutputReceiveSendSymbolNumber(x:symbol, y:number)
+.output OutputReceiveSendSymbolNumber()
+OutputReceiveSendSymbolNumber("b", 1).
+OutputReceiveSendSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+ReceiverSymbolNumber(x, y) :- OutputReceiveSendSymbolNumber(x, y).
+
+.decl InputOutputReceiveSendSymbolNumber(x:symbol, y:number)
+.input InputOutputReceiveSendSymbolNumber()
+.output InputOutputReceiveSendSymbolNumber()
+InputOutputReceiveSendSymbolNumber("b", 1).
+InputOutputReceiveSendSymbolNumber(x, y) :- SenderSymbolNumber(x, y).
+ReceiverSymbolNumber(x, y) :- InputOutputReceiveSendSymbolNumber(x, y).
+

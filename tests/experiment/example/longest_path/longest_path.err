@@ -1,0 +1,7 @@
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file longest_path.dl at line 22
+longest_path(y, x, l) :- l = max m : length(x, y, m).
+-------------^----------------------------------------
+Error: Witness problem: argument grounded by an aggregator's inner scope is used ungrounded in outer scope in file longest_path.dl at line 22
+longest_path(y, x, l) :- l = max m : length(x, y, m).
+----------------^-------------------------------------
+2 errors generated, evaluation aborted

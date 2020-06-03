@@ -1,0 +1,13 @@
+Warning: No rules/facts defined for relation B in file rule_arity.dl at line 4
+.decl B (x:N)
+------^-------
+Warning: No rules/facts defined for relation C in file rule_arity.dl at line 5
+.decl C (x:N)
+------^-------
+Warning: No rules/facts defined for relation D in file rule_arity.dl at line 6
+.decl D (x:N)
+------^-------
+Error: Mismatching arity of relation B in file rule_arity.dl at line 8
+A (x, y, z) :- B(x), C(y), D(z), B(x,y).
+---------------------------------^-------
+1 errors generated, evaluation aborted

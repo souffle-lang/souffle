@@ -1,0 +1,20 @@
+.decl A(x:symbol)
+A("abc123").
+A("bc123a").
+A("c123ab").
+A("123abc").
+A("23abc1").
+A("3abc12").
+
+.decl B(x:symbol)
+B(substr(x,2,2)) :- A(x).
+
+.output B()
+
+.decl Nullary()
+Nullary().
+
+.decl C(x:symbol)
+C(substr("12",22,12)) :- Nullary().
+
+.output C()

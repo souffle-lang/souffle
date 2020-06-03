@@ -1,0 +1,7 @@
+Error: Undefined relation F in file type_system7.dl at line 14
+F(x) :- x = 100.
+^----------------
+Error: Undefined relation F in file type_system7.dl at line 16
+.output F
+--------^-
+2 errors generated, evaluation aborted

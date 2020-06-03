@@ -1,0 +1,22 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+
+// Test reading of hex and binary
+
+.decl HexUnsigned(x: unsigned, y: unsigned, z: unsigned)
+.decl BinUnsigned(x: unsigned, y: unsigned, z: unsigned)
+
+.input HexUnsigned(delimiter=",")
+.input BinUnsigned(delimiter=",")
+
+.decl oBinUnsigned(x: unsigned, y: unsigned, z: unsigned)
+.decl oHexUnsigned(x: unsigned, y: unsigned, z: unsigned)
+
+oHexUnsigned(a, b, c) :- HexUnsigned(a, b, c).
+oBinUnsigned(a, b, c) :- BinUnsigned(a, b, c).
+
+.output oHexUnsigned, oBinUnsigned

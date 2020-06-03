@@ -1,0 +1,21 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests max, min, and cat functors when given an arbitrary number of
+// arguments.
+
+.decl input_triple(x:number, y:number, z:number)
+.input input_triple()
+
+// (x,y,z): MAX = [<max(x,y,z)>], MIN = [<min(x,y,z)>]
+.decl result(result:symbol)
+result(result) :-
+    input_triple(x,y,z),
+    triple = cat("(", to_string(x), ",", to_string(y), ",", to_string(z), ")"),
+    max_min = cat("MAX = [", to_string(max(x,y,z)), "], MIN = [", to_string(min(x,y,z)), "]"),
+    result = cat(triple, ": ", max_min).
+
+.output result()

@@ -1,0 +1,38 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// explain_float_unsigned.dl
+// This code tests the provenance explain interface for a simple path example.
+//
+
+.pragma "provenance" "explain"
+
+.decl Float(x: float)
+Float(1.1).
+
+.decl FtoI(x: number)
+FtoI(ftoi(x)) :- Float(x).
+
+.decl VUnsigned(x:unsigned)
+VUnsigned(0).
+VUnsigned(1).
+VUnsigned(2).
+VUnsigned(3).
+VUnsigned(5).
+
+
+.decl edgeUnsigned(x: unsigned, y: unsigned)
+edgeUnsigned(x, y) :- VUnsigned(x), VUnsigned(y), x + 1 = y.
+edgeUnsigned(x, y) :- edgeUnsigned(y, x).
+
+.decl pathUnsigned(x: unsigned, y: unsigned)
+pathUnsigned(x, y) :- edgeUnsigned(x, y).
+pathUnsigned(x, z) :- edgeUnsigned(x, y), pathUnsigned(y, z).
+
+
+
+.output FtoI, pathUnsigned

@@ -1,0 +1,49 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Array
+// Simple array data structure.
+
+// The default or NULL value for an element of the array.
+.decl default(null:number)
+.input default()
+
+// The parameters to the array, including its length.
+.decl parameters(length:number)
+.input parameters()
+
+// The values of the elements in the array, specified by index. Note that any unspecified elements will take the default value.
+.decl values(index:number, value:number)
+.input values()
+
+// The indices of the array, used as a background set to ground the index parameter of elements.
+.decl indices(index:number)
+.output indices()
+indices(0).
+indices(i+1) :- indices(i), parameters(l), i >= 0, i+1 < l.
+
+// The elements of the array, referenced by an index, and having a specified value. Note that if a value is not specified an element takes the default value.
+.decl element(index:number, value:number)
+.output element()
+element(i, NULL) :- indices(i), !values(i, _), default(NULL).
+element(i, x) :- indices(i), values(i, x).
+
+// The value of the element to the left of the element specified by the index, or the default value if it is out of the array bounds.
+.decl left(index:number, value:number)
+left(i, NULL) :- !element(i-1, _), element(i, _), default(NULL).
+left(i, x) :- element(i-1, x), element(i, _).
+
+// The value of the element to the right of the element specified by the index, or the default value if it is out of bounds.
+.decl right(index:number, value:number)
+right(i, NULL) :- !element(i+1, _), element(i, _), default(NULL).
+right(i, x) :- element(i+1, x), element(i, _).
+
+// The local neighbourhood of a specified element, giving the value of that element, and the elements surrounding it.
+.decl neighbourhood(index:number,
+  left:number, current:number, right:number)
+.output neighbourhood()
+neighbourhood(i, l, c, r) :-
+  left(i, l), element(i, c), right(i, r).

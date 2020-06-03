@@ -1,0 +1,40 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// type/relation
+.type typerel <: symbol
+.decl typerel(x : number)
+.output typerel()
+typerel(1).
+
+// Nested names
+.comp nested {
+    .type nesteditem <: number
+    .decl nesteditem(x:nesteditem)
+    nesteditem(20).
+}
+
+.init nestedInst = nested
+typerel(X) :- nestedInst.nesteditem(X).
+
+.decl nesteditem(x:number)
+.output nesteditem()
+nesteditem(2).
+
+
+// Inherited names -- alpha should collide here.
+.comp Base {
+    .decl alpha(x:number)
+    alpha(8).
+}
+
+.comp Child : Base {
+    .type alpha
+}
+
+.init myChild = Child
+
+

@@ -1,0 +1,9 @@
+// check whether duplicates are filtered out
+.type M <: symbol
+
+.decl N (n:M)
+.output N ()
+
+N("0").
+N("0").
+N("1").

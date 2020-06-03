@@ -1,0 +1,5 @@
+query parent(x,"a"), parent(y, x)
+;
+;
+;
+exit

@@ -1,0 +1,65 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// declare a component with inner types
+.comp Component {
+    .type T1 <: symbol
+    .type T2 <: number
+    .type T3 <: number
+
+    // define complex types that use the inner types T1 and T2
+    .type InnerRecord = [t1: T1, t2: T2]
+    .type InnerUnion = T2 | T3
+
+    // declare a relation dependent on these inner types
+    .decl inner_rel(record: InnerRecord, union: InnerUnion)
+    inner_rel(["x", 1], 1).
+
+    .decl union_helper(t: T3)
+    union_helper(1).
+
+    .decl out0(x: T1, y: T2, z: T3)
+    out0(x,y,z) :- inner_rel([x,y],z), union_helper(z).
+    .output out0()
+}
+
+// these should not interfere with the component inner types
+.type T1 <: number
+.type T2 <: symbol
+.type T3 <: symbol
+.type InnerRecord = [t1: T1, t2: T1]
+.type InnerUnion = T2 | T3
+
+// instantiate the component
+.init comp = Component
+
+// depends on the inner component types
+.decl outer_rel1(x: comp.InnerRecord)
+outer_rel1(["x", 1]).
+.decl out1(x: comp.T1, y: comp.T2)
+out1(x,y) :- outer_rel1([x,y]).
+.output out1()
+
+// depends on the inner component types
+.decl outer_rel2(x: comp.InnerUnion)
+outer_rel2(1).
+.decl out2(x: comp.InnerUnion)
+out2(x) :- outer_rel2(x).
+.output out2()
+
+// should be independent of the inner types in the component
+.decl outer_rel3(x: InnerRecord)
+outer_rel3([0,1]).
+.decl out3(x: T1, y: T1)
+out3(x,y) :- outer_rel3([x,y]).
+.output out3()
+
+// should be independent of the inner types in the component
+.decl outer_rel4(x: InnerUnion)
+outer_rel4("z").
+.decl out4(x: InnerUnion)
+out4(x) :- outer_rel4(x).
+.output out4()

@@ -1,0 +1,21 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test reading of nested records
+
+
+.type Tree = [ left: Tree, val: number, right: Tree ]
+
+.type List = [head: Tree, tail: List]
+
+
+.decl I(l5: List, l6: List, l7: List, l8: List, l9: List)
+.input I
+
+
+.decl O(l5: List, l6: List, l7: List, l8: List, l9: List)
+O(l5, l6, l7, l8, l9) :- I(l5, l6, l7, l8, l9).
+.output O

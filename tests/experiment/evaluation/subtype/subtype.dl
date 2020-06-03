@@ -1,0 +1,15 @@
+.type D <: symbol
+.type C = D
+.type B = C
+.type A = B
+
+.decl R1(x:A,y:B)
+.decl R2(x:C,y:D)
+.decl R4(x:A)
+.output R4()
+
+R4(x) :- R2(x,x),R1(x,x).
+
+R1("0","0").
+R2("0","0").
+

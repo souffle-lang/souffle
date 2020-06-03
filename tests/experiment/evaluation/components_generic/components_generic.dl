@@ -1,0 +1,81 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test functioning of components combined with types, composition, and records
+
+// define a component with a generic type parameters N
+
+// test generic component
+.comp DiGraph<N> {
+
+    .decl edge(a:N, b:N)
+    .decl node(a:N)
+
+    node(X) :- edge(X,_).
+    node(X) :- edge(_,X).
+
+    .decl reach(a:N,b:N)
+    reach(X,Y) :- edge(X,Y).
+    reach(X,Z) :- reach(X,Y), reach(Y,Z).
+
+}
+
+// test inheritence
+.comp Graph<N> : DiGraph<N> {
+    edge(X,Y) :- edge(Y,X).
+}
+
+// test composition
+.comp Net<N> {
+
+    .init G = Graph<N>
+
+    .decl e(a:N,b:N)
+    G.edge(X,Y) :- e(X,Y).
+
+    .decl r(a:N,b:N)
+    r(X,Y) :- G.reach(X,Y).
+}
+
+
+// instantiate with different types
+
+// -- a simple city map --
+
+.type city <: symbol
+.init StreetMap = Net<city>
+
+StreetMap.e("A","B").
+StreetMap.e("B","C").
+
+
+// -- use a record as node type --
+
+.type Person = [
+    name:symbol,
+    address:symbol
+]
+
+.init SocialNet = Net<Person>
+
+#define Homer ["Homer","Evergreen Terrace 742"]
+#define Ned ["Ned","Evergreen Terrace 744"]
+#define Edna ["Ned","Evergreen Terrace 82"]
+
+SocialNet.e(Homer,Ned).
+SocialNet.e(Ned,Edna).
+
+
+// -- print some results --
+
+.decl result(n:symbol)
+.output result()
+result("Map Works") :- StreetMap.r("C","A").
+result("Social Net Works") :- SocialNet.r(Edna,Homer).
+
+
+
+

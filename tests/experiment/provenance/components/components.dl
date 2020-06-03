@@ -1,0 +1,29 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests the provenance explain interface for a simple components example.
+
+.pragma "provenance" "explain"
+
+.comp MyComponent {
+   .decl TheAnswer(x:number)
+   TheAnswer(42).
+   .output TheAnswer
+
+   .decl TheAnswer2(x:number)
+   TheAnswer2(x) :- TheAnswer(y), x = y + 1.
+   .output TheAnswer2
+}
+
+.init myCompInstance1 = MyComponent
+
+.decl Test(x:number)
+.output Test
+Test(x) :- myCompInstance1.TheAnswer(x).
+
+.decl Test2(x:number)
+.output Test2
+Test2(x) :- myCompInstance1.TheAnswer2(x).

@@ -1,0 +1,27 @@
+/*
+ * Souffle - A Datalog Compiler
+ * Copyright (c) 2016 The Souffle Development Team
+ * Licensed under the Universal Permissive License v 1.0 as shown at:
+ * - https://opensource.org/licenses/UPL
+ * - souffle/LICENSE
+ */
+
+// comment test to check whether lines are counted correctly
+
+/*
+
+
+
+
+
+
+*/
+
+.type myrecord = [x:number, y:myrecord]
+
+.decl A(x:myrecord)
+.output A()
+
+.decl B(x:number)
+.output B()
+

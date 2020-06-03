@@ -1,0 +1,64 @@
+//
+// Example: data flow analysis
+//
+// This example is computing live variables.
+//
+
+
+//// --- definitions --- ////
+
+.type Node <: symbol
+
+// control flow graph (input)
+.decl cf_edge(x:Node,y:Node)
+
+
+// mark nodes in the graph using and defining variables
+.type Var <: symbol
+
+.decl use(x:Node, v:Var)
+.decl def(x:Node, v:Var)
+
+//// --- result --- ////
+
+.decl live_vars_in(x:Node, v:Var)
+.output live_vars_in()
+.decl live_vars_out(x:Node, v:Var)
+.output live_vars_out()
+
+//////////////////////////////////////////////////
+
+cf_edge("A","B").
+cf_edge("B","C").
+cf_edge("C","C").
+cf_edge("C","D").
+cf_edge("B","D").
+cf_edge("D","E").
+
+
+// use and def
+
+def("A", "x1").
+
+use("B", "x1").
+def("B", "x2").
+
+use("C", "x2").
+def("C", "x2").
+
+use("D", "x2").
+def("D", "x3").
+
+use("E", "x2").
+use("E", "x3").
+
+//////////////////////////////////////////////////
+
+live_vars_in(x,v) :- use(x,v).
+live_vars_in(x,v) :- !def(x,v), live_vars_out(x,v).
+
+live_vars_out(x,v) :- cf_edge(x,y), live_vars_in(y,v).
+
+
+
+

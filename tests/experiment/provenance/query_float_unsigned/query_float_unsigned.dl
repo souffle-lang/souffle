@@ -1,0 +1,31 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// query_float_unsigned.dl
+// This code tests usage of float/unsigned with query command.
+//
+
+.pragma "provenance" "explain"
+
+.decl Float(x: float)
+Float(1).
+Float(1.5).
+Float(0).
+Float(3.3).
+Float(-0.5).
+
+
+
+.decl Unsigned(x: unsigned)
+Unsigned(0).
+Unsigned(1).
+Unsigned(0b10).
+Unsigned(0xf).
+Unsigned(0x11).
+
+
+.output Unsigned, Float

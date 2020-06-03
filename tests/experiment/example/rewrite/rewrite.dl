@@ -1,0 +1,80 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This example shows a simple rewrite system using records
+// and equivalence relations. An expression is expressed via
+// recursively defined records. Each sub-tree in the expression
+// can be rewritten. Equivalent terms are put into the same
+// equivalence class.
+
+// Expression
+.type Expr=[
+   op:symbol,   // operand: +,-,*,+, <=, !, >=, <, >
+   left:Expr,   // left operand (if needed)
+   right:Expr,  // right operand (if needed)
+   nval:number, // number if op is "num"; otherwise not used
+   var:symbol   // variable symbol if op is "var"; otherwise not used
+]
+
+// Input expressions
+.decl A(e:Expr)
+A(
+   ["!",
+      ["<",
+       ["+",["num",nil,nil,10,""],["B",nil,nil,20,""],0, ""],
+       ["+",["num",nil,nil,30,""],["B",nil,nil,40,""],0, ""], 0,""],
+      nil,
+      0,""]).
+
+// Term-Rewriter
+.decl S(e1:Expr, e2:Expr) eqrel
+
+// Populate input
+S(e, e) :-
+   A(e).
+
+// Put sub-expression into equivalence class
+S(right,right) :-
+   S([_,_,right,_,_],_).
+
+S(left,left) :-
+   S([_,left,_,_,_],_).
+
+// Recombine sub-expressions from equivalence classes
+S([op, newLeft, newRight, num, sym], x) :-
+  S([op, left, right, num, sym], x),
+  S(left, newLeft),
+  S(right, newRight).
+
+// Rewrite rules (examples)
+
+// rewrite rule num1 + num2 => num3 where num3 is num1+num2
+S(["num", nil, nil, a+b, ""],x) :-
+   S(["+", ["num", _, _, a, _],
+           ["num", _, _, b, _], _, _], x).
+
+// rewrite rule !(a < b) => a >= b
+S([">=", a, b, 0, ""],x) :-
+   S(["!", ["<", a, b, _, _], nil, _, _],x).
+
+// compute size of each expression
+.decl ExprSize(x:Expr, m:number)
+ExprSize(nil, 0).
+ExprSize([op, left, right, num, sym], d1 + d2 + 1) :-
+   S([op, left, right, num, sym], _),
+   ExprSize(left, d1),
+   ExprSize(right, d2).
+
+// find smallest expression for each input
+// the solution might not be unique.
+.decl B(e1:Expr, e2:Expr)
+B(e1, e2) :-
+   A(e1),
+   min_d = min d: {S(e1, e2), ExprSize(e2, d)},
+   S(e1,e2),
+   ExprSize(e2, min_d).
+
+.output B

@@ -1,0 +1,4 @@
+Error: syntax error, unexpected . in file rule.dl at line 15
+Path(a,c) :- . // empty rules are forbidden
+-------------^------------------------------
+1 errors generated, evaluation aborted

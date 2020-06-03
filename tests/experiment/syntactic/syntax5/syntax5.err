@@ -1,0 +1,4 @@
+Error: syntax error, unexpected +, expecting end of file in file syntax5.dl at line 11
++
+^-
+1 errors generated, evaluation aborted

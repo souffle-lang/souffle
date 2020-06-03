@@ -1,0 +1,3 @@
+Warning: Variable _Anybody marked as singleton but occurs more than once in file underscore3.dl at line 20
+bad(Dog) :- bites(Dog, _Anybody), person(_Anybody).
+-----------------------------------------^----------

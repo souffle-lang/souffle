@@ -1,0 +1,3 @@
+Warning: No rules/facts defined for relation B in file aggregate2.dl at line 2
+.decl B()
+------^---

@@ -1,0 +1,23 @@
+.type Node <: symbol
+
+.decl link(node1:Node, node2:Node, node3:Node)
+.decl St_Reachable(node1:Node, node2:Node)
+.decl Li_Reachable(node1:Node, node2:Node)
+.decl platform2_reach(node1:Node, node2:Node)
+.output platform2_reach()
+
+
+St_Reachable(x, y) :- link(_,x,y).
+St_Reachable(x, y) :- St_Reachable(x, z), link(_, z, y).
+Li_Reachable(x, u) :- St_Reachable(x, z), link(u, z, _).
+
+platform2_reach("platform2", y) :- St_Reachable("platform2", y), link(_, _, y).
+
+link("4","platform1","platform2").
+link("4","platform2","platform3").
+link("4","platform3","platform4").
+link("1","platform4","platform5").
+link("1","platform5","platform6").
+link("1","platform7","platform8").
+link("9","platform8","platform9").
+link("9","platform9","platform10").

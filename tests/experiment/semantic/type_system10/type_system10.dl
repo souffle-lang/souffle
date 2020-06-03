@@ -1,0 +1,50 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 10
+//
+// Check if float & unsigned work correctly with unions
+//
+
+
+.type Float1 <: float
+.type Float2 <: float
+
+.type Unsigned1 <: unsigned
+.type Unsigned2 <: unsigned
+
+.type FloatUnion = Float1 | Float2
+.type UnsignedUnion = Unsigned1 | Unsigned2
+
+.decl relFloat1(a: Float1)
+relFloat1(1).
+relFloat1(0.5).
+
+.decl relFloat2(b: Float2)
+relFloat2(-1).
+relFloat2(-0.5).
+
+
+.decl relFloatUnion(ab: FloatUnion)
+relFloatUnion(x) :- relFloat1(x).
+relFloatUnion(x) :- relFloat2(x).
+
+
+.decl relUnsigned1(x: Unsigned1)
+relUnsigned1(0).
+relUnsigned1(1).
+
+.decl relUnsigned2(y: Unsigned2)
+relUnsigned2(0xffffffff).
+relUnsigned2(0xfffffffe).
+
+
+.decl relUnsignedUnion(xy: UnsignedUnion)
+relUnsignedUnion(x) :- relUnsigned1(x).
+relUnsignedUnion(x) :- relUnsigned2(x).
+
+.output relFloatUnion, relUnsignedUnion

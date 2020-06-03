@@ -1,0 +1,7 @@
+Error: Redefinition of type Type in file type_dupl.dl at line 4
+.type Type <: symbol
+^--------------------
+Previous definition in file type_dupl.dl at line 3
+.type Type <: symbol
+^--------------------
+1 errors generated, evaluation aborted

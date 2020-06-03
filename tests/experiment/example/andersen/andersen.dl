@@ -1,0 +1,47 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Andersen's points-to analysis
+
+// Define the domain of variables
+.type var <: symbol
+
+// Take addresses of other variables, i.e., y = &x;
+.decl AddressOf(y:var, x:var)
+.input AddressOf()
+
+// Assign Statements, i.e.,  y = x;
+.decl Assign(y:var, x:var)
+.input Assign()
+
+// Load Statements, i.e., y = *x;
+.decl Load(y:var, x:var)
+.input Load()
+
+// Store Statements, i.e., *y = x;
+.decl Store(y:var, x:var)
+.input Store()
+
+// PointsTo Relation, i.e., whether y may point to x
+.decl PointsTo(y:var, x:var)
+.output PointsTo()
+
+PointsTo(y, x) :-
+ AddressOf(y, x).
+
+PointsTo(y, x) :-
+ Assign(y, z),
+ PointsTo(z, x).
+
+PointsTo(y, w) :-
+ Load(y, x),
+ PointsTo(x, z),
+ PointsTo(z, w).
+
+PointsTo(z, w) :-
+ Store(y, x),
+ PointsTo(y, z),
+ PointsTo(x, w).

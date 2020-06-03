@@ -1,0 +1,19 @@
+.type N <: symbol
+
+.decl Reachable   (a:N x b:N)
+.decl Same        (a:N, b:N)
+.output Same        ()
+.decl Edge        (a:N, b:N)
+
+Reachable(x,y)  :- Edge(x,y).
+Reachable(x,y)  :- Edge(x,z), Reachable(z,y).
+Same(x,y)       :- Reachable(x,y), Reachable(x,y).
+
+Edge("0", "1").
+Edge("1", "2").
+Edge("2", "3").
+Edge("3", "4").
+Edge("4", "5").
+Edge("5", "0").
+
+.decl Rell (a:N, b:N)

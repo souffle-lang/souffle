@@ -1,0 +1,7 @@
+.type Node <: symbol
+
+.decl F (node1:number, node2:Node)
+.input F ()
+
+// not ok binary functor cat in fact
+F(cat("x","y"),"AA").

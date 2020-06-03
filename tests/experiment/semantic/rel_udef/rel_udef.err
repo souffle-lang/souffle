@@ -1,0 +1,4 @@
+Error: Undefined relation X in file rel_udef.dl at line 6
+R(a) :- X(a).
+--------^-----
+1 errors generated, evaluation aborted

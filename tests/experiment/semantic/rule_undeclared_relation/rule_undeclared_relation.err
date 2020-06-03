@@ -1,0 +1,7 @@
+Error: Undefined relation a in file rule_undeclared_relation.dl at line 5
+a(X) :- b(X).
+^-------------
+Error: Undefined relation c in file rule_undeclared_relation.dl at line 8
+b(X) :- c(X).
+--------^-----
+2 errors generated, evaluation aborted

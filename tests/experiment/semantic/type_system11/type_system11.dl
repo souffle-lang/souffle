@@ -1,0 +1,50 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 10
+//
+// Check if float & unsigned work correctly with unions
+//
+
+
+// Valid
+
+.type A <: float
+.type B <: float
+
+.type C <: symbol
+.type D <: symbol
+
+.type E <: number
+.type G <: number
+
+.type X <: unsigned
+.type Y <: unsigned
+
+.type floatUnion = A | B
+.type symbolUnion = C | D
+.type numberUnion = E | G
+.type unsignedUnion = X | Y
+
+
+// Invalid
+
+.type InvalidUnion1 = float | unsigned | symbol | number
+.type InvalidUnion2 = float | unsigned
+.type InvalidUnion3 = float | symbol
+
+.type InvalidSubsetUnion1 = A | B | C | D | E | G | X | Y
+// float & symbol
+.type InvalidSubsetUnion2 = A | C
+// float & unsigned
+.type InvalidSubsetUnion3 = A | X
+
+
+.type InvalidUnionUnion1 = floatUnion | symbolUnion  | numberUnion | unsignedUnion
+.type InvalidUnionUnion2 = floatUnion | unsignedUnion
+.type InvalidUnionUnion3 = floatUnion | C
+.type InvalidUnionUnion4 = floatUnion | Y

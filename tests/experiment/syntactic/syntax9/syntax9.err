@@ -1,0 +1,4 @@
+Error: syntax error, unexpected identifier, expecting ) or "," in file syntax9.dl at line 3
+.decl Reachable   (a:N x b:N)
+-----------------------^------
+1 errors generated, evaluation aborted

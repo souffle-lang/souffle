@@ -1,0 +1,27 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2017, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests the provenance explain interface for a simple tree example.
+
+.pragma "provenance" "explain"
+
+.decl parent(x:symbol, y:symbol)
+parent("b", "a").
+parent("c", "a").
+parent("d", "b").
+parent("e", "b").
+parent("f", "c").
+parent("g", "c").
+
+.decl person(x:symbol)
+person(x) :- parent(_, x).
+person(x) :- parent(x, _).
+
+.decl same_generation(x:symbol, y: symbol)
+same_generation(x,x) :- person(x).
+same_generation(x,y) :- parent(x,p), same_generation(p,q), parent(y,q).
+
+.output same_generation()

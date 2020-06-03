@@ -1,0 +1,28 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This is a functional test for the RAM transformer HoistAggregate.
+// It contains an aggregate that depends on another RAM operation and
+// and aggregate that is data-independent. 
+
+.decl R1(a:symbol)
+R1("a").
+R1("b").
+
+.decl R2(a:symbol)
+R2("a"). 
+R2("b").
+
+.decl R3,R4(a:symbol, b:number)
+R3(A1, A2) :- R1(A1),
+              CVAL1 = count : R1(A1),
+              CVAL1 > 1,
+              A2 = sum S : {
+                S=1
+              }.
+R4(A1, A2) :- R3(A1, A2).
+
+.output R3,R4

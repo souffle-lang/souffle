@@ -1,0 +1,18 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// This code tests the provenance explain interface for a simple same generation example,
+// including testing the adapted IO system for provenance.
+
+.pragma "provenance" "explain"
+
+.decl parent(x:symbol, y:symbol)
+.input parent()
+
+.decl same_gen(x:symbol, y:symbol)
+same_gen(x, y) :- parent(x, p), parent(y, p).
+same_gen(x, y) :- parent(x, p1), parent(y, p2), same_gen(p1, p2).
+.output same_gen()

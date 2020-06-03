@@ -1,0 +1,26 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Aggregate 6
+//
+// Test if aggregation works correctly with INT_MAX, INT_MIN
+//
+
+
+
+.decl A,B(x:number)
+
+
+A(-2147483648). // INT_MIN 32 bits
+B(2147483647).  // INT_MAX 32 bits.
+
+
+.decl C,D(x: number)
+.output C,D
+
+C(x) :- x = max y : A(y).
+D(x) :- x = min y : B(y).

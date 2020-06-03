@@ -1,0 +1,9 @@
+.type R=[x:number, y:number]
+.decl A(x:R)
+A([1,2]).
+A([2,3]).
+
+.decl B(x:number)
+B(y) :- A(x), y=ord(x).
+
+.printsize B

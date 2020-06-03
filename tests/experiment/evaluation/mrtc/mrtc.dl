@@ -1,0 +1,38 @@
+//// Mutual recursion regarding Transitive closures
+//// Adopted from DES
+
+.type Node <: symbol
+
+.decl p (node1:Node, node2:Node)
+.output p ()
+.decl q (node1:Node, node2:Node)
+.output q ()
+.decl pqs (node1:Node, node2:Node)
+.output pqs ()
+.decl p1 (node1:Node, node2:Node)
+.output p1 ()
+.decl q1 (node1:Node, node2:Node)
+.output q1 ()
+.decl pqs1 (node1:Node, node2:Node)
+.output pqs1 ()
+
+p("a","b").
+p("c","d").
+q("b","c").
+q("d","e").
+
+pqs(X,Y) :- p(X,Y).
+pqs(X,Y) :- q(X,Y).
+pqs(X,Y) :- pqs(X,Z),p(Z,Y).
+pqs(X,Y) :- pqs(X,Z),q(Z,Y).
+pqs(X,Y) :- pqs1(X,Y).
+
+p1("a1","b1").
+p1("c1","d1").
+q1("b1","c1").
+q1("d1","e1").
+
+pqs1(X,Y) :- p1(X,Y).
+pqs1(X,Y) :- q1(X,Y).
+pqs1(X,Y) :- pqs1(X,Z),p1(Z,Y).
+pqs1(X,Y) :- pqs1(X,Z),q1(Z,Y).

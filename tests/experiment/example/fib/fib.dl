@@ -1,0 +1,44 @@
+.type Integer <: symbol
+
+.decl plus_mod (x:Integer, y:Integer, r:Integer)
+.decl succ (a:Integer, b:Integer)
+.decl f(x:Integer, y:Integer)
+.output f()
+
+f("0", "0").
+f("1", "1").
+f(i, r) :- succ(prev, i), succ(pprev, prev),f(prev, x), f(pprev, y), plus_mod(x, y, r).
+
+
+plus_mod("0", "0", "0").
+plus_mod("0", "1", "1").
+plus_mod("1", "0", "1").
+plus_mod("1", "1", "2").
+plus_mod("0", "2", "2").
+plus_mod("2", "0", "2").
+plus_mod("2", "1", "0").
+plus_mod("1", "2", "0").
+plus_mod("2", "2", "1").
+
+
+succ("0", "1").
+succ("1", "2").
+succ("2", "3").
+succ("3", "4").
+succ("4", "5").
+succ("5", "6").
+succ("6", "7").
+succ("7", "8").
+succ("8", "9").
+succ("9", "10").
+succ("10", "11").
+succ("11", "12").
+succ("12", "13").
+succ("13", "14").
+succ("14", "15").
+succ("15", "16").
+succ("16", "17").
+succ("17", "18").
+succ("18", "19").
+succ("19", "20").
+

@@ -1,0 +1,14 @@
+//// Basic Recursion Problems
+//// Query: p(1)
+//// Adopted from DES
+
+.type Node <: symbol
+
+.decl p  (node1:Node)
+.output p  ()
+
+p("0").
+p("1").
+
+p(X) :- p(X).
+

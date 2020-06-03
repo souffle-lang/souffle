@@ -1,0 +1,3 @@
+Warning: No rules/facts defined for relation Edge in file binary.dl at line 5
+.decl Edge (a:N, b:N)
+------^---------------

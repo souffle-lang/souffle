@@ -1,0 +1,25 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// records 9
+//
+// Check if records accept float/unsigned.
+//
+
+
+.type R = [w: float, x: unsigned, y: number, z: symbol]
+
+
+
+.decl Rel(r: R)
+.output Rel
+
+Rel([-1.5, 0xffffffff, -5, "meow"]).
+Rel([1, 1, 1, "1"]).
+
+
+

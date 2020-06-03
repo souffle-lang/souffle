@@ -1,0 +1,16 @@
+.type Node <: symbol
+.type Dot <: symbol
+
+.decl edge (node1:Node, node2:Node)
+.decl line (dot1:Dot, dot2:Dot)
+.input edge ()
+.input line()
+
+.decl path (node1:Node, node2:Node)
+.decl route (dot1:Dot, dot2:Dot)
+.output path ()
+.output route()
+
+path(X,Y) :- path(X,Z), edge(Z,Y).
+path(X,Y) :- edge(X,Y).
+route(X,Y) :- line(X,Y).

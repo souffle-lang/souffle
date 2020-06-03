@@ -1,0 +1,15 @@
+Error: Unable to stratify relation(s) {a}
+Relation a in file rel_stratification.dl at line 4
+.decl a(n:name)
+------^---------
+has cyclic negation in file rel_stratification.dl at line 20
+a(X) :- a(X), !a(X).
+---------------^-----
+Error: Unable to stratify relation(s) {b,c}
+Relation b in file rel_stratification.dl at line 6
+.decl b(n:name)
+------^---------
+has cyclic negation in file rel_stratification.dl at line 16
+c(X) :- a(X), !b(X).
+---------------^-----
+2 errors generated, evaluation aborted

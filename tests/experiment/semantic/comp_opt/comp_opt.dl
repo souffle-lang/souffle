@@ -1,0 +1,17 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2018, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Testcase to test interference of high-level optimizations with components
+
+.comp C {
+ .decl A(x:number)
+  A(1).
+  A(2).
+  A(x):-A(x), A(y), A(y+1).
+ .output A
+}
+.init c1 = C
+.init c2 = C

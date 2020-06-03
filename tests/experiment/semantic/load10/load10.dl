@@ -1,0 +1,37 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+
+// Test invalid input in fact files.
+
+
+.decl Signed1(x: number, y: number)
+.input Signed1(delimiter=",")
+
+.decl Signed2(x: number, y: number)
+.input Signed2(delimiter=",")
+
+.decl Signed3(x: number, y: number)
+.input Signed3(delimiter=",")
+
+.decl Signed4(x: number, y: number)
+.input Signed4(delimiter=",")
+
+.decl Signed5(x: number, y: number)
+.input Signed5(delimiter=",")
+
+
+.decl Float(x:float, y:float)
+.input Float(delimiter=",")
+
+
+.decl oSigned(x: number, y: number)
+oSigned(x, y) :- Signed1(x, y) ; Signed2(x, y) ; Signed3(x, y) ; Signed4(x, y) ; Signed5(x, y).
+
+.decl oFloat(x:float, y:float)
+oFloat(x, y) :- Float(x, y).
+
+.output oSigned, oFloat

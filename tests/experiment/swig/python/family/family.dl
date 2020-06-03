@@ -1,0 +1,48 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// example taken from tests/example/family
+
+.type Node <: symbol
+
+.decl father      (node1:Node, node2:Node)
+.decl mother      (node1:Node, node2:Node)
+.decl parent      (node1:Node, node2:Node)
+.output parent      ()
+.decl ancestor    (node1:Node, node2:Node)
+.output ancestor    ()
+.decl grandmother (node1:Node, node2:Node)
+.output grandmother ()
+.decl sibling      (node1:Node, node2:Node)
+.output sibling      ()
+.decl cousin       (node1:Node, node2:Node)
+.output cousin       ()
+.decl relative       (node1:Node, node2:Node)
+.output relative       ()
+
+parent(X,Y) :- father(X,Y).
+parent(X,Y) :- mother(X,Y).
+
+ancestor(X,Y) :- parent(X,Y).
+ancestor(X,Y) :- parent(X,Z), ancestor(Z,Y).
+
+grandmother(X,Y) :- mother(X,Z), ancestor(Z,Y).
+
+sibling(X,Y) :- parent(Z,X), parent(Z,Y), X != Y.
+
+cousin(X,Y) :- ancestor(Z,X), ancestor(Z,Y), X != Y, !sibling(X,Y), !parent(X,Y).
+
+relative(X,Y) :- sibling(X,Z),parent(Z,Y).
+
+father("tom","amy").
+father("tom","adam").
+father("jack","fred").
+father("tony","carolII").
+father("fred","carolIII").
+mother("graceI","amy").
+mother("amy","fred").
+mother("carolI","carolII").
+mother("carolII","carolIII").

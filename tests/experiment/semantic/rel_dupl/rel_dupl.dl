@@ -1,0 +1,6 @@
+// Negative test case for a relation that is defined twice
+
+.type Type <: symbol
+
+.decl R(typeA:Type, typeB:Type)
+.decl R(typeA:Type, typeB:Type)

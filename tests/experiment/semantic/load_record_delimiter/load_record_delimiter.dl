@@ -1,0 +1,24 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test reading where tuple delimiters coincide with record delimiter
+
+.type pair = [f: number, t: symbol]
+
+
+.decl A(x: pair, y: pair, z: pair)
+.input A(delimiter=",")
+
+.decl B(x: pair, y: pair, z: pair)
+.input B(delimiter=", ")
+
+.decl C(x: pair, y: pair, z: pair)
+.input C(delimiter=" , ")
+
+.decl O(x: pair, y: pair, z: pair)
+O(x, y, z) :- A(x, y, z); B(x, y, z); C(x, y, z).
+
+.output O(IO=stdout, delimiter=", ")

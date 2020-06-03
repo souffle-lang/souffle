@@ -1,0 +1,13 @@
+Error: Override of non-overridable relation Rel in component B in file comp_override.dl at line 6
+.comp B : A {
+^-------------
+Error: Override of non-overridable relation Rel in component D in file comp_override.dl at line 15
+.comp D : C {
+^-------------
+Error: Override of non-inherited relation Rel in component E in file comp_override.dl at line 20
+.comp E {
+^---------
+Error: Override of non-inherited relation Rel in component F in file comp_override.dl at line 26
+.comp F {
+^---------
+4 errors generated, evaluation aborted

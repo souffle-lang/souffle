@@ -1,0 +1,29 @@
+
+
+.comp CallGraph {
+    .decl CallGraphEdge(caller: number, callee: number)
+.output CallGraphEdge()
+}
+
+.comp CHACallGraph : CallGraph {
+    CallGraphEdge(1, 2).
+    CallGraphEdge(2, 3).
+    CallGraphEdge(3, 4).
+    CallGraphEdge(3, 2).
+}
+
+.comp CICallGraph : CallGraph {
+    CallGraphEdge(1, 2).
+    CallGraphEdge(2, 1).
+}
+
+.comp Main<CallGraphFlavour> {
+    .init cg = TThatDoesNotExist
+    .decl TwoWays(x: number, y: number)
+.output TwoWays()
+    TwoWays(x, y) :-
+        cg.CallGraphEdge(x, y),
+        cg.CallGraphEdge(y, x).
+}
+
+.init cha_main = Main<CICallGraph>

@@ -1,0 +1,128 @@
+
+.type value <: symbol
+
+
+// define three relations
+
+.decl a(x:value)
+.decl b(x:value)
+.decl c(x:value)
+.decl d(x:value)
+
+a("a").
+a("b").
+a("c").
+
+b("a").
+b("b").
+b("c").
+
+c("a").
+c("c").
+
+d("a").
+
+// the result container
+.decl res(x:value)
+.output res()
+
+// now - which is empty?
+
+.decl e_d(x:value)
+e_d("yes") :- d(_).
+
+res("d is empty") :- !e_d("yes").
+
+
+// which are equivalent?
+
+
+// -- a vs. b --
+.decl a2b(x:value,y:value)
+.decl a2b_a(x:value)
+.decl a2b_b(x:value)
+.decl a2b_unmapped_a(x:value)
+.decl a2b_unmapped_b(x:value)
+.decl a2b_unmapped_a_exist(x:value)
+.decl a2b_unmapped_b_exist(x:value)
+
+a2b(x,x) :- a(x),b(x).
+
+a2b_a(x) :- a2b(x,_).
+a2b_b(x) :- a2b(_,x).
+
+a2b_unmapped_a(x) :- a(x), !a2b_a(x).
+a2b_unmapped_b(x) :- b(x), !a2b_b(x).
+
+a2b_unmapped_a_exist("yes") :- a2b_unmapped_a(_).
+a2b_unmapped_b_exist("yes") :- a2b_unmapped_b(_).
+
+
+// -- a vs. c --
+.decl a2c(x:value,y:value)
+.decl a2c_a(x:value)
+.decl a2c_c(x:value)
+.decl a2c_unmapped_a(x:value)
+.decl a2c_unmapped_c(x:value)
+.decl a2c_unmapped_a_exist(x:value)
+.decl a2c_unmapped_c_exist(x:value)
+
+a2c(x,x) :- a(x),c(x).
+
+a2c_a(x) :- a2c(x,_).
+a2c_c(x) :- a2c(_,x).
+
+a2c_unmapped_a(x) :- a(x), !a2c_a(x).
+a2c_unmapped_c(x) :- c(x), !a2c_c(x).
+
+a2c_unmapped_a_exist("yes") :- a2c_unmapped_a(_).
+a2c_unmapped_c_exist("yes") :- a2c_unmapped_c(_).
+
+
+// -- b vs. c --
+.decl b2c(x:value,y:value)
+.decl b2c_b(x:value)
+.decl b2c_c(x:value)
+.decl b2c_unmapped_b(x:value)
+.decl b2c_unmapped_c(x:value)
+.decl b2c_unmapped_b_exist(x:value)
+.decl b2c_unmapped_c_exist(x:value)
+
+b2c(x,x) :- b(x),c(x).
+
+b2c_b(x) :- b2c(x,_).
+b2c_c(x) :- b2c(_,x).
+
+b2c_unmapped_b(x) :- b(x), !b2c_b(x).
+b2c_unmapped_c(x) :- c(x), !b2c_c(x).
+
+b2c_unmapped_b_exist("yes") :- b2c_unmapped_b(_).
+b2c_unmapped_c_exist("yes") :- b2c_unmapped_c(_).
+
+
+
+//// derive some results
+
+res("a==b") :- !a2b_unmapped_a_exist("yes"),!a2b_unmapped_b_exist("yes").
+res("a==c") :- !a2c_unmapped_a_exist("yes"),!a2c_unmapped_c_exist("yes").
+res("b==c") :- !b2c_unmapped_b_exist("yes"),!b2c_unmapped_c_exist("yes").
+
+res("a!=b") :- a2b_unmapped_a_exist("yes").
+res("a!=b") :- a2b_unmapped_b_exist("yes").
+
+res("a!=c") :- a2c_unmapped_a_exist("yes").
+res("a!=c") :- a2c_unmapped_c_exist("yes").
+
+res("b!=c") :- b2c_unmapped_b_exist("yes").
+res("b!=c") :- b2c_unmapped_c_exist("yes").
+
+res("a subset b") :- !a2b_unmapped_a_exist("yes"),a2b_unmapped_b_exist("yes").
+res("b subset a") :- a2b_unmapped_a_exist("yes"),!a2b_unmapped_b_exist("yes").
+
+res("a subset c") :- !a2c_unmapped_a_exist("yes"),a2c_unmapped_c_exist("yes").
+res("c subset a") :- a2c_unmapped_a_exist("yes"),!a2c_unmapped_c_exist("yes").
+
+res("b subset c") :- !b2c_unmapped_b_exist("yes"),b2c_unmapped_c_exist("yes").
+res("c subset b") :- b2c_unmapped_b_exist("yes"),!b2c_unmapped_c_exist("yes").
+
+
