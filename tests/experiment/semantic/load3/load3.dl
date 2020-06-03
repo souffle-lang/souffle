@@ -1,3 +1,0 @@
-.decl A(x:number, y:number)
-.input A()
-.printsize A

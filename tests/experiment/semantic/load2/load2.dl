@@ -1,7 +1,0 @@
-.decl A(x:number)
-.input A()
-
-.decl B(x:number)
-.output B()
-
-B(x) :- A(x).

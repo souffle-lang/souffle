@@ -1,6 +1,0 @@
-Warning: Variable py only occurs once in file magic_nqueens.dl at line 57
-compatible([p, [head, tail]], n+1) :- sympathetic(p, head), compatible([p, tail], n), compatible([head, tail], n), p = [px, py], head = [hx, hy], px > hx.
-----------------------------------------------------------------------------------------------------------------------------^------------------------------
-Warning: Variable hy only occurs once in file magic_nqueens.dl at line 57
-compatible([p, [head, tail]], n+1) :- sympathetic(p, head), compatible([p, tail], n), compatible([head, tail], n), p = [px, py], head = [hx, hy], px > hx.
----------------------------------------------------------------------------------------------------------------------------------------------^-------------

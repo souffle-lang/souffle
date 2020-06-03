@@ -1,6 +1,0 @@
-A.method1()V|new X|0	A.method1()V|%1	<A.method1()V>
-A.method2()V|new X|0	A.method2()V|%1	<A.method2()V>
-A.method3()V|new Z|0	A.method3()V|%0	<A.method3()V>
-X.foo()V|new Z|0	X.foo()V|%1	<X.foo()V>
-Z.bar()V|new java.lang.String|0	Z.bar()V|%1	<Z.bar()V>
-Hello	Z.bar()V|%Jaffa-JavaString	<Z.bar()V>

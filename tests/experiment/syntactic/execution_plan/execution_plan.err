@@ -1,4 +1,0 @@
-Error: syntax error, unexpected (, expecting number in file execution_plan.dl at line 18
-        .plan (1,2,3), 2: (3,2,1), 3: (2,3,1)
---------------^-------------------------------
-1 errors generated, evaluation aborted

@@ -1,9 +1,0 @@
-Error: execution plan for version 3 in file plan2.dl at line 15
-A(v1,v4) :- B(v1,v2), v1 < v2, C(v2,v3), D(v3,v4), !E(v1,v4). .plan 3:(1,2,3), 4:(1,2,3)
-----------------------------------------------------------------------^------------------
-only versions 0..2 permitted
-Error: execution plan for version 4 in file plan2.dl at line 15
-A(v1,v4) :- B(v1,v2), v1 < v2, C(v2,v3), D(v3,v4), !E(v1,v4). .plan 3:(1,2,3), 4:(1,2,3)
----------------------------------------------------------------------------------^-------
-only versions 0..2 permitted
-2 errors generated, evaluation aborted

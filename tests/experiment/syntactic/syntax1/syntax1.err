@@ -1,4 +1,0 @@
-Error: syntax error, unexpected +, expecting end of file in file syntax1.dl at line 13
-                    reachable(Z,Y). +
-------------------------------------^-
-1 errors generated, evaluation aborted

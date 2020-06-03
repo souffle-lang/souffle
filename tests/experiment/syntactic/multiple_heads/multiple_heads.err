@@ -1,6 +1,0 @@
-Warning: Variable X only occurs once in file multiple_heads.dl at line 7
-node(X), node(Y), edge(X,Y) :- edge(X,Y).
-------------------------------------^-----
-Warning: Variable Y only occurs once in file multiple_heads.dl at line 7
-node(X), node(Y), edge(X,Y) :- edge(X,Y).
---------------------------------------^---

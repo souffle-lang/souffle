@@ -1,7 +1,0 @@
-Error: Redefinition of printsize directives for relation C in file printsize_directive2.dl at line 12
-.printsize A,B,C
----------------^-
-Previous definition in file printsize_directive2.dl at line 11
-.printsize C
------------^-
-1 errors generated, evaluation aborted

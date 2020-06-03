@@ -1,4 +1,0 @@
-Error: Referencing undefined component TThatDoesNotExist in file comp_nonexistent_type.dl at line 21
-    .init cg = TThatDoesNotExist
-----^----------------------------
-1 errors generated, evaluation aborted

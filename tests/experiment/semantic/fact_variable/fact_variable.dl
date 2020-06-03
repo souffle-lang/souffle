@@ -1,7 +1,0 @@
-.type Node <: symbol
-
-.decl F (node1:Node, node2:Node)
-.input F ()
-
-// not ok [variable]
-F(BB,"AA").

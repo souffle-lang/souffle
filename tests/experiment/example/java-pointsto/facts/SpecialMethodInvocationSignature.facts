@@ -1,8 +1,0 @@
-A.method1()V|X.<init>()V|0	<X.<init>()V>
-A.method2()V|X.<init>()V|0	<X.<init>()V>
-A.<init>()V|java.lang.Object.<init>()V|0	<java.lang.Object.<init>()V>
-A.method3()V|Z.<init>()V|0	<Z.<init>()V>
-X.foo()V|Z.<init>()V|0	<Z.<init>()V>
-X.<init>()V|java.lang.Object.<init>()V|0	<java.lang.Object.<init>()V>
-Z.bar()V|java.lang.String.<init>(Ljava/lang/String;)V|0	<java.lang.String.<init>(Ljava/lang/String;)V>
-Z.<init>()V|java.lang.Object.<init>()V|0	<java.lang.Object.<init>()V>

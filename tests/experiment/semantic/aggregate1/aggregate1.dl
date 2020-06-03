@@ -1,7 +1,0 @@
-.decl A(x:number)
-.decl B(x:number)
-.decl C(x:number)
-.output C
-A(1).
-C(y) :- y = sum a : A(a).
-C(y) :- y = sum a : B(a).

@@ -1,6 +1,0 @@
-
-.decl a(X:symbol)
-
-// this should produce an error because b is not defined
-a(X) :- a(X), !b(X).
-

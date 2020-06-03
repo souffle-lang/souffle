@@ -1,4 +1,0 @@
-Error: IO relation b cannot be inlined in file inline_output.dl at line 12
-.decl b(x:number, y:number) inline
-------^----------------------------
-1 errors generated, evaluation aborted

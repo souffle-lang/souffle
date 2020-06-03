@@ -1,4 +1,0 @@
-setdepth 8
-explain loop(1, 4, 10, 100)
-explain loop(2, 10, 10, 100)
-exit

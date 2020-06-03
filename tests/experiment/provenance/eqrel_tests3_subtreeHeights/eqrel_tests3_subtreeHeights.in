@@ -1,2 +1,0 @@
-explain isEqrel(1, 1)
-explain notEqrel(1, 1)

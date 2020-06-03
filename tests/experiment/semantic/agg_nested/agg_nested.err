@@ -1,4 +1,0 @@
-Error: Unsupported nested aggregate in file agg_nested.dl at line 19
-D(s) :- s = sum y : { Prime(n), y = sum z : { Prime(z), z < n }, y < 10 }.
-------------------------------------^--------------------------------------
-1 errors generated, evaluation aborted

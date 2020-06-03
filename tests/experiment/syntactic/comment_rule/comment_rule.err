@@ -1,3 +1,0 @@
-Warning: No rules/facts defined for relation Edge in file comment_rule.dl at line 4
-.decl Edge (a:N, b:N)
-------^---------------

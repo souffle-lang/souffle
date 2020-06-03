@@ -1,8 +1,0 @@
-Indexes: 1	Inequalities: 0	Chains: |1000-->1111|
-Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
-Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
-Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
-Indexes: 1	Inequalities: 0	Chains: |100-->102-->111|
-Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
-Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1111|
-Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|

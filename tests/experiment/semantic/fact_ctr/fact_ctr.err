@@ -1,4 +1,0 @@
-Error: Counter in fact in file fact_ctr.dl at line 7
-F($,"AA").
---^--------
-1 errors generated, evaluation aborted

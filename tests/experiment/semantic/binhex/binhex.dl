@@ -1,5 +1,0 @@
-.decl A(x:number)
-.output A()
-A(4711).
-A(0b101).
-A(0xaffe).

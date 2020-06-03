@@ -1,6 +1,0 @@
-// Negative test case for a rule that uses an undefined relation
-
-.type Type <: symbol
-.decl R(type:Type)
-
-R(a) :- X(a).

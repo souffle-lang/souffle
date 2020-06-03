@@ -1,4 +1,0 @@
-Error: Symbol constant (type mismatch) in file fact_number2.dl at line 8
-F("1000","0002").
----------^--------
-1 errors generated, evaluation aborted

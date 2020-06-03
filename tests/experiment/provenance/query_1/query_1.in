@@ -1,7 +1,0 @@
-query path("start", x), path(x, "end")
-;
-;
-;
-;
-;
-exit

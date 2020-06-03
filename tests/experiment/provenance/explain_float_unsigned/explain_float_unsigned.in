@@ -1,6 +1,0 @@
-explain FtoI(1)
-explain pathUnsigned(0,3)
-explainnegation pathUnsigned(0,5)
-2
-2
-exit

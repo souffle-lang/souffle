@@ -1,5 +1,0 @@
-.decl ObjectTotalFieldPointsToCount(obj:HeapAllocationRef,size:number)
-
-    ObjectTotalFieldPointsToCount(obj,size) :-
-           ExpandedInstanceFieldPointsTo(_,_,_,_,obj),
-              size = count :{InstanceFieldPointsTo(_,_,_,_,obj)}.

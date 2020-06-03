@@ -1,4 +1,0 @@
-Error: Mismatching arity of relation edge in file fact_empty.dl at line 15
-edge( ).
-^--------
-1 errors generated, evaluation aborted

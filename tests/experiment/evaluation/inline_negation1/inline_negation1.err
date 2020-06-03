@@ -1,3 +1,0 @@
-Warning: No rules/facts defined for relation empty in file inline_negation1.dl at line 20
-.decl empty(x:number) inline
-------^----------------------

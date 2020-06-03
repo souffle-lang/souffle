@@ -1,4 +1,0 @@
-Error: syntax error, unexpected %, expecting ( or . in file syntax7.dl at line 7
-        blah %
--------------^-
-1 errors generated, evaluation aborted

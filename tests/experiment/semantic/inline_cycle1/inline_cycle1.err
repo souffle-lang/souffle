@@ -1,4 +1,0 @@
-Error: Cannot inline cyclically dependent relations {m, n, o} in file inline_cycle1.dl at line 41
-.decl m(x:number) inline
-------^------------------
-1 errors generated, evaluation aborted

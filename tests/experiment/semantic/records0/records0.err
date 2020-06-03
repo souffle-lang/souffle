@@ -1,3 +1,0 @@
-Warning: No rules/facts defined for relation B in file records0.dl at line 14
-.decl A, B(x:empty)
----------^----------

@@ -1,7 +1,0 @@
-Error: Redefinition of printsize directives for relation B in file printsize_directive.dl at line 14
-.printsize B
------------^-
-Previous definition in file printsize_directive.dl at line 13
-.printsize B
------------^-
-1 errors generated, evaluation aborted

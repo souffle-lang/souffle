@@ -1,4 +1,0 @@
-Error: Component instantiation limit reached in file comp_infinite_recursion.dl at line 2
-    .init x = T
-----^-----------
-1 errors generated, evaluation aborted

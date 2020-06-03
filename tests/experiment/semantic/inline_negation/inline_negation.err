@@ -1,7 +1,0 @@
-Error: Cannot inline negated relation which may introduce new variables in file inline_negation.dl at line 35
-a(x) :- c(x), !b(x).
----------------^-----
-Error: Cannot inline negated atom containing an unnamed variable unless the variable is within an aggregator in file inline_negation.dl at line 41
-a(x) :- c(x), !e(_).
------------------^---
-2 errors generated, evaluation aborted

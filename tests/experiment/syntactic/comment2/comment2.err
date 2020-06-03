@@ -1,6 +1,0 @@
-Warning: No rules/facts defined for relation A in file comment2.dl at line 22
-.decl A(x:myrecord)
-------^-------------
-Warning: No rules/facts defined for relation B in file comment2.dl at line 25
-.decl B(x:number)
-------^-----------

@@ -1,9 +1,0 @@
-Warning: No rules/facts defined for relation b in file suppress_warnings.dl at line 14
-.decl b(x:number)
-------^-----------
-Warning: No rules/facts defined for relation d in file suppress_warnings.dl at line 19
-.decl d()
-------^---
-Warning: No rules/facts defined for relation l.blah in file suppress_warnings.dl at line 23
-    .decl blah(x:number)
-----------^--------------

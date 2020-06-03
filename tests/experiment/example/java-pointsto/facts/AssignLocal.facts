@@ -1,7 +1,0 @@
-A.method1()V|@this	A.method1()V|0	<A.method1()V>
-A.method2()V|@this	A.method2()V|0	<A.method2()V>
-A.<init>()V|@this	A.<init>()V|0	<A.<init>()V>
-X.foo()V|@this	X.foo()V|0	<X.foo()V>
-X.<init>()V|@this	X.<init>()V|0	<X.<init>()V>
-Z.bar()V|@this	Z.bar()V|0	<Z.bar()V>
-Z.<init>()V|@this	Z.<init>()V|0	<Z.<init>()V>

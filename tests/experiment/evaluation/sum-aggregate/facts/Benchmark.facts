@@ -1,4 +1,0 @@
-snapshots1	q1.tql	z3	magic-sets	4000	207660
-snapshots1	q1.tql	souffle-compiler	magic-sets	2000	359996
-snapshots2	q1.tql	z3	magic-sets	7000	1573508
-snapshots2	q1.tql	souffle-compiler	magic-sets	6000	1357348

@@ -1,8 +1,0 @@
-Error: Unable to stratify relation(s) {Input,RelevantNumber,Trace}
-Relation Input in file rel_stratification2.dl at line 1
-.decl Input(n:number)
-------^---------------
-has cyclic negation in file rel_stratification2.dl at line 11
-Trace(a, b) :- RelevantNumber(a), RelevantNumber(b), !Input(a+b).
-------------------------------------------------------^-----------
-1 errors generated, evaluation aborted
