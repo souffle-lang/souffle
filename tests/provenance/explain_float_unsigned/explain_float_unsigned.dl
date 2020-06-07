@@ -15,7 +15,7 @@
 Float(1.1).
 
 .decl FtoI(x: number)
-FtoI(ftoi(x)) :- Float(x).
+FtoI(to_number(x)) :- Float(x).
 
 .decl VUnsigned(x:unsigned)
 VUnsigned(0).

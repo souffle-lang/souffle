@@ -81,7 +81,6 @@ protected:
     /** A reference to the type environment this type is associated to. */
     const TypeEnvironment& environment;
 
-    /** The name of this type. */
     AstQualifiedName name;
 };
 
@@ -99,7 +98,7 @@ class ConstantType : public Type {
 /**
  * A type being a subset of another type.
  */
-class SubsetType : public Type {
+class SubsetType : virtual public Type {
 public:
     void print(std::ostream& out) const override;
 
@@ -109,7 +108,7 @@ public:
 
 protected:
     SubsetType(const TypeEnvironment& environment, const AstQualifiedName& name, const Type& base)
-            : Type(environment, name), baseType(base) {}
+            : Type(environment, name), baseType(base){};
 
 private:
     friend class TypeEnvironment;
@@ -129,7 +128,7 @@ public:
 
 private:
     PrimitiveType(const TypeEnvironment& environment, const AstQualifiedName& name, const ConstantType& base)
-            : SubsetType(environment, name, base) {}
+            : Type(environment, name), SubsetType(environment, name, base) {}
 
     friend class TypeEnvironment;
 };
@@ -139,55 +138,71 @@ private:
  */
 class UnionType : public Type {
 public:
-    void add(const Type& type);
-
     const std::vector<const Type*>& getElementTypes() const {
         return elementTypes;
     }
 
-    void print(std::ostream& out) const override;
-
-private:
-    friend class TypeEnvironment;
-    friend class TypeEnvironmentAnalysis;
-
-    void clear() {
-        elementTypes.clear();
+    void setElements(std::vector<const Type*> elements) {
+        elementTypes = std::move(elements);
     }
 
-    /** The contained element types */
+    void print(std::ostream& out) const override;
+
+protected:
+    friend class TypeEnvironment;
     std::vector<const Type*> elementTypes;
 
-    UnionType(const TypeEnvironment& environment, const AstQualifiedName& name) : Type(environment, name) {}
+    UnionType(const TypeEnvironment& environment, const AstQualifiedName& name,
+            std::vector<const Type*> elementTypes = {})
+            : Type(environment, name), elementTypes(std::move(elementTypes)) {}
 };
 
 /**
  * A record type combining a list of fields into a new, aggregated type.
  */
-struct RecordType : public Type {
+struct RecordType : virtual public Type {
 public:
-    /** The type to model fields */
-    struct Field {
-        std::string name;  // < the name of the field
-        const Type& type;  // < the type of the field
-    };
+    void setFields(std::vector<const Type*> newFields) {
+        fields = std::move(newFields);
+    }
 
-    /** The list of contained fields */
-    void add(const std::string& name, const Type& type);
-
-    const std::vector<Field>& getFields() const {
+    const std::vector<const Type*>& getFields() const {
         return fields;
     }
 
     void print(std::ostream& out) const override;
 
-private:
-    // only allow type environments to create instances
+protected:
     friend class TypeEnvironment;
 
-    std::vector<Field> fields;
+    std::vector<const Type*> fields;
 
-    RecordType(const TypeEnvironment& environment, const AstQualifiedName& name) : Type(environment, name) {}
+    RecordType(const TypeEnvironment& environment, const AstQualifiedName& name,
+            const std::vector<const Type*> fields = {})
+            : Type(environment, name), fields(fields) {}
+};
+
+/**
+ * Type representing a subset type derived from the record type.
+ */
+struct SubsetRecordType : public SubsetType, public RecordType {
+public:
+    void print(std::ostream& out) const override {
+        SubsetType::print(out);
+    }
+
+protected:
+    friend class TypeEnvironment;
+
+    SubsetRecordType(
+            const TypeEnvironment& environment, const AstQualifiedName& name, const RecordType& baseType)
+            : Type(environment, name), SubsetType(environment, name, baseType),
+              RecordType(environment, name, baseType.getFields()) {
+        // Update fields, replacing each occurrence of base with derived.
+        // so that if .type base = [a, base] and derived <: base, then derived = [a, derived].
+        std::replace(fields.begin(), fields.end(), dynamic_cast<const Type*>(&baseType),
+                dynamic_cast<const Type*>(this));
+    };
 };
 
 /**
@@ -202,12 +217,6 @@ public:
 
     TypeSet(bool all = false) : all(all) {}
 
-    TypeSet(const TypeSet& other) = default;
-
-    TypeSet(TypeSet&& other) noexcept : all(other.all), types() {
-        types.swap(other.types);
-    }
-
     template <typename... Types>
     explicit TypeSet(const Types&... types) : all(false) {
         for (const Type* cur : toVector<const Type*>(&types...)) {
@@ -215,9 +224,11 @@ public:
         }
     }
 
+    TypeSet(const TypeSet& other) = default;
+    TypeSet(TypeSet&& other) = default;
     TypeSet& operator=(const TypeSet& other) = default;
+    TypeSet& operator=(TypeSet&& other) = default;
 
-    /** Emptiness check */
     bool empty() const {
         return !all && types.empty();
     }
@@ -262,6 +273,16 @@ public:
         }
 
         return result;
+    }
+
+    template <typename F>
+    TypeSet filter(TypeSet whenAll, F&& f) const {
+        if (all) return whenAll;
+
+        TypeSet cpy;
+        for (auto&& t : *this)
+            if (f(t)) cpy.insert(t);
+        return cpy;
     }
 
     /** Inserts all the types of the given set into this set */
@@ -346,48 +367,34 @@ class TypeEnvironment {
 public:
     TypeEnvironment()
             : constantTypes(initializeConstantTypes()),
-              constantNumericTypes(TypeSet(
-                      getType("numberConstant"), getType("unsignedConstant"), getType("floatConstant"))),
+              constantNumericTypes(TypeSet(getType("__numberConstant"), getType("__unsignedConstant"),
+                      getType("__floatConstant"))),
               primitiveTypes(initializePrimitiveTypes()){};
 
     TypeEnvironment(const TypeEnvironment&) = delete;
 
     virtual ~TypeEnvironment() = default;
 
-    // -- create types in this environment --
+    /** create type in this environment */
     template <typename T, typename... Args>
-    T& createType(const AstQualifiedName& name, const Args&... args) {
+    T& createType(const AstQualifiedName& name, Args&&... args) {
         assert(types.find(name) == types.end() && "Error: registering present type!");
-        auto* newType = new T(*this, name, args...);
+        auto* newType = new T(*this, name, std::forward<Args>(args)...);
         types[name] = std::unique_ptr<Type>(newType);
         return *newType;
     }
 
-    SubsetType& createSubsetType(const AstQualifiedName& name, TypeAttribute typeAttribute) {
-        switch (typeAttribute) {
-            case TypeAttribute::Signed: return createType<SubsetType>(name, getType("number"));
-            case TypeAttribute::Unsigned: return createType<SubsetType>(name, getType("unsigned"));
-            case TypeAttribute::Float: return createType<SubsetType>(name, getType("float"));
-            case TypeAttribute::Symbol: return createType<SubsetType>(name, getType("symbol"));
-            case TypeAttribute::Record: break;
-        }
-
-        fatal("Invalid type attribute");
-    }
-
     bool isType(const AstQualifiedName&) const;
-
     bool isType(const Type& type) const;
 
     const Type& getType(const AstQualifiedName&) const;
-    Type& getType(const AstQualifiedName&);
 
     const Type& getConstantType(TypeAttribute type) const {
         switch (type) {
-            case TypeAttribute::Signed: return getType("numberConstant");
-            case TypeAttribute::Unsigned: return getType("unsignedConstant");
-            case TypeAttribute::Float: return getType("floatConstant");
-            case TypeAttribute::Symbol: return getType("symbolConstant");
+            case TypeAttribute::Signed: return getType("__numberConstant");
+            case TypeAttribute::Unsigned: return getType("__unsignedConstant");
+            case TypeAttribute::Float: return getType("__floatConstant");
+            case TypeAttribute::Symbol: return getType("__symbolConstant");
             case TypeAttribute::Record: break;
         }
 
@@ -401,12 +408,16 @@ public:
         return false;
     }
 
-    bool isPrimitiveType(const Type& typeName) const {
-        return primitiveTypes.contains(typeName);
+    bool isPrimitiveType(const Type& type) const {
+        return primitiveTypes.contains(type);
     }
 
     const TypeSet& getConstantTypes() const {
         return constantTypes;
+    }
+
+    const TypeSet& getPrimitiveTypes() const {
+        return primitiveTypes;
     }
 
     const TypeSet& getConstantNumericTypes() const {
@@ -420,11 +431,19 @@ public:
         return out;
     }
 
-private:
-    TypeSet initializePrimitiveTypes(void);
-    TypeSet initializeConstantTypes(void);
+    TypeSet getTypes() const {
+        TypeSet types;
+        for (auto& type : types) {
+            types.insert(type);
+        }
+        return types;
+    }
 
-    /** The list of covered types */
+private:
+    TypeSet initializePrimitiveTypes();
+    TypeSet initializeConstantTypes();
+
+    /** The list of covered types. */
     std::map<AstQualifiedName, std::unique_ptr<Type>> types;
 
     const TypeSet constantTypes;
@@ -448,119 +467,22 @@ bool isSubtypeOf(const Type& a, const Type& b);
 std::string getTypeQualifier(const Type& type);
 
 /**
- * Determine if a type analysis' result is equivalent to the given TypeAttribute.
+ * Check if the type is of a kind corresponding to the TypeAttribute.
  */
-template <typename T>  // T = Type or T = Typeset
-bool eqTypeTypeAttribute(const TypeAttribute ramType, const T& type) {
-    switch (ramType) {
-        case TypeAttribute::Signed: return isNumberType(type);
-        case TypeAttribute::Unsigned: return isUnsignedType(type);
-        case TypeAttribute::Float: return isFloatType(type);
-        case TypeAttribute::Symbol: return isSymbolType(type);
-        case TypeAttribute::Record: return isRecordType(type);
-    }
-    fatal("unhandled `TypeAttribute`");
+bool isOfKind(const Type& type, TypeAttribute kind);
+bool isOfKind(const TypeSet& typeSet, TypeAttribute kind);
+
+TypeAttribute getTypeAttribute(const Type&);
+std::optional<TypeAttribute> getTypeAttribute(const TypeSet&);
+
+inline bool isNumericType(const TypeSet& type) {
+    return isOfKind(type, TypeAttribute::Signed) || isOfKind(type, TypeAttribute::Unsigned) ||
+           isOfKind(type, TypeAttribute::Float);
 }
 
-/**
- * Convert a type analysis' type/set of type to the the TypeAttribute
- */
-template <typename T>  // T = Type or T = Typeset
-TypeAttribute getTypeAttribute(const T& type) {
-    TypeAttribute primitiveType;
-    if (isNumberType(type)) {
-        primitiveType = TypeAttribute::Signed;
-    } else if (isUnsignedType(type)) {
-        primitiveType = TypeAttribute::Unsigned;
-    } else if (isFloatType(type)) {
-        primitiveType = TypeAttribute::Float;
-    } else if (isRecordType(type)) {
-        primitiveType = TypeAttribute::Record;
-    } else if (isSymbolType(type)) {
-        primitiveType = TypeAttribute::Symbol;
-    } else {
-        fatal("Unknown type class");
-    }
-    return primitiveType;
+inline bool isOrderableType(const TypeSet& type) {
+    return isNumericType(type) || isOfKind(type, TypeAttribute::Symbol);
 }
-
-/**
- * Determines whether the type is numeric.
- */
-template <typename T>  // T = Type or T = Typeset
-inline bool isNumericType(const T& type) {
-    return isFloatType(type) || isNumberType(type) || isUnsignedType(type);
-}
-
-template <typename T>  // T = Type or T = Typeset
-inline bool isOrderableType(const T& type) {
-    return isNumericType(type) || isSymbolType(type);
-}
-
-/**
- * Is any value in the set signed
- **/
-bool hasSignedType(const TypeSet& types);
-
-/**
- * Is any value in the set unsigned
- **/
-bool hasUnsignedType(const TypeSet& types);
-
-/**
- * Is any value in the set float
- **/
-bool hasFloatType(const TypeSet& types);
-
-/**
- * Determines whether the given type is a float type.
- */
-bool isFloatType(const Type& type);
-
-/**
- * Determines whether all the types in the given set are float types.
- */
-bool isFloatType(const TypeSet& s);
-
-/**
- * Determines whether the given type is a number type.
- */
-bool isNumberType(const Type& type);
-
-/**
- * Determines whether all the types in the given set are number types.
- */
-bool isNumberType(const TypeSet& s);
-
-/**
- * Determines whether the given type is a number type.
- */
-bool isUnsignedType(const Type& type);
-
-/**
- * Determines whether all the types in the given set are number types.
- */
-bool isUnsignedType(const TypeSet& s);
-
-/**
- * Determines whether the given type is a symbol type.
- */
-bool isSymbolType(const Type& type);
-
-/**
- * Determines whether all the types in the given set are symbol types.
- */
-bool isSymbolType(const TypeSet& s);
-
-/**
- * Determines whether the given type is a record type.
- */
-bool isRecordType(const Type& type);
-
-/**
- * Determines whether all the types in the given set are record types.
- */
-bool isRecordType(const TypeSet& s);
 
 // -- Greatest Common Sub Types --------------------------------------
 
@@ -586,5 +508,10 @@ template <typename... Types>
 TypeSet getGreatestCommonSubtypes(const Types&... types) {
     return getGreatestCommonSubtypes(TypeSet(types...));
 }
+
+/**
+ * Determine if there exist a type t such that a <: t and b <: t
+ */
+bool haveCommonSupertype(const Type& a, const Type& b);
 
 }  // end namespace souffle

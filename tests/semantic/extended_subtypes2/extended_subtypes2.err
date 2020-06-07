@@ -1,0 +1,19 @@
+Error: Infinite descent in the definition of type X in file extended_subtypes2.dl at line 15
+.type X <: X
+^------------
+Error: Infinite descent in the definition of type A in file extended_subtypes2.dl at line 17
+.type A <: B
+^------------
+Error: Infinite descent in the definition of type B in file extended_subtypes2.dl at line 18
+.type B <: A
+^------------
+Error: Undefined base type Z in definition of type Y in file extended_subtypes2.dl at line 23
+.type Y <: Z
+^------------
+Error: Undefined type Z in definition of field b in file extended_subtypes2.dl at line 30
+.type RecA = [a: RecA, b:Z]
+-------------------------^--
+Error: Subset type W can't be derived from union U in file extended_subtypes2.dl at line 41
+.type W <: U
+^------------
+6 errors generated, evaluation aborted

@@ -1,6 +1,3 @@
-Warning: Variable y only occurs once in file unused_constraints.dl at line 11
-a(x), b(x,y) :- x = 0, y = 0.
------------------------^------
 Warning: Variable y only occurs once in file unused_constraints.dl at line 14
 c(x) :- a(x), y = 0.
 --------------^------

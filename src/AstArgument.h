@@ -297,62 +297,75 @@ protected:
  */
 class AstIntrinsicFunctor : public AstFunctor {
 public:
-    // used by transformers. do sanchecks
     template <typename... Operands>
-    AstIntrinsicFunctor(FunctorOp op, Operands&&... operands)
-            : AstFunctor(std::forward<Operands>(operands)...), function(op) {
-        assert(isValidFunctorOpArity(function, args.size()) && "invalid number of arguments for functor");
-    }
+    AstIntrinsicFunctor(std::string op, Operands&&... operands)
+            : AstFunctor(std::forward<Operands>(operands)...), function(std::move(op)) {}
 
-    // used by parser. defer sanchecks to semantic checker
     template <typename... Operands>
-    AstIntrinsicFunctor(SrcLocation loc, FunctorOp op, Operands&&... operands)
-            : AstFunctor(std::move(loc), std::forward<Operands>(operands)...), function(op) {}
+    AstIntrinsicFunctor(SrcLocation loc, std::string op, Operands&&... operands)
+            : AstFunctor(std::move(loc), std::forward<Operands>(operands)...), function(std::move(op)) {}
 
-    AstIntrinsicFunctor(FunctorOp op, VecOwn<AstArgument> args, SrcLocation loc = {})
-            : AstFunctor(std::move(args), std::move(loc)), function(op) {}
+    AstIntrinsicFunctor(std::string op, VecOwn<AstArgument> args, SrcLocation loc = {})
+            : AstFunctor(std::move(args), std::move(loc)), function(std::move(op)) {}
 
     /** get function */
-    FunctorOp getFunction() const {
+    const std::string& getFunction() const {
         return function;
     }
 
     /** set function */
-    void setFunction(const FunctorOp functor) {
-        function = functor;
+    void setFunction(std::string functor) {
+        function = std::move(functor);
+    }
+
+    const IntrinsicFunctor* getFunctionInfo() const {
+        return info;
+    }
+
+    void setFunctionInfo(const IntrinsicFunctor& info) {
+        this->info = &info;
     }
 
     /** get the return type of the functor. */
     TypeAttribute getReturnType() const override {
-        return functorReturnType(function);
+        assert(info && "functor info not yet available");
+        return info->result;
     }
 
     /** get type of the functor argument*/
     TypeAttribute getArgType(const size_t arg) const override {
-        return functorOpArgType(arg, function);
+        assert(info && "functor info not yet available");
+        return info->params.at(info->variadic ? 0 : arg);
     }
 
     AstIntrinsicFunctor* clone() const override {
-        return new AstIntrinsicFunctor(function, souffle::clone(args), getSrcLoc());
+        return new AstIntrinsicFunctor(function, info, souffle::clone(args), getSrcLoc());
     }
 
 protected:
+    AstIntrinsicFunctor(
+            std::string op, const IntrinsicFunctor* info, VecOwn<AstArgument> args, SrcLocation loc = {})
+            : AstFunctor(std::move(args), std::move(loc)), function(std::move(op)), info(info) {
+        assert((!info || info->symbol == function) && "functor info must match symbol");
+    }
+
     void print(std::ostream& os) const override {
         if (isInfixFunctorOp(function)) {
-            os << "(" << join(args, getSymbolForFunctorOp(function)) << ")";
+            os << "(" << join(args, function) << ")";
         } else {
-            os << getSymbolForFunctorOp(function);
+            os << function;
             os << "(" << join(args) << ")";
         }
     }
 
     bool equal(const AstNode& node) const override {
         const auto& other = static_cast<const AstIntrinsicFunctor&>(node);
-        return function == other.function && AstFunctor::equal(node);
+        return function == other.function && info == other.info && AstFunctor::equal(node);
     }
 
     /** Function */
-    FunctorOp function;
+    std::string function;
+    const IntrinsicFunctor* info = nullptr;
 };
 
 /**

@@ -5,7 +5,7 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 // This file test conversions between numeric types.
-// It tests following functions: itof, itou, utoi, utof, ftoi, ftou
+// It tests following functions: to_float, to_unsigned, to_number
 
 
 // Numbers = {-100, -99.. 100}
@@ -15,22 +15,22 @@ Numbers(x + 1) :- Numbers(x), x < 10.
 
 // Converts numbers to float and back. Following should hold: NumberToFloatToNumber = Numbers.
 .decl NumberToFloatToNumber(x: number)
-NumberToFloatToNumber(ftoi(itof(x))) :- Numbers(x).
+NumberToFloatToNumber(to_number(to_float(x))) :- Numbers(x).
 
 // Converts non-negative numbers to unsigned and back.
 .decl NumbersToUnsignedToNumbers(x: unsigned, y: number)
-NumbersToUnsignedToNumbers(itou(x), utoi(itou(x))) :- Numbers(x), x >= 0.
+NumbersToUnsignedToNumbers(to_unsigned(x), to_number(to_unsigned(x))) :- Numbers(x), x >= 0.
 
 // Converts: Unsigned -> Float -> Unsigned
 .decl UnsignedToFloatToUnsigned(x: unsigned)
-UnsignedToFloatToUnsigned(ftou(utof(x))) :- NumbersToUnsignedToNumbers(x, _).
+UnsignedToFloatToUnsigned(to_unsigned(to_float(x))) :- NumbersToUnsignedToNumbers(x, _).
 
 
 .decl FloatToInt(x:number)
-FloatToInt(x) :- ftoi(0.2) = x.
-FloatToInt(x) :- ftoi(-3.3) = x.
-FloatToInt(x) :- ftoi(-333.27) = x.
-FloatToInt(x) :- ftoi(-333.36) = x.
+FloatToInt(x) :- to_number(0.2) = x.
+FloatToInt(x) :- to_number(-3.3) = x.
+FloatToInt(x) :- to_number(-333.27) = x.
+FloatToInt(x) :- to_number(-333.36) = x.
 
 
 

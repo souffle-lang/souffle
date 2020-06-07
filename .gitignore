@@ -11,25 +11,18 @@ env
 *.o
 *.a
 *~
-compile
-depcomp
-install-sh
-missing
+
 libtool
-ltmain.sh
 /include
-test-driver
+/auxfiles
+/packaging
 warn.log
-packaging/*
-utilities/bash-completion
 
 m4/libtool.m4
 m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
-
-debian/changelog
 
 profiler_html/
 
@@ -48,6 +41,8 @@ cmake-build-debug/
 stamp-h1
 /CMakeLists.txt
 
+utilities/bash-completion
+debian/changelog
 /man/souffle-compile.1
 /man/souffle-config.1
 /man/souffle-profile.1

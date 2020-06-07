@@ -43,6 +43,7 @@
 #include "utility/MiscUtil.h"
 #include "utility/ParallelUtil.h"
 #include "utility/StringUtil.h"
+#include "utility/tinyformat.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -185,16 +186,18 @@ void InterpreterEngine::executeMain() {
         SignalHandler::instance()->enableLogging();
     }
 
-    RamStatement& program = tUnit.getProgram().getMain();
-    auto entry = generator.generateTree(program);
+    generateIR();
+    assert(main != nullptr && "Executing an empty program");
+
     InterpreterContext ctxt;
 
     if (!profileEnabled) {
         InterpreterContext ctxt;
-        execute(entry.get(), ctxt);
+        execute(main.get(), ctxt);
     } else {
         ProfileEventSingleton::instance().setOutputFile(Global::config().get("profile"));
         // Prepare the frequency table for threaded use
+        const RamProgram& program = tUnit.getProgram();
         visitDepthFirst(program, [&](const RamTupleOperation& node) {
             if (!node.getProfileText().empty()) {
                 frequencies.emplace(node.getProfileText(), std::deque<std::atomic<size_t>>());
@@ -224,7 +227,7 @@ void InterpreterEngine::executeMain() {
         ProfileEventSingleton::instance().makeConfigRecord("ruleCount", std::to_string(ruleCount));
 
         InterpreterContext ctxt;
-        execute(entry.get(), ctxt);
+        execute(main.get(), ctxt);
         ProfileEventSingleton::instance().stopTimer();
         for (auto const& cur : frequencies) {
             for (size_t i = 0; i < cur.second.size(); ++i) {
@@ -238,14 +241,29 @@ void InterpreterEngine::executeMain() {
     }
     SignalHandler::instance()->reset();
 }
+
+void InterpreterEngine::generateIR() {
+    const RamProgram& program = tUnit.getProgram();
+    if (subroutine.empty()) {
+        for (const auto& sub : program.getSubroutines()) {
+            subroutine.push_back(generator.generateTree(*sub.second, program));
+        }
+    }
+    if (main == nullptr) {
+        main = generator.generateTree(program.getMain(), program);
+    }
+}
+
 void InterpreterEngine::executeSubroutine(
         const std::string& name, const std::vector<RamDomain>& args, std::vector<RamDomain>& ret) {
     InterpreterContext ctxt;
     ctxt.setReturnValues(ret);
     ctxt.setArguments(args);
-
-    auto entry = generator.generateTree(tUnit.getProgram().getSubroutine(name));
-    execute(entry.get(), ctxt);
+    generateIR();
+    const RamProgram& program = tUnit.getProgram();
+    auto subs = program.getSubroutines();
+    size_t i = distance(subs.begin(), subs.find(name));
+    execute(subroutine[i].get(), ctxt);
 }
 
 RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterContext& ctxt) {
@@ -278,22 +296,22 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(AutoIncrement)
 
         CASE(IntrinsicOperator)
-#define BINARY_OP(op) return execute(node->getChild(0), ctxt) op execute(node->getChild(1), ctxt)
 // clang-format off
-#define BINARY_OP_TYPED(ty, op) return ramBitCast(EVAL_CHILD(ty, 0) op EVAL_CHILD(ty, 1))
+#define BINARY_OP_TYPED(ty, op) return ramBitCast(static_cast<ty>(EVAL_CHILD(ty, 0) op EVAL_CHILD(ty, 1)))
 
-#define BINARY_OP_INTEGRAL(opcode, op)                              \
-    case FunctorOp::   opcode: { BINARY_OP_TYPED(RamSigned  , op); } \
-    case FunctorOp::U##opcode: { BINARY_OP_TYPED(RamUnsigned, op); }
+#define BINARY_OP_LOGICAL(opcode, op) BINARY_OP_INTEGRAL(opcode, op)
+#define BINARY_OP_INTEGRAL(opcode, op)                           \
+    case FunctorOp::   opcode: BINARY_OP_TYPED(RamSigned  , op); \
+    case FunctorOp::U##opcode: BINARY_OP_TYPED(RamUnsigned, op);
 #define BINARY_OP_NUMERIC(opcode, op)                         \
     BINARY_OP_INTEGRAL(opcode, op)                            \
     case FunctorOp::F##opcode: BINARY_OP_TYPED(RamFloat, op);
 
 #define BINARY_OP_SHIFT_MASK(ty, op)                                                 \
     return ramBitCast(EVAL_CHILD(ty, 0) op (EVAL_CHILD(ty, 1) & RAM_BIT_SHIFT_MASK))
-#define BINARY_OP_INTEGRAL_SHIFT(opcode, op, tySigned, tyUnsigned)        \
-    case FunctorOp::   opcode: { BINARY_OP_SHIFT_MASK(tySigned   , op); } \
-    case FunctorOp::U##opcode: { BINARY_OP_SHIFT_MASK(tyUnsigned , op); }
+#define BINARY_OP_INTEGRAL_SHIFT(opcode, op, tySigned, tyUnsigned)    \
+    case FunctorOp::   opcode: BINARY_OP_SHIFT_MASK(tySigned   , op); \
+    case FunctorOp::U##opcode: BINARY_OP_SHIFT_MASK(tyUnsigned , op);
 
 #define MINMAX_OP_SYM(op)                                        \
     {                                                            \
@@ -323,6 +341,17 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
     case FunctorOp::   opCode: MINMAX_OP(RamSigned  , op) \
     case FunctorOp::U##opCode: MINMAX_OP(RamUnsigned, op) \
     case FunctorOp::F##opCode: MINMAX_OP(RamFloat   , op)
+
+#define UNARY_OP(op, ty, func)                                      \
+    case FunctorOp::op: { \
+        auto x = EVAL_CHILD(ty, 0); \
+        return ramBitCast(func(x)); \
+    }
+#define CONV_TO_STRING(op, ty)                                                             \
+    case FunctorOp::op: return getSymbolTable().lookup(std::to_string(EVAL_CHILD(ty, 0)));
+#define CONV_FROM_STRING(op, ty)                              \
+    case FunctorOp::op: return evaluator::symbol2numeric<ty>( \
+        getSymbolTable().resolve(EVAL_CHILD(RamDomain, 0)));
             // clang-format on
 
             const auto& args = cur.getArguments();
@@ -348,50 +377,25 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                     // Casting is a bit tricky here, since ! returns a boolean.
                     return ramBitCast(static_cast<RamUnsigned>(!ramBitCast<RamUnsigned>(result)));
                 }
-                case FunctorOp::TONUMBER: {
-                    RamDomain result = 0;
-                    try {
-                        result = RamSignedFromString(
-                                getSymbolTable().resolve(execute(node->getChild(0), ctxt)));
-                    } catch (...) {
-                        std::cerr << "error: wrong string provided by to_number(\"";
-                        std::cerr << getSymbolTable().resolve(execute(node->getChild(0), ctxt));
-                        std::cerr << "\") functor.\n";
-                        raise(SIGFPE);
-                    }
-                    return result;
-                }
-                case FunctorOp::TOSTRING:
-                    return getSymbolTable().lookup(std::to_string(execute(node->getChild(0), ctxt)));
 
-                /** The following are the default C++ conversions. */
-                case FunctorOp::ITOU: {
-                    auto result = execute(node->getChild(0), ctxt);
-                    return ramBitCast(static_cast<RamUnsigned>(result));
-                }
-                case FunctorOp::UTOI: {
-                    auto result = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    return static_cast<RamSigned>(result);
-                }
-                case FunctorOp::ITOF: {
-                    auto result = execute(node->getChild(0), ctxt);
-                    return ramBitCast(static_cast<RamFloat>(result));
-                }
-                case FunctorOp::FTOI: {
-                    auto result = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    return static_cast<RamSigned>(result);
-                }
-                case FunctorOp::UTOF: {
-                    auto result = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    return ramBitCast(static_cast<RamFloat>(result));
-                }
-                case FunctorOp::FTOU: {
-                    auto result = ramBitCast<RamFloat>(execute(node->getChild(0), ctxt));
-                    return ramBitCast(static_cast<RamUnsigned>(result));
-                }
-
-                    /** Binary Functor Operators */
                     // clang-format off
+                /** numeric coersions follow C++ semantics. */
+                UNARY_OP(F2I, RamFloat   , static_cast<RamSigned>)
+                UNARY_OP(F2U, RamFloat   , static_cast<RamUnsigned>)
+                UNARY_OP(I2U, RamSigned  , static_cast<RamUnsigned>)
+                UNARY_OP(I2F, RamSigned  , static_cast<RamFloat>)
+                UNARY_OP(U2I, RamUnsigned, static_cast<RamSigned>)
+                UNARY_OP(U2F, RamUnsigned, static_cast<RamFloat>)
+
+                CONV_TO_STRING(F2S, RamFloat)
+                CONV_TO_STRING(I2S, RamSigned)
+                CONV_TO_STRING(U2S, RamUnsigned)
+
+                CONV_FROM_STRING(S2F, RamFloat)
+                CONV_FROM_STRING(S2I, RamSigned)
+                CONV_FROM_STRING(S2U, RamUnsigned)
+
+                /** Binary Functor Operators */
                 BINARY_OP_NUMERIC(ADD, +)
                 BINARY_OP_NUMERIC(SUB, -)
                 BINARY_OP_NUMERIC(MUL, *)
@@ -427,31 +431,11 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
                 // For right-shift, we do need sign extension.
                 BINARY_OP_INTEGRAL_SHIFT(BSHIFT_R         , >>, RamSigned  , RamUnsigned)
                 BINARY_OP_INTEGRAL_SHIFT(BSHIFT_R_UNSIGNED, >>, RamUnsigned, RamUnsigned)
-                    // clang-format on
 
-                case FunctorOp::LAND: {
-                    BINARY_OP(&&);
-                }
+                BINARY_OP_LOGICAL(LAND, &&)
+                BINARY_OP_LOGICAL(LOR , ||)
+                BINARY_OP_LOGICAL(LXOR, + souffle::evaluator::lxor_infix() +)
 
-                case FunctorOp::ULAND: {
-                    auto first = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    auto second = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    // Extra casting required (from bool)
-                    return ramBitCast(static_cast<RamUnsigned>(first && second));
-                }
-
-                case FunctorOp::LOR: {
-                    BINARY_OP(||);
-                }
-
-                case FunctorOp::ULOR: {
-                    auto first = ramBitCast<RamUnsigned>(execute(node->getChild(0), ctxt));
-                    auto second = ramBitCast<RamUnsigned>(execute(node->getChild(1), ctxt));
-                    // Extra casting required (from bool)
-                    return ramBitCast(static_cast<RamUnsigned>(first || second));
-                }
-
-                    // clang-format off
                 MINMAX_NUMERIC(MAX, std::max)
                 MINMAX_NUMERIC(MIN, std::min)
 
@@ -490,7 +474,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
             { UNREACHABLE_BAD_CASE_ANALYSIS }
 
-#undef BINARY_OP_TYPED
+#undef BINARY_OP_LOGICAL
 #undef BINARY_OP_INTEGRAL
 #undef BINARY_OP_NUMERIC
 #undef BINARY_OP_SHIFT_MASK
@@ -498,6 +482,9 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 #undef MINMAX_OP_SYM
 #undef MINMAX_OP
 #undef MINMAX_NUMERIC
+#undef UNARY_OP
+#undef CONV_TO_STRING
+#undef CONV_FROM_STRING
         ESAC(IntrinsicOperator)
 
         CASE(NestedIntrinsicOperator)
@@ -1070,7 +1057,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
         ESAC(UnpackRecord)
 
         CASE(Aggregate)
-            return executeAggregate(ctxt, cur, *node->getChild(0), *node->getChild(1), *node->getChild(2),
+            return executeAggregate(ctxt, cur, *node->getChild(0), node->getChild(1), *node->getChild(2),
                     node->getRelation()->scan());
         ESAC(Aggregate)
 
@@ -1108,7 +1095,7 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             size_t viewId = node->getData(0);
             auto& view = ctxt.getView(viewId);
 
-            return executeAggregate(ctxt, cur, *node->getChild(2 * arity), *node->getChild(2 * arity + 1),
+            return executeAggregate(ctxt, cur, *node->getChild(2 * arity), node->getChild(2 * arity + 1),
                     *node->getChild(2 * arity + 2), view->range(TupleRef(low, arity), TupleRef(hig, arity)));
         ESAC(IndexAggregate)
 
@@ -1214,6 +1201,11 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             return true;
         ESAC(Clear)
 
+        CASE_NO_CAST(Call)
+            execute(subroutine[node->getData(0)].get(), ctxt);
+            return true;
+        ESAC(Call)
+
         CASE(LogSize)
             const InterpreterRelation& rel = *node->getRelation();
             ProfileEventSingleton::instance().makeQuantityEvent(
@@ -1308,11 +1300,11 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
 #undef EVAL_CHILD
 #undef DEBUG
-}
+}  // namespace souffle
 
 template <typename Aggregate>
 RamDomain InterpreterEngine::executeAggregate(InterpreterContext& ctxt, const Aggregate& aggregate,
-        const InterpreterNode& filter, const InterpreterNode& expression,
+        const InterpreterNode& filter, const InterpreterNode* expression,
         const InterpreterNode& nestedOperation, Stream stream) {
     bool shouldRunNested = false;
 
@@ -1372,7 +1364,8 @@ RamDomain InterpreterEngine::executeAggregate(InterpreterContext& ctxt, const Ag
         }
 
         // eval target expression
-        RamDomain val = execute(&expression, ctxt);
+        assert(expression);  // only case where this is null is `COUNT`
+        RamDomain val = execute(expression, ctxt);
 
         switch (aggregate.getFunction()) {
             case AggregateOp::MIN: res = std::min(res, val); break;

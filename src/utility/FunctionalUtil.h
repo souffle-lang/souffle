@@ -131,4 +131,21 @@ bool none_of(const Container& c, UnaryPredicate p) {
     return std::none_of(c.begin(), c.end(), p);
 }
 
+/**
+ * Filter a vector to exclude certain elements.
+ */
+template <typename A, typename F>
+std::vector<A> filterNot(std::vector<A> xs, F&& f) {
+    xs.erase(std::remove_if(xs.begin(), xs.end(), std::forward<F>(f)), xs.end());
+    return xs;
+}
+
+/**
+ * Filter a vector to include certain elements.
+ */
+template <typename A, typename F>
+std::vector<A> filter(std::vector<A> xs, F&& f) {
+    return filterNot(std::move(xs), [&](auto&& x) { return !f(x); });
+}
+
 }  // namespace souffle

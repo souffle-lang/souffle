@@ -7,13 +7,13 @@
 // Tests ordering of floats and unsigned
 
 .decl Unsigned(x: unsigned)
-Unsigned(itou(1)) :- itou(0) < itou(1).
-Unsigned(itou(2)) :- itou(0) <= itou(1).
-Unsigned(itou(3)) :- itou(42) > itou(12).
-Unsigned(itou(4)) :- itou(42) >= itou(12).
-Unsigned(itou(5)) :- itou(42) != itou(12).
-Unsigned(itou(6)) :- itou(42) = itou(42).
-Unsigned(itou(7)) :- itou(0) < itou(2147483647) + itou(1).
+Unsigned(1u) :- 0u < 1u.
+Unsigned(2u) :- 0u <= 1u.
+Unsigned(3u) :- 42u > 12u.
+Unsigned(4u) :- 42u >= 12u.
+Unsigned(5u) :- 42u != 12u.
+Unsigned(6u) :- 42u = 42u.
+Unsigned(7u) :- 0u < 2147483647u + 1u.
 
 .decl Float(x: number)
 Float(1) :- 0.999 < 1.0.
@@ -24,12 +24,12 @@ Float(5) :- 42.42 != 42.0.
 Float(6) :- 42.42 = 42.42.
 
 .decl EmptyUnsigned(x: unsigned)
-EmptyUnsigned(itou(1)) :- itou(0) >= itou(1).
-EmptyUnsigned(itou(2)) :- itou(0) > itou(1).
-EmptyUnsigned(itou(3)) :- itou(42) <= itou(12).
-EmptyUnsigned(itou(4)) :- itou(42) < itou(12).
-EmptyUnsigned(itou(5)) :- itou(42) = itou(12).
-EmptyUnsigned(itou(6)) :- itou(42) != itou(42).
+EmptyUnsigned(1u) :- 0u >= 1u.
+EmptyUnsigned(2u) :- 0u > 1u.
+EmptyUnsigned(3u) :- 42u <= 12u.
+EmptyUnsigned(4u) :- 42u < 12u.
+EmptyUnsigned(5u) :- 42u = 12u.
+EmptyUnsigned(6u) :- 42u != 42u.
 
 .decl EmptyFloat(x: number)
 EmptyFloat(1) :- 0.999 >= 1.0.

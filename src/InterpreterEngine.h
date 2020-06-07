@@ -68,6 +68,8 @@ public:
             const std::string& name, const std::vector<RamDomain>& args, std::vector<RamDomain>& ret);
 
 private:
+    /** @brief Generate intermediate representation from RAM */
+    void generateIR();
     /** @brief Remove a relation from the environment */
     void dropRelation(const size_t relId);
     /** @brief Swap the content of two relations */
@@ -85,7 +87,7 @@ private:
     /** Execute helper. Common part of Aggregate & AggregateIndex. */
     template <typename Aggregate>
     RamDomain executeAggregate(InterpreterContext& ctxt, const Aggregate& aggregate,
-            const InterpreterNode& filter, const InterpreterNode& expression,
+            const InterpreterNode& filter, const InterpreterNode* expression,
             const InterpreterNode& nestedOperation, Stream stream);
     /** @brief Return method handler */
     void* getMethodHandle(const std::string& method);
@@ -104,6 +106,10 @@ private:
 
     /** If profile is enable in this program */
     const bool profileEnabled;
+    /** subroutines */
+    std::vector<std::unique_ptr<InterpreterNode>> subroutine;
+    /** main program */
+    std::unique_ptr<InterpreterNode> main;
     /** Number of threads enabled for this program */
     size_t numOfThreads;
     /** Profile counter */

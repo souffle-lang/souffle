@@ -1,0 +1,10 @@
+Error: Atoms argument type is not a subtype of its declared type in file type_as2.dl at line 22
+B(as(x, symbol)) :- A(x).
+--^-----------------------
+Error: Unable to deduce type of the argument (cast) in file type_as2.dl at line 23
+B(as(x, float)) :- A(x).
+--^----------------------
+Error: Type "symbol" can't be converted to "float" in file type_as2.dl at line 26
+C(as(x, float)) :- A(x).
+--^----------------------
+3 errors generated, evaluation aborted

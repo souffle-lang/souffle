@@ -1,0 +1,4 @@
+Error: Atoms argument type is not a subtype of its declared type in file type_system14.dl at line 24
+RG(val) :- RD(val), RE(cat("",val)).
+---^---------------------------------
+1 errors generated, evaluation aborted

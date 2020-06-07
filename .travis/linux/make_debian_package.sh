@@ -17,7 +17,21 @@ git describe --tags --abbrev=0 --always
 ./bootstrap
 ./configure --enable-host-packaging
 
-JOBS=$(nproc)
+if [ -n "$1" ];
+then
+  JOBS=$1
+else
+  JOBS=$(nproc)
+fi
+
+# In case nproc doesn't exist, set a default
+if [ -z "$JOBS" ];
+then
+  JOBS=2
+fi
+
+export AM_MAKEFLAGS=-j$JOBS
+
 make -j$JOBS package
 
 # compute md5 for package &

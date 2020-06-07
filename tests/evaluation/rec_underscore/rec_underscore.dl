@@ -1,0 +1,17 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Tests the use of underscores in records.
+
+.type R = [x:number, y:symbol]
+
+.decl A(x:R, y:number)
+A([1,"a"], 2).
+
+.decl B(x:symbol)
+B(x) :- A([_,x], _).
+
+.output B()

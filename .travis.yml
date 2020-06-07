@@ -1,11 +1,16 @@
 language: generic
 dist: bionic
+arch: amd64
 
-aliases:
+# Travis-ci bugs prevent completion. A workaround is to disable secret filtering
+# In early 2018 said they are working on fixing their filter script, and in 10/2019
+# they were still working on it.
+filter_secrets: false
+
+_aliases:
   - &docker
     os: linux
     services: docker
-    sudo: false
     before_script:
       - docker pull souffle/ubuntu:bionic-base
       - docker run -d -t --name souf -w /souffle --mount src="$(pwd)",target=/souffle,type=bind souffle/ubuntu:bionic-base /bin/sh
@@ -33,6 +38,8 @@ stages:
   - Packaging
 
 jobs:
+  allow_failures:
+    - name: "Debian arm64 package"
   include:
 # Style check stage
   - stage: Warmup
@@ -169,7 +176,7 @@ jobs:
   # Make the linux deb packages and if successful upload to github releases and bintray
   # All PRs go to bintray unstable, tagged releases to bintray stable
   - stage: Packaging
-    name: "Debian package"
+    name: "Debian amd64 package"
     <<: *docker
     script:
       - docker exec souf /bin/sh -c ".travis/linux/install_debian_deps.sh"
@@ -180,7 +187,7 @@ jobs:
     # https://docs.travis-ci.com/user/deployment/bintray
     deploy:
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-deb-unstable.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -188,7 +195,7 @@ jobs:
           branch: master
           repo: souffle-lang/souffle
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-deb-stable.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -197,9 +204,37 @@ jobs:
           tags: true
       - provider: releases
         skip_cleanup: true
-        api_key: $GHRELEASES_TOKEN
+        token: $GHRELEASES_TOKEN
         file_glob: true
         file: deploy/*
+        on:
+          repo: souffle-lang/souffle
+          tags: true
+  - stage: Packaging
+    name: "Debian arm64 package"
+    arch: arm64
+    <<: *docker
+    script:
+      - docker exec souf /bin/sh -c ".travis/linux/install_debian_deps.sh"
+      - docker exec souf /bin/sh -c ".travis/linux/make_debian_package.sh 2"
+    before_deploy:
+      - .travis/bintray_json.sh debian arm64
+    # deploy to bintray if we're in the souffle-lang repo
+    # https://docs.travis-ci.com/user/deployment/bintray
+    deploy:
+      - provider: bintray
+        skip_cleanup: true
+        file: bintray-deb-unstable.json
+        user: souffle-lang
+        key: $BINTRAY_KEY
+        on:
+          branch: master
+          repo: souffle-lang/souffle
+      - provider: bintray
+        skip_cleanup: true
+        file: bintray-deb-stable.json
+        user: souffle-lang
+        key: $BINTRAY_KEY
         on:
           repo: souffle-lang/souffle
           tags: true
@@ -209,15 +244,15 @@ jobs:
   - stage: Packaging
     name: "CentOS package"
     <<: *docker
-    before_script: docker pull centos:7
-    script: docker run --mount src="$(pwd)",target=/souffle,type=bind centos:7 /bin/sh -c "cd /souffle && .travis/linux/install_centos_deps.sh && .travis/linux/make_centos_package.sh"
+    before_script: docker pull centos:8
+    script: docker run --mount src="$(pwd)",target=/souffle,type=bind centos:8 /bin/sh -c "cd /souffle && .travis/linux/install_centos_deps.sh && .travis/linux/make_centos_package.sh"
     before_deploy:
       - .travis/bintray_json.sh centos
     # deploy to bintray if we're in the souffle-lang repo
     # https://docs.travis-ci.com/user/deployment/bintray
     deploy:
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-rpm-unstable.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -225,7 +260,7 @@ jobs:
           branch: master
           repo: souffle-lang/souffle
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-rpm-stable.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -247,7 +282,7 @@ jobs:
     # https://docs.travis-ci.com/user/deployment/bintray
     deploy:
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-rpm-unstable.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -255,7 +290,7 @@ jobs:
           branch: master
           repo: souffle-lang/souffle
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-rpm-stable.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -271,14 +306,14 @@ jobs:
     deploy:
       - provider: releases
         skip_cleanup: true
-        api_key: $GHRELEASES_TOKEN
+        token: $GHRELEASES_TOKEN
         file_glob: true
         file: deploy/*
         on:
           repo: souffle-lang/souffle
           tags: true
       - provider: bintray
-        skip-cleanup: true
+        skip_cleanup: true
         file: bintray-osx.json
         user: souffle-lang
         key: $BINTRAY_KEY
@@ -286,7 +321,7 @@ jobs:
           tags: true
           repo: souffle-lang/souffle
       - provider: script
-        skip-cleanup: true
+        skip_cleanup: true
         script: ".travis/osx/brew.sh $HOMEBREW_SOUFFLE_KEY"
         on:
           tags: true
@@ -302,10 +337,10 @@ jobs:
     # https://pages.github.com/
     deploy:
       provider: pages
-      skip-cleanup: true
-      github-token: $GHPAGES_TOKEN
-      keep-history: false
-      local-dir: doc/html
+      skip_cleanup: true
+      token: $GHPAGES_TOKEN
+      keep_history: false
+      local_dir: doc/html
       on:
         branch: master
         condition: -n $GHPAGES_TOKEN

@@ -399,7 +399,9 @@ int main(int argc, char** argv) {
 
     // Equivalence pipeline
     auto equivalencePipeline =
-            std::make_unique<PipelineTransformer>(std::make_unique<MinimiseProgramTransformer>(),
+            std::make_unique<PipelineTransformer>(std::make_unique<NameUnnamedVariablesTransformer>(),
+                    std::make_unique<FixpointTransformer>(std::make_unique<MinimiseProgramTransformer>()),
+                    std::make_unique<ReplaceSingletonVariablesTransformer>(),
                     std::make_unique<RemoveRelationCopiesTransformer>(),
                     std::make_unique<RemoveEmptyRelationsTransformer>(),
                     std::make_unique<RemoveRedundantRelationsTransformer>());
@@ -411,8 +413,8 @@ int main(int argc, char** argv) {
                     std::make_unique<ReplaceSingletonVariablesTransformer>());
 
     // Provenance pipeline
-    auto provenancePipeline = std::make_unique<PipelineTransformer>(std::make_unique<ConditionalTransformer>(
-            Global::config().has("provenance"), std::make_unique<ProvenanceTransformer>()));
+    auto provenancePipeline = mk<ConditionalTransformer>(Global::config().has("provenance"),
+            mk<PipelineTransformer>(mk<ProvenanceTransformer>(), mk<PolymorphicObjectsTransformer>()));
 
     // Main pipeline
     auto pipeline = std::make_unique<PipelineTransformer>(std::make_unique<AstComponentChecker>(),
@@ -427,8 +429,8 @@ int main(int argc, char** argv) {
             std::make_unique<RemoveTypecastsTransformer>(),
             std::make_unique<RemoveBooleanConstraintsTransformer>(),
             std::make_unique<ResolveAliasesTransformer>(), std::make_unique<MinimiseProgramTransformer>(),
-            std::make_unique<InlineRelationsTransformer>(), std::make_unique<GroundedTermsChecker>(),
-            std::make_unique<ResolveAliasesTransformer>(),
+            std::make_unique<InlineRelationsTransformer>(), std::make_unique<PolymorphicObjectsTransformer>(),
+            std::make_unique<GroundedTermsChecker>(), std::make_unique<ResolveAliasesTransformer>(),
             std::make_unique<RemoveRedundantRelationsTransformer>(),
             std::make_unique<RemoveRelationCopiesTransformer>(),
             std::make_unique<RemoveEmptyRelationsTransformer>(),
@@ -437,15 +439,15 @@ int main(int argc, char** argv) {
                     std::make_unique<PipelineTransformer>(std::make_unique<ReduceExistentialsTransformer>(),
                             std::make_unique<RemoveRedundantRelationsTransformer>())),
             std::make_unique<RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
-            std::make_unique<FixpointTransformer>(std::make_unique<MinimiseProgramTransformer>()),
-            std::make_unique<RemoveRelationCopiesTransformer>(),
+            std::move(equivalencePipeline), std::make_unique<RemoveRelationCopiesTransformer>(),
             std::make_unique<ReorderLiteralsTransformer>(),
             std::make_unique<PipelineTransformer>(std::make_unique<ResolveAliasesTransformer>(),
                     std::make_unique<MaterializeAggregationQueriesTransformer>()),
             std::make_unique<RemoveRedundantSumsTransformer>(),
             std::make_unique<RemoveEmptyRelationsTransformer>(),
-            std::make_unique<ReorderLiteralsTransformer>(), std::move(magicPipeline),
-            std::make_unique<AstExecutionPlanChecker>(), std::move(provenancePipeline));
+            std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<ReorderLiteralsTransformer>(),
+            std::move(magicPipeline), std::make_unique<AstExecutionPlanChecker>(),
+            std::move(provenancePipeline));
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {

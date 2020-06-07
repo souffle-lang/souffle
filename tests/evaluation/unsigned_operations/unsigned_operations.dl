@@ -8,66 +8,66 @@
 
 
 .decl BinaryNegation(x: unsigned)
-BinaryNegation(itou(1)) :- bnot(itou(1)) > itou(0). 
+BinaryNegation(1u) :- bnot(1u) > 0u.
 
 .decl LogicalNegation(x: unsigned)
-LogicalNegation(itou(0)) :- itou(1) = lnot(itou(0)).
-LogicalNegation(itou(1)) :- lnot(itou(0)) != itou(0).
+LogicalNegation(0u) :- 1u = lnot(0u).
+LogicalNegation(1u) :- lnot(0u) != 0u.
 
 .decl Add(x: unsigned)
-Add(x + y) :- x = itou(5), y = itou(5).
-Add(x + y) :- x = itou(0), y = itou(0).
-Add(x + y) :- x = itou(3), y = itou(1).
-Add(x + y) :- x = itou(1000), y = itou(2147483647).
+Add(x + y) :- x = 5u, y = 5u.
+Add(x + y) :- x = 0u, y = 0u.
+Add(x + y) :- x = 3u, y = 1u.
+Add(x + y) :- x = 1000u, y = 2147483647u.
 
 .decl Sub(x: unsigned)
-Sub(x - y) :- x = itou(5), y = itou(5).
-Sub(x - y) :- x = itou(5), y = itou(0).
-Sub(x - y) :- x = itou(3), y = itou(1).
-Sub(itou(42)) :- itou(0) - itou(1) > itou(0). // overflow
+Sub(x - y) :- x = 5u, y = 5u.
+Sub(x - y) :- x = 5u, y = 0u.
+Sub(x - y) :- x = 3u, y = 1u.
+Sub(42u) :- 0u - 1u > 0u. // overflow
 
 .decl Mul(x: unsigned)
-Mul(x * y) :- x = itou(5), y = itou(5).
-Mul(x * y) :- x = itou(5), y = itou(0).
-Mul(x * y) :- x = itou(3), y = itou(1).
-Mul(x * y) :- x = itou(2^16), y = itou(2^15). // Shouldn't overflow.
+Mul(x * y) :- x = 5u, y = 5u.
+Mul(x * y) :- x = 5u, y = 0u.
+Mul(x * y) :- x = 3u, y = 1u.
+Mul(x * y) :- x = to_unsigned(2^16), y = to_unsigned(2^15). // Shouldn't overflow.
 
 .decl Exp(x: unsigned)
-Exp(x ^ y) :- x = itou(5), y = itou(2). // 25
-Exp(x ^ y) :- x = itou(5), y = itou(3). // 125
-Exp(x ^ y) :- x = itou(5), y = itou(1). // 5
-Exp(x ^ y) :- x = itou(2), y = itou(4). // 16
+Exp(x ^ y) :- x = 5u, y = 2u. // 25
+Exp(x ^ y) :- x = 5u, y = 3u. // 125
+Exp(x ^ y) :- x = 5u, y = 1u. // 5
+Exp(x ^ y) :- x = 2u, y = 4u. // 16
 
 .decl Mod(x: unsigned)
-Mod(x % y) :- x = itou(5), y = itou(2). // 1
-Mod(x % y) :- x = itou(25), y = itou(5). // 0
+Mod(x % y) :- x = 5u, y = 2u. // 1
+Mod(x % y) :- x = 25u, y = 5u. // 0
 
 .decl BitwiseAnd(x: unsigned)
-BitwiseAnd(x band y) :- x = itou(1), y = itou(4). // 0
-BitwiseAnd(x band y) :- x = itou(1), y = itou(1). // 1
+BitwiseAnd(x band y) :- x = 1u, y = 4u. // 0
+BitwiseAnd(x band y) :- x = 1u, y = 1u. // 1
 
  .decl BitwiseOr(x: unsigned)
-BitwiseOr(x bor y) :- x = itou(1), y = itou(8). // 9
-BitwiseOr(x bor y) :- x = itou(5), y = itou(5). // 5
-BitwiseOr(x bor y) :- x = itou(0), y = itou(42). // 42
+BitwiseOr(x bor y) :- x = 1u, y = 8u. // 9
+BitwiseOr(x bor y) :- x = 5u, y = 5u. // 5
+BitwiseOr(x bor y) :- x = 0u, y = 42u. // 42
 
 .decl BitwiseXor(x: unsigned)
-BitwiseXor(x bxor y) :- x = itou(1), y = itou(4). // 5
-BitwiseXor(x bxor y) :- x = itou(5), y = itou(5). // 0
-BitwiseXor(x bxor y) :- x = itou(0), y = itou(42). // 42
+BitwiseXor(x bxor y) :- x = 1u, y = 4u. // 5
+BitwiseXor(x bxor y) :- x = 5u, y = 5u. // 0
+BitwiseXor(x bxor y) :- x = 0u, y = 42u. // 42
 
 .decl LogicalAnd(x: unsigned)
-LogicalAnd(x land y) :- x = itou(1), y = itou(4). // 1
-LogicalAnd(x land y) :- x = itou(1), y = itou(0). // 0
+LogicalAnd(x land y) :- x = 1u, y = 4u. // 1
+LogicalAnd(x land y) :- x = 1u, y = 0u. // 0
 
 .decl LogicalOr(x: unsigned)
-LogicalOr(x lor y) :- x = itou(1), y = itou(4). // 1
-LogicalOr(x lor y) :- x = itou(0), y = itou(0). // 0
+LogicalOr(x lor y) :- x = 1u, y = 4u. // 1
+LogicalOr(x lor y) :- x = 0u, y = 0u. // 0
 
 .decl Max(x: unsigned)
-Max(x) :- x = max(itou(2), itou(3), itou(23), itou(42)). // 42
+Max(x) :- x = max(2u, 3u, 23u, 42u). // 42
 
 .decl Min(x: unsigned)
-Min(x) :- x = min(itou(2), itou(3), itou(23), itou(42)). // 2
+Min(x) :- x = min(2u, 3u, 23u, 42u). // 2
 
 .output BinaryNegation, LogicalNegation, Add, Sub, Mul, Exp, Mod, BitwiseAnd, BitwiseOr, BitwiseXor, LogicalAnd, LogicalOr, Max, Min

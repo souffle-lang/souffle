@@ -176,7 +176,9 @@ void ParserDriver::addIoFromDeprecatedTag(AstRelation& rel) {
 
 std::set<RelationTag> ParserDriver::addDeprecatedTag(
         RelationTag tag, SrcLocation tagLoc, std::set<RelationTag> tags) {
-    warning(tagLoc, tfm::format("Deprecated %s qualifier was used", tag));
+    if (!Global::config().has("legacy")) {
+        warning(tagLoc, tfm::format("Deprecated %s qualifier was used", tag));
+    }
     return addTag(tag, std::move(tagLoc), std::move(tags));
 }
 
@@ -201,9 +203,11 @@ std::set<RelationTag> ParserDriver::addTag(RelationTag tag, std::vector<Relation
 }
 
 Own<AstSubsetType> ParserDriver::mkDeprecatedSubType(
-        AstQualifiedName name, TypeAttribute attr, SrcLocation loc) {
-    warning(loc, "Deprecated type declaration used");
-    return mk<AstSubsetType>(std::move(name), attr, std::move(loc));
+        AstQualifiedName name, AstQualifiedName baseTypeName, SrcLocation loc) {
+    if (!Global::config().has("legacy")) {
+        warning(loc, "Deprecated type declaration used");
+    }
+    return mk<AstSubsetType>(std::move(name), std::move(baseTypeName), std::move(loc));
 }
 
 void ParserDriver::warning(const SrcLocation& loc, const std::string& msg) {

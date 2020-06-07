@@ -21,15 +21,11 @@ travis_retry() {
   return $result
 }
 
-# Add our repo to get mcpp
-travis_retry yum install -y https://dl.bintray.com/souffle-lang/rpm-unstable/centos/7/x86_64/souffle-repo-centos-1.0.2-1.x86_64.rpm
-
 # Build dependencies
-travis_retry yum install -y -q autoconf automake bison clang doxygen flex gcc gcc-c++ git kernel-devel libffi-devel libtool make mcpp ncurses-devel python sqlite sqlite-devel sudo swig zlib-devel
+travis_retry yum install -y -q autoconf automake bison clang flex gcc gcc-c++ git kernel-devel libffi-devel libtool make mcpp ncurses-devel python3 sqlite sqlite-devel sudo swig zlib-devel
 
 # Set up a more recent gcc that supports C++11
 travis_retry yum install -y centos-release-scl
-travis_retry yum install -y devtoolset-7-gcc-c++
 
 # Set up the package builder
 travis_retry yum install -y -q rpm-build ruby-devel

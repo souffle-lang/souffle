@@ -30,13 +30,9 @@
 namespace souffle {
 
 bool RamTransformer::apply(RamTranslationUnit& translationUnit) {
-    static const bool debug = Global::config().has("debug-report");
-    static const bool verbose = Global::config().has("verbose");
-    std::stringstream ramProgStrOld;
-
-    if (debug) {
-        ramProgStrOld << translationUnit.getProgram();
-    }
+    const bool debug = Global::config().has("debug-report");
+    const bool verbose = Global::config().has("verbose");
+    std::string ramProgStrOld = debug ? toString(translationUnit.getProgram()) : "";
 
     // invoke the transformation
     auto start = std::chrono::high_resolution_clock::now();
@@ -59,8 +55,8 @@ bool RamTransformer::apply(RamTranslationUnit& translationUnit) {
     if (debug) {
         translationUnit.getDebugReport().startSection();
         if (changed) {
-            translationUnit.getDebugReport().addSection(getName(), "RAM Program after " + getName(),
-                    DebugReporter::generateDiff(ramProgStrOld.str(), translationUnit.getProgram()));
+            translationUnit.getDebugReport().addCodeSection(getName(), "RAM Program after " + getName(),
+                    "ram", ramProgStrOld, toString(translationUnit.getProgram()));
 
             translationUnit.getDebugReport().endSection(getName(), getName());
         } else {

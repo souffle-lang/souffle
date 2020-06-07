@@ -4,6 +4,8 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
+SUBDIRS = . tests
+
 SUFFIXES = .cpp .h .yy .ll .cc .hh .h
 
 bin_PROGRAMS = souffle souffle-profile
@@ -128,6 +130,7 @@ souffle_sources = \
         DebugReporter.h                                    \
         ErrorReport.h                                      \
         EventProcessor.h                                   \
+        FunctorOps.cpp                                     \
         FunctorOps.h                                       \
         Global.cpp                                         \
         Global.h                                           \
@@ -215,11 +218,10 @@ souffle_SOURCES = main.cpp
 souffle_LDADD = libsouffle.la
 
 souffle_profile_SOURCES = souffle_prof.cpp
-souffle_profile_CXXFLAGS = $(souffle_CPPFLAGS)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
-EXTRA_DIST = parser.yy scanner.ll  test/test.h
+EXTRA_DIST = parser.yy scanner.ll
 
 soufflepublicdir = $(includedir)/souffle
 
@@ -288,188 +290,3 @@ $(builddir)/scanner.cc: $(srcdir)/scanner.ll
 $(builddir)/parser.cc $(builddir)/stack.hh $(builddir)/scanner.cc \
     $(builddir)/main.cpp $(builddir)/ParserDriver.cpp: $(builddir)/parser.hh
 
-########## Unit Tests
-
-AM_COLOR_TESTS=always
-
-# -------------------------
-
-# init check programs
-check_PROGRAMS =
-
-# profile utilities test
-check_PROGRAMS += test/profile_util_test
-test_profile_util_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_profile_util_test_SOURCES = test/profile_util_test.cpp
-test_profile_util_test_LDADD = libsouffle.la
-
-# utils test
-check_PROGRAMS += test/util_test
-test_util_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_util_test_SOURCES = test/util_test.cpp
-test_util_test_LDADD = libsouffle.la
-
-# matching test
-check_PROGRAMS += test/matching_test
-test_matching_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_matching_test_SOURCES = test/matching_test.cpp
-test_matching_test_LDADD = libsouffle.la
-
-# table test
-check_PROGRAMS += test/table_test
-test_table_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_table_test_SOURCES = test/table_test.cpp
-test_table_test_LDADD = libsouffle.la
-
-# b-tree set test
-check_PROGRAMS += test/btree_set_test
-test_btree_set_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_btree_set_test_SOURCES = test/btree_set_test.cpp
-test_btree_set_test_LDADD = libsouffle.la
-
-# b-tree multi-set test
-check_PROGRAMS += test/btree_multiset_test
-test_btree_multiset_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_btree_multiset_test_SOURCES = test/btree_multiset_test.cpp
-test_btree_multiset_test_LDADD = libsouffle.la
-
-# binary relation tests
-check_PROGRAMS += test/binary_relation_test
-test_binary_relation_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_binary_relation_test_SOURCES = test/binary_relation_test.cpp
-test_binary_relation_test_LDADD = libsouffle.la
-
-# pnappa's good ol fashioned data structure tests (auxilliary structures to binrel, and potentially useful outside)
-check_PROGRAMS += test/eqrel_datastructure_test
-test_eqrel_datastructure_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_eqrel_datastructure_test_SOURCES = test/eqrel_datastructure_test.cpp
-test_eqrel_datastructure_test_LDADD = libsouffle.la
-
-# compiled ram tuple test
-check_PROGRAMS += test/compiled_tuple_test
-test_compiled_tuple_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_compiled_tuple_test_SOURCES = test/compiled_tuple_test.cpp
-test_compiled_tuple_test_LDADD = libsouffle.la
-
-# compiled ram index utils test
-check_PROGRAMS += test/compiled_index_utils_test
-test_compiled_index_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_compiled_index_utils_test_SOURCES = test/compiled_index_utils_test.cpp
-test_compiled_index_utils_test_LDADD = libsouffle.la
-
-# interpreter relation test
-check_PROGRAMS += test/interpreter_relation_test
-test_interpreter_relation_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_interpreter_relation_test_SOURCES = test/interpreter_relation_test.cpp
-test_interpreter_relation_test_LDADD = libsouffle.la
-
-# type system test
-check_PROGRAMS += test/type_system_test
-test_type_system_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_type_system_test_SOURCES = test/type_system_test.cpp
-test_type_system_test_LDADD = libsouffle.la
-
-# constraints test
-check_PROGRAMS += test/constraints_test
-test_constraints_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_constraints_test_SOURCES = test/constraints_test.cpp
-test_constraints_test_LDADD = libsouffle.la
-
-# ast print test
-check_PROGRAMS += test/ast_print_test
-test_ast_print_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_ast_print_test_SOURCES = test/ast_print_test.cpp
-test_ast_print_test_LDADD = libsouffle.la
-
-# ast program test
-check_PROGRAMS += test/ast_program_test
-test_ast_program_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_ast_program_test_SOURCES = test/ast_program_test.cpp
-test_ast_program_test_LDADD = libsouffle.la
-
-# ast utils test
-check_PROGRAMS += test/ast_utils_test
-test_ast_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_ast_utils_test_SOURCES = test/ast_utils_test.cpp
-test_ast_utils_test_LDADD = libsouffle.la
-
-# ast parser utils test
-check_PROGRAMS += test/ast_parser_utils_test
-test_ast_parser_utils_test_CXXFLAGS = $(souffle_CPPFLAGS) -I @abs_top_srcdir@/src/test
-test_ast_parser_utils_test_SOURCES = test/ast_parser_utils_test.cpp
-test_ast_parser_utils_test_LDADD = libsouffle.la
-
-# symbol table
-check_PROGRAMS += test/symbol_table_test
-test_symbol_table_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_symbol_table_test_SOURCES = test/symbol_table_test.cpp
-test_symbol_table_test_LDADD = libsouffle.la
-
-# graph utils
-check_PROGRAMS += test/graph_utils_test
-test_graph_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_graph_utils_test_SOURCES = test/graph_utils_test.cpp
-test_graph_utils_test_LDADD = libsouffle.la
-
-# trie implementation
-check_PROGRAMS += test/brie_test
-test_brie_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_brie_test_SOURCES = test/brie_test.cpp
-test_brie_test_LDADD = libsouffle.la
-
-# parallel utils implementation
-check_PROGRAMS += test/parallel_utils_test
-test_parallel_utils_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_parallel_utils_test_SOURCES = test/parallel_utils_test.cpp
-test_parallel_utils_test_LDADD = libsouffle.la
-
-# interpreter relation test
-check_PROGRAMS += test/ram_condition_equal_clone_test
-test_ram_condition_equal_clone_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_condition_equal_clone_test_SOURCES = test/ram_condition_equal_clone_test.cpp
-test_ram_condition_equal_clone_test_LDADD = libsouffle.la
-
-check_PROGRAMS += test/ram_statement_equal_clone_test
-test_ram_statement_equal_clone_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_statement_equal_clone_test_SOURCES = test/ram_statement_equal_clone_test.cpp
-test_ram_statement_equal_clone_test_LDADD = libsouffle.la
-
-check_PROGRAMS += test/ram_expression_equal_clone_test
-test_ram_expression_equal_clone_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_expression_equal_clone_test_SOURCES = test/ram_expression_equal_clone_test.cpp
-test_ram_expression_equal_clone_test_LDADD = libsouffle.la
-
-check_PROGRAMS += test/ram_operation_equal_clone_test
-test_ram_operation_equal_clone_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_operation_equal_clone_test_SOURCES = test/ram_operation_equal_clone_test.cpp
-test_ram_operation_equal_clone_test_LDADD = libsouffle.la
-
-check_PROGRAMS += test/ram_relation_equal_clone_test
-test_ram_relation_equal_clone_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_relation_equal_clone_test_SOURCES = test/ram_relation_equal_clone_test.cpp
-test_ram_relation_equal_clone_test_LDADD = libsouffle.la
-
-# relation test
-check_PROGRAMS += test/ram_relation_test
-test_ram_relation_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_relation_test_SOURCES = test/ram_relation_test.cpp
-test_ram_relation_test_LDADD = libsouffle.la
-
-# arithmetic test
-check_PROGRAMS += test/ram_arithmetic_test
-test_ram_arithmetic_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_arithmetic_test_SOURCES = test/ram_arithmetic_test.cpp
-test_ram_arithmetic_test_LDADD = libsouffle.la
-
-check_PROGRAMS += test/ram_type_conversion_test
-test_ram_type_conversion_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_ram_type_conversion_test_SOURCES = test/ram_type_conversion_test.cpp
-test_ram_type_conversion_test_LDADD = libsouffle.la
-
-check_PROGRAMS += test/record_table_test
-test_record_table_test_CXXFLAGS = $(souffle_bin_CPPFLAGS) -I @abs_top_srcdir@/src/test -DBUILDDIR='"@abs_top_builddir@/src/"'
-test_record_table_test_SOURCES = test/record_table_test.cpp
-test_record_table_test_LDADD = libsouffle.la
-
-# make all check-programs tests
-TESTS = $(check_PROGRAMS)

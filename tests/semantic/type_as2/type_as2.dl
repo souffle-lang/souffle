@@ -1,0 +1,30 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// type cast with "as" 2
+//
+// Negative test for type casts.
+//
+
+
+.type symbol1 <: symbol
+
+
+.decl A(x: symbol)
+A("x").
+
+
+.decl B(x: symbol1)
+B(as(x, symbol)) :- A(x).
+B(as(x, float)) :- A(x).
+
+.decl C(x: float)
+C(as(x, float)) :- A(x).
+
+
+.output B
+.output C

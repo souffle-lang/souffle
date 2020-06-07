@@ -24,48 +24,33 @@
 namespace souffle {
 
 void SubsetType::print(std::ostream& out) const {
-    out << getName() << " <: " << baseType;
-}
-
-void UnionType::add(const Type& type) {
-    assert(environment.isType(type));
-    elementTypes.push_back(&type);
+    out << tfm::format("%s <: %s", getName(), baseType.getName());
 }
 
 void UnionType::print(std::ostream& out) const {
-    out << getName() << " = "
-        << join(elementTypes, " | ", [](std::ostream& out, const Type* type) { out << type->getName(); });
-}
-
-void RecordType::add(const std::string& name, const Type& type) {
-    assert(environment.isType(type));
-    fields.push_back(Field({name, type}));
+    out << tfm::format("%s = %s", getName(),
+            join(elementTypes, " | ", [](std::ostream& out, const Type* type) { out << type->getName(); }));
 }
 
 void RecordType::print(std::ostream& out) const {
-    out << getName() << " = ";
-    if (fields.empty()) {
-        out << "()";
-        return;
-    }
-    out << "( " << join(fields, " , ", [](std::ostream& out, const RecordType::Field& f) {
-        out << f.name << " : " << f.type.getName();
-    }) << " )";
+    out << tfm::format("%s = (%s)", getName(),
+            join(fields, ", ",
+                    [&](std::ostream& out, const Type* fieldType) { out << fieldType->getName(); }));
 }
 
 TypeSet TypeEnvironment::initializeConstantTypes() {
-    auto& signedConstant = createType<ConstantType>("numberConstant");
-    auto& floatConstant = createType<ConstantType>("floatConstant");
-    auto& symbolConstant = createType<ConstantType>("symbolConstant");
-    auto& unsignedConstant = createType<ConstantType>("unsignedConstant");
+    auto& signedConstant = createType<ConstantType>("__numberConstant");
+    auto& floatConstant = createType<ConstantType>("__floatConstant");
+    auto& symbolConstant = createType<ConstantType>("__symbolConstant");
+    auto& unsignedConstant = createType<ConstantType>("__unsignedConstant");
 
     return TypeSet(signedConstant, floatConstant, symbolConstant, unsignedConstant);
 }
 
 TypeSet TypeEnvironment::initializePrimitiveTypes() {
-#define CREATE_PRIMITIVE(TYPE) \
-    auto& TYPE##Type =         \
-            createType<PrimitiveType>(#TYPE, static_cast<const ConstantType&>(getType(#TYPE "Constant")));
+#define CREATE_PRIMITIVE(TYPE)                    \
+    auto& TYPE##Type = createType<PrimitiveType>( \
+            #TYPE, static_cast<const ConstantType&>(getType("__" #TYPE "Constant")));
 
     CREATE_PRIMITIVE(number);
     CREATE_PRIMITIVE(float);
@@ -88,11 +73,6 @@ bool TypeEnvironment::isType(const Type& type) const {
 const Type& TypeEnvironment::getType(const AstQualifiedName& ident) const {
     return *types.at(ident);
 }
-Type& TypeEnvironment::getType(const AstQualifiedName& ident) {
-    return *types.at(ident);
-}
-
-namespace {
 
 /**
  * A visitor for Types.
@@ -187,55 +167,49 @@ bool isOfRootType(const Type& type, const Type& root) {
     return visitor(root).visit(type);
 }
 
-}  // namespace
+bool isOfKind(const Type& type, TypeAttribute kind) {
+    if (kind == TypeAttribute::Record) {
+        return isA<RecordType>(type);
+    }
+    return isOfRootType(type, type.getTypeEnvironment().getConstantType(kind));
+}
 
-/* generate unique type qualifier string for a type */
+bool isOfKind(const TypeSet& typeSet, TypeAttribute kind) {
+    return !typeSet.empty() && !typeSet.isAll() &&
+           all_of(typeSet, [&](const Type& type) { return isOfKind(type, kind); });
+}
+
 std::string getTypeQualifier(const Type& type) {
     struct visitor : public VisitOnceTypeVisitor<std::string> {
         std::string visitUnionType(const UnionType& type) const override {
-            std::string str = visitType(type);
-            str += "[";
-            bool first = true;
-            for (auto unionType : type.getElementTypes()) {
-                if (first) {
-                    first = false;
-                } else {
-                    str += ",";
-                }
-                str += visit(*unionType);
-            }
-            str += "]";
-            return str;
+            return tfm::format("%s[%s]", visitType(type),
+                    join(type.getElementTypes(), ", ",
+                            [&](std::ostream& out, const auto* elementType) { out << visit(*elementType); }));
         }
 
         std::string visitRecordType(const RecordType& type) const override {
-            std::string str = visitType(type);
-            str += "{";
-            bool first = true;
-            for (auto field : type.getFields()) {
-                if (first) {
-                    first = false;
-                } else {
-                    str += ",";
-                }
-                str += field.name;
-                str += "#";
-                str += visit(field.type);
-            }
-            str += "}";
-            return str;
+            return tfm::format("%s{%s}", visitType(type),
+                    join(type.getFields(), ", ",
+                            [&](std::ostream& out, const auto* field) { out << visit(*field); }));
         }
 
         std::string visitType(const Type& type) const override {
             std::string str;
 
-            switch (getTypeAttribute(type)) {
-                case TypeAttribute::Signed: str.append("i"); break;
-                case TypeAttribute::Unsigned: str.append("u"); break;
-                case TypeAttribute::Float: str.append("f"); break;
-                case TypeAttribute::Symbol: str.append("s"); break;
-                case TypeAttribute::Record: str.append("r"); break;
+            if (isOfKind(type, TypeAttribute::Signed)) {
+                str.append("i");
+            } else if (isOfKind(type, TypeAttribute::Unsigned)) {
+                str.append("u");
+            } else if (isOfKind(type, TypeAttribute::Float)) {
+                str.append("f");
+            } else if (isOfKind(type, TypeAttribute::Symbol)) {
+                str.append("s");
+            } else if (isOfKind(type, TypeAttribute::Record)) {
+                str.append("r");
+            } else {
+                fatal("Unsupported kind");
             }
+
             str.append(":");
             str.append(toString(type.getName()));
             seen[&type] = str;
@@ -244,58 +218,6 @@ std::string getTypeQualifier(const Type& type) {
     };
 
     return visitor().visit(type);
-}
-
-bool hasSignedType(const TypeSet& types) {
-    return types.isAll() || any_of(types, (bool (*)(const Type&)) & isNumberType);
-}
-
-bool hasUnsignedType(const TypeSet& types) {
-    return types.isAll() || any_of(types, (bool (*)(const Type&)) & isUnsignedType);
-}
-
-bool hasFloatType(const TypeSet& types) {
-    return types.isAll() || any_of(types, (bool (*)(const Type&)) & isFloatType);
-}
-
-bool isFloatType(const Type& type) {
-    return isOfRootType(type, type.getTypeEnvironment().getConstantType(TypeAttribute::Float));
-}
-
-bool isFloatType(const TypeSet& s) {
-    return !s.empty() && !s.isAll() && all_of(s, (bool (*)(const Type&)) & isFloatType);
-}
-
-bool isNumberType(const Type& type) {
-    return isOfRootType(type, type.getTypeEnvironment().getConstantType(TypeAttribute::Signed));
-}
-
-bool isNumberType(const TypeSet& s) {
-    return !s.empty() && !s.isAll() && all_of(s, (bool (*)(const Type&)) & isNumberType);
-}
-
-bool isUnsignedType(const Type& type) {
-    return isOfRootType(type, type.getTypeEnvironment().getConstantType(TypeAttribute::Unsigned));
-}
-
-bool isUnsignedType(const TypeSet& s) {
-    return !s.empty() && !s.isAll() && all_of(s, (bool (*)(const Type&)) & isUnsignedType);
-}
-
-bool isSymbolType(const Type& type) {
-    return isOfRootType(type, type.getTypeEnvironment().getConstantType(TypeAttribute::Symbol));
-}
-
-bool isSymbolType(const TypeSet& s) {
-    return !s.empty() && !s.isAll() && all_of(s, (bool (*)(const Type&)) & isSymbolType);
-}
-
-bool isRecordType(const Type& type) {
-    return isA<RecordType>(type);
-}
-
-bool isRecordType(const TypeSet& s) {
-    return !s.empty() && !s.isAll() && all_of(s, (bool (*)(const Type&)) & isA<RecordType>);
 }
 
 bool isSubtypeOf(const Type& a, const Type& b) {
@@ -337,7 +259,6 @@ TypeSet getGreatestCommonSubtypes(const Type& a, const Type& b) {
         return TypeSet(b);
     }
 
-    // last option: if both are unions with common sub-types
     TypeSet res;
     if (isA<UnionType>(a) && isA<UnionType>(b)) {
         // collect common sub-types of union types
@@ -408,6 +329,42 @@ TypeSet getGreatestCommonSubtypes(const TypeSet& a, const TypeSet& b) {
         }
     }
     return res;
+}
+
+bool haveCommonSupertype(const Type& a, const Type& b) {
+    assert(&a.getTypeEnvironment() == &b.getTypeEnvironment() &&
+            "Types must be in the same type environment");
+
+    if (a == b) {
+        return true;
+    }
+
+    if (isSubtypeOf(a, b) || isSubtypeOf(b, a)) {
+        return true;
+    }
+
+    return any_of(a.getTypeEnvironment().getTypes(),
+            [&](const Type& type) { return isSubtypeOf(a, type) && isSubtypeOf(b, type); });
+}
+
+TypeAttribute getTypeAttribute(const Type& type) {
+    for (auto typeAttribute : {TypeAttribute::Signed, TypeAttribute::Unsigned, TypeAttribute::Float,
+                 TypeAttribute::Record, TypeAttribute::Symbol}) {
+        if (isOfKind(type, typeAttribute)) {
+            return typeAttribute;
+        }
+    }
+    fatal("Unknown type class");
+}
+
+std::optional<TypeAttribute> getTypeAttribute(const TypeSet& type) {
+    for (auto typeAttribute : {TypeAttribute::Signed, TypeAttribute::Unsigned, TypeAttribute::Float,
+                 TypeAttribute::Record, TypeAttribute::Symbol}) {
+        if (isOfKind(type, typeAttribute)) {
+            return typeAttribute;
+        }
+    }
+    return {};
 }
 
 }  // end of namespace souffle

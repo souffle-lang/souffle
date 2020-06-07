@@ -182,6 +182,7 @@
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
 %token <std::string> NUMBER      "number"
+%token <std::string> UNSIGNED    "unsigned number"
 %token <std::string> FLOAT       "float"
 %token PRAGMA                    "pragma directive"
 %token OUTPUT_QUALIFIER          "relation qualifier output"
@@ -219,8 +220,10 @@
 %token INSTANTIATE               "component instantiation"
 %token NUMBER_TYPE               "numeric type declaration"
 %token SYMBOL_TYPE               "symbolic type declaration"
-%token TONUMBER                  "convert string to (signed) number"
-%token TOSTRING                  "convert number to string"
+%token TOFLOAT                   "convert to float"
+%token TONUMBER                  "convert to signed integer"
+%token TOSTRING                  "convert to string"
+%token TOUNSIGNED                "convert to unsigned integer"
 %token ITOU                      "convert int to unsigned"
 %token ITOF                      "convert int to float"
 %token UTOI                      "convert unsigned to int"
@@ -267,6 +270,7 @@
 %token BW_NOT                    "bnot"
 %token L_AND                     "land"
 %token L_OR                      "lor"
+%token L_XOR                     "lxor"
 %token L_NOT                     "lnot"
 
 /* -- Non-Terminal Types -- */
@@ -290,7 +294,7 @@
 %type <Mov<Own<AstExecutionPlan>>>          exec_plan_list
 %type <Mov<Own<AstClause>>>                 fact
 %type <Mov<std::vector<TypeAttribute>>>     functor_arg_type_list
-%type <FunctorOp>                           functor_built_in
+%type <Mov<std::string>>                    functor_built_in
 %type <Mov<Own<AstFunctorDeclaration>>>     functor_decl
 %type <Mov<VecOwn<AstAtom>>>                head
 %type <Mov<AstQualifiedName>>               identifier
@@ -321,6 +325,7 @@
 
 /* -- Operator precedence -- */
 %left L_OR
+%left L_XOR
 %left L_AND
 %left BW_OR
 %left BW_XOR
@@ -376,13 +381,15 @@ identifier
 
 /* Type declarations */
 type
-  : TYPE IDENT SUBTYPE  predefined_type   { $$ = mk<AstSubsetType>($2, $4, @$); }
+  : TYPE IDENT[name] SUBTYPE IDENT[base_type_name] {
+        $$ = mk<AstSubsetType>($name, $base_type_name, @$);
+   }
   | TYPE IDENT EQUALS    union_type_list  { $$ = mk<AstUnionType >($2, $4, @$); }
   | TYPE IDENT EQUALS   record_type_list  { $$ = mk<AstRecordType>($2, $4, @$); }
     /* deprecated subset type forms */
-  | NUMBER_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, TypeAttribute::Signed, @$); }
-  | SYMBOL_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, TypeAttribute::Symbol, @$); }
-  | TYPE        IDENT { $$ = driver.mkDeprecatedSubType($IDENT, TypeAttribute::Symbol, @$); }
+  | NUMBER_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "number", @$); }
+  | SYMBOL_TYPE IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "symbol", @$); }
+  | TYPE        IDENT { $$ = driver.mkDeprecatedSubType($IDENT, "symbol", @$); }
   ;
 
 /* Union type argument declarations */
@@ -585,6 +592,10 @@ non_empty_arg_list
 arg
   : STRING      { $$ = mk<AstStringConstant >($STRING, @$); }
   | FLOAT       { $$ = mk<AstNumericConstant>($FLOAT, AstNumericConstant::Type::Float, @$); }
+  | UNSIGNED    {
+      auto&& n = $UNSIGNED; // drop the last character (`u`)
+      $$ = mk<AstNumericConstant>(n.substr(0, n.size() - 1), AstNumericConstant::Type::Uint, @$);
+    }
   | NUMBER      { $$ = mk<AstNumericConstant>($NUMBER, @$); }
   | UNDERSCORE  { $$ = mk<AstUnnamedVariable>(@$); }
   | DOLLAR      { $$ = mk<AstCounter        >(@$); }
@@ -605,21 +616,20 @@ arg
         VecOwn<AstArgument> arg_list = $rest;
         arg_list.insert(arg_list.begin(), $first);
 
-        auto agg_2_func = [](AggregateOp op) -> std::optional<FunctorOp> {
+        auto agg_2_func = [](AggregateOp op) -> char const* {
           switch (op) {
             case AggregateOp::COUNT : return {};
-            case AggregateOp::MAX   : return FunctorOp::MAX;
+            case AggregateOp::MAX   : return "max";
             case AggregateOp::MEAN  : return {};
-            case AggregateOp::MIN   : return FunctorOp::MIN;
+            case AggregateOp::MIN   : return "min";
             case AggregateOp::SUM   : return {};
             default                 :
-              assert(false && "overloads found?");
-              abort();
+              fatal("missing base op handler, or got an overload op?");
           }
         };
 
-        if (auto func_op = agg_2_func($aggregate_func)) {
-          $$ = mk<AstIntrinsicFunctor>(*func_op, std::move(arg_list), @$);
+        if (auto* func_op = agg_2_func($aggregate_func)) {
+          $$ = mk<AstIntrinsicFunctor>(func_op, std::move(arg_list), @$);
         } else {
           driver.error(@$, "aggregate operation has no functor equivalent");
           $$ = mk<AstUnnamedVariable>(@$);
@@ -629,33 +639,34 @@ arg
     /* -- intrinsic functor -- */
     /* unary functors */
   | MINUS arg[nested_arg] %prec NEG {
-        // If we have a constant, that is not already negated we create a mk<constant>.
+        // If we have a constant that is not already negated we just negate the constant value.
         auto nested_arg = *$nested_arg;
         const auto* asNumeric = dynamic_cast<const AstNumericConstant*>(&*nested_arg);
         if (asNumeric && !isPrefix("-", asNumeric->getConstant())) {
             $$ = mk<AstNumericConstant>("-" + asNumeric->getConstant(), asNumeric->getType(), @nested_arg);
         } else { // Otherwise, create a functor.
-            $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::NEG, std::move(nested_arg));
+            $$ = mk<AstIntrinsicFunctor>(@$, FUNCTOR_INTRINSIC_PREFIX_NEGATE_NAME, std::move(nested_arg));
         }
     }
-  | BW_NOT  arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BNOT, $2); }
-  | L_NOT   arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::LNOT, $2); }
+  | BW_NOT  arg { $$ = mk<AstIntrinsicFunctor>(@$, "~", $2); }
+  | L_NOT   arg { $$ = mk<AstIntrinsicFunctor>(@$, "!", $2); }
 
     /* binary infix functors */
-  | arg PLUS                arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::ADD     , $1, $3); }
-  | arg MINUS               arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::SUB     , $1, $3); }
-  | arg STAR                arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::MUL     , $1, $3); }
-  | arg SLASH               arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::DIV     , $1, $3); }
-  | arg PERCENT             arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::MOD     , $1, $3); }
-  | arg CARET               arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::EXP     , $1, $3); }
-  | arg BW_OR               arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BOR     , $1, $3); }
-  | arg BW_XOR              arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BXOR    , $1, $3); }
-  | arg BW_AND              arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BAND    , $1, $3); }
-  | arg BW_SHIFT_L          arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BSHIFT_L, $1, $3); }
-  | arg BW_SHIFT_R          arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BSHIFT_R, $1, $3); }
-  | arg BW_SHIFT_R_UNSIGNED arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::BSHIFT_R_UNSIGNED , $1, $3); }
-  | arg L_OR                arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::LOR     , $1, $3); }
-  | arg L_AND               arg { $$ = mk<AstIntrinsicFunctor>(@$, FunctorOp::LAND    , $1, $3); }
+  | arg PLUS                arg { $$ = mk<AstIntrinsicFunctor>(@$, "+"  , $1, $3); }
+  | arg MINUS               arg { $$ = mk<AstIntrinsicFunctor>(@$, "-"  , $1, $3); }
+  | arg STAR                arg { $$ = mk<AstIntrinsicFunctor>(@$, "*"  , $1, $3); }
+  | arg SLASH               arg { $$ = mk<AstIntrinsicFunctor>(@$, "/"  , $1, $3); }
+  | arg PERCENT             arg { $$ = mk<AstIntrinsicFunctor>(@$, "%"  , $1, $3); }
+  | arg CARET               arg { $$ = mk<AstIntrinsicFunctor>(@$, "**" , $1, $3); }
+  | arg L_AND               arg { $$ = mk<AstIntrinsicFunctor>(@$, "&&" , $1, $3); }
+  | arg L_OR                arg { $$ = mk<AstIntrinsicFunctor>(@$, "||" , $1, $3); }
+  | arg L_XOR               arg { $$ = mk<AstIntrinsicFunctor>(@$, "^^" , $1, $3); }
+  | arg BW_AND              arg { $$ = mk<AstIntrinsicFunctor>(@$, "&"  , $1, $3); }
+  | arg BW_OR               arg { $$ = mk<AstIntrinsicFunctor>(@$, "|"  , $1, $3); }
+  | arg BW_XOR              arg { $$ = mk<AstIntrinsicFunctor>(@$, "^"  , $1, $3); }
+  | arg BW_SHIFT_L          arg { $$ = mk<AstIntrinsicFunctor>(@$, "<<" , $1, $3); }
+  | arg BW_SHIFT_R          arg { $$ = mk<AstIntrinsicFunctor>(@$, ">>" , $1, $3); }
+  | arg BW_SHIFT_R_UNSIGNED arg { $$ = mk<AstIntrinsicFunctor>(@$, ">>>", $1, $3); }
 
     /* -- aggregators -- */
   | aggregate_func arg_list COLON aggregate_body {
@@ -678,19 +689,15 @@ arg
   ;
 
 functor_built_in
-  : CAT       { $$ = FunctorOp::CAT;      }
-  | FTOI      { $$ = FunctorOp::FTOI;     }
-  | FTOU      { $$ = FunctorOp::FTOU;     }
-  | ITOF      { $$ = FunctorOp::ITOF;     }
-  | ITOU      { $$ = FunctorOp::ITOU;     }
-  | ORD       { $$ = FunctorOp::ORD;      }
-  | RANGE     { $$ = FunctorOp::RANGE;    }
-  | STRLEN    { $$ = FunctorOp::STRLEN;   }
-  | SUBSTR    { $$ = FunctorOp::SUBSTR;   }
-  | TONUMBER  { $$ = FunctorOp::TONUMBER; }
-  | TOSTRING  { $$ = FunctorOp::TOSTRING; }
-  | UTOF      { $$ = FunctorOp::UTOF;     }
-  | UTOI      { $$ = FunctorOp::UTOI;     }
+  : CAT         { $$ = "cat";         }
+  | ORD         { $$ = "ord";         }
+  | RANGE       { $$ = "range";       }
+  | STRLEN      { $$ = "strlen";      }
+  | SUBSTR      { $$ = "substr";      }
+  | TOFLOAT     { $$ = "to_float";    }
+  | TONUMBER    { $$ = "to_number";   }
+  | TOSTRING    { $$ = "to_string";   }
+  | TOUNSIGNED  { $$ = "to_unsigned"; }
   ;
 
 aggregate_func

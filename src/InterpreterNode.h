@@ -80,6 +80,7 @@ enum InterpreterNodeType {
     I_Query,
     I_Extend,
     I_Swap,
+    I_Call
 };
 
 /**

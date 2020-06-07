@@ -99,16 +99,6 @@ typename C::value_type getIf(const C& container, std::function<bool(const typena
 }
 
 /**
- * A utility function enabling the creation of a vector with a fixed set of
- * elements within a single expression. This is the base case covering empty
- * vectors.
- */
-template <typename T>
-std::vector<T> toVector() {
-    return std::vector<T>();
-}
-
-/**
  * Get value for a given key; if not found, return default value.
  */
 template <typename C>
@@ -121,6 +111,16 @@ typename C::mapped_type const& getOr(
     } else {
         return defaultValue;
     }
+}
+
+/**
+ * A utility function enabling the creation of a vector with a fixed set of
+ * elements within a single expression. This is the base case covering empty
+ * vectors.
+ */
+template <typename T>
+std::vector<T> toVector() {
+    return std::vector<T>();
 }
 
 /**
@@ -371,7 +371,7 @@ bool equal_ptr(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) {
 }
 
 template <typename A, typename B>
-using copy_const_t = std::conditional_t<std::is_const_v<A>, const B, A>;
+using copy_const_t = std::conditional_t<std::is_const_v<A>, const B, B>;
 
 /**
  * Helpers for `dynamic_cast`ing without having to specify redundant type qualifiers.
@@ -387,13 +387,13 @@ auto as(A* x) {
 }
 
 template <typename B, typename A>
-auto as(A& x) {
+std::enable_if_t<std::is_base_of_v<A, B>, copy_const_t<A, B>*> as(A& x) {
     return as<B>(&x);
 }
 
 template <typename B, typename A>
 B* as(const Own<A>& x) {
-    return as<B*>(x.get());
+    return as<B>(x.get());
 }
 
 /**

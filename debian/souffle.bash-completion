@@ -27,15 +27,21 @@ _souffle()
             return
             ;;
         --provenance|-t)
-            COMPREPLY=( $(compgen -W "{0..1}" -- "$cur" ) )
+            COMPREPLY=( $(compgen -W "none explain explore subtreeHeights" -- "$cur" ) )
+            return
+            ;;
+        --show)
+            COMPREPLY=( $(compgen -W "parse-errors precedence-graph scc-graphg transformed-datalog transformed-ram type-analysis" -- "$cur" ) )
+            return
+            ;;
+        --disable-transformers)
+            COMPREPLY=( $(compgen -W "AstComponentChecker AstExecutionPlanChecker AstPragmaChecker AstSemanticChecker AstUserDefinedFunctorsTransformer ComponentInstantiationTransformer FoldAnonymousRecords GroundedTermsChecker InlineRelationsTransformer MagicSetTransformer MaterializeAggregationQueriesTransformer MaterializeSingletonAggregationTransformer MetaTransformer MinimiseProgramTransformer NameUnnamedVariablesTransformer NormaliseConstraintsTransformer PartitionBodyLiteralsTransformer PolymorphicObjectsTransformer ProvenanceTransformer ReduceExistentialsTransformer RemoveBooleanConstraintsTransformer RemoveEmptyRelationsTransformer RemoveRedundantRelationsTransformer RemoveRedundantSumsTransformer RemoveRelationCopiesTransformer RemoveTypecastsTransformer ReorderLiteralsTransformer ReplaceSingletonVariablesTransformer ResolveAliasesTransformer ResolveAnonymousRecordsAliases UniqueAggregationVariablesTransformer" -- "$cur" ) )
             return
             ;;
     esac
 
     COMPREPLY=()
-    opts="--help --verbose --version --fact-dir --include-dir --output-dir \
-    --jobs --compile --generate --no-warn -dl-program --live-profile \
-    --profile --debug-report --pragma --profile-use --provenance"
+    opts="$(souffle --help|grep '^  '|sed 's/^.*\(--[a-zA-Z0-9_-][a-zA-Z0-9_-]*\).*$/\1/')"
 
     if [[ ${cur} == -* ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

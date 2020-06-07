@@ -89,6 +89,8 @@ public:
     }
 
     void addSection(std::string id, std::string title, std::string_view code);
+    void addCodeSection(std::string id, std::string title, std::string_view language, std::string_view prev,
+            std::string_view curr);
 
     void startSection() {
         currentSubsections.emplace();
@@ -116,6 +118,7 @@ public:
 private:
     std::vector<DebugReportSection> sections;
     std::stack<std::vector<DebugReportSection>> currentSubsections;
+    uint32_t nextUniqueId = 0;  // used for generating unique HTML `id` tags
 
     bool empty() const {
         return sections.empty();

@@ -20,11 +20,9 @@ A(0.6).
 A(2).
 
 
-C(y)             :- y = max a : A(a).                 // 55
-C(y)             :- y = min a : A(a).                 // -55
-C(y)             :- y = sum a : {A(a)}.               // 3
-C(itof(y))       :- y = count : {A(_)}.               // 4
-C(itof(ftoi(y))) :- y = mean x : {x = z + 1, A(z)}.   // 1
-C(itof(ftoi(y))) :- y = mean x : A(x).                // 0
-
-
+C(y)                      :- y = max a : A(a).                 // 55
+C(y)                      :- y = min a : A(a).                 // -55
+C(y)                      :- y = sum a : {A(a)}.               // 3
+C(to_float(y))            :- y = count : {A(_)}.               // 4
+C(to_float(to_number(y))) :- y = mean x : {x = z + 1, A(z)}.   // 1
+C(to_float(to_number(y))) :- y = mean x : A(x).                // 0

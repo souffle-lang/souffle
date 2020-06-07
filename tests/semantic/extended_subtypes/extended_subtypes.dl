@@ -1,0 +1,67 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Extended subtypes
+//
+// Check if subtypes of arbitrary (non-union) types work correctly.
+//
+
+
+
+// Simple chain
+.type symbolA <: symbol
+.type symbolB <: symbolA
+.type symbolC <: symbolB
+
+
+.decl SymbolChain(a: symbolA, b: symbolB, c: symbolC)
+SymbolChain("meowA", "meowB", "meowC").
+SymbolChain(c, c, c) :- SymbolChain(_, _, c).
+SymbolChain(b, b, c) :- SymbolChain(_, b, c).
+
+.output SymbolChain(IO=stdout)
+
+
+
+
+// Chain in "wrong" order
+.type numberA <: number
+.type numberC <: numberB
+.type numberB <: numberA
+
+.decl NumberWrongOrderChain(a: numberA, b:numberB, c: numberC)
+NumberWrongOrderChain(1, 2, 3).
+NumberWrongOrderChain(c, c, c) :- NumberWrongOrderChain(_, _, c).
+NumberWrongOrderChain(b, b, c) :- NumberWrongOrderChain(_, b, c).
+
+.output NumberWrongOrderChain(IO=stdout)
+
+
+// Union of different subtypes.
+
+.type floatA <: float
+.type floatB <: floatA
+.type floatUnion = floatB | floatA
+
+.decl UnionSubtypes(a: floatUnion, b: floatB)
+UnionSubtypes(0.5, 1).
+UnionSubtypes(x, x) :- UnionSubtypes(_, x).
+
+.output UnionSubtypes(IO=stdout)
+
+
+// record subtypes
+.type List = [head: number, tail: List]
+.type S1List <: List
+.type S2List <: S1List
+
+.decl RecordSubtypes(a: List, b: S1List, c: S2List)
+RecordSubtypes([1, [1, nil]], [2, nil], [3, nil]).
+RecordSubtypes([x, z], [y, z], z) :- RecordSubtypes([x, _], [y, _], z).
+RecordSubtypes([x, y], y, z) :- RecordSubtypes([x, _], y, z).
+
+.output RecordSubtypes(IO=stdout)

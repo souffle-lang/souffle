@@ -116,7 +116,7 @@ inline bool isOverloadedAggregator(const AggregateOp op) {
         case AggregateOp::MEAN:
         case AggregateOp::COUNT: return false;
 
-        default: fatal("likely mistaken use of overloaded aggregator op");
+        default: return false;
     }
 }
 

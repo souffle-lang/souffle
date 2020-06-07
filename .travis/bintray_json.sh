@@ -18,7 +18,7 @@ then
   #Fedora 27 x86_64
   DIST='fedora'
   RELEASE='27'
-  ARCH='x86_64'
+  ARCH="$5"
 
   FILES="[{\"includePattern\": \"deploy/(.*\.rpm)\", \"uploadPattern\": \"$DIST/$RELEASE/$ARCH/\$1\"
     }],"
@@ -31,8 +31,8 @@ then
 
   #Fedora 27 x86_64
   DIST='centos'
-  RELEASE='7'
-  ARCH='x86_64'
+  RELEASE='8'
+  ARCH="$5"
 
   FILES="[{\"includePattern\": \"deploy/(.*\.rpm)\", \"uploadPattern\": \"$DIST/$RELEASE/$ARCH/\$1\"
     }],"
@@ -43,12 +43,17 @@ then
 
 else
   DIST="$4"
+  ARCH="$5"
+  if [ "$ARCH" = "x86_64" ];
+  then
+    ARCH=amd64
+  fi
 
   FILES="[{\"includePattern\": \"deploy/(.*\.deb)\", \"uploadPattern\": \"pool/main/s/souffle/\$1\",
     \"matrixParams\": {
         \"deb_distribution\": \"$DIST\",
         \"deb_component\": \"main\",
-        \"deb_architecture\": \"amd64\",
+        \"deb_architecture\": \"$ARCH\",
         \"override\": 1 }
     }],"
 fi
@@ -80,20 +85,26 @@ cat > ${3} <<EOF
 }
 EOF
 }
+if [ -n "$2" ];
+then
+  ARCH="$2"
+else
+  ARCH=x86_64
+fi
 
 if [ "$1" = debian ];
 then
   VERSION=$(grep VERSION_CODENAME /etc/os-release |sed 's/VERSION_CODENAME=//')
-  print_json "deb"  "`git describe --tags --always`" "bintray-deb-stable.json" "$VERSION"
-  print_json "deb-unstable" "`git describe --tags --always`" "bintray-deb-unstable.json" "$VERSION"
+  print_json "deb"  "`git describe --tags --always`" "bintray-deb-stable.json" "$VERSION" "$ARCH"
+  print_json "deb-unstable" "`git describe --tags --always`" "bintray-deb-unstable.json" "$VERSION" "$ARCH"
 elif [ "$1" = fedora ];
 then
-  print_json "rpm"  "`git describe --tags --always`" "bintray-rpm-stable.json" "fedora"
-  print_json "rpm-unstable"  "`git describe --tags --always`" "bintray-rpm-unstable.json" "fedora"
+  print_json "rpm"  "`git describe --tags --always`" "bintray-rpm-stable.json" "fedora" "$ARCH"
+  print_json "rpm-unstable"  "`git describe --tags --always`" "bintray-rpm-unstable.json" "fedora" "$ARCH"
 elif [ "$1" = centos ];
 then
-  print_json "rpm"  "`git describe --tags --always`" "bintray-rpm-stable.json" "centos"
-  print_json "rpm-unstable"  "`git describe --tags --always`" "bintray-rpm-unstable.json" "centos"
+  print_json "rpm"  "`git describe --tags --always`" "bintray-rpm-stable.json" "centos" "$ARCH"
+  print_json "rpm-unstable"  "`git describe --tags --always`" "bintray-rpm-unstable.json" "centos" "$ARCH"
 elif [ "$1" = osx ];
 then
   print_json "osx"  "`git describe --tags --always`" "bintray-osx.json" "osx"

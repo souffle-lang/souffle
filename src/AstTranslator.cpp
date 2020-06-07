@@ -337,10 +337,12 @@ std::unique_ptr<RamExpression> AstTranslator::translateValue(
                 values.push_back(translator.translateValue(cur, index));
             }
 
-            if (isFunctorMultiResult(inf.getFunction())) {
+            auto* info = inf.getFunctionInfo();
+            assert(info && "no overload picked for instrinsic; missing transform pass?");
+            if (info->multipleResults) {
                 return translator.makeRamTupleElement(index.getGeneratorLoc(inf));
             } else {
-                return std::make_unique<RamIntrinsicOperator>(inf.getFunction(), std::move(values));
+                return std::make_unique<RamIntrinsicOperator>(info->op, std::move(values));
             }
         }
 
@@ -582,7 +584,7 @@ void AstTranslator::ClauseTranslator::createValueIndex(const AstClause& clause) 
         }
 
         auto func = dynamic_cast<const AstIntrinsicFunctor*>(&arg);
-        if (func && isFunctorMultiResult(func->getFunction())) {
+        if (func && func->getFunctionInfo()->multipleResults) {
             addGenerator();
         }
     });
@@ -866,12 +868,14 @@ std::unique_ptr<RamStatement> AstTranslator::ClauseTranslator::translateClause(
             }
 
             auto func_op = [&]() -> RamNestedIntrinsicOp {
-                switch (func->getFunction()) {
+                switch (func->getFunctionInfo()->op) {
                     case FunctorOp::RANGE: return RamNestedIntrinsicOp::RANGE;
                     case FunctorOp::URANGE: return RamNestedIntrinsicOp::URANGE;
                     case FunctorOp::FRANGE: return RamNestedIntrinsicOp::FRANGE;
 
-                    default: assert(isFunctorMultiResult(func->getFunction())); abort();
+                    default:
+                        assert(func->getFunctionInfo()->multipleResults);
+                        fatal("missing case handler or bad code-gen");
                 }
             };
 
@@ -1550,9 +1554,6 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
     // get auxiliary arity analysis
     auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
 
-    // start with an empty sequence of ram statements
-    std::vector<std::unique_ptr<RamStatement>> res;
-
     // handle the case of an empty SCC graph
     if (sccGraph.getNumberOfSCCs() == 0) return;
 
@@ -1674,8 +1675,15 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
             }
         }
 
-        appendStmt(res, std::make_unique<RamSequence>(std::move(current)));
+        // create subroutine for this stratum
+        ramSubs["stratum_" + std::to_string(indexOfScc)] = std::make_unique<RamSequence>(std::move(current));
         indexOfScc++;
+    }
+
+    // invoke all strata
+    std::vector<std::unique_ptr<RamStatement>> res;
+    for (size_t i = 0; i < indexOfScc; i++) {
+        appendStmt(res, std::make_unique<RamCall>("stratum_" + std::to_string(i)));
     }
 
     // add main timer if profiling
@@ -1712,31 +1720,28 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
     }
 }
 
-const Json AstTranslator::getRecordsTypes(void) {
+const Json AstTranslator::getRecordsTypes() {
     // Check if the types where already constructed
     if (!RamRecordTypes.is_null()) {
         return RamRecordTypes;
     }
 
-    std::vector<std::string> types;
+    std::vector<std::string> elementTypes;
     std::map<std::string, Json> records;
-    std::string recordType;
 
     // Iterate over all record types in the program populating the records map.
     for (auto* astType : program->getTypes()) {
-        if (const auto* elementType = dynamic_cast<const AstRecordType*>(astType)) {
-            types.clear();
-            recordType.clear();
+        const auto& type = typeEnv->getType(astType->getQualifiedName());
+        if (isA<RecordType>(type)) {
+            elementTypes.clear();
 
-            recordType = getTypeQualifier(typeEnv->getType(elementType->getQualifiedName()));
-
-            for (auto&& field : elementType->getFields()) {
-                types.push_back(getTypeQualifier(typeEnv->getType(field->getTypeName())));
+            for (const Type* field : as<RecordType>(type)->getFields()) {
+                elementTypes.push_back(getTypeQualifier(*field));
             }
-            const size_t recordArity = types.size();
-            Json recordInfo =
-                    Json::object{{"types", std::move(types)}, {"arity", static_cast<long long>(recordArity)}};
-            records.emplace(std::move(recordType), std::move(recordInfo));
+            const size_t recordArity = elementTypes.size();
+            Json recordInfo = Json::object{
+                    {"types", std::move(elementTypes)}, {"arity", static_cast<long long>(recordArity)}};
+            records.emplace(getTypeQualifier(type), std::move(recordInfo));
         }
     }
 

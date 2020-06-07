@@ -19,10 +19,10 @@ floats_finite(1.5).
 floats_finite(20.0).
 
 .decl signed(x: number)
-signed(ftoi(x)) :- floats_finite(x).
+signed(to_number(x)) :- floats_finite(x).
 
 .decl unsigned(x: unsigned)
-unsigned(ftou(x)) :- floats_finite(x), 0.0 <= x.
+unsigned(to_unsigned(x)) :- floats_finite(x), 0.0 <= x.
 
 .decl floats(x: float)
 floats(x) :- floats_finite(x); nans(x); infs(x).

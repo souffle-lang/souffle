@@ -25,9 +25,10 @@
 #include "AstQualifiedName.h"
 #include "AstRelation.h"
 #include "AstType.h"
+#include "AstTypeAnalysis.h"
 #include "AstVisitor.h"
 #include "BinaryConstraintOps.h"
-#include "FunctorOps.h"
+#include "TypeSystem.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"
@@ -191,7 +192,8 @@ bool isFact(const AstClause& clause) {
         }
 
         auto func = dynamic_cast<const AstIntrinsicFunctor*>(&arg);
-        if (func && isFunctorMultiResult(func->getFunction())) {
+        auto info = func ? func->getFunctionInfo() : nullptr;
+        if (info && info->multipleResults) {
             hasAggregatesOrMultiResultFunctor = true;
         }
     });
@@ -253,6 +255,40 @@ void negateConstraintInPlace(AstConstraint& constraint) {
     } else {
         fatal("Unknown ast-constraint type");
     }
+}
+
+IntrinsicFunctors validOverloads(const TypeAnalysis& typing, const AstIntrinsicFunctor& func) {
+    auto typeAttrs = [&](const AstArgument* arg) -> std::set<TypeAttribute> {
+        auto&& types = typing.getTypes(arg);
+        if (types.isAll())
+            return {TypeAttribute::Signed, TypeAttribute::Unsigned, TypeAttribute::Float,
+                    TypeAttribute::Symbol, TypeAttribute::Record};
+
+        std::set<TypeAttribute> tyAttrs;
+        for (auto&& ty : types)
+            tyAttrs.insert(getTypeAttribute(ty));
+        return tyAttrs;
+    };
+    auto retTys = typeAttrs(&func);
+    auto argTys = map(func.getArguments(), typeAttrs);
+
+    auto candidates = filterNot(functorBuiltIn(func.getFunction()), [&](const IntrinsicFunctor& x) -> bool {
+        if (!x.variadic && argTys.size() != x.params.size()) return true;  // arity mismatch?
+
+        for (size_t i = 0; i < argTys.size(); ++i)
+            if (!contains(argTys[i], x.params[x.variadic ? 0 : i])) return true;
+
+        return !contains(retTys, x.result);
+    });
+
+    std::sort(
+            candidates.begin(), candidates.end(), [&](const IntrinsicFunctor& a, const IntrinsicFunctor& b) {
+                if (a.result != b.result) return a.result < b.result;
+                if (a.variadic != b.variadic) return a.variadic < b.variadic;
+                return std::lexicographical_compare(
+                        a.params.begin(), a.params.end(), b.params.begin(), b.params.end());
+            });
+    return candidates;
 }
 
 }  // end of namespace souffle

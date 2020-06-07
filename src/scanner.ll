@@ -95,13 +95,8 @@
 "bshru"                               { return yy::parser::make_BW_SHIFT_R_UNSIGNED(yylloc); }
 "land"                                { return yy::parser::make_L_AND(yylloc); }
 "lor"                                 { return yy::parser::make_L_OR(yylloc); }
+"lxor"                                { return yy::parser::make_L_XOR(yylloc); }
 "lnot"                                { return yy::parser::make_L_NOT(yylloc); }
-"itou"                                { return yy::parser::make_ITOU(yylloc); }
-"itof"                                { return yy::parser::make_ITOF(yylloc); }
-"utoi"                                { return yy::parser::make_UTOI(yylloc); }
-"utof"                                { return yy::parser::make_UTOF(yylloc); }
-"ftoi"                                { return yy::parser::make_FTOI(yylloc); }
-"ftou"                                { return yy::parser::make_FTOU(yylloc); }
 "match"                               { return yy::parser::make_TMATCH(yylloc); }
 "mean"                                { return yy::parser::make_MEAN(yylloc); }
 "cat"                                 { return yy::parser::make_CAT(yylloc); }
@@ -127,8 +122,10 @@
 "sum"                                 { return yy::parser::make_SUM(yylloc); }
 "true"                                { return yy::parser::make_TRUE(yylloc); }
 "false"                               { return yy::parser::make_FALSE(yylloc); }
-"to_string"                           { return yy::parser::make_TOSTRING(yylloc); }
+"to_float"                            { return yy::parser::make_TOFLOAT(yylloc); }
 "to_number"                           { return yy::parser::make_TONUMBER(yylloc); }
+"to_string"                           { return yy::parser::make_TOSTRING(yylloc); }
+"to_unsigned"                         { return yy::parser::make_TOUNSIGNED(yylloc); }
 ".plan"                               { return yy::parser::make_PLAN(yylloc); }
 "|"                                   { return yy::parser::make_PIPE(yylloc); }
 "["                                   { return yy::parser::make_LBRACKET(yylloc); }
@@ -180,9 +177,12 @@
                                         }
                                       }
 [0-9]+[.][0-9]+                       { return yy::parser::make_FLOAT(yytext, yylloc); }
+[0-9]+                                { return yy::parser::make_NUMBER(yytext, yylloc); }
 0b[0-1]+                              { return yy::parser::make_NUMBER(yytext, yylloc); }
 0x[a-fA-F0-9]+                        { return yy::parser::make_NUMBER(yytext, yylloc); }
-0|([1-9][0-9]*)                       { return yy::parser::make_NUMBER(yytext, yylloc); }
+[0-9]+u                               { return yy::parser::make_UNSIGNED(yytext, yylloc); }
+0b[0-1]+u                             { return yy::parser::make_UNSIGNED(yytext, yylloc); }
+0x[a-fA-F0-9]+u                       { return yy::parser::make_UNSIGNED(yytext, yylloc); }
 [\?a-zA-Z]|[_\?a-zA-Z][_\?a-zA-Z0-9]+ {
                                         return yy::parser::make_IDENT(yytext, yylloc);
                                       }

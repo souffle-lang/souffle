@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "FunctorOps.h"
 #include <cstddef>
 #include <set>
 #include <string>
@@ -28,6 +29,7 @@ class AstAtom;
 class AstClause;
 class AstConstraint;
 class AstFunctorDeclaration;
+class AstIntrinsicFunctor;
 class AstLiteral;
 class AstNode;
 class AstProgram;
@@ -36,6 +38,7 @@ class AstRelation;
 class AstType;
 class AstVariable;
 class AstRecordInit;
+class TypeAnalysis;
 
 // ---------------------------------------------------------------
 //                      General Utilities
@@ -232,5 +235,10 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
  * @param constraint constraint that will be negated
  */
 void negateConstraintInPlace(AstConstraint& constraint);
+
+/**
+ * Pick valid overloads for a functor, sorted by some measure of "preference".
+ */
+IntrinsicFunctors validOverloads(const TypeAnalysis&, const AstIntrinsicFunctor&);
 
 }  // end of namespace souffle

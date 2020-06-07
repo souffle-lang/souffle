@@ -1,9 +1,14 @@
 #!/bin/bash
 
+set -e
+
 # Find the changed lines in the diff. Arguments 1 and 2 are appended to the
 #git diff command
 
-CLANGFORMAT=clang-format-7
+CLANGFORMAT=clang-format
+VERSION=$($CLANGFORMAT --version)
+
+echo "Testing style using $VERSION"
 
 # Move to the root of the repo if we aren't there already so the paths returned
 # by git are correct.

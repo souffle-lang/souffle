@@ -111,15 +111,9 @@ public:
 protected:
     void print(std::ostream& os) const override {
         if (isInfixFunctorOp(operation)) {
-            os << "(";
-            os << join(arguments, getSymbolForFunctorOp(operation),
-                    print_deref<std::unique_ptr<RamExpression>>());
-            os << ")";
+            os << "(" << join(arguments, tfm::format("%s", operation)) << ")";
         } else {
-            os << getSymbolForFunctorOp(operation);
-            os << "(";
-            os << join(arguments, ",", print_deref<std::unique_ptr<RamExpression>>());
-            os << ")";
+            os << operation << "(" << join(arguments) << ")";
         }
     }
 

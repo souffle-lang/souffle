@@ -1,0 +1,3 @@
+Warning: Variable y only occurs once in file progmin2.dl at line 19
+B(x) :- F(x, y).
+-------------^---

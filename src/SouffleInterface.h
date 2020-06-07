@@ -855,7 +855,9 @@ public:
      * @param ret Return values of the subroutine (std::vector<RamDomain>&)
      */
     virtual void executeSubroutine(std::string /* name */, const std::vector<RamDomain>& /* args */,
-            std::vector<RamDomain>& /* ret */) {}
+            std::vector<RamDomain>& /* ret */) {
+        fatal("unknown subroutine");
+    }
 
     /**
      * Get the symbol table of the program.

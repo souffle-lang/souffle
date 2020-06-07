@@ -1,0 +1,21 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Type System 13
+//
+// Check redefinition of primitive types.
+//
+
+
+.type number = number
+.type float <: unsigned
+.type symbol = [x: number, y: number]
+
+
+.decl A(x: number)
+A(1).
+.output A

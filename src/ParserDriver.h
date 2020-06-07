@@ -67,7 +67,7 @@ public:
     void addPragma(std::unique_ptr<AstPragma> p);
 
     void addIoFromDeprecatedTag(AstRelation& r);
-    Own<AstSubsetType> mkDeprecatedSubType(AstQualifiedName name, TypeAttribute attr, SrcLocation loc);
+    Own<AstSubsetType> mkDeprecatedSubType(AstQualifiedName name, AstQualifiedName attr, SrcLocation loc);
 
     std::set<RelationTag> addReprTag(RelationTag tag, SrcLocation tagLoc, std::set<RelationTag> tags);
     std::set<RelationTag> addDeprecatedTag(RelationTag tag, SrcLocation tagLoc, std::set<RelationTag> tags);

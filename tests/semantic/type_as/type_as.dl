@@ -1,0 +1,66 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// type cast with "as"
+//
+// Positive test for type casts.
+//
+
+.type symbol1 <: symbol
+.type subsymbol1 <: symbol1
+
+.type symbol2 <: symbol
+
+.type symbolUnion = symbol1 | symbol2
+
+
+.decl A(x: symbol)
+A("a").
+
+.decl C(x: symbolUnion)
+C("c").
+
+
+.decl B(x: symbol1)
+B(as(x, symbol1)) :- A(x).
+B(as(x, subsymbol1)) :- A(x).
+B(as(x, symbol1)) :- C(x).
+B(x) :- x = to_string(as(2, float)).
+
+.output B(IO=stdout)
+
+
+
+.type List = [h : number, t : List]
+
+.type List1 <: List
+.type SubList1 <: List1
+
+
+.decl D(x: List)
+D([1, [1, nil]]).
+
+.decl E(x: List1)
+E(as(x, List1)) :- D(x).
+E(as(x, SubList1)) :- D(x).
+
+
+.output E(IO=stdout)
+
+
+// Example from #1338
+.type Variable <: symbol
+.type StackIndex <: symbol
+.type VariableOrStackIndex = Variable | StackIndex
+
+.decl A2(a: VariableOrStackIndex)
+A2("a").
+
+.decl B2(a: Variable)
+B2(as(a, Variable)) :- A2(a).
+
+.output B2(IO=stdout)

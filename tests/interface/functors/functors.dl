@@ -39,9 +39,9 @@ C(r) :- r = @foo(x, y), A(x), B(y).
 // Test float and unsigned
 
 .decl F(x:unsigned)
-F(@factorial(itou(3))) :- true.
-F(@factorial(itou(5))) :- true.
-F(@factorial(itou(10))) :- true.
+F(@factorial(3u)) :- true.
+F(@factorial(5u)) :- true.
+F(@factorial(10u)) :- true.
 .output F
 
 .decl R(i:number)

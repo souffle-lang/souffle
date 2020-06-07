@@ -1,0 +1,41 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Extended subtypes 2
+//
+// Check if extended subtypes fail correctly
+//
+
+
+// Simple recursion
+.type X <: X
+
+.type A <: B
+.type B <: A
+
+
+
+// Subtype of undefined type.
+.type Y <: Z
+
+.decl relY(y : Y)
+relY(1).
+
+
+// Undefined type in record.
+.type RecA = [a: RecA, b:Z]
+
+
+// Check if mutually recursive record type definitions work
+.type RecX = [y : RecY]
+.type RecY = [x : RecX]
+
+
+// Subtypes of unions are not allowed
+.type U = number
+
+.type W <: U

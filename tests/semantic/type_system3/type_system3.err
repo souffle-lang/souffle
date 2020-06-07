@@ -70,19 +70,19 @@ symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1_2_B(X), !symbol_primi_
 Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 128
 symbol_primi_relation_3(X) :- symbol_primi_relation_2_3(X). // error: source is more general than the sink
 ------------------------^----------------------------------------------------------------------------------
-Error: Union type number_symbol is defined over {symbol, number} (multiple primitive types in union) in file type_system3.dl at line 167
+Error: Union type number_symbol is defined over {number, symbol} (multiple primitive types in union) in file type_system3.dl at line 167
 .type number_symbol = number | symbol // error
 ^----------------------------------------------
-Error: Union type number_symbol_primi is defined over {symbol, number} (multiple primitive types in union) in file type_system3.dl at line 169
+Error: Union type number_symbol_primi is defined over {number, symbol} (multiple primitive types in union) in file type_system3.dl at line 169
 .type number_symbol_primi = number_primi_1 | symbol_primi_1 // error
 ^--------------------------------------------------------------------
-Error: Union type number_symbol_primi_1_2 is defined over {symbol, number} (multiple primitive types in union) in file type_system3.dl at line 170
+Error: Union type number_symbol_primi_1_2 is defined over {number, symbol} (multiple primitive types in union) in file type_system3.dl at line 170
 .type number_symbol_primi_1_2 = number_primi_1_2 | symbol_primi_1_2 // error
 ^----------------------------------------------------------------------------
-Error: Union type number_symbol_union is defined over {symbol, number} (multiple primitive types in union) in file type_system3.dl at line 172
+Error: Union type number_symbol_union is defined over {number, symbol} (multiple primitive types in union) in file type_system3.dl at line 172
 .type number_symbol_union = number_union_1 | symbol_union_1 // error
 ^--------------------------------------------------------------------
-Error: Union type number_symbol_union_1_2 is defined over {symbol, number} (multiple primitive types in union) in file type_system3.dl at line 173
+Error: Union type number_symbol_union_1_2 is defined over {number, symbol} (multiple primitive types in union) in file type_system3.dl at line 173
 .type number_symbol_union_1_2 = number_union_1_2 | symbol_union_1_2 // error
 ^----------------------------------------------------------------------------
 29 errors generated, evaluation aborted

@@ -4,16 +4,10 @@ FloatConv(1.0).
 Error: Ambiguous constant (unable to deduce type) in file type_system6.dl at line 16
 FloatConv(1 + 1.0) :- true.
 ----------^-----------------
-Error: Non-numeric argument for functor in file type_system6.dl at line 16
-FloatConv(1 + 1.0) :- true.
-----------^-----------------
-Error: Non-numeric use for numeric functor in file type_system6.dl at line 16
+Error: no valid overloads in file type_system6.dl at line 16
 FloatConv(1 + 1.0) :- true.
 ----------^-----------------
 Error: Float constant (type mismatch) in file type_system6.dl at line 16
 FloatConv(1 + 1.0) :- true.
 --------------^-------------
-Error: Non-numeric argument for functor in file type_system6.dl at line 16
-FloatConv(1 + 1.0) :- true.
---------------^-------------
-6 errors generated, evaluation aborted
+4 errors generated, evaluation aborted

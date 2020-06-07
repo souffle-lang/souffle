@@ -444,6 +444,17 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             PRINT_END_COMMENT(out);
         }
 
+        void visitCall(const RamCall& call, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            const RamProgram& prog = synthesiser.getTranslationUnit().getProgram();
+            const auto& subs = prog.getSubroutines();
+            out << "{\n";
+            out << " std::vector<RamDomain> args, ret;\n";
+            out << "subroutine_" << distance(subs.begin(), subs.find(call.getName())) << "(args, ret);\n";
+            out << "}\n";
+            PRINT_END_COMMENT(out);
+        }
+
         void visitLogRelationTimer(const RamLogRelationTimer& timer, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
             // create local scope for name resolution
@@ -1537,6 +1548,20 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
     NARY_OP(   opcode, RamSigned  , op) \
     NARY_OP(U##opcode, RamUnsigned, op) \
     NARY_OP(F##opcode, RamFloat   , op)
+
+
+#define CONV_TO_STRING(opcode, ty)                \
+    case FunctorOp::opcode: {                     \
+        out << "symTable.lookup(std::to_string("; \
+        visit(args[0], out);                      \
+        out << "))";                              \
+    } break;
+#define CONV_FROM_STRING(opcode, ty)                                            \
+    case FunctorOp::opcode: {                                                   \
+        out << "souffle::evaluator::symbol2numeric<" #ty ">(symTable.resolve("; \
+        visit(args[0], out);                                                    \
+        out << "))";                                                            \
+    } break;
             // clang-format on
 
             auto args = op.getArguments();
@@ -1553,18 +1578,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                     out << ").size())";
                     break;
                 }
-                case FunctorOp::TOSTRING: {
-                    out << "symTable.lookup(std::to_string(";
-                    visit(args[0], out);
-                    out << "))";
-                    break;
-                }
-                case FunctorOp::TONUMBER: {
-                    out << "(wrapper_tonumber(symTable.resolve((size_t)";
-                    visit(args[0], out);
-                    out << ")))";
-                    break;
-                }
 
                     // clang-format off
                 UNARY_OP_I(NEG, -)
@@ -1573,14 +1586,21 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 UNARY_OP_INTEGRAL(BNOT, ~)
                 UNARY_OP_INTEGRAL(LNOT, (RamDomain)!)
 
-                // Numeric coercions.
-                // Behaviour is similar to C++ except we saturate instead of overflowing.
-                UNARY_OP(FTOI, RamFloat   , static_cast<RamSigned>)
-                UNARY_OP(UTOI, RamUnsigned, static_cast<RamSigned>)
-                UNARY_OP(FTOU, RamFloat   , static_cast<RamUnsigned>)
-                UNARY_OP(ITOU, RamSigned  , static_cast<RamUnsigned>)
-                UNARY_OP(ITOF, RamSigned  , static_cast<RamFloat>)
-                UNARY_OP(UTOF, RamUnsigned, static_cast<RamFloat>)
+                /** numeric coersions follow C++ semantics. */
+                UNARY_OP(F2I, RamFloat   , static_cast<RamSigned>)
+                UNARY_OP(F2U, RamFloat   , static_cast<RamUnsigned>)
+                UNARY_OP(I2U, RamSigned  , static_cast<RamUnsigned>)
+                UNARY_OP(I2F, RamSigned  , static_cast<RamFloat>)
+                UNARY_OP(U2I, RamUnsigned, static_cast<RamSigned>)
+                UNARY_OP(U2F, RamUnsigned, static_cast<RamFloat>)
+
+                CONV_TO_STRING(F2S, RamFloat)
+                CONV_TO_STRING(I2S, RamSigned)
+                CONV_TO_STRING(U2S, RamUnsigned)
+
+                CONV_FROM_STRING(S2F, RamFloat)
+                CONV_FROM_STRING(S2I, RamSigned)
+                CONV_FROM_STRING(S2U, RamUnsigned)
 
                 /** Binary Functor Operators */
                 // arithmetic
@@ -1604,6 +1624,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
                 BINARY_OP_LOGICAL(LAND, &&)
                 BINARY_OP_LOGICAL(LOR , ||)
+                BINARY_OP_LOGICAL(LXOR, + souffle::evaluator::lxor_infix() +)
 
                 BINARY_OP_BITWISE(BAND, &)
                 BINARY_OP_BITWISE(BOR , |)
@@ -1889,18 +1910,6 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     os << "   } return result;\n";
     os << "}\n";
 
-    // to number wrapper
-    os << "private:\n";
-    os << "static inline RamDomain wrapper_tonumber(const std::string& str) {\n";
-    os << "   RamDomain result=0; \n";
-    os << "   try { result = RamSignedFromString(str); } catch(...) { \n";
-    os << "     std::cerr << \"error: wrong string provided by to_number(\\\"\";\n";
-    os << R"(     std::cerr << str << "\") )";
-    os << "functor.\\n\";\n";
-    os << "     raise(SIGFPE);\n";
-    os << "   } return result;\n";
-    os << "}\n";
-
     if (Global::config().has("profile")) {
         os << "std::string profiling_fname;\n";
     }
@@ -1929,7 +1938,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     if (Global::config().has("profile")) {
         os << "private:\n";
         size_t numFreq = 0;
-        visitDepthFirst(prog.getMain(), [&](const RamStatement&) { numFreq++; });
+        visitDepthFirst(prog, [&](const RamStatement&) { numFreq++; });
         os << "  size_t freqs[" << numFreq << "]{};\n";
         size_t numRead = 0;
         for (auto rel : prog.getRelations()) {
@@ -1950,7 +1959,7 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     std::set<const RamIO*> storeIOs;
 
     // collect load/store operations/relations
-    visitDepthFirst(prog.getMain(), [&](const RamIO& io) {
+    visitDepthFirst(prog, [&](const RamIO& io) {
         auto op = io.get("operation");
         if (op == "input") {
             loadRelations.insert(io.getRelation().getName());
@@ -2047,23 +2056,26 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     os << "~" << classname << "() {\n";
     os << "}\n";
 
-    // -- run function --
-    os << "private:\nvoid runFunction(std::string inputDirectory = \".\", "
+    os << "private:\n";
+    // issue state variables for the evaluation
+    os << "std::string inputDirectory;\n";
+    os << "std::string outputDirectory;\n";
+    os << "bool performIO;\n";
+    os << "std::atomic<RamDomain> ctr{};\n\n";
+    os << "std::atomic<size_t> iter{};\n";
+
+    os << "void runFunction(std::string inputDirectory = \".\", "
           "std::string outputDirectory = \".\", bool performIO = false) "
           "{\n";
+
+    os << "this->inputDirectory = inputDirectory;\n";
+    os << "this->outputDirectory = outputDirectory;\n";
+    os << "this->performIO = performIO;\n";
 
     os << "SignalHandler::instance()->set();\n";
     if (Global::config().has("verbose")) {
         os << "SignalHandler::instance()->enableLogging();\n";
     }
-    bool hasIncrement = false;
-    visitDepthFirst(prog.getMain(), [&](const RamAutoIncrement&) { hasIncrement = true; });
-    // initialize counter
-    if (hasIncrement) {
-        os << "// -- initialize counter --\n";
-        os << "std::atomic<RamDomain> ctr(0);\n\n";
-    }
-    os << "std::atomic<size_t> iter(0);\n\n";
 
     // set default threads (in embedded mode)
     // if this is not set, and omp is used, the default omp setting of number of cores is used.
@@ -2164,20 +2176,6 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     }
     os << "}\n";  // end of printAll() method
 
-    // dumpFreqs method
-    if (Global::config().has("profile")) {
-        os << "private:\n";
-        os << "void dumpFreqs() {\n";
-        for (auto const& cur : idxMap) {
-            os << "\tProfileEventSingleton::instance().makeQuantityEvent(R\"_(" << cur.first << ")_\", freqs["
-               << cur.second << "],0);\n";
-        }
-        for (auto const& cur : neIdxMap) {
-            os << "\tProfileEventSingleton::instance().makeQuantityEvent(R\"_(@relation-reads;" << cur.first
-               << ")_\", reads[" << cur.second << "],0);\n";
-        }
-        os << "}\n";  // end of dumpFreqs() method
-    }
     // issue loadAll method
     os << "public:\n";
     os << "void loadAll(std::string inputDirectory = \".\") override {\n";
@@ -2265,20 +2263,23 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
             }
             os << "}\n";
         }
+    }
 
+    if (!prog.getSubroutines().empty()) {
         // generate subroutine adapter
         os << "void executeSubroutine(std::string name, const std::vector<RamDomain>& args, "
               "std::vector<RamDomain>& ret) override {\n";
-
         // subroutine number
         size_t subroutineNum = 0;
         for (auto& sub : prog.getSubroutines()) {
             os << "if (name == \"" << sub.first << "\") {\n"
-               << "subproof_" << subroutineNum
-               << "(args, ret);\n"  // subproof_i to deal with special characters in relation names
+               << "subroutine_" << subroutineNum
+               << "(args, ret);\n"  // subroutine_<i> to deal with special characters in relation names
+               << "return;"
                << "}\n";
             subroutineNum++;
         }
+        os << "fatal(\"unknown subroutine\");\n";
         os << "}\n";  // end of executeSubroutine
 
         // generate method for each subroutine
@@ -2286,12 +2287,17 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         for (auto& sub : prog.getSubroutines()) {
             // method header
             os << "void "
-               << "subproof_" << subroutineNum
+               << "subroutine_" << subroutineNum
                << "(const std::vector<RamDomain>& args, "
                   "std::vector<RamDomain>& ret) {\n";
 
             // a lock is needed when filling the subroutine return vectors
-            os << "std::mutex lock;\n";
+            // for provenance subroutines
+            // TODO (b-scholz): Can we encapsulate this in RamReturn?
+            std::string pre("stratum_");
+            if ((sub.first).substr(0, pre.length()) != "stratum_") {
+                os << "std::mutex lock;\n";
+            }
 
             // generate code for body
             emitCode(os, *sub.second);
@@ -2300,6 +2306,22 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
             os << "}\n";  // end of subroutine
             subroutineNum++;
         }
+    }
+    // dumpFreqs method
+    //  Frequency counts must be emitted after subroutines otherwise lookup tables
+    //  are not populated.
+    if (Global::config().has("profile")) {
+        os << "private:\n";
+        os << "void dumpFreqs() {\n";
+        for (auto const& cur : idxMap) {
+            os << "\tProfileEventSingleton::instance().makeQuantityEvent(R\"_(" << cur.first << ")_\", freqs["
+               << cur.second << "],0);\n";
+        }
+        for (auto const& cur : neIdxMap) {
+            os << "\tProfileEventSingleton::instance().makeQuantityEvent(R\"_(@relation-reads;" << cur.first
+               << ")_\", reads[" << cur.second << "],0);\n";
+        }
+        os << "}\n";  // end of dumpFreqs() method
     }
     os << "};\n";  // end of class declaration
 
@@ -2316,7 +2338,9 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
     os << "public:\n";
     os << "factory_" << classname << "() : ProgramFactory(\"" << id << "\"){}\n";
     os << "};\n";
-    os << "static factory_" << classname << " __factory_" << classname << "_instance;\n";
+    os << "extern \"C\" {\n";
+    os << "factory_" << classname << " __factory_" << classname << "_instance;\n";
+    os << "}\n";
     os << "}\n";
     os << "#else\n";
     os << "}\n";

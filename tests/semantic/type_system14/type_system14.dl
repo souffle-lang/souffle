@@ -1,0 +1,24 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// type system 14
+//
+// Created for the issue: #1457
+//
+
+.type A <: symbol
+.type B <: symbol
+
+.decl RD(x:A)
+RD("a").
+.decl RE(x:B)
+RE("a").
+
+.decl RG(x:B)
+.output RG
+
+RG(val) :- RD(val), RE(cat("",val)).

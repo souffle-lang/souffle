@@ -1,31 +1,31 @@
-Error: Union type InvalidUnion1 is defined over {symbol, number, unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 36
+Error: Union type InvalidUnion1 is defined over {float, number, symbol, unsigned} (multiple primitive types in union) in file type_system11.dl at line 36
 .type InvalidUnion1 = float | unsigned | symbol | number
 ^--------------------------------------------------------
-Error: Union type InvalidUnion2 is defined over {unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 37
+Error: Union type InvalidUnion2 is defined over {float, unsigned} (multiple primitive types in union) in file type_system11.dl at line 37
 .type InvalidUnion2 = float | unsigned
 ^--------------------------------------
-Error: Union type InvalidUnion3 is defined over {symbol, float} (multiple primitive types in union) in file type_system11.dl at line 38
+Error: Union type InvalidUnion3 is defined over {float, symbol} (multiple primitive types in union) in file type_system11.dl at line 38
 .type InvalidUnion3 = float | symbol
 ^------------------------------------
-Error: Union type InvalidSubsetUnion1 is defined over {symbol, number, unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 40
+Error: Union type InvalidSubsetUnion1 is defined over {float, number, symbol, unsigned} (multiple primitive types in union) in file type_system11.dl at line 40
 .type InvalidSubsetUnion1 = A | B | C | D | E | G | X | Y
 ^---------------------------------------------------------
-Error: Union type InvalidSubsetUnion2 is defined over {symbol, float} (multiple primitive types in union) in file type_system11.dl at line 42
+Error: Union type InvalidSubsetUnion2 is defined over {float, symbol} (multiple primitive types in union) in file type_system11.dl at line 42
 .type InvalidSubsetUnion2 = A | C
 ^---------------------------------
-Error: Union type InvalidSubsetUnion3 is defined over {unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 44
+Error: Union type InvalidSubsetUnion3 is defined over {float, unsigned} (multiple primitive types in union) in file type_system11.dl at line 44
 .type InvalidSubsetUnion3 = A | X
 ^---------------------------------
-Error: Union type InvalidUnionUnion1 is defined over {symbol, number, unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 47
+Error: Union type InvalidUnionUnion1 is defined over {float, number, symbol, unsigned} (multiple primitive types in union) in file type_system11.dl at line 47
 .type InvalidUnionUnion1 = floatUnion | symbolUnion  | numberUnion | unsignedUnion
 ^----------------------------------------------------------------------------------
-Error: Union type InvalidUnionUnion2 is defined over {unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 48
+Error: Union type InvalidUnionUnion2 is defined over {float, unsigned} (multiple primitive types in union) in file type_system11.dl at line 48
 .type InvalidUnionUnion2 = floatUnion | unsignedUnion
 ^-----------------------------------------------------
-Error: Union type InvalidUnionUnion3 is defined over {symbol, float} (multiple primitive types in union) in file type_system11.dl at line 49
+Error: Union type InvalidUnionUnion3 is defined over {float, symbol} (multiple primitive types in union) in file type_system11.dl at line 49
 .type InvalidUnionUnion3 = floatUnion | C
 ^-----------------------------------------
-Error: Union type InvalidUnionUnion4 is defined over {unsigned, float} (multiple primitive types in union) in file type_system11.dl at line 50
+Error: Union type InvalidUnionUnion4 is defined over {float, unsigned} (multiple primitive types in union) in file type_system11.dl at line 50
 .type InvalidUnionUnion4 = floatUnion | Y
 ^-----------------------------------------
 10 errors generated, evaluation aborted

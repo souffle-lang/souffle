@@ -290,6 +290,15 @@ bool areBijectivelyEquivalent(const AstClause* left, const AstClause* right) {
         return false;
     }
 
+    // rules must have the same number of distinct variables
+    std::set<std::string> leftVariableNames;
+    std::set<std::string> rightVariableNames;
+    visitDepthFirst(*left, [&](const AstVariable& var) { leftVariableNames.insert(var.getName()); });
+    visitDepthFirst(*right, [&](const AstVariable& var) { rightVariableNames.insert(var.getName()); });
+    if (leftVariableNames.size() != rightVariableNames.size()) {
+        return false;
+    }
+
     // set up the n x n permutation matrix, where n is the number of
     // atoms in the clause, including the head atom
     size_t size = left->getBodyLiterals().size() + 1;

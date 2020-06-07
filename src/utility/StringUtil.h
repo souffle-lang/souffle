@@ -323,30 +323,36 @@ inline std::vector<std::string> splitString(const std::string& str, char delimit
 }
 
 /**
- * Stringify a string using escapes for newline, tab, double-quotes and semicolons
+ * Stringify a string using escapes for escape, newline, tab, double-quotes and semicolons
  */
 inline std::string stringify(const std::string& input) {
     std::string str(input);
 
-    // replace semicolons returns by escape sequence
+    // replace escapes with double escape sequence
     size_t start_pos = 0;
+    while ((start_pos = str.find('\\', start_pos)) != std::string::npos) {
+        str.replace(start_pos, 1, "\\\\");
+        start_pos += 2;
+    }
+    // replace semicolons with escape sequence
+    start_pos = 0;
     while ((start_pos = str.find(';', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\;");
         start_pos += 2;
     }
-    // replace double-quotes returns by escape sequence
+    // replace double-quotes with escape sequence
     start_pos = 0;
     while ((start_pos = str.find('"', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\\"");
         start_pos += 2;
     }
-    // replace newline returns by escape sequence
+    // replace newline with escape sequence
     start_pos = 0;
     while ((start_pos = str.find('\n', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\n");
         start_pos += 2;
     }
-    // replace tab returns by escape sequence
+    // replace tab with escape sequence
     start_pos = 0;
     while ((start_pos = str.find('\t', start_pos)) != std::string::npos) {
         str.replace(start_pos, 1, "\\t");

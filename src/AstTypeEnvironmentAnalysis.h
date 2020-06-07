@@ -47,7 +47,7 @@ public:
         return env;
     }
 
-    const std::set<TypeAttribute>& getPrimitiveTypesInUnion(const AstQualifiedName& identifier) const {
+    const std::set<AstQualifiedName>& getPrimitiveTypesInUnion(const AstQualifiedName& identifier) const {
         return primitiveTypesInUnions.at(identifier);
     }
 
@@ -57,35 +57,15 @@ public:
 
 private:
     TypeEnvironment env;
-    std::map<AstQualifiedName, std::set<TypeAttribute>> primitiveTypesInUnions;
+    std::map<AstQualifiedName, std::set<AstQualifiedName>> primitiveTypesInUnions;
     std::set<AstQualifiedName> cyclicTypes;
 
     /**
-     * Populate Type Environment with Ast Types.
+     * Recursively create a type in env, that is
+     * first create its base types and then the type itself.
      */
-    void createTypes(const std::vector<AstType*>& program);
-
-    /**
-     * Link unions and records to their types.
-     */
-    void linkTypes(const std::vector<AstType*>& program);
-
-    /**
-     * Create a type dependency graph.
-     */
-    Graph<AstQualifiedName> createTypeDependencyGraph(const std::vector<AstType*>& programTypes);
-
-    /**
-     * Check intersections of unions with primitive types.
-     */
-    void analysePrimitiveTypesInUnion(
-            const Graph<AstQualifiedName>& dependencyGraph, const std::vector<AstType*>& programTypes);
-
-    /**
-     * Find cyclic unions.
-     */
-    void analyseCyclicUnions(
-            const Graph<AstQualifiedName>& dependencyGraph, const std::vector<AstType*>& programTypes);
+    const Type* createType(const AstQualifiedName& typeName,
+            const std::map<AstQualifiedName, const AstType*>& nameToAstType);
 };
 
 }  // end of namespace souffle

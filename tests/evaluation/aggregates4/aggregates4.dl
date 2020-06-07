@@ -20,7 +20,7 @@ A(3).
 A(0xffffffff).
 
 
-C(y)       :- y = max a : A(a).          // 0xffffffff
-C(y)       :- y = min a : A(a).          // 1
-C(y)       :- y = sum a : {A(a), a < 4}. // 6
-C(itou(y)) :- y = count : {A(_)}.        // 4
+C(y)              :- y = max a : A(a).          // 0xffffffff
+C(y)              :- y = min a : A(a).          // 1
+C(y)              :- y = sum a : {A(a), a < 4}. // 6
+C(to_unsigned(y)) :- y = count : {A(_)}.        // 4

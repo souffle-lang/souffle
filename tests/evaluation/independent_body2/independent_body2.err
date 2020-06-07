@@ -1,6 +1,3 @@
 Warning: Variable y only occurs once in file independent_body2.dl at line 55
 query(x) :- (a(x) ; e(x) ; f(x)), good(), (a(y) ; f(y)).
 ---------------------------------------------^-----------
-Warning: Variable y only occurs once in file independent_body2.dl at line 55
-query(x) :- (a(x) ; e(x) ; f(x)), good(), (a(y) ; f(y)).
-----------------------------------------------------^----

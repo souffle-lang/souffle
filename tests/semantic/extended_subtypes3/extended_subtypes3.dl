@@ -1,0 +1,36 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Extended subtypes 3
+//
+// Check type deduction on extended subtypes
+//
+
+.type symbolA <: symbol
+.type symbolB <: symbolA
+.type symbolC <: symbolB
+
+
+.decl SymbolChain(a: symbolA, b: symbolB, c: symbolC)
+SymbolChain("meowA", "meowB", "meowC").
+SymbolChain(a, a, a) :- SymbolChain(a, _, _).
+SymbolChain(b, b, b) :- SymbolChain(_, b, _).
+
+.output SymbolChain(IO=stdout)
+
+
+// record subtypes
+.type List = [head: number, tail: List]
+.type S1List <: List
+.type S2List <: S1List
+
+.decl RecordSubtypes(a: List, b: S1List, c: S2List)
+RecordSubtypes([1, [1, nil]], [2, nil], [3, nil]).
+RecordSubtypes(x, [1, x], x) :- RecordSubtypes(x, _, _). // error in [1, x] and x
+RecordSubtypes(y, y, y) :- RecordSubtypes(y, _, _). // Should be error in second place and third place.
+
+.output RecordSubtypes(IO=stdout)

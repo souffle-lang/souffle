@@ -63,7 +63,8 @@ public:
      * @brief Generate the tree based on given entry.
      * Return a NodePtr to the root.
      */
-    NodePtr generateTree(const RamNode& root) {
+    NodePtr generateTree(const RamNode& root, const RamProgram& program) {
+        this->program = const_cast<RamProgram*>(&program);
         // Encode all relation, indexPos and viewId.
         visitDepthFirst(root, [&](const RamNode& node) {
             if (dynamic_cast<const RamQuery*>(&node) != nullptr) {
@@ -415,6 +416,19 @@ public:
         return std::make_unique<InterpreterNode>(I_Exit, &exit, std::move(children));
     }
 
+    NodePtr visitCall(const RamCall& call) override {
+        // translate a subroutine name to an index
+        // the index is used to identify the subroutine
+        // in the interpreter. The index is stored in the
+        // data array of the InterpreterNode as the first
+        // entry.
+        auto subs = program->getSubroutines();
+        size_t i = distance(subs.begin(), subs.find(call.getName()));
+        std::vector<size_t> data;
+        data.push_back(i);
+        return std::make_unique<InterpreterNode>(I_Call, &call, NodePtrVec{}, nullptr, std::move(data));
+    }
+
     NodePtr visitLogRelationTimer(const RamLogRelationTimer& timer) override {
         size_t relId = encodeRelation(timer.getRelation());
         auto rel = relations[relId].get();
@@ -555,6 +569,8 @@ private:
     std::vector<std::unique_ptr<RelationHandle>> relations;
     /** If generating a provenance program */
     const bool isProvenance;
+    /** RamProgram */
+    RamProgram* program;
 
     /** @brief Reset view allocation system, since view's life time is within each query. */
     void newQueryBlock() {

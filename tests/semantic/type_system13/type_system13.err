@@ -1,0 +1,10 @@
+Error: Redefinition of the predefined type in file type_system13.dl at line 14
+.type number = number
+^---------------------
+Error: Redefinition of the predefined type in file type_system13.dl at line 15
+.type float <: unsigned
+^-----------------------
+Error: Redefinition of the predefined type in file type_system13.dl at line 16
+.type symbol = [x: number, y: number]
+^-------------------------------------
+3 errors generated, evaluation aborted
