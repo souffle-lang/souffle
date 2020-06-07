@@ -435,7 +435,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
-     
+    
     bool changed = true;
     while (changed) {
         changed = false;
@@ -466,7 +466,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                     }
                     // if right element is smaller, insert it and iterate to next in right chain
                     if (*right < *left) {
-            mergedChain.insert(*right);
+                        mergedChain.insert(*right);
                         ++right;
                         continue;
                     }

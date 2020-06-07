@@ -334,11 +334,15 @@ protected:
 
     /** @Brief insert an index based on the delta */
     void insertIndex(LexOrder& ids, SearchSignature delta) {
+        LexOrder backlog;  // add inequalities at the end
         for (size_t pos = 0; pos < delta.arity(); pos++) {
-            if (delta[pos] != AttributeConstraint::None) {
+            if (delta[pos] == AttributeConstraint::Equal) {
                 ids.push_back(pos);
+            } else if (delta[pos] == AttributeConstraint::Inequal) {
+                backlog.push_back(pos);
             }
         }
+        ids.insert(ids.end(), backlog.begin(), backlog.end());
     }
 
     /** @Brief get a chain from a matching

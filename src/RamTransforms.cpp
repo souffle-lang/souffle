@@ -645,7 +645,7 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 for (RamExpression* p : indexOperation->getRangePattern().second) {
                     updatedPattern.second.emplace_back(p->clone());
                 }
-                
+
                 auto chains = indexSelection.getAllChains();
 
                 size_t inequalities = 0;
@@ -664,8 +664,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
 
                 std::cout << "Discharged: " << join(attributesToDischarge, ", ") << "\t";
                 std::cout << "Relation: " << indexOperation->getRelation().getName() << "\t";
-		std::cout << "Signature: " << idxAnalysis->getSearchSignature(indexOperation) << "\t";
-		std::cout << "Indexes: " << chains.size() << "\t";
+                std::cout << "Signature: " << idxAnalysis->getSearchSignature(indexOperation) << "\t";
+                std::cout << "Indexes: " << chains.size() << "\t";
                 std::cout << "Inequalities: " << inequalities << "\t";
                 std::cout << "Chains: ";
                 bool isFirst = true;
@@ -686,7 +686,7 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                     std::cout << "|";
                 }
                 std::cout << "\n";
-                
+
                 for (auto i : attributesToDischarge) {
                     // move constraints out of the indexed inequality and into a conjuction
                     std::unique_ptr<RamConstraint> lowerBound;

@@ -389,15 +389,15 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
                 eqSize++;
             }
         }
-        
-	out << "t_tuple low(lower);\n";
-	out << "t_tuple high(upper);\n";
+
+        out << "t_tuple low(lower);\n";
+        out << "t_tuple high(upper);\n";
         for (size_t column = 0; column < arity; column++) {
-	    if (search[column] == AttributeConstraint::None) {
-	        out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-		out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-	    }
-	}
+            if (search[column] == AttributeConstraint::None) {
+                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
+                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
+            }
+        }
 
         out << "t_comparator_" << indNum << " comparator;\n";
         out << "int cmp = comparator(low, high);\n";
@@ -699,13 +699,13 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         }
 
         out << "t_tuple low(lower);\n";
-	out << "t_tuple high(upper);\n";
+        out << "t_tuple high(upper);\n";
         for (size_t column = 0; column < arity; column++) {
-	    if (search[column] == AttributeConstraint::None) {
-	        out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-		out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-	    }
-	}
+            if (search[column] == AttributeConstraint::None) {
+                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
+                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
+            }
+        }
 
         out << "t_comparator_" << indNum << " comparator;\n";
         out << "int cmp = comparator(low, high);\n";
