@@ -291,9 +291,9 @@ public:
         }
         orders.push_back(std::move(totalOrder));
     }
-    /** Return the attribute position for each inequality that should be discharged.
+    /** Return the attribute position for each indexed operation that should be discharged.
      */
-    AttributeSet getAttributesToDischarge(const RamRelation& rel);
+    AttributeSet getAttributesToDischarge(const SearchSignature& s, const RamRelation& rel);
 
 protected:
     SignatureIndexMap signatureToIndexA;   // mapping of a SearchSignature on A to its unique index

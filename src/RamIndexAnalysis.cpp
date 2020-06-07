@@ -435,6 +435,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
+     
     bool changed = true;
     while (changed) {
         changed = false;
@@ -459,27 +460,13 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                     }
                     // if left element is smaller, insert it and iterate to next in left chain
                     if (*left < *right) {
-                        
-			// can't merge if we lose an index on a window query
-                        if (SearchSignature::isWindowQuery(*left)) {
-			   successfulMerge = false;
-			   break;
-			}
-
                         mergedChain.insert(*left);
                         ++left;
                         continue;
                     }
                     // if right element is smaller, insert it and iterate to next in right chain
                     if (*right < *left) {
-                        
-			// can't merge if we lose an index on a window query
-                        if (SearchSignature::isWindowQuery(*right)) {
-			   successfulMerge = false;
-			   break;
-			}    
-			    
-			mergedChain.insert(*right);
+            mergedChain.insert(*right);
                         ++right;
                         continue;
                     }
@@ -519,21 +506,21 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
-
+    
     return chains;
 }
 
-MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(const RamRelation& rel) {
+MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
+        const SearchSignature& s, const RamRelation& rel) {
     // by default we have all attributes w/inequalities discharged
     AttributeSet attributesToDischarge;
-    for (auto search : searches) {
-        size_t arity = search.arity();
-        for (size_t i = 0; i < arity; ++i) {
-            if (search[i] == AttributeConstraint::Inequal) {
-                attributesToDischarge.insert(i);
-            }
+
+    for (size_t i = 0; i < s.arity(); ++i) {
+        if (s[i] == AttributeConstraint::Inequal) {
+            attributesToDischarge.insert(i);
         }
     }
+
     // if we don't have a btree then we don't retain any inequalities
     if (rel.getRepresentation() != RelationRepresentation::BTREE &&
             rel.getRepresentation() != RelationRepresentation::DEFAULT) {
@@ -542,18 +529,32 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(cons
     if (Global::config().has("provenance")) {
         return attributesToDischarge;
     }
-    for (LexOrder order : orders) {
-        auto end = order.back();
-        auto startswith = [](const std::string& str, const std::string& pre) -> bool {
-            return str.rfind(pre, 0) == 0;
-        };
-        // don't discharge if we have a numeric attribute in the last position
-        std::string type = rel.getAttributeTypes()[end];
-        if (startswith(type, "i:")) {
-            // if this is an inequality then it won't be discharged
-            attributesToDischarge.erase(end);
+
+    auto chains = getAllChains();
+    // find the chain that the operation lives inside
+    for (auto chain : chains) {
+        // get the last operation in the chain
+        auto end = *chain.rbegin();
+        // if the current operation is this one then we can permit a single indexed inequality
+        if (end == s) {
+            auto startswith = [](const std::string& str, const std::string& pre) -> bool {
+                return str.rfind(pre, 0) == 0;
+            };
+            for (size_t i = 0; i < s.arity(); ++i) {
+                // don't discharge an inequality if we have a numeric attribute
+                if (s[i] == AttributeConstraint::Inequal) {
+                    std::string type = rel.getAttributeTypes()[i];
+                    if (startswith(type, "i:")) {
+                        // if this is an inequality then it won't be discharged
+                        attributesToDischarge.erase(i);
+                        break;  // we break here so as to only permit a single indexed inequality
+                    }
+                }
+            }
+            break;  // we only care about the chain that the operation belongs to
         }
     }
+
     return attributesToDischarge;
 }
 

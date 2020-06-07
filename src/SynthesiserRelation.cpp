@@ -389,15 +389,24 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
                 eqSize++;
             }
         }
+        
+	out << "t_tuple low(lower);\n";
+	out << "t_tuple high(upper);\n";
+        for (size_t column = 0; column < arity; column++) {
+	    if (search[column] == AttributeConstraint::None) {
+	        out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
+		out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
+	    }
+	}
 
         out << "t_comparator_" << indNum << " comparator;\n";
-        out << "int cmp = comparator(lower, upper);\n";
+        out << "int cmp = comparator(low, high);\n";
 
         // if search signature is full we can apply this specialization
         if (eqSize == arity) {
             // use the more efficient find() method if lower == upper
             out << "if (cmp == 0) {\n";
-            out << "    auto pos = ind_" << indNum << ".find(lower, h.hints_" << indNum << "_lower);\n";
+            out << "    auto pos = ind_" << indNum << ".find(low, h.hints_" << indNum << "_lower);\n";
             out << "    auto fin = ind_" << indNum << ".end();\n";
             out << "    if (pos != fin) {fin = pos; ++fin;}\n";
             out << "    return make_range(pos, fin);\n";
@@ -408,18 +417,6 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
         out << "    return make_range(ind_" << indNum << ".end(), ind_" << indNum << ".end());\n";
         out << "}\n";
         // otherwise use the general method
-
-        // generate lower and upper bounds for range search
-        out << "t_tuple low(lower); t_tuple high(upper);\n";
-        // check which indices to pad out
-        for (size_t column = 0; column < arity; column++) {
-            // if bit number column is not set
-            if (search[column] == AttributeConstraint::None) {
-                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-            }
-        }
-
         out << "return make_range(ind_" << indNum << ".lower_bound(low, h.hints_" << indNum << "_lower"
             << "), ind_" << indNum << ".upper_bound(high, h.hints_" << indNum << "_upper"
             << "));\n";
@@ -701,13 +698,23 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             }
         }
 
+        out << "t_tuple low(lower);\n";
+	out << "t_tuple high(upper);\n";
+        for (size_t column = 0; column < arity; column++) {
+	    if (search[column] == AttributeConstraint::None) {
+	        out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
+		out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
+	    }
+	}
+
         out << "t_comparator_" << indNum << " comparator;\n";
-        out << "int cmp = comparator(lower, upper);\n";
+        out << "int cmp = comparator(low, high);\n";
+
         // use the more efficient find() method if the search pattern is full
         if (eqSize == arity) {
             // if lower == upper we can just do a find
             out << "if (cmp == 0) {\n";
-            out << "    auto pos = find(lower, h);\n";
+            out << "    auto pos = find(low, h);\n";
             out << "    auto fin = end();\n";
             out << "    if (pos != fin) {fin = pos; ++fin;}\n";
             out << "    return make_range(pos, fin);\n";
@@ -718,17 +725,6 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         out << "    return range<iterator_" << indNum << ">(ind_" << indNum << ".end(), ind_" << indNum
             << ".end());\n";
         out << "}\n";
-
-        // generate lower and upper bounds for range search
-        out << "t_tuple low(lower); t_tuple high(upper);\n";
-        // check which indices to pad out
-        for (size_t column = 0; column < arity; column++) {
-            // if bit number column is not set
-            if (search[column] == AttributeConstraint::None) {
-                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-            }
-        }
 
         // otherwise do the default method
         out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&low, h.hints_"
