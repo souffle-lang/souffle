@@ -144,7 +144,14 @@ SearchSignature SearchSignature::getDelta(const SearchSignature& lhs, const Sear
             continue;
         }
 
-        // in the special case where we have equality/inequality bounds consider the delta to be 0
+        // in the special case where we have inequality and equality bounds consider the delta to be the
+        // inequality
+        if (lhs.constraints[i] == AttributeConstraint::Inequal &&
+                rhs.constraints[i] == AttributeConstraint::Equal) {
+            delta.constraints[i] = AttributeConstraint::Inequal;
+            continue;
+        }
+
         delta.constraints[i] = AttributeConstraint::None;
     }
     return delta;
@@ -350,9 +357,31 @@ void MinIndexSelection::solve() {
             insertIndex(ids, delta);
         }
 
-        assert(!ids.empty());
+        // clean up the lex-order by removing duplicates
+        std::vector<size_t> toRemove;
+        for (size_t i = 0; i < ids.size(); ++i) {
+            for (size_t j = i + 1; j < ids.size(); ++j) {
+                if (ids[i] == ids[j]) {
+                    toRemove.push_back(i);
+                }
+            }
+        }
 
-        orders.push_back(ids);
+        std::vector<uint32_t> cleanedIds;
+        for (size_t i = 0; i < ids.size(); ++i) {
+            bool skip = false;
+            for (size_t j = 0; j < toRemove.size(); ++j) {
+                if (i == toRemove[j]) {
+                    skip = true;
+                }
+            }
+            if (!skip) {
+                cleanedIds.push_back(ids[i]);
+            }
+        }
+
+        assert(!cleanedIds.empty());
+        orders.push_back(cleanedIds);
     }
 
     // Construct the matching poblem
@@ -435,7 +464,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
-    
     bool changed = true;
     while (changed) {
         changed = false;
@@ -506,7 +534,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
-    
+
     return chains;
 }
 

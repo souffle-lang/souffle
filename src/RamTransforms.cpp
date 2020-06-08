@@ -729,11 +729,22 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                                 pscan->getTupleId(), std::move(updatedPattern), std::move(filter),
                                 pscan->getProfileText());
                     } else if (const RamIndexChoice* ichoice = dynamic_cast<RamIndexChoice*>(node.get())) {
-                        node = std::make_unique<RamIndexChoice>(
+                        // A RamIndexChoice can be seen as a RamIndexScan + Filter
+                        // Note: The condition of the choice should be moved into a nested filter
+                        condition = addCondition(std::move(condition), ichoice->getCondition().clone());
+                        filter = std::make_unique<RamFilter>(std::move(condition), std::move(nestedOp));
+
+                        node = std::make_unique<RamIndexScan>(
+                                std::make_unique<RamRelationReference>(&ichoice->getRelation()),
+                                ichoice->getTupleId(), std::move(updatedPattern), std::move(filter),
+                                ichoice->getProfileText());
+                        /*
+                node = std::make_unique<RamIndexChoice>(
                                 std::make_unique<RamRelationReference>(&ichoice->getRelation()),
                                 ichoice->getTupleId(),
                                 std::unique_ptr<RamCondition>(ichoice->getCondition().clone()),
                                 std::move(updatedPattern), std::move(filter), ichoice->getProfileText());
+            */
                     } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
                         node = std::make_unique<RamIndexAggregate>(std::move(filter), iagg->getFunction(),
                                 std::make_unique<RamRelationReference>(&iagg->getRelation()),
