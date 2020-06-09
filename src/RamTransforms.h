@@ -549,7 +549,7 @@ protected:
 
 /**
  * @class ChoiceConversionTransformer
- * @brief Convert (Scan/If)/(IndexScan/If) operaitons to
+ * @brief Convert (Scan/If)/(IndexScan/If) operations to
  * (Choice)/(IndexChoice) operations
 
  * If there exists Scan/IndexScan operations in the RAM, and the

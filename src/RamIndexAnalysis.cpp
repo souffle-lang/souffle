@@ -77,17 +77,7 @@ bool SearchSignature::operator<(const SearchSignature& other) const {
 
 bool SearchSignature::operator==(const SearchSignature& other) const {
     assert(constraints.size() == other.constraints.size());
-    for (size_t i = 0; i < constraints.size(); ++i) {
-        if (constraints[i] == AttributeConstraint::None &&
-                other.constraints[i] != AttributeConstraint::None) {
-            return false;
-        }
-        if (constraints[i] != AttributeConstraint::None &&
-                other.constraints[i] == AttributeConstraint::None) {
-            return false;
-        }
-    }
-    return true;
+    return constraints == other.constraints;
 }
 
 bool SearchSignature::empty() const {
@@ -109,50 +99,33 @@ bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSig
     assert(lhs.arity() == rhs.arity());
     size_t len = lhs.arity();
     for (size_t i = 0; i < len; ++i) {
+        // if left has an attribute constraint and right doesn't then it can't be subset
         if ((lhs.constraints[i] != AttributeConstraint::None) &&
                 (rhs.constraints[i] == AttributeConstraint::None)) {
             return false;
+        }
+        // if one is equality and other is inequality or vice versa
+        if ((lhs.constraints[i] != AttributeConstraint::None) &&
+                (rhs.constraints[i] != AttributeConstraint::None)) {
+            if (lhs.constraints[i] != rhs.constraints[i]) {
+                return false;
+            }
         }
     }
     return lhs.constraints != rhs.constraints;
 }
 
-bool SearchSignature::isWindowQuery(const SearchSignature& s) {
-    size_t len = s.arity();
-    for (size_t i = 0; i < len; ++i) {
-        if ((s.constraints[i] != AttributeConstraint::None) &&
-                (s.constraints[i] != AttributeConstraint::Inequal)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 SearchSignature SearchSignature::getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
     assert(lhs.arity() == rhs.arity());
+    assert(isStrictSubset(rhs, lhs));  // ensure that lhs < rhs for delta
     SearchSignature delta(lhs.arity());
     for (size_t i = 0; i < lhs.arity(); ++i) {
         // if constraints are the same then delta is nothing
         if (lhs.constraints[i] == rhs.constraints[i]) {
             delta.constraints[i] = AttributeConstraint::None;
-            continue;
-        }
-
-        // if rhs has no constraint then delta has lhs constraint
-        if (rhs.constraints[i] == AttributeConstraint::None) {
+        } else {
             delta.constraints[i] = lhs.constraints[i];
-            continue;
         }
-
-        // in the special case where we have inequality and equality bounds consider the delta to be the
-        // inequality
-        if (lhs.constraints[i] == AttributeConstraint::Inequal &&
-                rhs.constraints[i] == AttributeConstraint::Equal) {
-            delta.constraints[i] = AttributeConstraint::Inequal;
-            continue;
-        }
-
-        delta.constraints[i] = AttributeConstraint::None;
     }
     return delta;
 }
@@ -283,14 +256,12 @@ void MinIndexSelection::solve() {
         return;
     }
 
-    // map the signatures of each searches to a unique index for the matching problem
+    // map the signatures of each search to a unique index for the matching problem
     AttributeIndex currentIndex = 1;
     for (SearchSignature s : searches) {
-        // we skip if the search is empty
         if (s.empty()) {
             continue;
         }
-
         // map the signature to its unique index in each set
         signatureToIndexA.insert({s, currentIndex});
         signatureToIndexB.insert({s, currentIndex + 1});
@@ -301,52 +272,33 @@ void MinIndexSelection::solve() {
     }
 
     // Construct the matching poblem
+
     for (auto search : searches) {
         // For this node check if other nodes are strict subsets
         for (auto itt : searches) {
             if (SearchSignature::isStrictSubset(search, itt)) {
-                // less general searches only have out edges to more general counterpart
-                if (lessGeneralSearches.count(search) > 0) {
-                    continue;
-                }
-                // more general searches only have in edges from less general counterpart
-                if (moreGeneralSearches.count(itt) > 0) {
-                    continue;
-                }
-
-                // dont draw an edge from more to less general counterpart
-                if (moreGeneralSearches.count(search) > 0 && lessGeneralSearches.count(itt) > 0) {
-                    continue;
-                }
-
                 bool containsInequality = false;
                 for (size_t i = 0; i < search.arity(); ++i) {
                     if (search[i] == AttributeConstraint::Inequal) {
                         containsInequality = true;
                     }
                 }
-                if (!containsInequality) {
-                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
-                }
+                // if (!containsInequality) {
+                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                //}
             }
         }
-    }
-
-    // add edges from less -> more general pairs
-    for (auto less : lessGeneralSearches) {
-        auto more = lessToMoreGeneralSearch.at(less);
-        matching.addEdge(signatureToIndexA[less], signatureToIndexB[more]);
     }
 
     // Perform the Hopcroft-Karp on the graph and receive matchings (mapped A->B and B->A)
     // Assume: alg.calculate is not called on an empty graph
     assert(!searches.empty());
     const MaxMatching::Matchings& matchings = matching.solve();
+
     // Extract the chains given the nodes and matchings
     ChainOrderMap chains = getChainsFromMatching(matchings, searches);
     // Should never get no chains back as we never call calculate on an empty graph
     assert(!chains.empty());
-
     for (const auto& chain : chains) {
         std::vector<uint32_t> ids;
         SearchSignature initDelta = *(chain.begin());
@@ -357,37 +309,15 @@ void MinIndexSelection::solve() {
             insertIndex(ids, delta);
         }
 
-        // clean up the lex-order by removing duplicates
-        std::vector<size_t> toRemove;
-        for (size_t i = 0; i < ids.size(); ++i) {
-            for (size_t j = i + 1; j < ids.size(); ++j) {
-                if (ids[i] == ids[j]) {
-                    toRemove.push_back(i);
-                }
-            }
-        }
-
-        std::vector<uint32_t> cleanedIds;
-        for (size_t i = 0; i < ids.size(); ++i) {
-            bool skip = false;
-            for (size_t j = 0; j < toRemove.size(); ++j) {
-                if (i == toRemove[j]) {
-                    skip = true;
-                }
-            }
-            if (!skip) {
-                cleanedIds.push_back(ids[i]);
-            }
-        }
-
-        assert(!cleanedIds.empty());
-        orders.push_back(cleanedIds);
+        assert(!ids.empty());
+        orders.push_back(ids);
     }
 
     // Construct the matching poblem
     for (auto search : searches) {
         int idx = map(search);
         size_t l = card(search);
+
         SearchSignature k(search.arity());
         for (size_t i = 0; i < l; i++) {
             k.set(orders[idx][i], AttributeConstraint::Equal);
@@ -433,7 +363,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 
     // Get all unmatched nodes from A
     const SearchSet& umKeys = getUnmatchedKeys(match, nodes);
-
     // Case: if no unmatched nodes then we have an anti-chain
     if (umKeys.empty()) {
         for (auto node : nodes) {
@@ -464,6 +393,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
+    /*
     bool changed = true;
     while (changed) {
         changed = false;
@@ -534,6 +464,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
+    */
 
     return chains;
 }
@@ -557,7 +488,6 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
     if (Global::config().has("provenance")) {
         return attributesToDischarge;
     }
-
     auto chains = getAllChains();
     // find the chain that the operation lives inside
     for (auto chain : chains) {

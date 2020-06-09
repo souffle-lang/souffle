@@ -209,28 +209,8 @@ public:
     /** @Brief Add new key to an Index Set */
     inline void addSearch(SearchSignature cols) {
         if (!cols.empty()) {
-            // if identical search already exists then early exit
-            if (searches.count(cols) > 0) {
-                return;
-            }
-
-            for (SearchSignature other : searches) {
-                // if we have an equivalent search
-                if (other == cols) {
-                    bool newSearchMoreGeneral = other < cols;
-
-                    // old -> new
-                    if (newSearchMoreGeneral) {
-                        lessGeneralSearches.insert(other);
-                        moreGeneralSearches.insert(cols);
-                        lessToMoreGeneralSearch.insert({other, cols});
-                        // new -> old
-                    } else {
-                        lessGeneralSearches.insert(cols);
-                        moreGeneralSearches.insert(other);
-                        lessToMoreGeneralSearch.insert({cols, other});
-                    }
-                    searches.insert(cols);
+            for (auto search : searches) {
+                if (search == cols) {
                     return;
                 }
             }
@@ -296,16 +276,13 @@ public:
     AttributeSet getAttributesToDischarge(const SearchSignature& s, const RamRelation& rel);
 
 protected:
-    SignatureIndexMap signatureToIndexA;   // mapping of a SearchSignature on A to its unique index
-    SignatureIndexMap signatureToIndexB;   // mapping of a SearchSignature on B to its unique index
-    IndexSignatureMap indexToSignature;    // mapping of a unique index to its SearchSignature
-    SearchSet searches;                    // set of search patterns on table
-    SearchSet lessGeneralSearches;         // set of less general searches (only accepting in edges)
-    SearchSet moreGeneralSearches;         // set of more general searches (only accepting out edges)
-    SignatureMap lessToMoreGeneralSearch;  // mapping of a less general search to its more general search
-    OrderCollection orders;                // collection of lexicographical orders
-    ChainOrderMap chainToOrder;            // maps order index to set of searches covered by chain
-    MaxMatching matching;                  // matching problem for finding minimal number of orders
+    SignatureIndexMap signatureToIndexA;  // mapping of a SearchSignature on A to its unique index
+    SignatureIndexMap signatureToIndexB;  // mapping of a SearchSignature on B to its unique index
+    IndexSignatureMap indexToSignature;   // mapping of a unique index to its SearchSignature
+    SearchSet searches;                   // set of search patterns on table
+    OrderCollection orders;               // collection of lexicographical orders
+    ChainOrderMap chainToOrder;           // maps order index to set of searches covered by chain
+    MaxMatching matching;                 // matching problem for finding minimal number of orders
 
     /** @Brief count the number of constraints in key */
     static size_t card(SearchSignature cols) {
@@ -328,7 +305,7 @@ protected:
                 return i;
             }
         }
-        std::cout << "Couldn't find: " << cols << "\n";
+
         fatal("cannot find matching lexicographical order");
     }
 
