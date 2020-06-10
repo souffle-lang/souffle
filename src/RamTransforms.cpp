@@ -645,48 +645,6 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                 for (RamExpression* p : indexOperation->getRangePattern().second) {
                     updatedPattern.second.emplace_back(p->clone());
                 }
-                /*
-                auto chains = indexSelection.getAllChains();
-
-                size_t inequalities = 0;
-                for (const auto& chain : chains) {
-                    auto end = *chain.rbegin();
-                    bool hasIndexedInequality = false;
-                    for (size_t i = 0; i < end.arity(); ++i) {
-                        if (end[i] == AttributeConstraint::Inequal) {
-                            hasIndexedInequality = true;
-                        }
-                    }
-                    if (hasIndexedInequality) {
-                        ++inequalities;
-                    }
-                }
-
-                std::cout << "Discharged: " << join(attributesToDischarge, ", ") << "\t";
-                std::cout << "Relation: " << indexOperation->getRelation().getName() << "\t";
-                std::cout << "Signature: " << idxAnalysis->getSearchSignature(indexOperation) << "\t";
-                std::cout << "Indexes: " << chains.size() << "\t";
-                std::cout << "Inequalities: " << inequalities << "\t";
-                std::cout << "Chains: ";
-                bool isFirst = true;
-                for (const auto& chain : chains) {
-                    if (isFirst) {
-                        std::cout << "|";
-                        isFirst = false;
-                    }
-                    bool first = true;
-                    for (auto search : chain) {
-                        if (first) {
-                            first = false;
-                        } else {
-                            std::cout << "-->";
-                        }
-                        std::cout << search;
-                    }
-                    std::cout << "|";
-                }
-                std::cout << "\n";
-                */
                 for (auto i : attributesToDischarge) {
                     // move constraints out of the indexed inequality and into a conjuction
                     std::unique_ptr<RamConstraint> lowerBound;

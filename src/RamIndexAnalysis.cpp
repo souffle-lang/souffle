@@ -49,6 +49,7 @@ AttributeConstraint SearchSignature::operator[](std::size_t pos) const {
 // comparison operators
 bool SearchSignature::operator<(const SearchSignature& other) const {
     assert(constraints.size() == other.constraints.size());
+    assert(isComparable(*this, other));  // be ordered to place them in a container together
     size_t len = constraints.size();
 
     for (size_t i = 0; i < len; ++i) {
@@ -283,9 +284,9 @@ void MinIndexSelection::solve() {
                         containsInequality = true;
                     }
                 }
-                // if (!containsInequality) {
-                matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
-                //}
+                if (!containsInequality) {
+                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
+                }
             }
         }
     }
@@ -345,14 +346,19 @@ MinIndexSelection::Chain MinIndexSelection::getChain(
     while (true) {
         auto mit = match.find(signatureToIndexB[start]);  // we start from B side
         // on each iteration we swap sides when collecting the chain so we use the corresponding index map
-        chain.insert(start);
+        if (std::find(chain.begin(), chain.end(), start) == chain.end()) {
+            chain.push_back(start);
+        }
 
         if (mit == match.end()) {
+            std::reverse(chain.begin(), chain.end());
             return chain;
         }
 
         SearchSignature a = indexToSignature.at(mit->second);
-        chain.insert(a);
+        if (std::find(chain.begin(), chain.end(), a) == chain.end()) {
+            chain.push_back(a);
+        }
         start = a;
     }
 }
@@ -366,8 +372,8 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
     // Case: if no unmatched nodes then we have an anti-chain
     if (umKeys.empty()) {
         for (auto node : nodes) {
-            std::set<SearchSignature> a;
-            a.insert(node);
+            Chain a;
+            a.push_back(node);
             chainToOrder.push_back(a);
             return mergeChains(chainToOrder);
         }
@@ -393,13 +399,12 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 // Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
-    /*
     bool changed = true;
     while (changed) {
         changed = false;
         for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
             const auto lhs = *lhs_it;
-            for (auto rhs_it = lhs_it + 1; rhs_it != chains.end(); ++rhs_it) {
+            for (auto rhs_it = std::next(lhs_it); rhs_it != chains.end(); ++rhs_it) {
                 const auto rhs = *rhs_it;
 
                 // merge the two chains
@@ -418,13 +423,13 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                     }
                     // if left element is smaller, insert it and iterate to next in left chain
                     if (*left < *right) {
-                        mergedChain.insert(*left);
+                        mergedChain.push_back(*left);
                         ++left;
                         continue;
                     }
                     // if right element is smaller, insert it and iterate to next in right chain
                     if (*right < *left) {
-                        mergedChain.insert(*right);
+                        mergedChain.push_back(*right);
                         ++right;
                         continue;
                     }
@@ -438,14 +443,14 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                 // if left chain is exhausted then merge the rest of right chain
                 if (left == lhs.end()) {
                     while (right != rhs.end()) {
-                        mergedChain.insert(*right);
+                        mergedChain.push_back(*right);
                         ++right;
                     }
                 }
                 // if right chain is exhuasted then merge the rest of left chain
                 if (right == rhs.end()) {
                     while (left != lhs.end()) {
-                        mergedChain.insert(*left);
+                        mergedChain.push_back(*left);
                         ++left;
                     }
                 }
@@ -464,7 +469,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
-    */
 
     return chains;
 }

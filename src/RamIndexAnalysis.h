@@ -74,6 +74,19 @@ public:
     SearchSignature& set(size_t pos, AttributeConstraint constraint);
     friend std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
 
+    // hashing class
+    class Hasher {
+    public:
+        size_t operator()(const SearchSignature& s) const {
+            auto& vec = s.constraints;
+            std::size_t seed = vec.size();
+            for (auto& i : vec) {
+                seed ^= static_cast<size_t>(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
+
 private:
     std::vector<AttributeConstraint> constraints;
 };
@@ -196,24 +209,33 @@ private:
 class MinIndexSelection {
 public:
     using AttributeIndex = uint32_t;
-    using SignatureMap = std::map<SearchSignature, SearchSignature>;
-    using SignatureIndexMap = std::map<SearchSignature, AttributeIndex>;
-    using IndexSignatureMap = std::map<AttributeIndex, SearchSignature>;
+    using SignatureMap = std::unordered_map<SearchSignature, SearchSignature, SearchSignature::Hasher>;
+    using SignatureIndexMap = std::unordered_map<SearchSignature, AttributeIndex, SearchSignature::Hasher>;
+    using IndexSignatureMap = std::unordered_map<AttributeIndex, SearchSignature>;
     using LexOrder = std::vector<AttributeIndex>;
     using OrderCollection = std::vector<LexOrder>;
-    using Chain = std::set<SearchSignature>;
+    using Chain = std::vector<SearchSignature>;
+    // A chain is a vector of SearchSignature to support inserting incomparable elements later
+    // E.g. 1 --> 2 we don't have 1 and 2 as comparable but they form a valid lex-order
     using ChainOrderMap = std::vector<Chain>;
-    using SearchSet = std::set<SearchSignature>;
+
+    class SearchComparator {
+    public:
+        bool operator()(const SearchSignature& s1, const SearchSignature& s2) const {
+            auto hasher = SearchSignature::Hasher();
+            return hasher(s1) < hasher(s2);
+        }
+    };
+
+    using SearchSet = std::set<SearchSignature, SearchComparator>;
+    // SearchSignatures only have a partial order, however we need to produce a unique ordering of searches
+    // when we output the name of the index and therefore we order the SearchSignatures arbitrarily by their
+    // hashes
     using AttributeSet = std::unordered_set<AttributeIndex>;
 
     /** @Brief Add new key to an Index Set */
     inline void addSearch(SearchSignature cols) {
         if (!cols.empty()) {
-            for (auto search : searches) {
-                if (search == cols) {
-                    return;
-                }
-            }
             searches.insert(cols);
         }
     }
@@ -261,9 +283,9 @@ public:
      *  @param size of the index
      */
     void insertDefaultTotalIndex(size_t arity) {
-        Chain chain = std::set<SearchSignature>();
+        Chain chain = std::vector<SearchSignature>();
         SearchSignature fullIndexKey = SearchSignature::getFullSearchSignature(arity);
-        chain.insert(fullIndexKey);
+        chain.push_back(fullIndexKey);
         chainToOrder.push_back(std::move(chain));
         LexOrder totalOrder;
         for (size_t i = 0; i < arity; ++i) {
@@ -300,7 +322,7 @@ protected:
         assert(orders.size() == chainToOrder.size() && "Order and Chain Sizes do not match!!");
         int i = 0;
         for (auto it = chainToOrder.begin(); it != chainToOrder.end(); ++it, ++i) {
-            if (it->find(cols) != it->end()) {
+            if (std::find(it->begin(), it->end(), cols) != it->end()) {
                 assert((size_t)i < orders.size());
                 return i;
             }
