@@ -62,11 +62,12 @@ public:
     // comparison operators
     bool operator<(const SearchSignature& other) const;
     bool operator==(const SearchSignature& other) const;
+    bool operator!=(const SearchSignature& other) const;
 
     bool empty() const;
+    bool containsInequality() const;
     static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs);
     static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs);
-    static bool isWindowQuery(const SearchSignature& s);
     static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs);
     static SearchSignature getFullSearchSignature(size_t arity);
 

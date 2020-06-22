@@ -1,0 +1,703 @@
+./provenance/cprog1_subtreeHeights/cprog1_subtreeHeights.dl
+./provenance/components_subtreeHeights/components_subtreeHeights.dl
+./provenance/query_1/query_1.dl
+2,3c2,3
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+---
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+./provenance/eqrel_tests3_subtreeHeights/eqrel_tests3_subtreeHeights.dl
+./provenance/path_explain_negation_subtreeHeights/path_explain_negation_subtreeHeights.dl
+./provenance/high_arity_subtreeHeights/high_arity_subtreeHeights.dl
+./provenance/components/components.dl
+2,3c2,3
+< Relation: myCompInstance1.TheAnswer	Indexes: 2	Inequalities: 1	Chains: |002|100-->102-->111|
+< Relation: myCompInstance1.TheAnswer	Indexes: 2	Inequalities: 1	Chains: |002|100-->102-->111|
+---
+> Relation: myCompInstance1.TheAnswer	Indexes: 2	Inequalities: 1	Chains: |100-->111|002-->102|
+> Relation: myCompInstance1.TheAnswer	Indexes: 2	Inequalities: 1	Chains: |100-->111|002-->102|
+./provenance/path/path.dl
+2,3c2,3
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+---
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+./provenance/path_explain_negation/path_explain_negation.dl
+2,3c2,3
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+---
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+./provenance/cprog1/cprog1.dl
+3,4c3,4
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+---
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+8,9c8,9
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+---
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+12,13c12,13
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+---
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+15,21c15,21
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+< Relation: loop	Indexes: 5	Inequalities: 3	Chains: |100100-->100102|101002|101000-->101100|100000-->110002|110000-->111000-->111100-->111102-->111111|
+---
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+> Relation: loop	Indexes: 5	Inequalities: 4	Chains: |100102|101000-->101002|100000-->110002|110000-->111000-->111102|100100-->101100-->111100-->111111|
+./provenance/negation/negation.dl
+./provenance/query_2/query_2.dl
+2,3c2,3
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+---
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+./provenance/eqrel_tests3/eqrel_tests3.dl
+1c1
+< Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1002|1000-->1100-->1102-->1111|
+---
+> Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1000-->1002-->1102|
+4,8c4,8
+< Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1002|1000-->1100-->1102-->1111|
+< Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1002|1000-->1100-->1102-->1111|
+< Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1002|1000-->1100-->1102-->1111|
+< Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1002|1000-->1100-->1102-->1111|
+< Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1002|1000-->1100-->1102-->1111|
+---
+> Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1000-->1002-->1102|
+> Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1000-->1002-->1102|
+> Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1000-->1002-->1102|
+> Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1000-->1002-->1102|
+> Relation: isEqrel	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1000-->1002-->1102|
+./provenance/same_gen/same_gen.dl
+./provenance/negation_subtreeHeights/negation_subtreeHeights.dl
+./provenance/path_subtreeHeights/path_subtreeHeights.dl
+./provenance/query_float_unsigned/query_float_unsigned.dl
+./provenance/path_explain_output_subtreeHeights/path_explain_output_subtreeHeights.dl
+./provenance/path_explain_output/path_explain_output.dl
+2,3c2,3
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1002|1100-->1102-->1111|
+---
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |1100-->1111|1002-->1102|
+./provenance/query_3/query_3.dl
+2,4c2,4
+< Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0100-->0102|1002|1000-->1100-->1102-->1111|
+< Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0100-->0102|1002|1000-->1100-->1102-->1111|
+< Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0100-->0102|1002|1000-->1100-->1102-->1111|
+---
+> Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
+> Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
+> Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
+6c6
+< Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0100-->0102|1002|1000-->1100-->1102-->1111|
+---
+> Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
+8c8
+< Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0100-->0102|1002|1000-->1100-->1102-->1111|
+---
+> Relation: parent	Indexes: 3	Inequalities: 2	Chains: |0102|0100-->1100-->1111|1000-->1002-->1102|
+./provenance/explain_float_unsigned/explain_float_unsigned.dl
+./provenance/high_arity/high_arity.dl
+./interface/signal_error/signal_error.dl
+./interface/insert_for/insert_for.dl
+./interface/repeat_analysis/repeat_analysis.dl
+./interface/insert_print/insert_print.dl
+./interface/contain_insert/contain_insert.dl
+./interface/load_print/load_print.dl
+./interface/functors/functors.dl
+./interface/tuple_insertion_diff_element_type/tuple_insertion_diff_element_type.dl
+./interface/tuple_insertion_diff_relation/tuple_insertion_diff_relation.dl
+./interface/get_symboltabletype/get_symboltabletype.dl
+./evaluation/recursion/recursion.dl
+./evaluation/neg4/neg4.dl
+./evaluation/aggregates/aggregates.dl
+./evaluation/match2/match2.dl
+./evaluation/plus/plus.dl
+./evaluation/math/math.dl
+./evaluation/binop/binop.dl
+./evaluation/set_ops/set_ops.dl
+./evaluation/rec_underscore/rec_underscore.dl
+./evaluation/relop/relop.dl
+./evaluation/magic_dominance/magic_dominance.dl
+./evaluation/counter/counter.dl
+./evaluation/cproject/cproject.dl
+./evaluation/rec_lists2/rec_lists2.dl
+./evaluation/set_ops_output/set_ops_output.dl
+./evaluation/singleton/singleton.dl
+./evaluation/access1/access1.dl
+./evaluation/aggregates6/aggregates6.dl
+./evaluation/subtype2/subtype2.dl
+./evaluation/aggregates2/aggregates2.dl
+./evaluation/mul/mul.dl
+./evaluation/components/components.dl
+./evaluation/arithm/arithm.dl
+./evaluation/rmut2/rmut2.dl
+./evaluation/neg5/neg5.dl
+./evaluation/inline_underscore/inline_underscore.dl
+./evaluation/neg2/neg2.dl
+./evaluation/ordinals/ordinals.dl
+./evaluation/rec_lists/rec_lists.dl
+./evaluation/float_operations/float_operations.dl
+./evaluation/number_constants/number_constants.dl
+./evaluation/match3/match3.dl
+./evaluation/aggregates4/aggregates4.dl
+./evaluation/average/average.dl
+./evaluation/subtype/subtype.dl
+./evaluation/count_sccs1/count_sccs1.dl
+./evaluation/magic_centroids/magic_centroids.dl
+./evaluation/contains/contains.dl
+./evaluation/magic_nqueens/magic_nqueens.dl
+./evaluation/multiple_heads/multiple_heads.dl
+./evaluation/comp-override2/comp-override2.dl
+./evaluation/minmaxnum/minmaxnum.dl
+./evaluation/unpacking/unpacking.dl
+./evaluation/hex/hex.dl
+./evaluation/minmax/minmax.dl
+./evaluation/cprog2/cprog2.dl
+./evaluation/magic_samegen/magic_samegen.dl
+./evaluation/cprog3/cprog3.dl
+./evaluation/cprog5/cprog5.dl
+./evaluation/magic_perfect_numbers/magic_perfect_numbers.dl
+./evaluation/magic_records4/magic_records4.dl
+./evaluation/inline_unification/inline_unification.dl
+./evaluation/magic_strategies/magic_strategies.dl
+./evaluation/magic_factoring/magic_factoring.dl
+./evaluation/range/range.dl
+./evaluation/aliases/aliases.dl
+./evaluation/mrtc/mrtc.dl
+./evaluation/inline_negation1/inline_negation1.dl
+./evaluation/neg3/neg3.dl
+./evaluation/sum-aggregate/sum-aggregate.dl
+./evaluation/components2/components2.dl
+./evaluation/cprog4/cprog4.dl
+./evaluation/inline_records/inline_records.dl
+./evaluation/inline_nqueens/inline_nqueens.dl
+./evaluation/magic_cprog1/magic_cprog1.dl
+./evaluation/magic_components/magic_components.dl
+./evaluation/numeric_conversions/numeric_conversions.dl
+./evaluation/access3/access3.dl
+./evaluation/cprog1/cprog1.dl
+./evaluation/indirect_negation/indirect_negation.dl
+./evaluation/numeric_binary_constraint_op/numeric_binary_constraint_op.dl
+./evaluation/list/list.dl
+./evaluation/unused_constraints/unused_constraints.dl
+./evaluation/components1/components1.dl
+./evaluation/index/index.dl
+./evaluation/magic_movies/magic_movies.dl
+./evaluation/components_generic/components_generic.dl
+./evaluation/magic_names1/magic_names1.dl
+./evaluation/magic_goal/magic_goal.dl
+./evaluation/neg1/neg1.dl
+./evaluation/magic_2sat/magic_2sat.dl
+./evaluation/magic_dfa/magic_dfa.dl
+./evaluation/grammar/grammar.dl
+./evaluation/unsigned_operations/unsigned_operations.dl
+./evaluation/x9/x9.dl
+./evaluation/magic_circuit_sat/magic_circuit_sat.dl
+./evaluation/rmut/rmut.dl
+./evaluation/count/count.dl
+./evaluation/comp-override1/comp-override1.dl
+./evaluation/term/term.dl
+./evaluation/subsumption/subsumption.dl
+./evaluation/sum-aggregate2/sum-aggregate2.dl
+./evaluation/components3/components3.dl
+./evaluation/magic_lrg_attr_id/magic_lrg_attr_id.dl
+./evaluation/independent_body2/independent_body2.dl
+./evaluation/existential/existential.dl
+./evaluation/neg6/neg6.dl
+./evaluation/aggregates_complex/aggregates_complex.dl
+./evaluation/access2/access2.dl
+./evaluation/magic_aggregates/magic_aggregates.dl
+./evaluation/comp-override3/comp-override3.dl
+./evaluation/empty_relations/empty_relations.dl
+./evaluation/magic_string_substr/magic_string_substr.dl
+./evaluation/aggregates3/aggregates3.dl
+./evaluation/inline_functors/inline_functors.dl
+./evaluation/match/match.dl
+./evaluation/inline_negation2/inline_negation2.dl
+./evaluation/aggregates5/aggregates5.dl
+./evaluation/independent_body1/independent_body1.dl
+./evaluation/magic_turing1/magic_turing1.dl
+14,17c14,17
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+74c74
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+76c76
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+78c78
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+80c80
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+82c82
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+84c84
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+101c101
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+103c103
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+105c105
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+107c107
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+109c109
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+111c111
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+128c128
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+130c130
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+132c132
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+134c134
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+136c136
+< Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+138c138
+< Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: @delta_TapeLimits+_fff	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+./evaluation/mutrecursion/mutrecursion.dl
+./evaluation/simple/simple.dl
+./evaluation/functor_arity/functor_arity.dl
+./evaluation/facts/facts.dl
+./evaluation/max/max.dl
+./evaluation/cat/cat.dl
+./syntactic/printsize/printsize.dl
+./syntactic/syntax4/syntax4.dl
+./syntactic/comment/comment.dl
+./syntactic/duplicates/duplicates.dl
+./syntactic/qualifiers3/qualifiers3.dl
+./syntactic/liberal_identifiers/liberal_identifiers.dl
+./syntactic/printsize_directive2/printsize_directive2.dl
+./syntactic/name_clash/name_clash.dl
+./syntactic/syntax9/syntax9.dl
+./syntactic/syntax10/syntax10.dl
+./syntactic/output_directive_quotes2/output_directive_quotes2.dl
+./syntactic/qualifiers2/qualifiers2.dl
+./syntactic/input/input.dl
+./syntactic/input_directive3/input_directive3.dl
+./syntactic/input_directive_quotes4/input_directive_quotes4.dl
+./syntactic/rule/rule.dl
+./syntactic/empty/empty.dl
+./syntactic/syntax1/syntax1.dl
+./syntactic/string/string.dl
+./syntactic/union_comp_type/union_comp_type.dl
+./syntactic/relation/relation.dl
+./syntactic/output/output.dl
+./syntactic/multiple_heads/multiple_heads.dl
+./syntactic/syntax3/syntax3.dl
+./syntactic/cpp_keywords/cpp_keywords.dl
+./syntactic/printsize_directive/printsize_directive.dl
+./syntactic/execution_plan/execution_plan.dl
+./syntactic/syntax2/syntax2.dl
+./syntactic/syntax7/syntax7.dl
+./syntactic/comment_rule/comment_rule.dl
+./syntactic/syntax6/syntax6.dl
+./syntactic/type/type.dl
+./syntactic/input_directive_quotes2/input_directive_quotes2.dl
+./syntactic/comment2/comment2.dl
+./syntactic/input_directive4/input_directive4.dl
+./syntactic/syntax8/syntax8.dl
+./syntactic/syntax5/syntax5.dl
+./syntactic/output_directive_quotes3/output_directive_quotes3.dl
+./syntactic/binary/binary.dl
+./syntactic/output_directive1/output_directive1.dl
+./syntactic/qualifiers/qualifiers.dl
+./syntactic/input_directive_quotes/input_directive_quotes.dl
+./semantic/load_record_large2/load_record_large2.dl
+./semantic/rule_arity/rule_arity.dl
+./semantic/load7/load7.dl
+./semantic/rule_undeclared_relation/rule_undeclared_relation.dl
+./semantic/underscore/underscore.dl
+./semantic/duplicates/duplicates.dl
+./semantic/rule_typecompat/rule_typecompat.dl
+./semantic/load8/load8.dl
+./semantic/aggregate1/aggregate1.dl
+./semantic/inline_negation/inline_negation.dl
+./semantic/progmin1/progmin1.dl
+./semantic/comp_infinite_recursion/comp_infinite_recursion.dl
+./semantic/comp_override/comp_override.dl
+./semantic/counter/counter.dl
+./semantic/fact_cat/fact_cat.dl
+./semantic/type_system9/type_system9.dl
+./semantic/load9/load9.dl
+./semantic/records9/records9.dl
+./semantic/store/store.dl
+./semantic/comp_nonexistent_type/comp_nonexistent_type.dl
+./semantic/extended_subtypes2/extended_subtypes2.dl
+./semantic/comp_relation/comp_relation.dl
+./semantic/recursive_unions/recursive_unions.dl
+./semantic/fact_arity/fact_arity.dl
+./semantic/type_as2/type_as2.dl
+./semantic/rule_undeclared_relation2/rule_undeclared_relation2.dl
+./semantic/inline_cycle2/inline_cycle2.dl
+./semantic/fact_number2/fact_number2.dl
+./semantic/store4/store4.dl
+./semantic/type_system5/type_system5.dl
+./semantic/suppress_warnings/suppress_warnings.dl
+./semantic/plan3/plan3.dl
+./semantic/type_udef/type_udef.dl
+./semantic/inline_ungrounded/inline_ungrounded.dl
+./semantic/comparison/comparison.dl
+./semantic/negative_numbers/negative_numbers.dl
+./semantic/load6/load6.dl
+./semantic/type_system3/type_system3.dl
+./semantic/store2/store2.dl
+./semantic/progmin2/progmin2.dl
+./semantic/type_system12/type_system12.dl
+./semantic/load3/load3.dl
+./semantic/extended_subtypes/extended_subtypes.dl
+./semantic/records1/records1.dl
+./semantic/bin/bin.dl
+./semantic/plan2/plan2.dl
+./semantic/aggregate3/aggregate3.dl
+./semantic/rel_stratification/rel_stratification.dl
+./semantic/string_substr/string_substr.dl
+./semantic/records5/records5.dl
+./semantic/equivalent/equivalent.dl
+./semantic/bool/bool.dl
+./semantic/union_types/union_types.dl
+./semantic/load_symbol_in_record/load_symbol_in_record.dl
+./semantic/records3/records3.dl
+./semantic/hex/hex.dl
+./semantic/aggregate2/aggregate2.dl
+./semantic/comp_clauses/comp_clauses.dl
+./semantic/type_dupl/type_dupl.dl
+./semantic/inline_cycle1/inline_cycle1.dl
+./semantic/load2/load2.dl
+./semantic/comp_params_inheritance/comp_params_inheritance.dl
+./semantic/fact_plus/fact_plus.dl
+./semantic/rel_copy_cycles/rel_copy_cycles.dl
+./semantic/range/range.dl
+./semantic/agg_checks/agg_checks.dl
+./semantic/type_system14/type_system14.dl
+./semantic/fact_number/fact_number.dl
+./semantic/rel_list/rel_list.dl
+./semantic/type_as/type_as.dl
+./semantic/comp_opt/comp_opt.dl
+./semantic/bin1/bin1.dl
+./semantic/records6/records6.dl
+./semantic/choice/choice.dl
+./semantic/type_system7/type_system7.dl
+./semantic/rel_redundant/rel_redundant.dl
+./semantic/eqrel_tests/eqrel_tests.dl
+./semantic/binhex/binhex.dl
+./semantic/type_system8/type_system8.dl
+./semantic/store_record_large/store_record_large.dl
+./semantic/type_system4/type_system4.dl
+./semantic/agg_checks2/agg_checks2.dl
+./semantic/fact_ctr/fact_ctr.dl
+./semantic/rel_udef/rel_udef.dl
+./semantic/execution_plan/execution_plan.dl
+./semantic/underscore2/underscore2.dl
+./semantic/rel_stratification2/rel_stratification2.dl
+./semantic/record_null/record_null.dl
+./semantic/load_record_delimiter/load_record_delimiter.dl
+./semantic/disjoint_names/disjoint_names.dl
+./semantic/string_len/string_len.dl
+./semantic/string_minmax/string_minmax.dl
+./semantic/var_single/var_single.dl
+./semantic/plan1/plan1.dl
+./semantic/records7/records7.dl
+./semantic/not_copy/not_copy.dl
+./semantic/witness_check/witness_check.dl
+./semantic/comp_name_resolution/comp_name_resolution.dl
+./semantic/type_system_records/type_system_records.dl
+./semantic/eqrel_tests3/eqrel_tests3.dl
+./semantic/type_system10/type_system10.dl
+./semantic/not_copy1/not_copy1.dl
+./semantic/ipv4/ipv4.dl
+./semantic/recursive_unions2/recursive_unions2.dl
+./semantic/type_system6/type_system6.dl
+./semantic/comp_types/comp_types.dl
+./semantic/alias/alias.dl
+./semantic/type_system_records2/type_system_records2.dl
+./semantic/store5/store5.dl
+./semantic/comp_inner_types/comp_inner_types.dl
+./semantic/type_system2/type_system2.dl
+./semantic/type_system13/type_system13.dl
+./semantic/hex1/hex1.dl
+./semantic/store_record_one_level/store_record_one_level.dl
+./semantic/load4/load4.dl
+./semantic/load_simple_record/load_simple_record.dl
+./semantic/underscore3/underscore3.dl
+./semantic/strconv/strconv.dl
+./semantic/lrg_rel_id1/lrg_rel_id1.dl
+./semantic/rqualifiers/rqualifiers.dl
+./semantic/fact_variable/fact_variable.dl
+./semantic/records4/records4.dl
+./semantic/ipv4_1/ipv4_1.dl
+./semantic/divide_by_zero/divide_by_zero.dl
+./semantic/rel_dupl/rel_dupl.dl
+./semantic/agg_checks3/agg_checks3.dl
+./semantic/inline_output/inline_output.dl
+./semantic/counter2/counter2.dl
+./semantic/records8/records8.dl
+./semantic/bitwise/bitwise.dl
+./semantic/eqrel_tests2/eqrel_tests2.dl
+./semantic/fact_empty/fact_empty.dl
+./semantic/store3/store3.dl
+./semantic/store_record_multilevel/store_record_multilevel.dl
+./semantic/rule_grounded/rule_grounded.dl
+./semantic/lrg_attr_id/lrg_attr_id.dl
+./semantic/load_record_invalid_parenthesis/load_record_invalid_parenthesis.dl
+./semantic/type_system11/type_system11.dl
+./semantic/records0/records0.dl
+./semantic/rel_nullary/rel_nullary.dl
+./semantic/attrib_dupl/attrib_dupl.dl
+./semantic/extended_subtypes3/extended_subtypes3.dl
+./semantic/lrg_rel_id2/lrg_rel_id2.dl
+./semantic/type_system1/type_system1.dl
+./semantic/load_record_large/load_record_large.dl
+./semantic/not_copy2/not_copy2.dl
+./semantic/agg_nested/agg_nested.dl
+./semantic/logical/logical.dl
+./semantic/records2/records2.dl
+./semantic/load10/load10.dl
+./semantic/disjoint_names2/disjoint_names2.dl
+./semantic/load_simple_record2/load_simple_record2.dl
+./semantic/string_substr1/string_substr1.dl
+./profile/recursive/recursive.dl
+./profile/lrg_attr_id/lrg_attr_id.dl
+./swig/java/insert_for/insert_for.dl
+./swig/java/paths/paths.dl
+./swig/java/dump_input/dump_input.dl
+./swig/java/movies/movies.dl
+./swig/java/dump_output/dump_output.dl
+./swig/java/flights/flights.dl
+./swig/java/family/family.dl
+./swig/python/insert_for/insert_for.dl
+./swig/python/paths/paths.dl
+./swig/python/dump_input/dump_input.dl
+./swig/python/movies/movies.dl
+./swig/python/dump_output/dump_output.dl
+./swig/python/flights/flights.dl
+./swig/python/family/family.dl
+./example/josephus/josephus.dl
+./example/catalan/catalan.dl
+./example/traffic/traffic.dl
+./example/k-permutations/k-permutations.dl
+./example/puzzle/puzzle.dl
+./example/fib/fib.dl
+./example/minesweeper/minesweeper.dl
+./example/minesweeper/grid.dl
+./example/factorial/factorial.dl
+./example/highest_degree/highest_degree.dl
+./example/earley/earley.dl
+./example/andersen/andersen.dl
+./example/perfect_numbers/perfect_numbers.dl
+./example/floydwarshall/floydwarshall.dl
+./example/cba_expr_value/cba_expr_value.dl
+./example/comp-parametrized/comp-parametrized.dl
+./example/counter/counter.dl
+./example/topological_ordering/topological_ordering.dl
+./example/2sat/2sat.dl
+./example/nfsa2fsa/nfsa2fsa.dl
+./example/edit_distance/edit_distance.dl
+./example/graph/graph.dl
+./example/bigrams/bigrams.dl
+./example/trains/trains.dl
+./example/minpath2/minpath2.dl
+./example/degree/degree.dl
+./example/cellular_automata/array.dl
+./example/cellular_automata/cellular_automata.dl
+./example/disconnected/disconnected.dl
+./example/ship/ship.dl
+./example/dfa_live_vars/dfa_live_vars.dl
+./example/paths/paths.dl
+./example/factoring/factoring.dl
+./example/metro/metro.dl
+./example/po2/po2.dl
+./example/turing1/turing1.dl
+7,10c7,10
+< Relation: TapeLimits	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+< Relation: @delta_TapeLimits	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+< Relation: TapeLimits	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+< Relation: @delta_TapeLimits	Indexes: 2	Inequalities: 1	Chains: |002|020-->111|
+---
+> Relation: TapeLimits	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+> Relation: @delta_TapeLimits	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+> Relation: TapeLimits	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+> Relation: @delta_TapeLimits	Indexes: 2	Inequalities: 1	Chains: |020|002-->111|
+./example/tree/tree.dl
+./example/circuit_eval/circuit_eval.dl
+./example/longest_path/longest_path.dl
+./example/po1/po1.dl
+./example/dominance/dominance.dl
+./example/access-policy/access-policy.dl
+./example/palindrome/palindrome.dl
+./example/comp-parametrized-multilvl/comp-parametrized-multilvl.dl
+./example/minpath3/minpath3.dl
+./example/magic_access-policy/magic_access-policy.dl
+./example/func/func.dl
+./example/po3/po3.dl
+./example/sequences/sequences.dl
+5c5
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+---
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+10c10
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+---
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+12c12
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+---
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+15c15
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+---
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+18c18
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+---
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+21,22c21,22
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+< Relation: op_add	Indexes: 2	Inequalities: 0	Chains: |101|110-->120-->111|
+---
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+> Relation: op_add	Indexes: 2	Inequalities: 1	Chains: |110-->120|101-->111|
+./example/tic-tac-toe/tic-tac-toe.dl
+./example/magic_pointsto/edb.dl
+./example/magic_pointsto/magic_pointsto.dl
+./example/clique/clique.dl
+./example/tak/tak.dl
+./example/minpath1/minpath1.dl
+./example/tc/tc.dl
+./example/sort/sort.dl
+./example/input_output/input_output.dl
+./example/movies/movies.dl
+./example/dfa_summary_function/dfa_summary_function.dl
+./example/java-pointsto/java-pointsto.dl
+./example/cliquer/cliquer.dl
+./example/game2/game2.dl
+./example/amicable/amicable.dl
+./example/profile_default/profile_default.dl
+./example/dfa_min/dfa_min.dl
+./example/equal/equal.dl
+./example/lucas/lucas.dl
+./example/inline_nats/inline_nats.dl
+./example/double_tree/double_tree.dl
+./example/linksum/linksum.dl
+./example/hmmer/hmmer.dl
+./example/prime2/prime2.dl
+./example/dnf/dnf.dl
+./example/nqueens/nqueens.dl
+./example/small/small.dl
+./example/prime/prime.dl
+./example/triangle/triangle.dl
+./example/shortest_edges/shortest_edges.dl
+./example/planar/planar.dl
+1,3c1,3
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |0022|2200-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |0022|2200-->1111|
+< Relation: edge	Indexes: 2	Inequalities: 1	Chains: |0022|2200-->1111|
+---
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |2200|0022-->1111|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |2200|0022-->1111|
+> Relation: edge	Indexes: 2	Inequalities: 1	Chains: |2200|0022-->1111|
+./example/shortest_path/shortest_path.dl
+./example/ackermann/ackermann.dl
+./example/ranpo/ranpo.dl
+./example/independent_body3/independent_body3.dl
+./example/rsg/rsg.dl
+./example/trans/trans.dl
+./example/fib1/fib1.dl
+./example/po5/po5.dl
+./example/orbits/orbits.dl
+./example/po4/po4.dl
+./example/flights2/flights2.dl
+./example/mmult/mmult.dl
+./example/profile_json/profile_json.dl
+./example/circuit_records/circuit_records.dl
+./example/flights/flights.dl
+./example/dfa_parse/dfa_parse.dl
+./example/grad/grad.dl
+./example/magic_prime2/magic_prime2.dl
+./example/pointsto/edb.dl
+./example/pointsto/pointsto.dl
+./example/centroids/centroids.dl
+./example/rewrite/rewrite.dl
+./example/speed/speed.dl
+./example/not_match/not_match.dl
+./example/comp-parametrized-inherit/comp-parametrized-inherit.dl
+./example/recipes/recipes.dl
+./example/euclid/euclid.dl
+./example/circuit_sat/circuit_sat.dl
+./example/lubm/lubm.dl
+./example/grid/grid.dl
+./example/weighted_distances/weighted_distances.dl
+./example/array/array.dl
+./example/dfa/dfa.dl
+./example/strategies/strategies.dl
+./example/orbits1/orbits1.dl
+./example/family/family.dl

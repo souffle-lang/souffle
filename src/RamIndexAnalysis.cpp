@@ -50,35 +50,20 @@ AttributeConstraint SearchSignature::operator[](std::size_t pos) const {
 bool SearchSignature::operator<(const SearchSignature& other) const {
     assert(constraints.size() == other.constraints.size());
     assert(isComparable(*this, other));  // be ordered to place them in a container together
-    size_t len = constraints.size();
-
-    for (size_t i = 0; i < len; ++i) {
-        if (constraints[i] != AttributeConstraint::None &&
-                other.constraints[i] == AttributeConstraint::None) {
-            return false;
-        }
-        if (constraints[i] == AttributeConstraint::None &&
-                other.constraints[i] != AttributeConstraint::None) {
-            return true;
-        }
+    if (isStrictSubset(*this, other)) {
+        return true;
+    } else {
+        return false;
     }
-
-    for (size_t i = 0; i < len; ++i) {
-        // if ours has a constraint and other's has a constraint then it is smaller
-        if (constraints[i] < other.constraints[i]) {
-            return true;
-        }
-        // if ours has a constraint and other's has no constraint then it is larger
-        else if (constraints[i] > other.constraints[i]) {
-            return false;
-        }
-    }
-    return false;
 }
 
 bool SearchSignature::operator==(const SearchSignature& other) const {
     assert(constraints.size() == other.constraints.size());
     return constraints == other.constraints;
+}
+
+bool SearchSignature::operator!=(const SearchSignature& other) const {
+    return !(*this == other);
 }
 
 bool SearchSignature::empty() const {
@@ -91,34 +76,50 @@ bool SearchSignature::empty() const {
     return true;
 }
 
+bool SearchSignature::containsInequality() const {
+    for (size_t i = 0; i < constraints.size(); ++i) {
+        if (constraints[i] == AttributeConstraint::Inequal) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Note: We have 0 < 1 and 0 < 2 but we cannot say that 1 < 2.
+// The reason for this is to prevent search chains such as 100->101->201 which have no valid lex-order
 bool SearchSignature::isComparable(const SearchSignature& lhs, const SearchSignature& rhs) {
     assert(lhs.arity() == rhs.arity());
-    return isStrictSubset(lhs, rhs) || isStrictSubset(rhs, lhs);
+    size_t len = lhs.arity();
+    for (size_t i = 0; i < len; ++i) {
+        // cannot compare equality and inequality
+        if (lhs[i] != rhs[i] && lhs[i] != AttributeConstraint::None && rhs[i] != AttributeConstraint::None) {
+            return false;
+        }
+    }
+    // comparable if one is a strict subset of the other
+    return (isStrictSubset(lhs, rhs) && !lhs.containsInequality()) ||
+           (isStrictSubset(rhs, lhs) && !rhs.containsInequality());
 }
 
 bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
     assert(lhs.arity() == rhs.arity());
     size_t len = lhs.arity();
     for (size_t i = 0; i < len; ++i) {
-        // if left has an attribute constraint and right doesn't then it can't be subset
-        if ((lhs.constraints[i] != AttributeConstraint::None) &&
-                (rhs.constraints[i] == AttributeConstraint::None)) {
+        if (lhs[i] == rhs[i]) {
+            continue;
+        }
+        if (lhs[i] < rhs[i]) {
+            continue;
+        }
+        if (lhs[i] > rhs[i]) {
             return false;
         }
-        // if one is equality and other is inequality or vice versa
-        if ((lhs.constraints[i] != AttributeConstraint::None) &&
-                (rhs.constraints[i] != AttributeConstraint::None)) {
-            if (lhs.constraints[i] != rhs.constraints[i]) {
-                return false;
-            }
-        }
     }
-    return lhs.constraints != rhs.constraints;
+    return lhs != rhs;
 }
 
 SearchSignature SearchSignature::getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
     assert(lhs.arity() == rhs.arity());
-    assert(isStrictSubset(rhs, lhs));  // ensure that lhs < rhs for delta
     SearchSignature delta(lhs.arity());
     for (size_t i = 0; i < lhs.arity(); ++i) {
         // if constraints are the same then delta is nothing
@@ -273,19 +274,16 @@ void MinIndexSelection::solve() {
     }
 
     // Construct the matching poblem
-
     for (auto search : searches) {
         // For this node check if other nodes are strict subsets
         for (auto itt : searches) {
-            if (SearchSignature::isStrictSubset(search, itt)) {
-                bool containsInequality = false;
-                for (size_t i = 0; i < search.arity(); ++i) {
-                    if (search[i] == AttributeConstraint::Inequal) {
-                        containsInequality = true;
+            if (SearchSignature::isComparable(search, itt)) {
+                if (SearchSignature::isStrictSubset(search, itt)) {
+                    // we don't add edges from signatures with inequalities
+                    // Example: 210->211 will discharge the first inequality
+                    if (!search.containsInequality()) {
+                        matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
                     }
-                }
-                if (!containsInequality) {
-                    matching.addEdge(signatureToIndexA[search], signatureToIndexB[itt]);
                 }
             }
         }
@@ -308,6 +306,24 @@ void MinIndexSelection::solve() {
         for (auto iit = chain.begin(); next(iit) != chain.end(); ++iit) {
             SearchSignature delta = SearchSignature::getDelta(*next(iit), *iit);
             insertIndex(ids, delta);
+        }
+
+        // if we see duplicates in the lex-order then remove duplicates
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            for (size_t i = 0; i < ids.size(); ++i) {
+                for (size_t j = i + 1; j < ids.size(); ++j) {
+                    if (ids[i] == ids[j]) {
+                        ids.erase(ids.begin() + i);
+                        changed = true;
+                        break;
+                    }
+                }
+                if (changed) {
+                    break;
+                }
+            }
         }
 
         assert(!ids.empty());
@@ -416,10 +432,99 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                 auto right = rhs.begin();
 
                 while (left != lhs.end() && right != rhs.end()) {
-                    // if we can't compare them then we cannot merge and exit
                     if (!SearchSignature::isComparable(*left, *right)) {
-                        successfulMerge = false;
-                        break;
+                        // remove the inequalities
+                        SearchSignature leftFiltered = *left;
+                        SearchSignature rightFiltered = *right;
+
+                        // if we have a 1 digit and a 2 digit
+                        // we reduce this to a 0 digit and a 1 digit
+                        for (size_t i = 0; i < leftFiltered.arity(); ++i) {
+                            if (leftFiltered[i] == AttributeConstraint::Equal &&
+                                    rightFiltered[i] == AttributeConstraint::Inequal) {
+                                leftFiltered.set(i, AttributeConstraint::None);
+                                rightFiltered.set(i, AttributeConstraint::Equal);
+                                continue;
+                            }
+                            if (leftFiltered[i] == AttributeConstraint::Inequal &&
+                                    rightFiltered[i] == AttributeConstraint::Equal) {
+                                leftFiltered.set(i, AttributeConstraint::Equal);
+                                rightFiltered.set(i, AttributeConstraint::None);
+                                continue;
+                            }
+                        }
+
+                        // if they still aren't comparable we have produced an anti-chain and exit
+                        if (!SearchSignature::isComparable(leftFiltered, rightFiltered)) {
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        // only in the circumstance where the delta between left and right contains 1->2 edges
+                        // can we merge
+                        auto lower = (leftFiltered < rightFiltered) ? *left : *right;
+                        auto upper = (leftFiltered < rightFiltered) ? *right : *left;
+
+                        auto delta = SearchSignature::getDelta(upper, lower);
+                        auto prevDelta = mergedChain.empty()
+                                                 ? lower
+                                                 : SearchSignature::getDelta(lower, mergedChain.back());
+
+                        bool onlyInequalities = true;
+                        for (size_t i = 0; i < delta.arity(); ++i) {
+                            if (delta[i] == AttributeConstraint::Equal) {
+                                onlyInequalities = false;
+                                break;
+                            }
+                        }
+
+                        // cannot merge chains without discharging the inequality
+                        // Example: 110->211 w/ delta = 201 cannot produce a valid lex-order
+                        if (!onlyInequalities) {
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        bool mergable = false;
+
+                        // if we have a 0->2 delta then we can merge
+                        // Example: 110->122 we can have the lex-order 0<1<2
+                        for (size_t i = 0; i < delta.arity(); ++i) {
+                            if (lower[i] == AttributeConstraint::None &&
+                                    upper[i] == AttributeConstraint::Inequal) {
+                                mergable = true;
+                            }
+                        }
+
+                        // otherwise if we have one of our inequalities in the prev delta then we can merge
+                        // Example: 1000->1011->1021 w/ prevDelta = 0011 delta = 0020
+                        for (size_t i = 0; i < delta.arity(); ++i) {
+                            if (delta[i] == AttributeConstraint::Inequal) {
+                                for (size_t j = 0; j < prevDelta.arity(); ++j) {
+                                    if (prevDelta[j] == AttributeConstraint::Equal) {
+                                        mergable = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!mergable) {
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        // otherwise we merge chains!
+                        if (leftFiltered < rightFiltered) {
+                            mergedChain.push_back(*left);
+                            ++left;
+                            continue;
+                        }
+
+                        if (rightFiltered < leftFiltered) {
+                            mergedChain.push_back(*right);
+                            ++right;
+                            continue;
+                        }
                     }
                     // if left element is smaller, insert it and iterate to next in left chain
                     if (*left < *right) {
@@ -456,6 +561,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                 }
 
                 changed = true;
+
                 // remove previous 2 chains
                 chains.erase(std::remove(chains.begin(), chains.end(), lhs), chains.end());
                 chains.erase(std::remove(chains.begin(), chains.end(), rhs), chains.end());
@@ -492,6 +598,7 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
     if (Global::config().has("provenance")) {
         return attributesToDischarge;
     }
+
     auto chains = getAllChains();
     // find the chain that the operation lives inside
     for (auto chain : chains) {
