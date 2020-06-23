@@ -101,7 +101,7 @@ bool SearchSignature::isComparable(const SearchSignature& lhs, const SearchSigna
            (isStrictSubset(rhs, lhs) && !rhs.containsInequality());
 }
 
-bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
+bool SearchSignature::isSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
     assert(lhs.arity() == rhs.arity());
     size_t len = lhs.arity();
     for (size_t i = 0; i < len; ++i) {
@@ -115,7 +115,11 @@ bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSig
             return false;
         }
     }
-    return lhs != rhs;
+    return true;
+}
+
+bool SearchSignature::isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs) {
+    return isSubset(lhs, rhs) && lhs != rhs;
 }
 
 SearchSignature SearchSignature::getDelta(const SearchSignature& lhs, const SearchSignature& rhs) {
@@ -458,16 +462,16 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                     } else {
                         // if they aren't comparable when ignoring the 1->2 restriction we cannot merge since
                         // we have an anti-chain
-                        if (!SearchSignature::isStrictSubset(*left, *right) &&
-                                !SearchSignature::isStrictSubset(*right, *left)) {
+                        if (!SearchSignature::isSubset(*left, *right) &&
+                                !SearchSignature::isSubset(*right, *left)) {
                             successfulMerge = false;
                             break;
                         }
 
                         // only merge in the circumstance where the delta between left and right contains 1->2
                         // edges
-                        auto lower = SearchSignature::isStrictSubset(*left, *right) ? *left : *right;
-                        auto upper = SearchSignature::isStrictSubset(*left, *right) ? *right : *left;
+                        auto lower = SearchSignature::isSubset(*left, *right) ? *left : *right;
+                        auto upper = SearchSignature::isSubset(*left, *right) ? *right : *left;
 
                         // cannot merge if lower has inequality since it would be discharged
                         if (lower.containsInequality()) {
@@ -524,13 +528,13 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                         }
 
                         // otherwise we merge chains!
-                        if (SearchSignature::isStrictSubset(*left, *right)) {
+                        if (SearchSignature::isSubset(*left, *right)) {
                             mergedChain.push_back(*left);
                             ++left;
                             continue;
                         }
 
-                        if (SearchSignature::isStrictSubset(*right, *left)) {
+                        if (SearchSignature::isSubset(*right, *left)) {
                             mergedChain.push_back(*right);
                             ++right;
                             continue;
@@ -615,16 +619,16 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
                     }
 
                     // if after discharging one is smaller than the other then we can merge
-                    else if (SearchSignature::isStrictSubset(leftDischarged, *right) ||
-                             (SearchSignature::isStrictSubset(rightDischarged, *left))) {
+                    else if (SearchSignature::isSubset(leftDischarged, *right) ||
+                             (SearchSignature::isSubset(rightDischarged, *left))) {
                         // if left element is smaller, insert it and iterate to next in left chain
-                        if (SearchSignature::isStrictSubset(leftDischarged, *right)) {
+                        if (SearchSignature::isSubset(leftDischarged, *right)) {
                             mergedChain.push_back(*left);
                             ++left;
                             continue;
                         }
                         // if right element is smaller, insert it and iterate to next in right chain
-                        if (SearchSignature::isStrictSubset(rightDischarged, *left)) {
+                        if (SearchSignature::isSubset(rightDischarged, *left)) {
                             mergedChain.push_back(*right);
                             ++right;
                             continue;
@@ -634,17 +638,17 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
                         // if they aren't comparable when ignoring the 1->2 restriction we cannot merge since
                         // we have an anti-chain
 
-                        if (!SearchSignature::isStrictSubset(leftDischarged, *right) &&
-                                !SearchSignature::isStrictSubset(rightDischarged, *left)) {
+                        if (!SearchSignature::isSubset(leftDischarged, *right) &&
+                                !SearchSignature::isSubset(rightDischarged, *left)) {
                             successfulMerge = false;
                             break;
                         }
 
                         // only merge in the circumstance where after discharging the delta between left and
                         // right contains 1->2
-                        auto lower = SearchSignature::isStrictSubset(leftDischarged, *right) ? leftDischarged
+                        auto lower = SearchSignature::isSubset(leftDischarged, *right) ? leftDischarged
                                                                                              : *right;
-                        auto upper = SearchSignature::isStrictSubset(rightDischarged, *left) ? rightDischarged
+                        auto upper = SearchSignature::isSubset(rightDischarged, *left) ? rightDischarged
                                                                                              : *left;
 
                         // cannot merge if lower has inequality since it would be discharged
@@ -702,13 +706,13 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
                         }
 
                         // otherwise we merge chains!
-                        if (SearchSignature::isStrictSubset(leftDischarged, *right)) {
+                        if (SearchSignature::isSubset(leftDischarged, *right)) {
                             mergedChain.push_back(*left);
                             ++left;
                             continue;
                         }
 
-                        if (SearchSignature::isStrictSubset(rightDischarged, *left)) {
+                        if (SearchSignature::isSubset(rightDischarged, *left)) {
                             mergedChain.push_back(*right);
                             ++right;
                             continue;
