@@ -433,37 +433,24 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
 
                 while (left != lhs.end() && right != rhs.end()) {
                     if (!SearchSignature::isComparable(*left, *right)) {
-                        // remove the inequalities
-                        SearchSignature leftFiltered = *left;
-                        SearchSignature rightFiltered = *right;
-
-                        // if we have a 1 digit and a 2 digit
-                        // we reduce this to a 0 digit and a 1 digit
-                        for (size_t i = 0; i < leftFiltered.arity(); ++i) {
-                            if (leftFiltered[i] == AttributeConstraint::Equal &&
-                                    rightFiltered[i] == AttributeConstraint::Inequal) {
-                                leftFiltered.set(i, AttributeConstraint::None);
-                                rightFiltered.set(i, AttributeConstraint::Equal);
-                                continue;
-                            }
-                            if (leftFiltered[i] == AttributeConstraint::Inequal &&
-                                    rightFiltered[i] == AttributeConstraint::Equal) {
-                                leftFiltered.set(i, AttributeConstraint::Equal);
-                                rightFiltered.set(i, AttributeConstraint::None);
-                                continue;
-                            }
-                        }
-
-                        // if they still aren't comparable we have produced an anti-chain and exit
-                        if (!SearchSignature::isComparable(leftFiltered, rightFiltered)) {
+                        // if they aren't comparable when ignoring the 1->2 restriction we cannot merge since
+                        // we have an anti-chain
+                        if (!SearchSignature::isStrictSubset(*left, *right) &&
+                                !SearchSignature::isStrictSubset(*right, *left)) {
                             successfulMerge = false;
                             break;
                         }
 
-                        // only in the circumstance where the delta between left and right contains 1->2 edges
-                        // can we merge
-                        auto lower = (leftFiltered < rightFiltered) ? *left : *right;
-                        auto upper = (leftFiltered < rightFiltered) ? *right : *left;
+                        // only merge in the circumstance where the delta between left and right contains 1->2
+                        // edges
+                        auto lower = SearchSignature::isStrictSubset(*left, *right) ? *left : *right;
+                        auto upper = SearchSignature::isStrictSubset(*left, *right) ? *right : *left;
+
+                        // cannot merge if lower has inequality since it would be discharged
+                        if (lower.containsInequality()) {
+                            successfulMerge = false;
+                            break;
+                        }
 
                         auto delta = SearchSignature::getDelta(upper, lower);
                         auto prevDelta = mergedChain.empty()
@@ -478,8 +465,8 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                             }
                         }
 
-                        // cannot merge chains without discharging the inequality
-                        // Example: 110->211 w/ delta = 201 cannot produce a valid lex-order
+                        // If equalities are in the delta set we cannot merge chains without discharging the
+                        // inequality Example: 110->211 w/ delta = 201 cannot produce a valid lex-order
                         if (!onlyInequalities) {
                             successfulMerge = false;
                             break;
@@ -514,13 +501,13 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                         }
 
                         // otherwise we merge chains!
-                        if (leftFiltered < rightFiltered) {
+                        if (SearchSignature::isStrictSubset(*left, *right)) {
                             mergedChain.push_back(*left);
                             ++left;
                             continue;
                         }
 
-                        if (rightFiltered < leftFiltered) {
+                        if (SearchSignature::isStrictSubset(*right, *left)) {
                             mergedChain.push_back(*right);
                             ++right;
                             continue;
