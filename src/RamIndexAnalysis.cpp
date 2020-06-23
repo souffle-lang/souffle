@@ -148,9 +148,7 @@ SearchSignature SearchSignature::getDischarged(const SearchSignature& signature)
     SearchSignature res = signature;  // copy original
     for (size_t i = 0; i < res.arity(); ++i) {
         if (res[i] == AttributeConstraint::Inequal) {
-            res.set(i,
-                    AttributeConstraint::Equal);  // assume discharge results in equality (TODO: Change this)
-        }
+            res.set(i, AttributeConstraint::None);         }
     }
     return res;
 }
