@@ -70,7 +70,7 @@ public:
     static bool isStrictSubset(const SearchSignature& lhs, const SearchSignature& rhs);
     static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs);
     static SearchSignature getFullSearchSignature(size_t arity);
-
+    static SearchSignature getDischarged(const SearchSignature& signature);
     // set a constraint
     SearchSignature& set(size_t pos, AttributeConstraint constraint);
     friend std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
@@ -358,8 +358,11 @@ protected:
     /** @Brief get all chains from the matching */
     const ChainOrderMap getChainsFromMatching(const MaxMatching::Matchings& match, const SearchSet& nodes);
 
-    /** @Brief merge chains to produce a minimal chain cover */
+    /** @Brief merge chains to produce a minimal chain cover (without discharging) */
     const ChainOrderMap mergeChains(ChainOrderMap& chains);
+
+    /** @Brief merge chains to discharge 1 inequality for 1 less chain */
+    const ChainOrderMap dischargeToMergeChains(ChainOrderMap& chains);
 
     /** @Brief get all nodes which are unmatched from A-> B */
     const SearchSet getUnmatchedKeys(const MaxMatching::Matchings& match, const SearchSet& nodes) {

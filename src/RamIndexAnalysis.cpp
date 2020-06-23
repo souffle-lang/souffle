@@ -140,6 +140,17 @@ SearchSignature SearchSignature::getFullSearchSignature(size_t arity) {
     return res;
 }
 
+SearchSignature SearchSignature::getDischarged(const SearchSignature& signature) {
+    SearchSignature res = signature;  // copy original
+    for (size_t i = 0; i < res.arity(); ++i) {
+        if (res[i] == AttributeConstraint::Inequal) {
+            res.set(i,
+                    AttributeConstraint::Equal);  // assume discharge results in equality (TODO: Change this)
+        }
+    }
+    return res;
+}
+
 // set a constraint
 SearchSignature& SearchSignature::set(size_t pos, AttributeConstraint constraint) {
     assert(pos < constraints.size());
@@ -412,7 +423,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
     return mergeChains(chainToOrder);
 }
 
-// Merge the chains at the cost of 1 indexed inequality for 1 less chain/index
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
     bool changed = true;
@@ -432,7 +442,20 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                 auto right = rhs.begin();
 
                 while (left != lhs.end() && right != rhs.end()) {
-                    if (!SearchSignature::isComparable(*left, *right)) {
+                    if (SearchSignature::isComparable(*left, *right)) {
+                        // if left element is smaller, insert it and iterate to next in left chain
+                        if (*left < *right) {
+                            mergedChain.push_back(*left);
+                            ++left;
+                            continue;
+                        }
+                        // if right element is smaller, insert it and iterate to next in right chain
+                        if (*right < *left) {
+                            mergedChain.push_back(*right);
+                            ++right;
+                            continue;
+                        }
+                    } else {
                         // if they aren't comparable when ignoring the 1->2 restriction we cannot merge since
                         // we have an anti-chain
                         if (!SearchSignature::isStrictSubset(*left, *right) &&
@@ -513,18 +536,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                             continue;
                         }
                     }
-                    // if left element is smaller, insert it and iterate to next in left chain
-                    if (*left < *right) {
-                        mergedChain.push_back(*left);
-                        ++left;
-                        continue;
-                    }
-                    // if right element is smaller, insert it and iterate to next in right chain
-                    if (*right < *left) {
-                        mergedChain.push_back(*right);
-                        ++right;
-                        continue;
-                    }
                 }
 
                 // failed to merge so find another pair of chains
@@ -563,6 +574,184 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         }
     }
 
+    return dischargeToMergeChains(chains);
+}
+
+const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains(
+        MinIndexSelection::ChainOrderMap& chains) {
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
+            const auto lhs = *lhs_it;
+            for (auto rhs_it = std::next(lhs_it); rhs_it != chains.end(); ++rhs_it) {
+                const auto rhs = *rhs_it;
+
+                // merge the two chains
+                Chain mergedChain;
+
+                // apply merge algorithm ensuring that both elements are always comparable
+                bool successfulMerge = true;
+                auto left = lhs.begin();
+                auto right = rhs.begin();
+
+                while (left != lhs.end() && right != rhs.end()) {
+                    auto leftDischarged = SearchSignature::getDischarged(*left);
+                    auto rightDischarged = SearchSignature::getDischarged(*right);
+
+                    if (SearchSignature::isComparable(*left, *right)) {
+                        // if left element is smaller, insert it and iterate to next in left chain
+                        if (*left < *right) {
+                            mergedChain.push_back(*left);
+                            ++left;
+                            continue;
+                        }
+                        // if right element is smaller, insert it and iterate to next in right chain
+                        if (*right < *left) {
+                            mergedChain.push_back(*right);
+                            ++right;
+                            continue;
+                        }
+                    }
+
+                    // if after discharging one is smaller than the other then we can merge
+                    else if (SearchSignature::isStrictSubset(leftDischarged, *right) ||
+                             (SearchSignature::isStrictSubset(rightDischarged, *left))) {
+                        // if left element is smaller, insert it and iterate to next in left chain
+                        if (SearchSignature::isStrictSubset(leftDischarged, *right)) {
+                            mergedChain.push_back(*left);
+                            ++left;
+                            continue;
+                        }
+                        // if right element is smaller, insert it and iterate to next in right chain
+                        if (SearchSignature::isStrictSubset(rightDischarged, *left)) {
+                            mergedChain.push_back(*right);
+                            ++right;
+                            continue;
+                        }
+                        // from this point onwards they aren't comparable even after discharging
+                    } else {
+                        // if they aren't comparable when ignoring the 1->2 restriction we cannot merge since
+                        // we have an anti-chain
+
+                        if (!SearchSignature::isStrictSubset(leftDischarged, *right) &&
+                                !SearchSignature::isStrictSubset(rightDischarged, *left)) {
+                            std::cout << "Exit 1\n";
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        // only merge in the circumstance where after discharging the delta between left and
+                        // right contains 1->2
+                        auto lower = SearchSignature::isStrictSubset(leftDischarged, *right) ? leftDischarged
+                                                                                             : *right;
+                        auto upper = SearchSignature::isStrictSubset(rightDischarged, *left) ? rightDischarged
+                                                                                             : *left;
+
+                        // cannot merge if lower has inequality since it would be discharged
+                        if (lower.containsInequality()) {
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        auto delta = SearchSignature::getDelta(upper, lower);
+                        auto prevDelta = mergedChain.empty()
+                                                 ? lower
+                                                 : SearchSignature::getDelta(lower, mergedChain.back());
+
+                        bool onlyInequalities = true;
+                        for (size_t i = 0; i < delta.arity(); ++i) {
+                            if (delta[i] == AttributeConstraint::Equal) {
+                                onlyInequalities = false;
+                                break;
+                            }
+                        }
+
+                        // If equalities are in the delta set we cannot merge chains without discharging the
+                        // inequality Example: 110->211 w/ delta = 201 cannot produce a valid lex-order
+                        if (!onlyInequalities) {
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        bool mergable = false;
+
+                        // if we have a 0->2 delta then we can merge
+                        // Example: 110->122 we can have the lex-order 0<1<2
+                        for (size_t i = 0; i < delta.arity(); ++i) {
+                            if (lower[i] == AttributeConstraint::None &&
+                                    upper[i] == AttributeConstraint::Inequal) {
+                                mergable = true;
+                            }
+                        }
+
+                        // otherwise if we have one of our inequalities in the prev delta then we can merge
+                        // Example: 1000->1011->1021 w/ prevDelta = 0011 delta = 0020
+                        for (size_t i = 0; i < delta.arity(); ++i) {
+                            if (delta[i] == AttributeConstraint::Inequal) {
+                                for (size_t j = 0; j < prevDelta.arity(); ++j) {
+                                    if (prevDelta[j] == AttributeConstraint::Equal) {
+                                        mergable = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!mergable) {
+                            successfulMerge = false;
+                            break;
+                        }
+
+                        // otherwise we merge chains!
+                        if (SearchSignature::isStrictSubset(leftDischarged, *right)) {
+                            mergedChain.push_back(*left);
+                            ++left;
+                            continue;
+                        }
+
+                        if (SearchSignature::isStrictSubset(rightDischarged, *left)) {
+                            mergedChain.push_back(*right);
+                            ++right;
+                            continue;
+                        }
+                    }
+                }
+
+                // failed to merge so find another pair of chains
+                if (!successfulMerge) {
+                    continue;
+                }
+
+                // if left chain is exhausted then merge the rest of right chain
+                if (left == lhs.end()) {
+                    while (right != rhs.end()) {
+                        mergedChain.push_back(*right);
+                        ++right;
+                    }
+                }
+                // if right chain is exhuasted then merge the rest of left chain
+                if (right == rhs.end()) {
+                    while (left != lhs.end()) {
+                        mergedChain.push_back(*left);
+                        ++left;
+                    }
+                }
+
+                changed = true;
+
+                // remove previous 2 chains
+                chains.erase(std::remove(chains.begin(), chains.end(), lhs), chains.end());
+                chains.erase(std::remove(chains.begin(), chains.end(), rhs), chains.end());
+
+                // insert merge chain
+                chains.push_back(mergedChain);
+                break;
+            }
+            if (changed) {
+                break;
+            }
+        }
+    }
     return chains;
 }
 
