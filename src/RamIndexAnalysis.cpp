@@ -636,7 +636,6 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
 
                         if (!SearchSignature::isStrictSubset(leftDischarged, *right) &&
                                 !SearchSignature::isStrictSubset(rightDischarged, *left)) {
-                            std::cout << "Exit 1\n";
                             successfulMerge = false;
                             break;
                         }
