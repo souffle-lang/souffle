@@ -1,4 +1,4 @@
-Error: Function in fact in file fact_plus.dl at line 10
+Error: Argument in fact is not constant in file fact_plus.dl at line 10
 F(1+a,"AA").
 --^----------
 Warning: Variable a only occurs once in file fact_plus.dl at line 10

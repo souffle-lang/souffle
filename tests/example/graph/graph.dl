@@ -1,7 +1,5 @@
 //// Test Case adopted from Ocaml datalog
 
-.type number <: symbol
-
 .decl reachable  (node1:number, node2:number)
 .output reachable  ()
 .decl increasing (node1:number, node2:number)

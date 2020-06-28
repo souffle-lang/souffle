@@ -1,13 +1,13 @@
 Error: Underscore in binary relation in file underscore.dl at line 8
 F(x,y) :- F(x,y),  x > _.
--------------------^------
-Error: Underscore in head of rule in file underscore.dl at line 10
+-----------------------^--
+Error: Argument in fact is not constant in file underscore.dl at line 10
 F("string",_).
-^--------------
-Error: Underscore in fact in file underscore.dl at line 10
+-----------^---
+Error: Underscore in head of rule in file underscore.dl at line 10
 F("string",_).
 -----------^---
 Error: Underscore in head of rule in file underscore.dl at line 12
 F(_,y) :- F(_,y).
-^-----------------
+--^---------------
 4 errors generated, evaluation aborted

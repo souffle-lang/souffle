@@ -40,6 +40,7 @@ stages:
 jobs:
   allow_failures:
     - name: "Debian arm64 package"
+  fast_finish: true
   include:
 # Style check stage
   - stage: Warmup

@@ -73,7 +73,6 @@ private:
     const IOType& ioTypes = *tu.getAnalysis<IOType>();
     const PrecedenceGraph& precedenceGraph = *tu.getAnalysis<PrecedenceGraph>();
     const RecursiveClauses& recursiveClauses = *tu.getAnalysis<RecursiveClauses>();
-    const TypeAnalysis& typeAnalysis = *tu.getAnalysis<TypeAnalysis>();
     const TypeEnvironmentAnalysis& typeEnvAnalysis = *tu.getAnalysis<TypeEnvironmentAnalysis>();
     const SCCGraph& sccGraph = *tu.getAnalysis<SCCGraph>();
 
@@ -108,6 +107,37 @@ bool AstSemanticChecker::transform(AstTranslationUnit& translationUnit) {
     AstSemanticCheckerImpl{translationUnit};
     return false;
 }
+
+class TypeChecker : AstVisitor<void> {
+public:
+    TypeChecker(AstTranslationUnit& tu) : tu(tu){};
+
+    /** Analyse types, clause by clause */
+    void run() {
+        for (auto* clause : tu.getProgram()->getClauses()) {
+            visitDepthFirstPreOrder(*clause, *this);
+        }
+    }
+
+private:
+    AstTranslationUnit& tu;
+    ErrorReport& report = tu.getErrorReport();
+    const TypeAnalysis& typeAnalysis = *tu.getAnalysis<TypeAnalysis>();
+    const TypeEnvironment& typeEnv = tu.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
+    const AstProgram& program = *tu.getProgram();
+
+    void visitAtom(const AstAtom& atom) override;
+    void visitVariable(const AstVariable& var) override;
+    void visitStringConstant(const AstStringConstant& constant) override;
+    void visitNumericConstant(const AstNumericConstant& constant) override;
+    void visitNilConstant(const AstNilConstant& constant) override;
+    void visitRecordInit(const AstRecordInit& rec) override;
+    void visitTypeCast(const AstTypeCast& cast) override;
+    void visitIntrinsicFunctor(const AstIntrinsicFunctor& fun) override;
+    void visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) override;
+    void visitBinaryConstraint(const AstBinaryConstraint& constraint) override;
+    void visitAggregator(const AstAggregator& aggregator) override;
+};
 
 AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) {
     // suppress warnings for given relations
@@ -176,276 +206,10 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
     // Run grounded terms checker
     GroundedTermsChecker().verify(tu);
 
-    // get the list of components to be checked (clauses w/ relation decls)
-    std::vector<const AstNode*> nodes;
-    for (const auto& rel : program.getRelations()) {
-        for (const auto& cls : getClauses(program, *rel)) {
-            nodes.push_back(cls);
-        }
-    }
-
-    // -- type checks --
-
-    // check if in all atoms the arguments are subtypes of declared types.
-    visitDepthFirst(nodes, [&](const AstAtom& atom) {
-        auto relation = getAtomRelation(&atom, &program);
-        if (relation == nullptr) {
-            return;  // error unrelated to types.
-        }
-
-        auto attributes = relation->getAttributes();
-        auto arguments = atom.getArguments();
-        if (attributes.size() != arguments.size()) {
-            return;  // error in input program
-        }
-
-        for (size_t i = 0; i < attributes.size(); ++i) {
-            auto& typeName = attributes[i]->getTypeName();
-            if (typeEnv.isType(typeName)) {
-                auto argTypes = typeAnalysis.getTypes(arguments[i]);
-                auto& attributeType = typeEnv.getType(typeName);
-
-                if (argTypes.isAll() || argTypes.empty()) {
-                    continue;  // This will be reported later.
-                }
-
-                // Attribute and argument type agree if, argument type is a subtype of declared type
-                // or is of the appropriate constant type or the (constant) record type.
-                bool validAttribute = all_of(argTypes, [&attributeType](const Type& type) {
-                    if (isSubtypeOf(type, attributeType)) return true;
-                    if (!isSubtypeOf(attributeType, type)) return false;
-                    if (isA<ConstantType>(type)) return true;
-                    return isA<RecordType>(type) && !isA<SubsetType>(type);
-                });
-                if (!validAttribute) {
-                    if (!Global::config().has("legacy")) {
-                        report.addError("Atoms argument type is not a subtype of its declared type",
-                                arguments[i]->getSrcLoc());
-                    }
-                }
-            }
-        }
-    });
-
-    // - variables -
-    visitDepthFirst(nodes, [&](const AstVariable& var) {
-        if (typeAnalysis.getTypes(&var).empty()) {
-            report.addError("Unable to deduce type for variable " + var.getName(), var.getSrcLoc());
-        }
-    });
-
-    // - constants -
-
-    // all string constants are used as symbols
-    visitDepthFirst(nodes, [&](const AstStringConstant& constant) {
-        TypeSet types = typeAnalysis.getTypes(&constant);
-        if (!isOfKind(types, TypeAttribute::Symbol)) {
-            report.addError("Symbol constant (type mismatch)", constant.getSrcLoc());
-        }
-    });
-
-    // TODO (darth_tytus): Improve error messages.
-    // At this stage each constant should have a type (assigned by a transformer)
-    visitDepthFirst(nodes, [&](const AstNumericConstant& constant) {
-        TypeSet types = typeAnalysis.getTypes(&constant);
-
-        // No type could be assigned.
-        if (!constant.getType().has_value()) {
-            report.addError("Ambiguous constant (unable to deduce type)", constant.getSrcLoc());
-            return;
-        }
-
-        switch (*constant.getType()) {
-            case AstNumericConstant::Type::Int:
-                if (!isOfKind(types, TypeAttribute::Signed)) {
-                    report.addError("Number constant (type mismatch)", constant.getSrcLoc());
-                }
-                break;
-            case AstNumericConstant::Type::Uint:
-                if (!isOfKind(types, TypeAttribute::Unsigned)) {
-                    report.addError("Unsigned constant (type mismatch)", constant.getSrcLoc());
-                }
-                break;
-            case AstNumericConstant::Type::Float:
-                if (!isOfKind(types, TypeAttribute::Float)) {
-                    report.addError("Float constant (type mismatch)", constant.getSrcLoc());
-                }
-                break;
-        }
-    });
-
-    // all nil constants are used as records
-    visitDepthFirst(nodes, [&](const AstNilConstant& constant) {
-        TypeSet types = typeAnalysis.getTypes(&constant);
-        if (!isOfKind(types, TypeAttribute::Record)) {
-            report.addError("Nil constant used as a non-record", constant.getSrcLoc());
-            return;
-        }
-    });
-
-    // record initializations have the same size as their types
-    visitDepthFirst(nodes, [&](const AstRecordInit& constant) {
-        TypeSet types = typeAnalysis.getTypes(&constant);
-
-        if (!isOfKind(types, TypeAttribute::Record) || types.size() != 1) {
-            report.addError("Ambiguous record", constant.getSrcLoc());
-            return;
-        }
-
-        // At this point we know that there is exactly one type in set, so we can take it.
-        auto& recordType = *as<RecordType>(*types.begin());
-
-        if (recordType.getFields().size() != constant.getArguments().size()) {
-            report.addError("Wrong number of arguments given to record", constant.getSrcLoc());
-            return;
-        }
-    });
-
-    // type casts name a valid type
-    visitDepthFirst(nodes, [&](const AstTypeCast& cast) {
-        if (!typeEnv.isType(cast.getType())) {
-            report.addError(
-                    tfm::format("Type cast to the undeclared type \"%s\"", cast.getType()), cast.getSrcLoc());
-            return;
-        }
-
-        auto& castTypes = typeAnalysis.getTypes(&cast);
-        auto& argTypes = typeAnalysis.getTypes(cast.getValue());
-
-        if (castTypes.isAll() || castTypes.size() != 1) {
-            report.addError("Unable to deduce type of the argument (cast)", cast.getSrcLoc());
-            return;
-        }
-
-        // This should be reported elsewhere
-        if (argTypes.isAll() || castTypes.size() != 1) {
-            return;
-        }
-
-        // We know that both sets have size 1.
-        auto& castTy = *castTypes.begin();
-        auto& argTy = *argTypes.begin();
-
-        if (!haveCommonSupertype(castTy, argTy)) {
-            report.addError(
-                    tfm::format(R"(Type "%s" can't be converted to "%s")", argTy, castTy), cast.getSrcLoc());
-            return;
-        }
-    });
-
-    // - functors -
-    visitDepthFirst(nodes, [&](const AstIntrinsicFunctor& fun) {
-        if (!fun.getFunctionInfo()) {  // no info => no overload found during inference
-            auto args = fun.getArguments();
-            if (!isValidFunctorOpArity(fun.getFunction(), args.size())) {
-                report.addError("invalid overload (arity mismatch)", fun.getSrcLoc());
-                return;
-            }
-
-            assert(validOverloads(typeAnalysis, fun).empty() && "polymorphic transformation wasn't applied?");
-            report.addError("no valid overloads", fun.getSrcLoc());
-        }
-    });
-
-    visitDepthFirst(nodes, [&](const AstUserDefinedFunctor& fun) {
-        // check type of result
-        const TypeSet& resultType = typeAnalysis.getTypes(&fun);
-
-        if (!isOfKind(resultType, fun.getReturnType())) {
-            switch (fun.getReturnType()) {
-                case TypeAttribute::Signed:
-                    report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
-                    break;
-                case TypeAttribute::Unsigned:
-                    report.addError("Non-unsigned use for unsigned functor", fun.getSrcLoc());
-                    break;
-                case TypeAttribute::Float:
-                    report.addError("Non-float use for float functor", fun.getSrcLoc());
-                    break;
-                case TypeAttribute::Symbol:
-                    report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
-                    break;
-                case TypeAttribute::Record: fatal("Invalid return type");
-            }
-        }
-
-        size_t i = 0;
-        for (auto arg : fun.getArguments()) {
-            if (!isOfKind(typeAnalysis.getTypes(arg), fun.getArgType(i))) {
-                switch (fun.getArgType(i)) {
-                    case TypeAttribute::Signed:
-                        report.addError("Non-numeric argument for functor", arg->getSrcLoc());
-                        break;
-                    case TypeAttribute::Symbol:
-                        report.addError("Non-symbolic argument for functor", arg->getSrcLoc());
-                        break;
-                    case TypeAttribute::Unsigned:
-                        report.addError("Non-unsigned argument for functor", arg->getSrcLoc());
-                        break;
-                    case TypeAttribute::Float:
-                        report.addError("Non-float argument for functor", arg->getSrcLoc());
-                        break;
-                    case TypeAttribute::Record: fatal("Invalid argument type");
-                }
-            }
-            ++i;
-        }
-    });
-
-    // - binary relation -
-    visitDepthFirst(nodes, [&](const AstBinaryConstraint& constraint) {
-        auto op = constraint.getOperator();
-        auto left = constraint.getLHS();
-        auto right = constraint.getRHS();
-        auto opRamTypes = getBinaryConstraintTypes(op);
-        // Skip checks if either side is `Bottom` b/c it just adds noise.
-        // The unable-to-deduce-type checker will point out the issue.
-        if (typeAnalysis.getTypes(left).empty() || typeAnalysis.getTypes(right).empty()) return;
-
-        // give them a slightly nicer error
-        if (isOrderedBinaryConstraintOp(op) && typeAnalysis.getTypes(left) != typeAnalysis.getTypes(right)) {
-            report.addError("Cannot compare different types", constraint.getSrcLoc());
-        } else {
-            auto checkTyAttr = [&](AstArgument const& side) {
-                auto opMatchesType = any_of(opRamTypes,
-                        [&](auto& ramType) { return isOfKind(typeAnalysis.getTypes(&side), ramType); });
-
-                if (!opMatchesType) {
-                    std::stringstream ss;
-                    ss << "Constraint requires an operand of type "
-                       << join(opRamTypes, " or ", [&](auto& out, auto& ramTy) {
-                              switch (ramTy) {
-                                  case TypeAttribute::Signed: out << "`number`"; break;
-                                  case TypeAttribute::Symbol: out << "`symbol`"; break;
-                                  case TypeAttribute::Unsigned: out << "`unsigned`"; break;
-                                  case TypeAttribute::Float: out << "`float`"; break;
-                                  case TypeAttribute::Record: out << "a record"; break;
-                              }
-                          });
-                    report.addError(ss.str(), side.getSrcLoc());
-                }
-            };
-
-            checkTyAttr(*left);
-            checkTyAttr(*right);
-        }
-    });
-
-    visitDepthFirst(nodes, [&](const AstAggregator& aggregator) {
-        auto op = aggregator.getOperator();
-
-        auto aggregatorType = typeAnalysis.getTypes(&aggregator);
-
-        TypeAttribute opType = getTypeAttributeAggregate(op);
-
-        // Check if operation type and return type agree.
-        if (!isOfKind(aggregatorType, opType)) {
-            report.addError("Couldn't assign types to the aggregator", aggregator.getSrcLoc());
-        }
-    });
+    // Check types
+    TypeChecker{tu}.run();
 
     // - stratification --
-
     // check for cyclic dependencies
     for (AstRelation* cur : program.getRelations()) {
         size_t scc = sccGraph.getSCC(cur);
@@ -483,10 +247,10 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
     auto* r = getRelation(program, atom.getQualifiedName());
     if (r == nullptr) {
         report.addError("Undefined relation " + toString(atom.getQualifiedName()), atom.getSrcLoc());
+        return;
     }
 
-    // check arity
-    if ((r != nullptr) && r->getArity() != atom.getArity()) {
+    if (r->getArity() != atom.getArity()) {
         report.addError(
                 "Mismatching arity of relation " + toString(atom.getQualifiedName()), atom.getSrcLoc());
     }
@@ -496,81 +260,61 @@ void AstSemanticCheckerImpl::checkAtom(const AstAtom& atom) {
     }
 }
 
-/* Check whether an unnamed variable occurs in an argument (expression) */
-// TODO (azreika): use a visitor instead
-static bool hasUnnamedVariable(const AstArgument* arg) {
-    if (dynamic_cast<const AstUnnamedVariable*>(arg) != nullptr) {
-        return true;
-    }
-    if (dynamic_cast<const AstVariable*>(arg) != nullptr) {
-        return false;
-    }
-    if (dynamic_cast<const AstConstant*>(arg) != nullptr) {
-        return false;
-    }
-    if (dynamic_cast<const AstCounter*>(arg) != nullptr) {
-        return false;
-    }
-    if (const auto* cast = dynamic_cast<const AstTypeCast*>(arg)) {
-        return hasUnnamedVariable(cast->getValue());
-    }
-    if (const auto* term = dynamic_cast<const AstTerm*>(arg)) {
-        return any_of(term->getArguments(), hasUnnamedVariable);
-    }
-    if (dynamic_cast<const AstAggregator*>(arg) != nullptr) {
-        return false;
-    }
+namespace {
 
-    fatal("unsupported argument type: %s", typeid(*arg).name());
+/**
+ * Get unnamed variables except those that appear inside aggregates.
+ */
+std::set<const AstUnnamedVariable*> getUnnamedVariables(const AstNode& node) {
+    std::set<const AstUnnamedVariable*> unnamedInAggregates;
+    visitDepthFirst(node, [&](const AstAggregator& agg) {
+        visitDepthFirst(agg, [&](const AstUnnamedVariable& var) { unnamedInAggregates.insert(&var); });
+    });
+
+    std::set<const AstUnnamedVariable*> unnamed;
+    visitDepthFirst(node, [&](const AstUnnamedVariable& var) {
+        if (!contains(unnamedInAggregates, &var)) {
+            unnamed.insert(&var);
+        }
+    });
+
+    return unnamed;
 }
 
-static bool hasUnnamedVariable(const AstLiteral* lit) {
-    if (const auto* at = dynamic_cast<const AstAtom*>(lit)) {
-        return any_of(at->getArguments(), (bool (*)(const AstArgument*))hasUnnamedVariable);
-    }
-    if (const auto* neg = dynamic_cast<const AstNegation*>(lit)) {
-        return hasUnnamedVariable(neg->getAtom());
-    }
-    if (dynamic_cast<const AstConstraint*>(lit) != nullptr) {
-        if (dynamic_cast<const AstBooleanConstraint*>(lit) != nullptr) {
-            return false;
-        }
-        if (const auto* br = dynamic_cast<const AstBinaryConstraint*>(lit)) {
-            return hasUnnamedVariable(br->getLHS()) || hasUnnamedVariable(br->getRHS());
-        }
-    }
-
-    fatal("unsupported literal type: %s", typeid(*lit).name());
-}
+}  // namespace
 
 void AstSemanticCheckerImpl::checkLiteral(const AstLiteral& literal) {
     // check potential nested atom
-    if (const auto* atom = dynamic_cast<const AstAtom*>(&literal)) {
+    if (const auto* atom = as<AstAtom>(literal)) {
         checkAtom(*atom);
     }
 
-    if (const auto* neg = dynamic_cast<const AstNegation*>(&literal)) {
+    if (const auto* neg = as<AstNegation>(literal)) {
         checkAtom(*neg->getAtom());
     }
 
-    if (const auto* constraint = dynamic_cast<const AstBinaryConstraint*>(&literal)) {
+    if (const auto* constraint = as<AstBinaryConstraint>(literal)) {
         checkArgument(*constraint->getLHS());
         checkArgument(*constraint->getRHS());
-    }
 
-    // check for invalid underscore utilization
-    if (hasUnnamedVariable(&literal)) {
-        if (dynamic_cast<const AstAtom*>(&literal) != nullptr) {
-            // nothing to check since underscores are allowed
-        } else if (dynamic_cast<const AstNegation*>(&literal) != nullptr) {
-            // nothing to check since underscores are allowed
-        } else if (dynamic_cast<const AstBinaryConstraint*>(&literal) != nullptr) {
-            report.addError("Underscore in binary relation", literal.getSrcLoc());
-        } else {
-            fatal("unsupported literal type: %s", typeid(literal).name());
+        std::set<const AstUnnamedVariable*> unnamedInRecord;
+        visitDepthFirst(*constraint, [&](const AstRecordInit& record) {
+            for (auto* arg : record.getArguments()) {
+                if (auto* unnamed = as<AstUnnamedVariable>(arg)) {
+                    unnamedInRecord.insert(unnamed);
+                }
+            }
+        });
+
+        // Check if constraint contains unnamed variables.
+        for (auto* unnamed : getUnnamedVariables(*constraint)) {
+            if (!contains(unnamedInRecord, unnamed)) {
+                report.addError("Underscore in binary relation", unnamed->getSrcLoc());
+            }
         }
     }
 }
+
 /**
  * agg1, agg2 are clauses which contain no head, and consist of a single literal
  * that contains an aggregate.
@@ -658,47 +402,34 @@ void AstSemanticCheckerImpl::checkArgument(const AstArgument& arg) {
     }
 }
 
-static bool isConstantArithExpr(const AstArgument& argument) {
-    if (dynamic_cast<const AstNumericConstant*>(&argument) != nullptr) {
+namespace {
+
+/**
+ * Check if the argument can be statically evaluated
+ * and thus in particular, if it should be allowed to appear as argument in facts.
+ **/
+bool isConstantArgument(const AstArgument* arg) {
+    assert(arg != nullptr);
+
+    if (isA<AstVariable>(arg) || isA<AstUnnamedVariable>(arg)) {
+        return false;
+    } else if (isA<AstUserDefinedFunctor>(arg)) {
+        return false;
+    } else if (isA<AstCounter>(arg)) {
+        return false;
+    } else if (auto* typeCast = as<AstTypeCast>(arg)) {
+        return isConstantArgument(typeCast->getValue());
+    } else if (auto* term = as<AstTerm>(arg)) {
+        // Term covers intrinsic functor and records. User-functors are handled earlier.
+        return all_of(term->getArguments(), isConstantArgument);
+    } else if (isA<AstConstant>(arg)) {
         return true;
-    }
-    if (auto* functor = dynamic_cast<const AstIntrinsicFunctor*>(&argument)) {
-        // Check return type.
-        auto* info = functor->getFunctionInfo();
-        if (!(info && isNumericType(info->result))) return false;
-
-        // Check arguments
-        return all_of(functor->getArguments(), [](auto* arg) { return isConstantArithExpr(*arg); });
-    }
-    return false;
-}
-
-// TODO (azreika): refactor this (and isConstantArithExpr); confusing name/setup
-void AstSemanticCheckerImpl::checkConstant(const AstArgument& argument) {
-    if (const auto* var = dynamic_cast<const AstVariable*>(&argument)) {
-        report.addError("Variable " + var->getName() + " in fact", var->getSrcLoc());
-    } else if (dynamic_cast<const AstUnnamedVariable*>(&argument) != nullptr) {
-        report.addError("Underscore in fact", argument.getSrcLoc());
-    } else if (dynamic_cast<const AstIntrinsicFunctor*>(&argument) != nullptr) {
-        if (!isConstantArithExpr(argument)) {
-            report.addError("Function in fact", argument.getSrcLoc());
-        }
-    } else if (dynamic_cast<const AstUserDefinedFunctor*>(&argument) != nullptr) {
-        report.addError("User-defined functor in fact", argument.getSrcLoc());
-    } else if (auto* cast = dynamic_cast<const AstTypeCast*>(&argument)) {
-        checkConstant(*cast->getValue());
-    } else if (dynamic_cast<const AstCounter*>(&argument) != nullptr) {
-        report.addError("Counter in fact", argument.getSrcLoc());
-    } else if (dynamic_cast<const AstConstant*>(&argument) != nullptr) {
-        // this one is fine - type checker will make sure of number and symbol constants
-    } else if (auto* ri = dynamic_cast<const AstRecordInit*>(&argument)) {
-        for (auto* arg : ri->getArguments()) {
-            checkConstant(*arg);
-        }
     } else {
-        fatal("unsupported argument type: %s", typeid(argument).name());
+        fatal("unsupported argument type: %s", typeid(arg).name());
     }
 }
+
+}  // namespace
 
 /* Check if facts contain only constants */
 void AstSemanticCheckerImpl::checkFact(const AstClause& fact) {
@@ -715,8 +446,10 @@ void AstSemanticCheckerImpl::checkFact(const AstClause& fact) {
     }
 
     // facts must only contain constants
-    for (auto arg : head->getArguments()) {
-        checkConstant(*arg);
+    for (auto* arg : head->getArguments()) {
+        if (!isConstantArgument(arg)) {
+            report.addError("Argument in fact is not constant", arg->getSrcLoc());
+        }
     }
 }
 
@@ -724,9 +457,9 @@ void AstSemanticCheckerImpl::checkClause(const AstClause& clause) {
     // check head atom
     checkAtom(*clause.getHead());
 
-    // check for absence of underscores in head
-    if (hasUnnamedVariable(clause.getHead())) {
-        report.addError("Underscore in head of rule", clause.getHead()->getSrcLoc());
+    // Check for absence of underscores in head
+    for (auto* unnamed : getUnnamedVariables(*clause.getHead())) {
+        report.addError("Underscore in head of rule", unnamed->getSrcLoc());
     }
 
     // check body literals
@@ -881,8 +614,8 @@ void AstSemanticCheckerImpl::checkUnionType(const AstUnionType& type) {
         }
         const AstType* subt = getType(program, sub);
         if (subt == nullptr) {
-            report.addError("Undefined type " + toString(sub) + " in definition of union type " +
-                                    toString(type.getQualifiedName()),
+            report.addError(tfm::format("Undefined type %s in definition of union type %s", sub,
+                                    type.getQualifiedName()),
                     type.getSrcLoc());
         } else if (!isA<AstUnionType>(subt) && !isA<AstSubsetType>(subt)) {
             report.addError(tfm::format("Union type %s contains the non-primitive type %s",
@@ -1494,6 +1227,250 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
         }
     }
     return false;
+}
+
+void TypeChecker::visitAtom(const AstAtom& atom) {
+    auto relation = getAtomRelation(&atom, &program);
+    if (relation == nullptr) {
+        return;  // error unrelated to types.
+    }
+
+    auto attributes = relation->getAttributes();
+    auto arguments = atom.getArguments();
+    if (attributes.size() != arguments.size()) {
+        return;  // error in input program
+    }
+
+    for (size_t i = 0; i < attributes.size(); ++i) {
+        auto& typeName = attributes[i]->getTypeName();
+        if (typeEnv.isType(typeName)) {
+            auto argTypes = typeAnalysis.getTypes(arguments[i]);
+            auto& attributeType = typeEnv.getType(typeName);
+
+            if (argTypes.isAll() || argTypes.empty()) {
+                continue;  // This will be reported later.
+            }
+
+            // Attribute and argument type agree if, argument type is a subtype of declared type
+            // or is of the appropriate constant type or the (constant) record type.
+            bool validAttribute = all_of(argTypes, [&attributeType](const Type& type) {
+                if (isSubtypeOf(type, attributeType)) return true;
+                if (!isSubtypeOf(attributeType, type)) return false;
+                if (isA<ConstantType>(type)) return true;
+                return isA<RecordType>(type) && !isA<SubsetType>(type);
+            });
+            if (!validAttribute && !Global::config().has("legacy")) {
+                report.addError("Atoms argument type is not a subtype of its declared type",
+                        arguments[i]->getSrcLoc());
+            }
+        }
+    }
+}
+
+void TypeChecker::visitVariable(const AstVariable& var) {
+    if (typeAnalysis.getTypes(&var).empty()) {
+        report.addError("Unable to deduce type for variable " + var.getName(), var.getSrcLoc());
+    }
+}
+
+void TypeChecker::visitStringConstant(const AstStringConstant& constant) {
+    TypeSet types = typeAnalysis.getTypes(&constant);
+    if (!isOfKind(types, TypeAttribute::Symbol)) {
+        report.addError("Symbol constant (type mismatch)", constant.getSrcLoc());
+    }
+}
+
+void TypeChecker::visitNumericConstant(const AstNumericConstant& constant) {
+    TypeSet types = typeAnalysis.getTypes(&constant);
+
+    // No type could be assigned.
+    if (!constant.getType().has_value()) {
+        report.addError("Ambiguous constant (unable to deduce type)", constant.getSrcLoc());
+        return;
+    }
+
+    switch (*constant.getType()) {
+        case AstNumericConstant::Type::Int:
+            if (!isOfKind(types, TypeAttribute::Signed)) {
+                report.addError("Number constant (type mismatch)", constant.getSrcLoc());
+            }
+            break;
+        case AstNumericConstant::Type::Uint:
+            if (!isOfKind(types, TypeAttribute::Unsigned)) {
+                report.addError("Unsigned constant (type mismatch)", constant.getSrcLoc());
+            }
+            break;
+        case AstNumericConstant::Type::Float:
+            if (!isOfKind(types, TypeAttribute::Float)) {
+                report.addError("Float constant (type mismatch)", constant.getSrcLoc());
+            }
+            break;
+    }
+}
+
+void TypeChecker::visitNilConstant(const AstNilConstant& constant) {
+    TypeSet types = typeAnalysis.getTypes(&constant);
+    if (!isOfKind(types, TypeAttribute::Record)) {
+        report.addError("Nil constant used as a non-record", constant.getSrcLoc());
+        return;
+    }
+}
+
+void TypeChecker::visitRecordInit(const AstRecordInit& rec) {
+    TypeSet types = typeAnalysis.getTypes(&rec);
+
+    if (!isOfKind(types, TypeAttribute::Record) || types.size() != 1) {
+        report.addError("Ambiguous record", rec.getSrcLoc());
+        return;
+    }
+
+    // At this point we know that there is exactly one type in set, so we can take it.
+    auto& recordType = *as<RecordType>(*types.begin());
+
+    if (recordType.getFields().size() != rec.getArguments().size()) {
+        report.addError("Wrong number of arguments given to record", rec.getSrcLoc());
+        return;
+    }
+}
+
+void TypeChecker::visitTypeCast(const AstTypeCast& cast) {
+    if (!typeEnv.isType(cast.getType())) {
+        report.addError(
+                tfm::format("Type cast to the undeclared type \"%s\"", cast.getType()), cast.getSrcLoc());
+        return;
+    }
+
+    auto& castTypes = typeAnalysis.getTypes(&cast);
+    auto& argTypes = typeAnalysis.getTypes(cast.getValue());
+
+    if (castTypes.isAll() || castTypes.size() != 1) {
+        report.addError("Unable to deduce type of the argument (cast)", cast.getSrcLoc());
+        return;
+    }
+
+    // This should be reported elsewhere
+    if (argTypes.isAll() || castTypes.size() != 1) {
+        return;
+    }
+
+    // We know that both sets have size 1.
+    auto& castTy = *castTypes.begin();
+    auto& argTy = *argTypes.begin();
+
+    if (!haveCommonSupertype(castTy, argTy)) {
+        report.addError(
+                tfm::format(R"(Type "%s" can't be converted to "%s")", argTy, castTy), cast.getSrcLoc());
+        return;
+    }
+}
+
+void TypeChecker::visitIntrinsicFunctor(const AstIntrinsicFunctor& fun) {
+    if (!fun.getFunctionInfo()) {  // no info => no overload found during inference
+        auto args = fun.getArguments();
+        if (!isValidFunctorOpArity(fun.getFunction(), args.size())) {
+            report.addError("invalid overload (arity mismatch)", fun.getSrcLoc());
+            return;
+        }
+
+        assert(validOverloads(typeAnalysis, fun).empty() && "polymorphic transformation wasn't applied?");
+        report.addError("no valid overloads", fun.getSrcLoc());
+    }
+}
+
+void TypeChecker::visitUserDefinedFunctor(const AstUserDefinedFunctor& fun) {
+    // check type of result
+    const TypeSet& resultType = typeAnalysis.getTypes(&fun);
+
+    if (!isOfKind(resultType, fun.getReturnType())) {
+        switch (fun.getReturnType()) {
+            case TypeAttribute::Signed:
+                report.addError("Non-numeric use for numeric functor", fun.getSrcLoc());
+                break;
+            case TypeAttribute::Unsigned:
+                report.addError("Non-unsigned use for unsigned functor", fun.getSrcLoc());
+                break;
+            case TypeAttribute::Float:
+                report.addError("Non-float use for float functor", fun.getSrcLoc());
+                break;
+            case TypeAttribute::Symbol:
+                report.addError("Non-symbolic use for symbolic functor", fun.getSrcLoc());
+                break;
+            case TypeAttribute::Record: fatal("Invalid return type");
+        }
+    }
+
+    size_t i = 0;
+    for (auto arg : fun.getArguments()) {
+        if (!isOfKind(typeAnalysis.getTypes(arg), fun.getArgType(i))) {
+            switch (fun.getArgType(i)) {
+                case TypeAttribute::Signed:
+                    report.addError("Non-numeric argument for functor", arg->getSrcLoc());
+                    break;
+                case TypeAttribute::Symbol:
+                    report.addError("Non-symbolic argument for functor", arg->getSrcLoc());
+                    break;
+                case TypeAttribute::Unsigned:
+                    report.addError("Non-unsigned argument for functor", arg->getSrcLoc());
+                    break;
+                case TypeAttribute::Float:
+                    report.addError("Non-float argument for functor", arg->getSrcLoc());
+                    break;
+                case TypeAttribute::Record: fatal("Invalid argument type");
+            }
+        }
+        ++i;
+    }
+}
+
+void TypeChecker::visitBinaryConstraint(const AstBinaryConstraint& constraint) {
+    auto op = constraint.getOperator();
+    auto left = constraint.getLHS();
+    auto right = constraint.getRHS();
+    auto opRamTypes = getBinaryConstraintTypes(op);
+    // Skip checks if either side is `Bottom` b/c it just adds noise.
+    // The unable-to-deduce-type checker will point out the issue.
+    if (typeAnalysis.getTypes(left).empty() || typeAnalysis.getTypes(right).empty()) return;
+
+    // give them a slightly nicer error
+    if (isOrderedBinaryConstraintOp(op) && typeAnalysis.getTypes(left) != typeAnalysis.getTypes(right)) {
+        report.addError("Cannot compare different types", constraint.getSrcLoc());
+    } else {
+        auto checkTyAttr = [&](AstArgument const& side) {
+            auto opMatchesType = any_of(opRamTypes,
+                    [&](auto& ramType) { return isOfKind(typeAnalysis.getTypes(&side), ramType); });
+
+            if (!opMatchesType) {
+                std::stringstream ss;
+                ss << "Constraint requires an operand of type "
+                   << join(opRamTypes, " or ", [&](auto& out, auto& ramTy) {
+                          switch (ramTy) {
+                              case TypeAttribute::Signed: out << "`number`"; break;
+                              case TypeAttribute::Symbol: out << "`symbol`"; break;
+                              case TypeAttribute::Unsigned: out << "`unsigned`"; break;
+                              case TypeAttribute::Float: out << "`float`"; break;
+                              case TypeAttribute::Record: out << "a record"; break;
+                          }
+                      });
+                report.addError(ss.str(), side.getSrcLoc());
+            }
+        };
+
+        checkTyAttr(*left);
+        checkTyAttr(*right);
+    }
+}
+
+void TypeChecker::visitAggregator(const AstAggregator& aggregator) {
+    auto op = aggregator.getOperator();
+
+    auto aggregatorType = typeAnalysis.getTypes(&aggregator);
+
+    TypeAttribute opType = getTypeAttributeAggregate(op);
+
+    // Check if operation type and return type agree.
+    if (!isOfKind(aggregatorType, opType)) {
+        report.addError("Couldn't assign types to the aggregator", aggregator.getSrcLoc());
+    }
 }
 
 void GroundedTermsChecker::verify(AstTranslationUnit& translationUnit) {

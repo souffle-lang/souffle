@@ -48,7 +48,7 @@ set -e
 # set by autoconf
 CXX="$(printenv CXX || true)"
 test -z "$CXX" && CXX="@CXX@"
-CPPFLAGS="$(printenv CPPFLAGS || true) @CPPFLAGS@"
+CPPFLAGS="$(printenv CPPFLAGS || true) -std=c++17 @CPPFLAGS@"
 CXXFLAGS="$(printenv CXXFLAGS || true) @SOUFFLE_CXXFLAGS@ -march=native"
 LDFLAGS="$(printenv LDFLAGS || true) @LDFLAGS@"
 LIBS="$(printenv LIBS || true) @LIBS@"

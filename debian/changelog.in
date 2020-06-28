@@ -1,4 +1,39 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
+  * Added `--legacy` flag to allow use of legacy options (darth-tytus)
+  * Added `--show [...]` flag to show various extra bits of information for
+    debugging/optimising (lyndonhenry)
+  * Query interface for provenance (yuli6313)
+  * Removed MPI support (b-scholz)
+  * Removed bddbddb and logicblox converters (b-scholz)
+  * Removed checkpointed evaluation (b-scholz)
+  * Extended inlining support (azreika)
+  * Added AST debug output for final 'optimised datalog' (mmcgr)
+  * Added RAM debug output (b-scholz)
+  * Updated man pages (darth-tytus/mmcgr)
+  * Fixes for AST/RAM printing (mmcgr)
+  * More useful debug output (mmcgr)
+  * Much more useful debug output (ohamel-softwaresecure)
+  * Interpreted souffle performance improvements (XiaowenHu96)
+  * Improved version output (mmcgr)
+  * Added support for floats and unsigned ints (darth-tytus)
+  * Improved testing (yuli6313/mmcgr)
+  * Added support for Record I/O (darth-tytus)
+  * Simplified error and warning messages (mmcgr)
+  * Added bitshift operators (ohamel-softwaresecure)
+  * Added support for polymorphic constants (darth-tytus)
+  * Improved aggregate performance (rdowavic)
+  * Added support for `as(arg, type)` (darth-tytus)
+  * Extensive refactoring of AST, RAM, utilities, and other bits (b-scholz and
+    others)
+  * Improve Program Minimiser(azreika)
+  * Unrestricted number of columns per relation (before set to 64) (SamArch27)
+  * Generative functors (ohamel-softwaresecure)
+  * Refactor parser (ohamel-softwaresecure)
+  * Various bugfixes
+
+ -- Martin McGrane <mmcgrane@it.usyd.edu.au>  Thu, 11 Jun 2020 14:04:00 +1100
+
+souffle (1.7.1); urgency=low
   * Enhance program minimiser (azreika)
   * Fix re-ordering of conjunctive terms
 

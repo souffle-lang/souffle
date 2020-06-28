@@ -62,10 +62,6 @@ eqrel_datastructure_test_SOURCES = eqrel_datastructure_test.cpp test.h
 check_PROGRAMS += compiled_tuple_test
 compiled_tuple_test_SOURCES = compiled_tuple_test.cpp test.h
 
-# compiled ram index utils test
-check_PROGRAMS += compiled_index_utils_test
-compiled_index_utils_test_SOURCES = compiled_index_utils_test.cpp test.h
-
 # interpreter relation test
 check_PROGRAMS += interpreter_relation_test
 interpreter_relation_test_SOURCES = interpreter_relation_test.cpp test.h

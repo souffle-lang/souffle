@@ -17,7 +17,6 @@
 #include "InterpreterIndex.h"
 #include "BTree.h"
 #include "Brie.h"
-#include "CompiledIndexUtils.h"
 #include "EquivalenceRelation.h"
 #include "PiggyList.h"
 #include "utility/ContainerUtil.h"
@@ -28,6 +27,93 @@
 #include <ostream>
 
 namespace souffle {
+
+/**
+ * A namespace enclosing utilities required by indices.
+ */
+namespace index_utils {
+
+// -------- generic tuple comparator ----------
+
+template <unsigned... Columns>
+struct comparator;
+
+template <unsigned First, unsigned... Rest>
+struct comparator<First, Rest...> {
+    template <typename T>
+    int operator()(const T& a, const T& b) const {
+        return (a[First] < b[First]) ? -1 : ((a[First] > b[First]) ? 1 : comparator<Rest...>()(a, b));
+    }
+    template <typename T>
+    bool less(const T& a, const T& b) const {
+        return a[First] < b[First] || (a[First] == b[First] && comparator<Rest...>().less(a, b));
+    }
+    template <typename T>
+    bool equal(const T& a, const T& b) const {
+        return a[First] == b[First] && comparator<Rest...>().equal(a, b);
+    }
+};
+
+template <>
+struct comparator<> {
+    template <typename T>
+    int operator()(const T&, const T&) const {
+        return 0;
+    }
+    template <typename T>
+    bool less(const T&, const T&) const {
+        return false;
+    }
+    template <typename T>
+    bool equal(const T&, const T&) const {
+        return true;
+    }
+};
+
+}  // namespace index_utils
+
+/**
+ * The index class is utilized as a template-meta-programming structure
+ * to specify and realize indices.
+ *
+ * @tparam Columns ... the order in which elements of the relation to be indexed
+ * 				shell be considered by this index.
+ */
+template <unsigned... Columns>
+struct index {
+    // the comparator associated to this index
+    using comparator = index_utils::comparator<Columns...>;
+};
+
+/**
+ * A namespace enclosing utilities required relations to handle indices.
+ */
+namespace index_utils {
+
+// -- a utility extending a given index by another column --
+//   e.g. index<1,0>   =>    index<1,0,2>
+
+template <typename Index, unsigned column>
+struct extend;
+
+template <unsigned... Columns, unsigned Col>
+struct extend<index<Columns...>, Col> {
+    using type = index<Columns..., Col>;
+};
+
+// -- obtains a full index for a given arity --
+
+template <unsigned arity>
+struct get_full_index {
+    using type = typename extend<typename get_full_index<arity - 1>::type, arity - 1>::type;
+};
+
+template <>
+struct get_full_index<0> {
+    using type = index<>;
+};
+
+}  // namespace index_utils
 
 std::ostream& operator<<(std::ostream& out, TupleRef ref) {
     out << "[";
@@ -645,6 +731,14 @@ std::unique_ptr<InterpreterIndex> createBTreeIndex(const Order& order) {
         case 10: return std::make_unique<BTreeIndex<10>>(order);
         case 11: return std::make_unique<BTreeIndex<11>>(order);
         case 12: return std::make_unique<BTreeIndex<12>>(order);
+        case 13: return std::make_unique<BTreeIndex<13>>(order);
+        case 14: return std::make_unique<BTreeIndex<14>>(order);
+        case 15: return std::make_unique<BTreeIndex<15>>(order);
+        case 16: return std::make_unique<BTreeIndex<16>>(order);
+        case 17: return std::make_unique<BTreeIndex<17>>(order);
+        case 18: return std::make_unique<BTreeIndex<18>>(order);
+        case 19: return std::make_unique<BTreeIndex<19>>(order);
+        case 20: return std::make_unique<BTreeIndex<20>>(order);
     }
 
     fatal("Requested arity not yet supported. Feel free to add it.");
@@ -703,6 +797,14 @@ std::unique_ptr<InterpreterIndex> createBrieIndex(const Order& order) {
         case 10: return std::make_unique<BrieIndex<10>>(order);
         case 11: return std::make_unique<BrieIndex<11>>(order);
         case 12: return std::make_unique<BrieIndex<12>>(order);
+        case 13: return std::make_unique<BrieIndex<13>>(order);
+        case 14: return std::make_unique<BrieIndex<14>>(order);
+        case 15: return std::make_unique<BrieIndex<15>>(order);
+        case 16: return std::make_unique<BrieIndex<16>>(order);
+        case 17: return std::make_unique<BrieIndex<17>>(order);
+        case 18: return std::make_unique<BrieIndex<18>>(order);
+        case 19: return std::make_unique<BrieIndex<19>>(order);
+        case 20: return std::make_unique<BrieIndex<20>>(order);
     }
 
     fatal("Requested arity not yet supported. Feel free to add it.");

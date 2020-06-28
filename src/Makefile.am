@@ -229,7 +229,6 @@ soufflepublic_HEADERS = \
         BTree.h                                            \
         BinaryConstraintOps.h                              \
         Brie.h                                             \
-        CompiledIndexUtils.h                               \
         CompiledOptions.h                                  \
         CompiledSouffle.h                                  \
         CompiledTuple.h                                    \

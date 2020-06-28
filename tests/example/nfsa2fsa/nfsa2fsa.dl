@@ -34,10 +34,10 @@
 	.decl element(x: T)	// contains all valid elements for this vector
 
 	// output relations:
-	.decl len(list: TList, result: number)
+	.decl len(list: TList, result: N)
 	.decl sublist(list: TList)	// is 'list' a list of given size, or any smaller?
 	.decl vector(list: TList)	// is 'list' our vector, i.e. list of given size
-	.decl member_at(list: TList, index: number, member: T)	// is 'member' at given index position, 1-based index
+	.decl member_at(list: TList, index: N, member: T)	// is 'member' at given index position, 1-based index
 
 	len(nil, 0).
 	len([h, t], l+1) :-  sublist([h, t]), len(t, l).

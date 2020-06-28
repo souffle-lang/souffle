@@ -49,7 +49,7 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
     }
 
     assert(rel != nullptr && "relation type not specified");
-
+    /*
     auto chains = indexSet.getAllChains();
 
     size_t inequalities = 0;
@@ -88,7 +88,7 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
         std::cout << "|";
     }
     std::cout << "\n";
-
+    */
     // generate index set
     rel->computeIndices();
 
@@ -139,11 +139,7 @@ void SynthesiserDirectRelation::computeIndices() {
     MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
-    if (inds.empty()) {
-        MinIndexSelection::LexOrder fullInd(getArity());
-        std::iota(fullInd.begin(), fullInd.end(), 0);
-        inds.push_back(fullInd);
-    }
+    assert(!inds.empty() && "no full index in relation");
 
     size_t index_nr = 0;
     // expand all search orders to be full
@@ -162,7 +158,6 @@ void SynthesiserDirectRelation::computeIndices() {
                     ind.push_back(i);
                 }
             }
-
             if (Global::config().get("provenance") == "subtreeHeights") {
                 // TODO (sarah): assumption index is used exclusively for provenance in case a height
                 // parameter occurs in order of columns before regular columns (at least only in this case it
@@ -218,25 +213,12 @@ void SynthesiserDirectRelation::computeIndices() {
                 ind.push_back(getArity() - relation.getAuxiliaryArity());
                 masterIndex = 0;
             }
-
-        } else if (ind.size() < getArity()) {
-            // expand index to be full
-            for (size_t i = 0; i < getArity(); i++) {
-                if (curIndexElems.find(i) == curIndexElems.end()) {
-                    ind.push_back(i);
-                }
-            }
+        } else if (ind.size() == getArity()) {
+            masterIndex = index_nr;
         }
-
         index_nr++;
     }
-
-    if (!isProvenance) {
-        masterIndex = 0;
-    }
-
-    assert(masterIndex < inds.size());
-
+    assert(masterIndex < inds.size() && "no full index in relation");
     computedIndices = inds;
 }
 
@@ -291,30 +273,77 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             indexToNumMap[getMinIndexSelection().getAllOrders()[i]] = i;
         }
 
+        auto genstruct = [&](std::string name, size_t bound) {
+            out << "struct " << name << "{\n";
+            out << " int operator()(const t_tuple& a, const t_tuple& b) const {\n";
+            out << "  return ";
+            std::function<void(size_t)> gencmp = [&](size_t i) {
+                size_t attrib = ind[i];
+                out << "(a[" << attrib << "] < b[" << attrib << "]) ? -1 : ((a[" << attrib << "] > b["
+                    << attrib << "]) ? 1 :(";
+                if (i + 1 < bound) {
+                    gencmp(i + 1);
+                } else {
+                    out << "0";
+                }
+                out << "))";
+            };
+            gencmp(0);
+            out << ";\n }\n";
+            out << "bool less(const t_tuple& a, const t_tuple& b) const {\n";
+            out << "  return ";
+            std::function<void(size_t)> genless = [&](size_t i) {
+                size_t attrib = ind[i];
+                out << " a[" << attrib << "] < b[" << attrib << "]";
+                if (i + 1 < bound) {
+                    out << "|| (a[" << attrib << "] == b[" << attrib << "] && (";
+                    genless(i + 1);
+                    out << "))";
+                }
+            };
+            genless(0);
+            out << ";\n }\n";
+            out << "bool equal(const t_tuple& a, const t_tuple& b) const {\n";
+            out << "return ";
+            std::function<void(size_t)> geneq = [&](size_t i) {
+                size_t attrib = ind[i];
+                out << "a[" << attrib << "] == b[" << attrib << "]";
+                if (i + 1 < bound) {
+                    out << "&&";
+                    geneq(i + 1);
+                }
+            };
+            geneq(0);
+            out << ";\n }\n";
+            out << "};\n";
+        };
+
+        std::string comparator = "t_comparator_" + std::to_string(i);
+        genstruct(comparator, ind.size());
+
         // for provenance, all indices must be full so we use btree_set
         // also strong/weak comparators and updater methods
 
-        out << "using t_comparator_" << i << " = index_utils::comparator<" << join(ind) << ">;\n";
         if (isProvenance) {
-            if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {  // index for bottom up
-                                                                                   // phase
-                out << "using t_ind_" << i << " = btree_set<t_tuple, t_comparator_" << i
-                    << ", std::allocator<t_tuple>, 256, typename "
-                       "souffle::detail::default_strategy<t_tuple>::type, index_utils::comparator<";
-                out << join(ind.begin(), ind.end() - auxiliaryArity) << ">, updater_" << getTypeName()
-                    << ">;\n";
-            } else {  // index for top down phase
-                out << "using t_ind_" << i << " = btree_set<t_tuple, t_comparator_" << i
-                    << ", std::allocator<t_tuple>, 256, typename "
-                       "souffle::detail::default_strategy<t_tuple>::type, index_utils::comparator<";
-                out << join(ind.begin(), ind.end()) << ">, updater_" << getTypeName() << ">;\n";
+            std::string comparator_aux;
+            if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
+                // index for bottom up phase
+                comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
+                genstruct(comparator_aux, ind.size() - 2);
+            } else {
+                // index for top down phase
+                comparator_aux = comparator;
             }
-            // without provenance, some indices may be not full, so we use btree_multiset for those
+            out << "using t_ind_" << i << " = btree_set<t_tuple," << comparator
+                << ",std::allocator<t_tuple>,256,typename "
+                   "souffle::detail::default_strategy<t_tuple>::type,"
+                << comparator_aux << ",updater_" << getTypeName() << ">;\n";
         } else {
             if (ind.size() == arity) {
-                out << "using t_ind_" << i << " = btree_set<t_tuple, t_comparator_" << i << ">;\n";
+                out << "using t_ind_" << i << " = btree_set<t_tuple," << comparator << ">;\n";
             } else {
-                out << "using t_ind_" << i << " = btree_multiset<t_tuple, t_comparator_" << i << ">;\n";
+                // without provenance, some indices may be not full, so we use btree_multiset for those
+                out << "using t_ind_" << i << " = btree_multiset<t_tuple," << comparator << ">;\n";
             }
         }
         out << "t_ind_" << i << " ind_" << i << ";\n";
@@ -524,46 +553,23 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
 
 /** Generate index set for a indirect indexed relation */
 void SynthesiserIndirectRelation::computeIndices() {
-    assert(!isProvenance);
+    assert(!isProvenance && "indirect indexes cannot used for provenance");
 
     // Generate and set indices
     MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
-    if (inds.empty()) {
-        MinIndexSelection::LexOrder fullInd(getArity());
-        std::iota(fullInd.begin(), fullInd.end(), 0);
-        inds.push_back(fullInd);
-        masterIndex = 0;
-    }
+    assert(!inds.empty() && "no full index in relation");
 
-    // Expand the first index to be a full index if no full inds exist
-    bool fullExists = false;
     // check for full index
     for (size_t i = 0; i < inds.size(); i++) {
         auto& ind = inds[i];
         if (ind.size() == getArity()) {
-            fullExists = true;
-            if (masterIndex == (size_t)-1) {
-                masterIndex = i;
-            }
+            masterIndex = i;
+            break;
         }
     }
-
-    // expand the first ind to be full, it is guaranteed that at least one index exists
-    if (!fullExists) {
-        std::set<int> curIndexElems(inds[0].begin(), inds[0].end());
-
-        // expand index to be full
-        for (size_t i = 0; i < getArity(); i++) {
-            if (curIndexElems.find(i) == curIndexElems.end()) {
-                inds[0].push_back(i);
-            }
-        }
-
-        masterIndex = 0;
-    }
-
+    assert(masterIndex < inds.size() && "no full index in relation");
     computedIndices = inds;
 }
 
@@ -608,15 +614,55 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             indexToNumMap[getMinIndexSelection().getAllOrders()[i]] = i;
         }
 
-        out << "using t_comparator_" << i << " = index_utils::comparator<" << join(ind) << ">;\n";
+        std::string comparator = "t_comparator_" + std::to_string(i);
+
+        out << "struct " << comparator << "{\n";
+        out << " int operator()(const t_tuple *a, const t_tuple *b) const {\n";
+        out << "  return ";
+        std::function<void(size_t)> gencmp = [&](size_t i) {
+            size_t attrib = ind[i];
+            out << "((*a)[" << attrib << "] < (*b)[" << attrib << "]) ? -1 : (((*a)[" << attrib << "] > (*b)["
+                << attrib << "]) ? 1 :(";
+            if (i + 1 < ind.size()) {
+                gencmp(i + 1);
+            } else {
+                out << "0";
+            }
+            out << "))";
+        };
+        gencmp(0);
+        out << ";\n }\n";
+        out << "bool less(const t_tuple *a, const t_tuple *b) const {\n";
+        out << "  return ";
+        std::function<void(size_t)> genless = [&](size_t i) {
+            size_t attrib = ind[i];
+            out << " (*a)[" << attrib << "] < (*b)[" << attrib << "]";
+            if (i + 1 < ind.size()) {
+                out << "|| ((*a)[" << attrib << "] == (*b)[" << attrib << "] && (";
+                genless(i + 1);
+                out << "))";
+            }
+        };
+        genless(0);
+        out << ";\n }\n";
+        out << "bool equal(const t_tuple *a, const t_tuple *b) const {\n";
+        out << "return ";
+        std::function<void(size_t)> geneq = [&](size_t i) {
+            size_t attrib = ind[i];
+            out << "(*a)[" << attrib << "] == (*b)[" << attrib << "]";
+            if (i + 1 < ind.size()) {
+                out << "&&";
+                geneq(i + 1);
+            }
+        };
+        geneq(0);
+        out << ";\n }\n";
+        out << "};\n";
 
         if (ind.size() == arity) {
-            out << "using t_ind_" << i
-                << " = btree_set<const t_tuple*, index_utils::deref_compare<t_comparator_" << i << " >>;\n";
+            out << "using t_ind_" << i << " = btree_set<const t_tuple*," << comparator << ">;\n";
         } else {
-            out << "using t_ind_" << i
-                << " = btree_multiset<const t_tuple*, index_utils::deref_compare<t_comparator_" << i
-                << " >>;\n";
+            out << "using t_ind_" << i << " = btree_multiset<const t_tuple*," << comparator << ">;\n";
         }
 
         out << "t_ind_" << i << " ind_" << i << ";\n";
@@ -747,7 +793,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         }
 
         out << "t_comparator_" << indNum << " comparator;\n";
-        out << "int cmp = comparator(low, high);\n";
+        out << "int cmp = comparator(&low, &high);\n";
 
         // use the more efficient find() method if the search pattern is full
         if (eqSize == arity) {
@@ -835,11 +881,7 @@ void SynthesiserBrieRelation::computeIndices() {
     MinIndexSelection::OrderCollection inds = indices.getAllOrders();
 
     // generate a full index if no indices exist
-    if (inds.empty()) {
-        MinIndexSelection::LexOrder fullInd(getArity());
-        std::iota(fullInd.begin(), fullInd.end(), 0);
-        inds.push_back(fullInd);
-    }
+    assert(!inds.empty() && "No full index in relation");
 
     // expand all indexes to be full
     for (auto& ind : inds) {
@@ -855,7 +897,7 @@ void SynthesiserBrieRelation::computeIndices() {
             }
         }
 
-        assert(ind.size() == getArity());
+        assert(ind.size() == getArity() && "index is not a full");
     }
     masterIndex = 0;
 

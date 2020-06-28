@@ -17,7 +17,6 @@
 #pragma once
 
 #include "souffle/Brie.h"
-#include "souffle/CompiledIndexUtils.h"
 #include "souffle/CompiledTuple.h"
 #include "souffle/EquivalenceRelation.h"
 #include "souffle/IOSystem.h"

@@ -1,4 +1,4 @@
-Error: Variable BB in fact in file fact_variable.dl at line 7
+Error: Argument in fact is not constant in file fact_variable.dl at line 7
 F(BB,"AA").
 --^---------
 Warning: Variable BB only occurs once in file fact_variable.dl at line 7

@@ -129,7 +129,7 @@ step(i, v, d1 + d2, u2) :-
 // compute shortest distance of a node in the i-th step
 //
 
-.decl shortestStepPath(i:Distance, u:Node, d:Distance)
+.decl shortestStepPath(i:number, u:Node, d:Distance)
 
 /* initial shortest distance for start node for first step */
 shortestStepPath(i, u, 0) :-

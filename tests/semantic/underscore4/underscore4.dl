@@ -1,0 +1,26 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Underscore 4
+//
+// Allow underscore in binary constraint, if it appears in record.
+// Issue #1508
+//
+
+.type Pair = [x: number, y: number]
+
+
+.decl in(p: Pair)
+
+in([1, 2]).
+
+
+.decl out(x: number)
+
+out(X) :- in(Z), Z = [X,_].
+
+.output out()

@@ -61,10 +61,10 @@ A(6) :- [1] != _.
 Error: Constraint requires an operand of type `number` or `unsigned` or `float` or `symbol` or a record in file type_system_records2.dl at line 19
 A(6) :- [1] != _.
 --------^---------
-Error: Underscore in binary relation in file type_system_records2.dl at line 19
-A(6) :- [1] != _.
---------^---------
 Error: Constraint requires an operand of type `number` or `unsigned` or `float` or `symbol` or a record in file type_system_records2.dl at line 19
+A(6) :- [1] != _.
+---------------^--
+Error: Underscore in binary relation in file type_system_records2.dl at line 19
 A(6) :- [1] != _.
 ---------------^--
 23 errors generated, evaluation aborted

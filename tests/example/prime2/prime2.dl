@@ -15,7 +15,7 @@
 .decl add(a:number,b:number,r:number)
 .decl mul(a:number,b:number,r:number)
 
-.decl range(x:number)
+.decl candidate(x:number)
 .decl prod(x:number)
 
 
@@ -42,12 +42,12 @@ mul(a,b,r) :- succ(pb,b), mul(a,pb,pr), add(a,pr,r).
 
 // --- compute prime numbers ---
 
-range(x) :- nat(x), x!=0, x!=1.
+candidate(x) :- nat(x), x!=0, x!=1.
 
 // build list of products
-prod(x) :- range(a), range(b), mul(a,b,x).
+prod(x) :- candidate(a), candidate(b), mul(a,b,x).
 
 // define prime numbers
-prime(x) :- range(x), !prod(x).
+prime(x) :- candidate(x), !prod(x).
 
 

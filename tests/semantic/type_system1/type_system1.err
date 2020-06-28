@@ -22,9 +22,6 @@ NumberRelation([1+1]).                 // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 39
 NumberRelation([1+1]).                 // error
 ----------------^-------------------------------
-Error: Function in fact in file type_system1.dl at line 39
-NumberRelation([1+1]).                 // error
-----------------^-------------------------------
 Error: no valid overloads in file type_system1.dl at line 39
 NumberRelation([1+1]).                 // error
 ----------------^-------------------------------
@@ -55,9 +52,6 @@ NumberRelation([1+1, 1+1]).            // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 43
 NumberRelation([1+1, 1+1]).            // error
 ----------------^-------------------------------
-Error: Function in fact in file type_system1.dl at line 43
-NumberRelation([1+1, 1+1]).            // error
-----------------^-------------------------------
 Error: no valid overloads in file type_system1.dl at line 43
 NumberRelation([1+1, 1+1]).            // error
 ----------------^-------------------------------
@@ -65,9 +59,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 NumberRelation([1+1, 1+1]).            // error
 ------------------^-----------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 43
-NumberRelation([1+1, 1+1]).            // error
----------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 43
 NumberRelation([1+1, 1+1]).            // error
 ---------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 43
@@ -106,9 +97,6 @@ NumberRelation([1+1, 1+1, 1+1]).       // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 47
 NumberRelation([1+1, 1+1, 1+1]).       // error
 ----------------^-------------------------------
-Error: Function in fact in file type_system1.dl at line 47
-NumberRelation([1+1, 1+1, 1+1]).       // error
-----------------^-------------------------------
 Error: no valid overloads in file type_system1.dl at line 47
 NumberRelation([1+1, 1+1, 1+1]).       // error
 ----------------^-------------------------------
@@ -118,9 +106,6 @@ NumberRelation([1+1, 1+1, 1+1]).       // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 47
 NumberRelation([1+1, 1+1, 1+1]).       // error
 ---------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 47
-NumberRelation([1+1, 1+1, 1+1]).       // error
----------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 47
 NumberRelation([1+1, 1+1, 1+1]).       // error
 ---------------------^--------------------------
@@ -128,9 +113,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 NumberRelation([1+1, 1+1, 1+1]).       // error
 -----------------------^------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 47
-NumberRelation([1+1, 1+1, 1+1]).       // error
---------------------------^---------------------
-Error: Function in fact in file type_system1.dl at line 47
 NumberRelation([1+1, 1+1, 1+1]).       // error
 --------------------------^---------------------
 Error: no valid overloads in file type_system1.dl at line 47
@@ -178,9 +160,6 @@ SymbolRelation(-1).                    // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 58
 SymbolRelation(1+1).                   // error
 ---------------^--------------------------------
-Error: Function in fact in file type_system1.dl at line 58
-SymbolRelation(1+1).                   // error
----------------^--------------------------------
 Error: no valid overloads in file type_system1.dl at line 58
 SymbolRelation(1+1).                   // error
 ---------------^--------------------------------
@@ -206,9 +185,6 @@ Error: Ambiguous record in file type_system1.dl at line 64
 SymbolRelation([1+1]).                 // error
 ---------------^--------------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 64
-SymbolRelation([1+1]).                 // error
-----------------^-------------------------------
-Error: Function in fact in file type_system1.dl at line 64
 SymbolRelation([1+1]).                 // error
 ----------------^-------------------------------
 Error: no valid overloads in file type_system1.dl at line 64
@@ -241,9 +217,6 @@ SymbolRelation([1+1, 1+1]).            // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 68
 SymbolRelation([1+1, 1+1]).            // error
 ----------------^-------------------------------
-Error: Function in fact in file type_system1.dl at line 68
-SymbolRelation([1+1, 1+1]).            // error
-----------------^-------------------------------
 Error: no valid overloads in file type_system1.dl at line 68
 SymbolRelation([1+1, 1+1]).            // error
 ----------------^-------------------------------
@@ -251,9 +224,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 SymbolRelation([1+1, 1+1]).            // error
 ------------------^-----------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 68
-SymbolRelation([1+1, 1+1]).            // error
----------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 68
 SymbolRelation([1+1, 1+1]).            // error
 ---------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 68
@@ -292,9 +262,6 @@ SymbolRelation([1+1, 1+1, 1+1]).       // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 72
 SymbolRelation([1+1, 1+1, 1+1]).       // error
 ----------------^-------------------------------
-Error: Function in fact in file type_system1.dl at line 72
-SymbolRelation([1+1, 1+1, 1+1]).       // error
-----------------^-------------------------------
 Error: no valid overloads in file type_system1.dl at line 72
 SymbolRelation([1+1, 1+1, 1+1]).       // error
 ----------------^-------------------------------
@@ -304,9 +271,6 @@ SymbolRelation([1+1, 1+1, 1+1]).       // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 72
 SymbolRelation([1+1, 1+1, 1+1]).       // error
 ---------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 72
-SymbolRelation([1+1, 1+1, 1+1]).       // error
----------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 72
 SymbolRelation([1+1, 1+1, 1+1]).       // error
 ---------------------^--------------------------
@@ -314,9 +278,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 SymbolRelation([1+1, 1+1, 1+1]).       // error
 -----------------------^------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 72
-SymbolRelation([1+1, 1+1, 1+1]).       // error
---------------------------^---------------------
-Error: Function in fact in file type_system1.dl at line 72
 SymbolRelation([1+1, 1+1, 1+1]).       // error
 --------------------------^---------------------
 Error: no valid overloads in file type_system1.dl at line 72
@@ -364,9 +325,6 @@ SingleNumberRelation(-1).              // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 83
 SingleNumberRelation(1+1).             // error
 ---------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 83
-SingleNumberRelation(1+1).             // error
----------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 83
 SingleNumberRelation(1+1).             // error
 ---------------------^--------------------------
@@ -389,9 +347,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 DoubleNumberRelation(-1).              // error
 ----------------------^-------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 97
-DoubleNumberRelation(1+1).             // error
----------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 97
 DoubleNumberRelation(1+1).             // error
 ---------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 97
@@ -419,9 +374,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 TripleNumberRelation(-1).              // error
 ----------------------^-------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 110
-TripleNumberRelation(1+1).             // error
----------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 110
 TripleNumberRelation(1+1).             // error
 ---------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 110
@@ -454,9 +406,6 @@ SingleSymbolRelation(-1).              // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 123
 SingleSymbolRelation(1+1).             // error
 ---------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 123
-SingleSymbolRelation(1+1).             // error
----------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 123
 SingleSymbolRelation(1+1).             // error
 ---------------------^--------------------------
@@ -475,9 +424,6 @@ SingleSymbolRelation([-1]).            // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 128
 SingleSymbolRelation([1+1]).           // error
 ----------------------^-------------------------
-Error: Function in fact in file type_system1.dl at line 128
-SingleSymbolRelation([1+1]).           // error
-----------------------^-------------------------
 Error: no valid overloads in file type_system1.dl at line 128
 SingleSymbolRelation([1+1]).           // error
 ----------------------^-------------------------
@@ -494,9 +440,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 DoubleSymbolRelation(-1).              // error
 ----------------------^-------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 136
-DoubleSymbolRelation(1+1).             // error
----------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 136
 DoubleSymbolRelation(1+1).             // error
 ---------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 136
@@ -523,9 +466,6 @@ DoubleSymbolRelation([-1, -1]).        // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 141
 DoubleSymbolRelation([1+1, 1+1]).      // error
 ----------------------^-------------------------
-Error: Function in fact in file type_system1.dl at line 141
-DoubleSymbolRelation([1+1, 1+1]).      // error
-----------------------^-------------------------
 Error: no valid overloads in file type_system1.dl at line 141
 DoubleSymbolRelation([1+1, 1+1]).      // error
 ----------------------^-------------------------
@@ -533,9 +473,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 DoubleSymbolRelation([1+1, 1+1]).      // error
 ------------------------^-----------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 141
-DoubleSymbolRelation([1+1, 1+1]).      // error
----------------------------^--------------------
-Error: Function in fact in file type_system1.dl at line 141
 DoubleSymbolRelation([1+1, 1+1]).      // error
 ---------------------------^--------------------
 Error: no valid overloads in file type_system1.dl at line 141
@@ -554,9 +491,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 TripleSymbolRelation(-1).              // error
 ----------------------^-------------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 149
-TripleSymbolRelation(1+1).             // error
----------------------^--------------------------
-Error: Function in fact in file type_system1.dl at line 149
 TripleSymbolRelation(1+1).             // error
 ---------------------^--------------------------
 Error: no valid overloads in file type_system1.dl at line 149
@@ -589,9 +523,6 @@ TripleSymbolRelation([-1, -1, -1]).    // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 154
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 ----------------------^-------------------------
-Error: Function in fact in file type_system1.dl at line 154
-TripleSymbolRelation([1+1, 1+1, 1+1]). // error
-----------------------^-------------------------
 Error: no valid overloads in file type_system1.dl at line 154
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 ----------------------^-------------------------
@@ -599,9 +530,6 @@ Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at lin
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 ------------------------^-----------------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 154
-TripleSymbolRelation([1+1, 1+1, 1+1]). // error
----------------------------^--------------------
-Error: Function in fact in file type_system1.dl at line 154
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 ---------------------------^--------------------
 Error: no valid overloads in file type_system1.dl at line 154
@@ -613,13 +541,10 @@ TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 154
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 --------------------------------^---------------
-Error: Function in fact in file type_system1.dl at line 154
-TripleSymbolRelation([1+1, 1+1, 1+1]). // error
---------------------------------^---------------
 Error: no valid overloads in file type_system1.dl at line 154
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 --------------------------------^---------------
 Error: Ambiguous constant (unable to deduce type) in file type_system1.dl at line 154
 TripleSymbolRelation([1+1, 1+1, 1+1]). // error
 ----------------------------------^-------------
-208 errors generated, evaluation aborted
+183 errors generated, evaluation aborted

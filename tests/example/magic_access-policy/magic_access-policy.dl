@@ -6,7 +6,7 @@
 
 .type String <: symbol
 
-.decl view_employee(x : String, p:String, ssn:number, s:number, e:String, d:String, pos:String, bday:number)
+.decl view_employee(x : String, p:String, ssn:String, s:number, e:String, d:String, pos:String, bday:number)
 .output view_employee()
 .decl view_cwPriv(n : String, person :String, bank1Priv :number, bank2Priv : number)
 .input view_cwPriv()
@@ -15,7 +15,7 @@
 .decl view_bank2(n :String, Data1 : number, Data2:number)
 .input view_bank2()
 
-.decl employee(person : String, ssn: number, salary : number, email: String, dept : String, pos : String, bday : number)
+.decl employee(person : String, ssn:String, salary : number, email: String, dept : String, pos : String, bday : number)
 .input employee()
 
 .decl inslogtable(user :String, person :String, day : number)
@@ -47,11 +47,11 @@ view_employee(User, Person, SSN, Salary, Email, Dept, Position, Bday) :-
   view_employee("Alice", User, _, _, _, Dept,"Manager", _),
   view_employee("Alice", Person, SSN, Salary, Email, Dept, Position, Bday).
 
-view_employee(User, Person, 0, 0, Email, Dept, Position, Bday) :-
+view_employee(User, Person, "0", 0, Email, Dept, Position, Bday) :-
   view_employee("Alice", User, _, _, _, _, _, _),
   view_employee("Alice", Person, _, _, Email, Dept, Position, Bday).
 
-view_employee(User, Person, 0, 0, " ", " ", " ", Bday) :-
+view_employee(User, Person, "0", 0, " ", " ", " ", Bday) :-
   insurance(User),
   view_employee("Alice", Person, _, _, _, _, _, Bday),
   inslogtable(User, Person, 92311).
