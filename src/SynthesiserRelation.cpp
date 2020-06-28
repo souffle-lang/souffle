@@ -242,6 +242,7 @@ std::string SynthesiserDirectRelation::getTypeName() {
 void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
     size_t arity = getArity();
     size_t auxiliaryArity = relation.getAuxiliaryArity();
+    auto types = relation.getAttributeTypes();
     const auto& inds = getIndices();
     size_t numIndexes = inds.size();
     std::map<MinIndexSelection::LexOrder, int> indexToNumMap;
@@ -279,8 +280,18 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "  return ";
             std::function<void(size_t)> gencmp = [&](size_t i) {
                 size_t attrib = ind[i];
-                out << "(a[" << attrib << "] < b[" << attrib << "]) ? -1 : ((a[" << attrib << "] > b["
-                    << attrib << "]) ? 1 :(";
+
+                std::string element_type_cast("");
+
+                switch (types[attrib][0]) {
+                    case 'i': element_type_cast = "(RamSigned)"; break;
+                    case 'u': element_type_cast = "(RamUnsigned)"; break;
+                    case 'f': element_type_cast = "(RamFloat)"; break;
+                }
+
+                out << "(" << element_type_cast << "a[" << attrib << "] < " << element_type_cast << "b["
+                    << attrib << "]) ? -1 : ((" << element_type_cast << "a[" << attrib << "] > "
+                    << element_type_cast << "b[" << attrib << "]) ? 1 :(";
                 if (i + 1 < bound) {
                     gencmp(i + 1);
                 } else {
@@ -294,9 +305,20 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "  return ";
             std::function<void(size_t)> genless = [&](size_t i) {
                 size_t attrib = ind[i];
-                out << " a[" << attrib << "] < b[" << attrib << "]";
+
+                std::string element_type_cast("");
+
+                switch (types[attrib][0]) {
+                    case 'i': element_type_cast = "(RamSigned)"; break;
+                    case 'u': element_type_cast = "(RamUnsigned)"; break;
+                    case 'f': element_type_cast = "(RamFloat)"; break;
+                }
+
+                out << " " << element_type_cast << "a[" << attrib << "] < " << element_type_cast << "b["
+                    << attrib << "]";
                 if (i + 1 < bound) {
-                    out << "|| (a[" << attrib << "] == b[" << attrib << "] && (";
+                    out << "|| (" << element_type_cast << "a[" << attrib << "] == " << element_type_cast
+                        << "b[" << attrib << "] && (";
                     genless(i + 1);
                     out << "))";
                 }
@@ -307,7 +329,17 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             out << "return ";
             std::function<void(size_t)> geneq = [&](size_t i) {
                 size_t attrib = ind[i];
-                out << "a[" << attrib << "] == b[" << attrib << "]";
+
+                std::string element_type_cast("");
+
+                switch (types[attrib][0]) {
+                    case 'i': element_type_cast = "(RamSigned)"; break;
+                    case 'u': element_type_cast = "(RamUnsigned)"; break;
+                    case 'f': element_type_cast = "(RamFloat)"; break;
+                }
+
+                out << "" << element_type_cast << "a[" << attrib << "] == " << element_type_cast << "b["
+                    << attrib << "]";
                 if (i + 1 < bound) {
                     out << "&&";
                     geneq(i + 1);
@@ -458,23 +490,14 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             }
         }
 
-        out << "t_tuple low(lower);\n";
-        out << "t_tuple high(upper);\n";
-        for (size_t column = 0; column < arity; column++) {
-            if (search[column] == AttributeConstraint::None) {
-                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-            }
-        }
-
         out << "t_comparator_" << indNum << " comparator;\n";
-        out << "int cmp = comparator(low, high);\n";
+        out << "int cmp = comparator(lower, upper);\n";
 
         // if search signature is full we can apply this specialization
         if (eqSize == arity) {
             // use the more efficient find() method if lower == upper
             out << "if (cmp == 0) {\n";
-            out << "    auto pos = ind_" << indNum << ".find(low, h.hints_" << indNum << "_lower);\n";
+            out << "    auto pos = ind_" << indNum << ".find(lower, h.hints_" << indNum << "_lower);\n";
             out << "    auto fin = ind_" << indNum << ".end();\n";
             out << "    if (pos != fin) {fin = pos; ++fin;}\n";
             out << "    return make_range(pos, fin);\n";
@@ -485,8 +508,8 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
         out << "    return make_range(ind_" << indNum << ".end(), ind_" << indNum << ".end());\n";
         out << "}\n";
         // otherwise use the general method
-        out << "return make_range(ind_" << indNum << ".lower_bound(low, h.hints_" << indNum << "_lower"
-            << "), ind_" << indNum << ".upper_bound(high, h.hints_" << indNum << "_upper"
+        out << "return make_range(ind_" << indNum << ".lower_bound(lower, h.hints_" << indNum << "_lower"
+            << "), ind_" << indNum << ".upper_bound(upper, h.hints_" << indNum << "_upper"
             << "));\n";
 
         out << "}\n";
@@ -783,23 +806,14 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
             }
         }
 
-        out << "t_tuple low(lower);\n";
-        out << "t_tuple high(upper);\n";
-        for (size_t column = 0; column < arity; column++) {
-            if (search[column] == AttributeConstraint::None) {
-                out << "low[" << column << "] = MIN_RAM_SIGNED;\n";
-                out << "high[" << column << "] = MAX_RAM_SIGNED;\n";
-            }
-        }
-
         out << "t_comparator_" << indNum << " comparator;\n";
-        out << "int cmp = comparator(&low, &high);\n";
+        out << "int cmp = comparator(&lower, &upper);\n";
 
         // use the more efficient find() method if the search pattern is full
         if (eqSize == arity) {
             // if lower == upper we can just do a find
             out << "if (cmp == 0) {\n";
-            out << "    auto pos = find(low, h);\n";
+            out << "    auto pos = find(lower, h);\n";
             out << "    auto fin = end();\n";
             out << "    if (pos != fin) {fin = pos; ++fin;}\n";
             out << "    return make_range(pos, fin);\n";
@@ -812,9 +826,9 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
         out << "}\n";
 
         // otherwise do the default method
-        out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&low, h.hints_"
+        out << "return range<iterator_" << indNum << ">(ind_" << indNum << ".lower_bound(&lower, h.hints_"
             << indNum << "_lower"
-            << "), ind_" << indNum << ".upper_bound(&high, h.hints_" << indNum << "_upper"
+            << "), ind_" << indNum << ".upper_bound(&upper, h.hints_" << indNum << "_upper"
             << "));\n";
 
         out << "}\n";

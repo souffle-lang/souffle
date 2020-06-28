@@ -651,12 +651,31 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "}};\n";
 
             for (size_t column = 0; column < arity; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "MIN_RAM_SIGNED";
+                        infimum = "MAX_RAM_SIGNED";
+                        break;
+                    case 'u':
+                        supremum = "MIN_RAM_UNSIGNED";
+                        infimum = "MAX_RAM_UNSIGNED";
+                        break;
+                    case 'f':
+                        supremum = "MIN_RAM_FLOAT";
+                        infimum = "MAX_RAM_FLOAT";
+                        break;
+                    default: supremum = "MIN_RAM_SIGNED"; infimum = "MAX_RAM_SIGNED";
+                }
+
                 // if we have an inequality where either side is not set
                 if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                    out << "lower[" << column << "] = " << supremum << ";\n";
                 }
                 if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                    out << "upper[" << column << "] = " << infimum << ";\n";
                 }
             }
 
@@ -699,12 +718,31 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "}};\n";
 
             for (size_t column = 0; column < arity; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "MIN_RAM_SIGNED";
+                        infimum = "MAX_RAM_SIGNED";
+                        break;
+                    case 'u':
+                        supremum = "MIN_RAM_UNSIGNED";
+                        infimum = "MAX_RAM_UNSIGNED";
+                        break;
+                    case 'f':
+                        supremum = "MIN_RAM_FLOAT";
+                        infimum = "MAX_RAM_FLOAT";
+                        break;
+                    default: supremum = "MIN_RAM_SIGNED"; infimum = "MAX_RAM_SIGNED";
+                }
+
                 // if we have an inequality where either side is not set
                 if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                    out << "lower[" << column << "] = " << supremum << ";\n";
                 }
                 if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                    out << "upper[" << column << "] = " << infimum << ";\n";
                 }
             }
 
@@ -750,12 +788,31 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "}};\n";
 
             for (size_t column = 0; column < arity; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "MIN_RAM_SIGNED";
+                        infimum = "MAX_RAM_SIGNED";
+                        break;
+                    case 'u':
+                        supremum = "MIN_RAM_UNSIGNED";
+                        infimum = "MAX_RAM_UNSIGNED";
+                        break;
+                    case 'f':
+                        supremum = "MIN_RAM_FLOAT";
+                        infimum = "MAX_RAM_FLOAT";
+                        break;
+                    default: supremum = "MIN_RAM_SIGNED"; infimum = "MAX_RAM_SIGNED";
+                }
+
                 // if we have an inequality where either side is not set
                 if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                    out << "lower[" << column << "] = " << supremum << ";\n";
                 }
                 if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                    out << "upper[" << column << "] = " << infimum << ";\n";
                 }
             }
 
@@ -806,12 +863,31 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "}};\n";
 
             for (size_t column = 0; column < arity; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "MIN_RAM_SIGNED";
+                        infimum = "MAX_RAM_SIGNED";
+                        break;
+                    case 'u':
+                        supremum = "MIN_RAM_UNSIGNED";
+                        infimum = "MAX_RAM_UNSIGNED";
+                        break;
+                    case 'f':
+                        supremum = "MIN_RAM_FLOAT";
+                        infimum = "MAX_RAM_FLOAT";
+                        break;
+                    default: supremum = "MIN_RAM_SIGNED"; infimum = "MAX_RAM_SIGNED";
+                }
+
                 // if we have an inequality where either side is not set
                 if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                    out << "lower[" << column << "] = " << supremum << ";\n";
                 }
                 if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                    out << "upper[" << column << "] = " << infimum << ";\n";
                 }
             }
 
@@ -956,12 +1032,31 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 out << "}};\n";
 
                 for (size_t column = 0; column < arity; column++) {
+                    std::string supremum;
+                    std::string infimum;
+
+                    switch (rel.getAttributeTypes()[column][0]) {
+                        case 'i':
+                            supremum = "MIN_RAM_SIGNED";
+                            infimum = "MAX_RAM_SIGNED";
+                            break;
+                        case 'u':
+                            supremum = "MIN_RAM_UNSIGNED";
+                            infimum = "MAX_RAM_UNSIGNED";
+                            break;
+                        case 'f':
+                            supremum = "MIN_RAM_FLOAT";
+                            infimum = "MAX_RAM_FLOAT";
+                            break;
+                        default: supremum = "MIN_RAM_SIGNED"; infimum = "MAX_RAM_SIGNED";
+                    }
+
                     // if we have an inequality where either side is not set
                     if (isRamUndefValue(patternsLower[column])) {
-                        out << "lower[" << column << "] = MIN_RAM_SIGNED;\n";
+                        out << "lower[" << column << "] = " << supremum << ";\n";
                     }
                     if (isRamUndefValue(patternsUpper[column])) {
-                        out << "upper[" << column << "] = MAX_RAM_SIGNED;\n";
+                        out << "upper[" << column << "] = " << infimum << ";\n";
                     }
                 }
 
@@ -1350,15 +1445,66 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 return;
             }
 
+            std::stringstream low;
+            std::stringstream high;
+
+            low << "Tuple<RamDomain," << arity << ">{{";
+            high << "Tuple<RamDomain," << arity << ">{{";
+
+            auto rangePatternLower = exists.getValues();
+            auto rangePatternUpper = exists.getValues();
+
+            for (size_t column = 0; column < arity; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "MIN_RAM_SIGNED";
+                        infimum = "MAX_RAM_SIGNED";
+                        break;
+                    case 'u':
+                        supremum = "MIN_RAM_UNSIGNED";
+                        infimum = "MAX_RAM_UNSIGNED";
+                        break;
+                    case 'f':
+                        supremum = "MIN_RAM_FLOAT";
+                        infimum = "MAX_RAM_FLOAT";
+                        break;
+                    default: supremum = "MIN_RAM_SIGNED"; infimum = "MAX_RAM_SIGNED";
+                }
+
+                // if we have an inequality where either side is not set
+                if (column != 0) {
+                    low << ", ";
+                    high << ", ";
+                }
+
+                if (isRamUndefValue(rangePatternLower[column])) {
+                    low << supremum;
+                } else {
+                    low << "ramBitCast(";
+                    visit(rangePatternLower[column], low);
+                    low << ")";
+                }
+
+                if (isRamUndefValue(rangePatternUpper[column])) {
+                    high << infimum;
+                } else {
+                    high << "ramBitCast(";
+                    visit(rangePatternUpper[column], high);
+                    high << ")";
+                }
+            }
+
+            low << "}}";
+            high << "}}";
+
             // else we conduct a range query
             out << "!" << relName << "->"
                 << "lowerUpperRange";
             out << "_" << isa->getSearchSignature(&exists);
-            out << "(Tuple<RamDomain," << arity << ">{{";
-            out << join(exists.getValues(), ",", recWithDefault);
-            out << "}},Tuple<RamDomain," << arity << ">{{";
-            out << join(exists.getValues(), ",", recWithDefault);
-            out << "}}," << ctxName << ").empty()" << after;
+            out << "(" << low.str() << "," << high.str() << "," << ctxName << ").empty()" << after;
             PRINT_END_COMMENT(out);
         }
 
