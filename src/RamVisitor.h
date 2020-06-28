@@ -109,7 +109,7 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(Filter);
         FORWARD(Break);
         FORWARD(Project);
-        FORWARD(SubroutineReturnValue);
+        FORWARD(SubroutineReturn);
         FORWARD(UnpackRecord);
         FORWARD(NestedIntrinsicOperator);
         FORWARD(ParallelScan);
@@ -185,7 +185,7 @@ protected:
 
     // -- operations --
     LINK(Project, Operation);
-    LINK(SubroutineReturnValue, Operation);
+    LINK(SubroutineReturn, Operation);
     LINK(UnpackRecord, TupleOperation);
     LINK(NestedIntrinsicOperator, TupleOperation)
     LINK(Scan, RelationOperation);

@@ -25,6 +25,14 @@ C(a) :- F(_, a).
 D(x) :- F(x, x).
 E(y) :- F(y, y).
 
+// these two are equivalent
+D(x) :- A(x), A(x), A(x), B(x).
+D(x) :- B(x), A(x).
+
+// these two are redundant
+D(x) :- D(x).
+D(x) :- D(x), x != 1, A(x).
+
 G(x) :- A(x).
 G(x) :- B(x).
 G(x) :- C(x).

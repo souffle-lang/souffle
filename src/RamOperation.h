@@ -1046,6 +1046,12 @@ public:
     }
 
 protected:
+    void print(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "UNPACK t" << getTupleId() << " FROM " << *expression << "\n";
+        RamNestedOperation::print(os, tabpos + 1);
+    }
+
     bool equal(const RamNode& node) const override {
         const auto& other = static_cast<const RamUnpackRecord&>(node);
         return RamTupleOperation::equal(other) && equal_ptr(expression, other.expression) &&
@@ -1239,7 +1245,7 @@ protected:
 };
 
 /**
- * @class RamSubroutineReturnValue
+ * @class RamSubroutineReturn
  * @brief A statement for returning from a ram subroutine
  *
  * For example:
@@ -1248,10 +1254,9 @@ protected:
  *     RETURN (t0.0, t0.1)
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-class RamSubroutineReturnValue : public RamOperation {
+class RamSubroutineReturn : public RamOperation {
 public:
-    RamSubroutineReturnValue(std::vector<std::unique_ptr<RamExpression>> vals)
-            : expressions(std::move(vals)) {
+    RamSubroutineReturn(std::vector<std::unique_ptr<RamExpression>> vals) : expressions(std::move(vals)) {
         for (const auto& expr : expressions) {
             assert(expr != nullptr && "Expression is a null-pointer");
         }
@@ -1270,12 +1275,12 @@ public:
         return res;
     }
 
-    RamSubroutineReturnValue* clone() const override {
+    RamSubroutineReturn* clone() const override {
         std::vector<std::unique_ptr<RamExpression>> newValues;
         for (auto& expr : expressions) {
             newValues.emplace_back(expr->clone());
         }
-        return new RamSubroutineReturnValue(std::move(newValues));
+        return new RamSubroutineReturn(std::move(newValues));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -1298,7 +1303,7 @@ protected:
     }
 
     bool equal(const RamNode& node) const override {
-        const auto& other = static_cast<const RamSubroutineReturnValue&>(node);
+        const auto& other = static_cast<const RamSubroutineReturn&>(node);
         return equal_targets(expressions, other.expressions);
     }
 

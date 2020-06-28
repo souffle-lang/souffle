@@ -129,7 +129,7 @@ int RamLevelAnalysis::getLevel(const RamNode* node) const {
         }
 
         // return
-        int visitSubroutineReturnValue(const RamSubroutineReturnValue& ret) override {
+        int visitSubroutineReturn(const RamSubroutineReturn& ret) override {
             int level = -1;
             for (auto& exp : ret.getValues()) {
                 level = std::max(level, visit(exp));

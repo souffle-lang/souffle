@@ -465,8 +465,83 @@ bool reduceSingletonRelations(AstTranslationUnit& translationUnit) {
     return !canonicalName.empty();
 }
 
+/**
+ * Remove clauses that are only satisfied if they are already satisfied.
+ * @return true iff the program has changed
+ */
+bool removeRedundantClauses(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+    auto isRedundant = [&](const AstClause* clause) {
+        const auto* head = clause->getHead();
+        for (const auto* lit : clause->getBodyLiterals()) {
+            if (*head == *lit) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    std::set<std::unique_ptr<AstClause>> clausesToRemove;
+    for (const auto* clause : program.getClauses()) {
+        if (isRedundant(clause)) {
+            clausesToRemove.insert(std::unique_ptr<AstClause>(clause->clone()));
+        }
+    }
+
+    for (auto& clause : clausesToRemove) {
+        program.removeClause(clause.get());
+    }
+    return !clausesToRemove.empty();
+}
+
+/**
+ * Remove repeated literals within a clause.
+ * @return true iff the program has changed
+ */
+bool reduceClauseBodies(AstTranslationUnit& translationUnit) {
+    auto& program = *translationUnit.getProgram();
+    std::set<std::unique_ptr<AstClause>> clausesToAdd;
+    std::set<std::unique_ptr<AstClause>> clausesToRemove;
+
+    for (const auto* clause : program.getClauses()) {
+        auto bodyLiterals = clause->getBodyLiterals();
+        std::set<size_t> redundantPositions;
+        for (size_t i = 0; i < bodyLiterals.size(); i++) {
+            for (size_t j = 0; j < i; j++) {
+                if (*bodyLiterals[i] == *bodyLiterals[j]) {
+                    redundantPositions.insert(j);
+                    break;
+                }
+            }
+        }
+
+        if (!redundantPositions.empty()) {
+            auto minimisedClause = std::make_unique<AstClause>();
+            minimisedClause->setHead(std::unique_ptr<AstAtom>(clause->getHead()->clone()));
+            for (size_t i = 0; i < bodyLiterals.size(); i++) {
+                if (!contains(redundantPositions, i)) {
+                    minimisedClause->addToBody(std::unique_ptr<AstLiteral>(bodyLiterals[i]->clone()));
+                }
+            }
+            clausesToAdd.insert(std::move(minimisedClause));
+            clausesToRemove.insert(std::unique_ptr<AstClause>(clause->clone()));
+        }
+    }
+
+    for (auto& clause : clausesToRemove) {
+        program.removeClause(clause.get());
+    }
+    for (auto& clause : clausesToAdd) {
+        program.addClause(std::unique_ptr<AstClause>(clause->clone()));
+    }
+
+    return !clausesToAdd.empty();
+}
+
 bool MinimiseProgramTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
+    changed |= reduceClauseBodies(translationUnit);
+    changed |= removeRedundantClauses(translationUnit);
     changed |= reduceLocallyEquivalentClauses(translationUnit);
     changed |= reduceSingletonRelations(translationUnit);
     return changed;

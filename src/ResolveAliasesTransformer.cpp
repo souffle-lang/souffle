@@ -220,17 +220,22 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
         return res;
     };
 
-    // find all variables appearing as functorless arguments in grounding atoms
-    // these variables are the source of groundedness
-    // e.g. a(y) :- b(x), y = x + 1. -- y is only grounded because x appears in b(x)
+    // variables appearing as functorless arguments in atoms or records should not
+    // be resolved
     std::set<std::string> baseGroundedVariables;
     for (const auto* atom : getBodyLiterals<AstAtom>(clause)) {
-        // TODO (azreika): getArguments for atoms [same way]
         for (const AstArgument* arg : atom->getArguments()) {
             if (const auto* var = dynamic_cast<const AstVariable*>(arg)) {
                 baseGroundedVariables.insert(var->getName());
             }
         }
+        visitDepthFirst(*atom, [&](const AstRecordInit& rec) {
+            for (const AstArgument* arg : rec.getArguments()) {
+                if (const auto* var = dynamic_cast<const AstVariable*>(arg)) {
+                    baseGroundedVariables.insert(var->getName());
+                }
+            }
+        });
     }
 
     // I) extract equations
@@ -384,12 +389,27 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
         }
     }
 
+    // find all functors in records too
+    visitDepthFirst(atoms, [&](const AstRecordInit& rec) {
+        for (const AstArgument* arg : rec.getArguments()) {
+            // ignore if not a functor
+            if (dynamic_cast<const AstFunctor*>(arg) == nullptr) {
+                continue;
+            }
+
+            // add this functor if not seen yet
+            if (!any_of(terms, [&](const AstArgument* cur) { return *cur == *arg; })) {
+                terms.push_back(arg);
+            }
+        }
+    });
+
     // substitute them with new variables (a real map would compare pointers)
     using substitution_map =
             std::vector<std::pair<std::unique_ptr<AstArgument>, std::unique_ptr<AstVariable>>>;
     substitution_map termToVar;
 
-    int varCounter = 0;
+    static int varCounter = 0;
     for (const AstArgument* arg : terms) {
         // create a new mapping for this term
         auto term = std::unique_ptr<AstArgument>(arg->clone());

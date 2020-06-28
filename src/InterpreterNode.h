@@ -66,7 +66,7 @@ enum InterpreterNodeType {
     I_Break,
     I_Filter,
     I_Project,
-    I_SubroutineReturnValue,
+    I_SubroutineReturn,
     I_Sequence,
     I_Parallel,
     I_Loop,

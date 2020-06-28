@@ -76,7 +76,7 @@ m4_define([TEST_EVAL_FUNCTOR],[
   # TODO (darth_tytus): Investigate a better solution.
   cp ../../interface/functors/.libs/libfunctors.dylib /usr/local/lib/ 2>/dev/null
   # invoke souffle
-  AT_CHECK([LD_LIBRARY_PATH=. "$SOUFFLE" FLAGS -L. -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
+  AT_CHECK([LD_LIBRARY_PATH=. "$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
   SORTED_SAME_FILES([*.csv],[TESTDIR])
   SAME_FILE([TESTNAME.out],[TESTDIR/TESTNAME.out])
   SAME_FILE([TESTNAME.err],[TESTDIR/TESTNAME.err])

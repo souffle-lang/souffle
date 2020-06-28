@@ -1780,7 +1780,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
         // -- subroutine return --
 
-        void visitSubroutineReturnValue(const RamSubroutineReturnValue& ret, std::ostream& out) override {
+        void visitSubroutineReturn(const RamSubroutineReturn& ret, std::ostream& out) override {
             out << "std::lock_guard<std::mutex> guard(lock);\n";
             for (auto val : ret.getValues()) {
                 if (isRamUndefValue(val)) {
@@ -2285,25 +2285,24 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         // generate method for each subroutine
         subroutineNum = 0;
         for (auto& sub : prog.getSubroutines()) {
-            // method header
+            // issue method header
             os << "void "
                << "subroutine_" << subroutineNum
                << "(const std::vector<RamDomain>& args, "
                   "std::vector<RamDomain>& ret) {\n";
 
-            // a lock is needed when filling the subroutine return vectors
-            // for provenance subroutines
-            // TODO (b-scholz): Can we encapsulate this in RamReturn?
-            std::string pre("stratum_");
-            if ((sub.first).substr(0, pre.length()) != "stratum_") {
+            // issue lock variable for return statements
+            bool needLock = false;
+            visitDepthFirst(*sub.second, [&](const RamSubroutineReturn&) { needLock = true; });
+            if (needLock) {
                 os << "std::mutex lock;\n";
             }
 
-            // generate code for body
+            // emit code for subroutine
             emitCode(os, *sub.second);
 
-            os << "return;\n";
-            os << "}\n";  // end of subroutine
+            // issue end of subroutine
+            os << "}\n";
             subroutineNum++;
         }
     }

@@ -668,7 +668,7 @@ std::unique_ptr<RamOperation> AstTranslator::ProvenanceClauseTranslator::createO
         }
     }
 
-    return std::make_unique<RamSubroutineReturnValue>(std::move(values));
+    return std::make_unique<RamSubroutineReturn>(std::move(values));
 }
 
 std::unique_ptr<RamCondition> AstTranslator::ClauseTranslator::createCondition(
@@ -1498,10 +1498,10 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
             // create a RamQuery to return true/false
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(existenceCheck),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnTrue)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnTrue)))));
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(negativeExistenceCheck),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnFalse)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnFalse)))));
 
         } else if (auto con = dynamic_cast<AstConstraint*>(lit)) {
             VariablesToArguments varsToArgs(uniqueVariables);
@@ -1522,10 +1522,10 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
 
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(condition),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnTrue)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnTrue)))));
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(negativeCondition),
-                            std::make_unique<RamSubroutineReturnValue>(std::move(returnFalse)))));
+                            std::make_unique<RamSubroutineReturn>(std::move(returnFalse)))));
         }
 
         litNumber++;

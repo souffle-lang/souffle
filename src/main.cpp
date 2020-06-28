@@ -77,7 +77,7 @@ void executeBinary(const std::string& binaryFilename) {
         for (const std::string& library : splitString(Global::config().get("library-dir"), ' ')) {
             ldPath += library + ':';
         }
-        ldPath.back() = ' ';
+        ldPath.pop_back();
         setenv("LD_LIBRARY_PATH", ldPath.c_str(), 1);
         setenv("DYLD_LIBRARY_PATH", ldPath.c_str(), 1);
     }
@@ -167,8 +167,8 @@ int main(int argc, char** argv) {
                 {"swig", 's', "LANG", "", false,
                         "Generate SWIG interface for given language. The values <LANG> accepts is java and "
                         "python. "},
-                {"library-dir", 'L', "DIR", "", true, "Specify directory for library files."},
-                {"libraries", 'l', "FILE", "", true, "Specify libraries."},
+                {"library-dir", 'L', "DIR", "", false, "Specify directory for library files."},
+                {"libraries", 'l', "FILE", "", false, "Specify libraries."},
                 {"no-warn", 'w', "", "", false, "Disable warnings."},
                 {"magic-transform", 'm', "RELATIONS", "", false,
                         "Enable magic set transformation changes on the given relations, use '*' "
@@ -253,7 +253,7 @@ int main(int argc, char** argv) {
         }
 #else
         // Check that -j option has not been changed from the default
-        if (Global::config().get("jobs") != "1") {
+        if (Global::config().get("jobs") != "1" && !Global::config().has("no-warn")) {
             std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
         }
 #endif

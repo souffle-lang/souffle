@@ -196,8 +196,7 @@ m4_define([NEGATIVE_TEST],[
 dnl Defines most relevant Souffle flag configurations for testing.
 dnl NOTE: This is the default configuration that can be overridden
 dnl using SOUFFLE_CONFS environment variable.
-m4_define([DEFAULT_CONFS], [[],      dnl run default interpreter in sequential
-  [-j8],                             dnl run interpreter in parallel
+m4_define([DEFAULT_CONFS], [[-j8],   dnl run interpreter in parallel
   [-c -j8]                           dnl compile, then execute in parallel
 ])
 

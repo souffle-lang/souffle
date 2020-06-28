@@ -136,7 +136,7 @@ TEST(RamQuery, CloneAndEquals) {
      */
     std::vector<std::unique_ptr<RamExpression>> d_return_value;
     d_return_value.emplace_back(new RamTupleElement(1, 0));
-    auto d_return = std::make_unique<RamSubroutineReturnValue>(std::move(d_return_value));
+    auto d_return = std::make_unique<RamSubroutineReturn>(std::move(d_return_value));
     // condition t1.0 = 0
     auto d_cond = std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
             std::make_unique<RamTupleElement>(1, 0), std::make_unique<RamSignedConstant>(0));
@@ -145,7 +145,7 @@ TEST(RamQuery, CloneAndEquals) {
 
     std::vector<std::unique_ptr<RamExpression>> e_return_value;
     e_return_value.emplace_back(new RamTupleElement(1, 0));
-    auto e_return = std::make_unique<RamSubroutineReturnValue>(std::move(e_return_value));
+    auto e_return = std::make_unique<RamSubroutineReturn>(std::move(e_return_value));
     // condition t1.0 = 0
     auto e_cond = std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
             std::make_unique<RamTupleElement>(1, 0), std::make_unique<RamSignedConstant>(0));
