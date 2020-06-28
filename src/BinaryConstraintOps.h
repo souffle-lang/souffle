@@ -75,7 +75,7 @@ inline bool isEqConstraint(const BinaryConstraintOp constraintOp) {
 }
 
 // need to distinguish which inequalities are indexable and thus introduce isIneqConstraint
-inline bool isIneqConstraint(const BinaryConstraintOp constraintOp) {
+inline bool isIneqSigned(const BinaryConstraintOp constraintOp) {
     switch (constraintOp) {
         case BinaryConstraintOp::LT:
         case BinaryConstraintOp::GT:
@@ -86,22 +86,75 @@ inline bool isIneqConstraint(const BinaryConstraintOp constraintOp) {
     return false;
 }
 
-inline bool isLessThanConstraint(const BinaryConstraintOp constraintOp) {
+inline bool isIneqUnsigned(const BinaryConstraintOp constraintOp) {
+    switch (constraintOp) {
+        case BinaryConstraintOp::ULT:
+        case BinaryConstraintOp::UGT:
+        case BinaryConstraintOp::ULE:
+        case BinaryConstraintOp::UGE: return true;
+        default: break;
+    }
+    return false;
+}
+
+inline bool isIneqFloat(const BinaryConstraintOp constraintOp) {
+    switch (constraintOp) {
+        case BinaryConstraintOp::FLT:
+        case BinaryConstraintOp::FGT:
+        case BinaryConstraintOp::FLE:
+        case BinaryConstraintOp::FGE: return true;
+        default: break;
+    }
+    return false;
+}
+
+inline bool isLessThanSigned(const BinaryConstraintOp constraintOp) {
     return constraintOp == BinaryConstraintOp::LT;
 }
 
-inline bool isGreaterThanConstraint(const BinaryConstraintOp constraintOp) {
+inline bool isGreaterThanSigned(const BinaryConstraintOp constraintOp) {
     return constraintOp == BinaryConstraintOp::GT;
 }
 
-inline bool isLessEqualConstraint(const BinaryConstraintOp constraintOp) {
+inline bool isLessEqualSigned(const BinaryConstraintOp constraintOp) {
     return constraintOp == BinaryConstraintOp::LE;
 }
 
-inline bool isGreaterEqualConstraint(const BinaryConstraintOp constraintOp) {
+inline bool isGreaterEqualSigned(const BinaryConstraintOp constraintOp) {
     return constraintOp == BinaryConstraintOp::GE;
 }
 
+inline bool isLessThanUnsigned(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::ULT;
+}
+
+inline bool isGreaterThanUnsigned(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::UGT;
+}
+
+inline bool isLessEqualUnsigned(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::ULE;
+}
+
+inline bool isGreaterEqualUnsigned(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::UGE;
+}
+
+inline bool isLessThanFloat(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::FLT;
+}
+
+inline bool isGreaterThanFloat(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::FGT;
+}
+
+inline bool isLessEqualFloat(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::FLE;
+}
+
+inline bool isGreaterEqualFloat(const BinaryConstraintOp constraintOp) {
+    return constraintOp == BinaryConstraintOp::FGE;
+}
 /**
  * Utility function, informing whether constraint is overloaded.
  * Only the signed version's are treated as overloaded (as they are returned by the parser).

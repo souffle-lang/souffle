@@ -582,6 +582,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
 
 const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
+    /*
     bool changed = true;
     while (changed) {
         changed = false;
@@ -754,6 +755,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
             }
         }
     }
+    */
     return chains;
 }
 
@@ -784,14 +786,11 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
         auto end = *chain.rbegin();
         // if the current operation is this one then we can permit a single indexed inequality
         if (end == s) {
-            auto startswith = [](const std::string& str, const std::string& pre) -> bool {
-                return str.rfind(pre, 0) == 0;
-            };
             for (size_t i = 0; i < s.arity(); ++i) {
                 // don't discharge an inequality if we have a numeric attribute
                 if (s[i] == AttributeConstraint::Inequal) {
                     std::string type = rel.getAttributeTypes()[i];
-                    if (startswith(type, "i:")) {
+                    if (type[0] == 'i' || type[0] == 'u') {
                         // if this is an inequality then it won't be discharged
                         attributesToDischarge.erase(i);
                         break;  // we break here so as to only permit a single indexed inequality
