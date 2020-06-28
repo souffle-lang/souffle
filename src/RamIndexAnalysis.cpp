@@ -148,7 +148,8 @@ SearchSignature SearchSignature::getDischarged(const SearchSignature& signature)
     SearchSignature res = signature;  // copy original
     for (size_t i = 0; i < res.arity(); ++i) {
         if (res[i] == AttributeConstraint::Inequal) {
-            res.set(i, AttributeConstraint::None);         }
+            res.set(i, AttributeConstraint::None);
+        }
     }
     return res;
 }
@@ -614,17 +615,17 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
                             ++right;
                             continue;
                         }
-                    }
-
-                    // if after discharging one is smaller than the other then we can merge
-                    else if (SearchSignature::isSubset(leftDischarged, *right) ||
-                             (SearchSignature::isSubset(rightDischarged, *left))) {
+                        // if after discharging one is smaller than the other then we can merge
+                    } else if (SearchSignature::isComparable(leftDischarged, *right) &&
+                               SearchSignature::isSubset(leftDischarged, *right)) {
                         // if left element is smaller, insert it and iterate to next in left chain
                         if (SearchSignature::isSubset(leftDischarged, *right)) {
                             mergedChain.push_back(*left);
                             ++left;
                             continue;
                         }
+                    } else if (SearchSignature::isComparable(rightDischarged, *left) &&
+                               SearchSignature::isSubset(rightDischarged, *left)) {
                         // if right element is smaller, insert it and iterate to next in right chain
                         if (SearchSignature::isSubset(rightDischarged, *left)) {
                             mergedChain.push_back(*right);
@@ -644,10 +645,10 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
 
                         // only merge in the circumstance where after discharging the delta between left and
                         // right contains 1->2
-                        auto lower = SearchSignature::isSubset(leftDischarged, *right) ? leftDischarged
-                                                                                             : *right;
-                        auto upper = SearchSignature::isSubset(rightDischarged, *left) ? rightDischarged
-                                                                                             : *left;
+                        auto lower =
+                                SearchSignature::isSubset(leftDischarged, *right) ? leftDischarged : *right;
+                        auto upper =
+                                SearchSignature::isSubset(rightDischarged, *left) ? rightDischarged : *left;
 
                         // cannot merge if lower has inequality since it would be discharged
                         if (lower.containsInequality()) {
