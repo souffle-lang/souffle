@@ -105,6 +105,6 @@ constexpr RamSigned MAX_RAM_SIGNED = std::numeric_limits<RamSigned>::max();
 constexpr RamUnsigned MIN_RAM_UNSIGNED = std::numeric_limits<RamUnsigned>::min();
 constexpr RamUnsigned MAX_RAM_UNSIGNED = std::numeric_limits<RamUnsigned>::max();
 
-constexpr RamFloat MIN_RAM_FLOAT = std::numeric_limits<RamFloat>::min();
+constexpr RamFloat MIN_RAM_FLOAT = std::numeric_limits<RamFloat>::lowest();
 constexpr RamFloat MAX_RAM_FLOAT = std::numeric_limits<RamFloat>::max();
 }  // end of namespace souffle

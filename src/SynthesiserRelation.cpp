@@ -49,7 +49,7 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
     }
 
     assert(rel != nullptr && "relation type not specified");
-    
+    /*
     auto chains = indexSet.getAllChains();
 
     size_t inequalities = 0;
@@ -88,7 +88,7 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
         std::cout << "|";
     }
     std::cout << "\n";
-    
+    */
     // generate index set
     rel->computeIndices();
 

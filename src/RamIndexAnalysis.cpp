@@ -777,7 +777,7 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
     }
     if (Global::config().has("provenance")) {
         return attributesToDischarge;
-    }
+    } 
 
     auto chains = getAllChains();
     // find the chain that the operation lives inside
@@ -790,7 +790,7 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
                 // don't discharge an inequality if we have a numeric attribute
                 if (s[i] == AttributeConstraint::Inequal) {
                     std::string type = rel.getAttributeTypes()[i];
-                    if (type[0] == 'i' || type[0] == 'u') {
+                    if (type[0] == 'i' || type[0] == 'u' || type[0] == 'f') {
                         // if this is an inequality then it won't be discharged
                         attributesToDischarge.erase(i);
                         break;  // we break here so as to only permit a single indexed inequality

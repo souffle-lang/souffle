@@ -403,84 +403,48 @@ ExpressionPair MakeIndexTransformer::getUnsignedExpressionPair(
             }
         }
     }
-    if (isLessThanUnsigned(binRelOp->getOperator())) {
-        // Tuple[level, element] < <expr>
-        // is equivalent to
-        // Tuple[level, element] <= <expr> - 1
-        if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-            const RamExpression* rhs = &binRelOp->getRHS();
-            if (dynamic_cast<const RamConstant*>(rhs)) {
-                if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
-                    element = lhs->getElement();
-                    std::vector<std::unique_ptr<RamExpression>> expressions;
-                    expressions.push_back(std::unique_ptr<RamExpression>(rhs->clone()));
-                    expressions.push_back(std::make_unique<RamUnsignedConstant>(RamUnsigned(1)));
-
-                    return {std::make_unique<RamUndefValue>(),
-                            std::make_unique<RamIntrinsicOperator>(FunctorOp::USUB, std::move(expressions))};
-                }
-            }
-        }
-        // <expr> < Tuple[level, element]
-        // is equivalent to
-        // <expr> + 1 <= Tuple[level, element]
-        if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-            const RamExpression* lhs = &binRelOp->getLHS();
-            if (dynamic_cast<const RamConstant*>(lhs)) {
-                if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
-                    element = rhs->getElement();
-                    std::vector<std::unique_ptr<RamExpression>> expressions;
-                    expressions.push_back(std::unique_ptr<RamExpression>(lhs->clone()));
-                    expressions.push_back(std::make_unique<RamUnsignedConstant>(RamUnsigned(1)));
-
-                    return {std::make_unique<RamIntrinsicOperator>(FunctorOp::UADD, std::move(expressions)),
-                            std::make_unique<RamUndefValue>()};
-                }
-            }
-        }
-    }
-
-    if (isGreaterThanUnsigned(binRelOp->getOperator())) {
-        // Tuple[level, element] > <expr>
-        // is equivalent to
-        // Tuple[level, element] >= <expr> + 1
-        if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
-            const RamExpression* rhs = &binRelOp->getRHS();
-            if (dynamic_cast<const RamConstant*>(rhs)) {
-                if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
-                    element = lhs->getElement();
-                    std::vector<std::unique_ptr<RamExpression>> expressions;
-                    expressions.push_back(std::unique_ptr<RamExpression>(rhs->clone()));
-                    expressions.push_back(std::make_unique<RamUnsignedConstant>(RamUnsigned(1)));
-
-                    return {std::make_unique<RamIntrinsicOperator>(FunctorOp::UADD, std::move(expressions)),
-                            std::make_unique<RamUndefValue>()};
-                }
-            }
-        }
-        // <expr> > Tuple[level, element]
-        // is equivalent to
-        // <expr> - 1 >= Tuple[level, element]
-        if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
-            const RamExpression* lhs = &binRelOp->getLHS();
-            if (dynamic_cast<const RamConstant*>(lhs)) {
-                if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
-                    element = rhs->getElement();
-                    std::vector<std::unique_ptr<RamExpression>> expressions;
-                    expressions.push_back(std::unique_ptr<RamExpression>(lhs->clone()));
-                    expressions.push_back(std::make_unique<RamUnsignedConstant>(RamUnsigned(1)));
-
-                    return {std::make_unique<RamUndefValue>(),
-                            std::make_unique<RamIntrinsicOperator>(FunctorOp::USUB, std::move(expressions))};
-                }
-            }
-        }
-    }
     return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
 }
 
 ExpressionPair MakeIndexTransformer::getFloatExpressionPair(
         const RamConstraint* binRelOp, size_t& element, int identifier) {
+    if (isLessEqualFloat(binRelOp->getOperator())) {
+        // Tuple[level, element] <= <expr>
+        if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
+            const RamExpression* rhs = &binRelOp->getRHS();
+            if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
+                element = lhs->getElement();
+                return {std::make_unique<RamUndefValue>(), clone(rhs)};
+            }
+        }
+        // <expr> <= Tuple[level, element]
+        if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
+            const RamExpression* lhs = &binRelOp->getLHS();
+            if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
+                element = rhs->getElement();
+                return {clone(lhs), std::make_unique<RamUndefValue>()};
+            }
+        }
+    }
+
+    if (isGreaterEqualFloat(binRelOp->getOperator())) {
+        // Tuple[level, element] >= <expr>
+        if (const auto* lhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getLHS())) {
+            const RamExpression* rhs = &binRelOp->getRHS();
+            if (lhs->getTupleId() == identifier && rla->getLevel(rhs) < identifier) {
+                element = lhs->getElement();
+                return {clone(rhs), std::make_unique<RamUndefValue>()};
+            }
+        }
+        // <expr> >= Tuple[level, element]
+        if (const auto* rhs = dynamic_cast<const RamTupleElement*>(&binRelOp->getRHS())) {
+            const RamExpression* lhs = &binRelOp->getLHS();
+            if (rhs->getTupleId() == identifier && rla->getLevel(lhs) < identifier) {
+                element = rhs->getElement();
+                return {std::make_unique<RamUndefValue>(), clone(lhs)};
+            }
+        }
+    }
     return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
 }
 
