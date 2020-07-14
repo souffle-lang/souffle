@@ -428,6 +428,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
+    /*
     bool changed = true;
     while (changed) {
         changed = false;
@@ -576,7 +577,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
             }
         }
     }
-
+    */ 
     return dischargeToMergeChains(chains);
 }
 
@@ -755,7 +756,7 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
             }
         }
     }
-    */
+    */    
     return chains;
 }
 
@@ -778,7 +779,8 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
     if (Global::config().has("provenance")) {
         return attributesToDischarge;
     } 
-
+    
+    /* 
     auto chains = getAllChains();
     // find the chain that the operation lives inside
     for (auto chain : chains) {
@@ -800,7 +802,7 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
             break;  // we only care about the chain that the operation belongs to
         }
     }
-
+    */
     return attributesToDischarge;
 }
 

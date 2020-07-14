@@ -18,13 +18,16 @@ Edge("c","e",4).
 Edge("d","f",1).
 Edge("e","f",6).
 
+.decl Limit(weight:number)
+Limit(h) :- h = sum w : Edge(_,_,w).
+
 .decl Path(source:symbol,destination:symbol,path:number)
 Path(a,c,w) :- Edge(a,c,w).
 Path(a,c,w1+w2) :-
-  Path(a,b,w1),
-  Edge(b,c,w2),
-  h = sum w :Edge(_,_,w),
-  (w1+w2) < h.
+  Limit(h),
+  Edge(a,b,w1), 
+  Path(b,c,w2),
+    w2 < h-w1.
 
 .decl FindingShorterPath(source:symbol,destination:symbol,weight:number)
 FindingShorterPath(a,b,w1) :-
