@@ -16,12 +16,12 @@
 
 #include "tests/test.h"
 
-#include "Brie.h"
-#include "CompiledTuple.h"
-#include "RamTypes.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/Brie.h"
+#include "souffle/CompiledTuple.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <bitset>
 #include <cstdint>

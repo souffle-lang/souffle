@@ -17,14 +17,14 @@
 
 #pragma once
 
-#include "BinaryConstraintOps.h"
 #include "SrcLocation.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstNode.h"
 #include "ast/AstQualifiedName.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

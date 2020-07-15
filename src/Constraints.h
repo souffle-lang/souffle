@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <iostream>
 #include <map>
 #include <memory>

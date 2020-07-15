@@ -23,7 +23,7 @@
 #include "ast/AstQualifiedName.h"
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstAnalysis.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <cstddef>
 #include <map>
 #include <memory>

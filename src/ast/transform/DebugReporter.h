@@ -16,8 +16,8 @@
 #pragma once
 
 #include "ast/transform/AstTransformer.h"
-#include "utility/FileUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/FileUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <memory>
 #include <ostream>
 #include <set>

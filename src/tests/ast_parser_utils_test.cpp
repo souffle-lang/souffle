@@ -20,8 +20,8 @@
 #include "ast/AstLiteral.h"
 #include "ast/AstNode.h"
 #include "ast/AstParserUtils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <memory>
 #include <string>
 #include <utility>

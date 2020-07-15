@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "RelationTag.h"
 #include "ast/AstAbstract.h"
@@ -30,7 +29,8 @@
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
 #include "ast/transform/AstTransforms.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "profile/CellInterface.h"
-#include "profile/StringUtils.h"
+#include "souffle/profile/CellInterface.h"
+#include "souffle/profile/StringUtils.h"
 #include <chrono>
 #include <cmath>
 #include <iosfwd>

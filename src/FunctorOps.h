@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "RamTypes.h"
-#include "utility/MiscUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <cstdlib>
 #include <ostream>

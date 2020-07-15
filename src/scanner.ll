@@ -40,17 +40,17 @@
     #define YYLTYPE SrcLocation
 
     #include "ParserDriver.h"
-    #include "RamTypes.h"
+    #include "souffle/RamTypes.h"
     #include "parser.hh"
 
-    #include "utility/StringUtil.h"
-    #include "utility/FileUtil.h"
-    #include "utility/StreamUtil.h"
-    #include "utility/MiscUtil.h"
-    #include "utility/FunctionalUtil.h"
-    #include "utility/ContainerUtil.h"
-    #include "utility/CacheUtil.h"
-    #include "utility/ParallelUtil.h"
+    #include "souffle/utility/StringUtil.h"
+    #include "souffle/utility/FileUtil.h"
+    #include "souffle/utility/StreamUtil.h"
+    #include "souffle/utility/MiscUtil.h"
+    #include "souffle/utility/FunctionalUtil.h"
+    #include "souffle/utility/ContainerUtil.h"
+    #include "souffle/utility/CacheUtil.h"
+    #include "souffle/utility/ParallelUtil.h"
 
     #define register
 

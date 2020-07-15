@@ -15,9 +15,7 @@
  ***********************************************************************/
 
 #include "ast/transform/MagicSet.h"
-#include "BinaryConstraintOps.h"
 #include "Global.h"
-#include "RamTypes.h"
 #include "SrcLocation.h"
 #include "ast/AstAttribute.h"
 #include "ast/AstIO.h"
@@ -28,9 +26,11 @@
 #include "ast/AstUtils.h"
 #include "ast/analysis/AstIOTypeAnalysis.h"
 #include "ast/transform/AstTransforms.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <utility>
 
 namespace souffle {

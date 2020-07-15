@@ -27,8 +27,8 @@
 #include "ast/AstProgram.h"
 #include "ast/AstRelation.h"
 #include "ast/AstType.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cstddef>
 #include <functional>
 #include <memory>

@@ -16,9 +16,9 @@
 
 #include "tests/test.h"
 
-#include "CompiledTuple.h"
-#include "RamTypes.h"
-#include "RecordTable.h"
+#include "souffle/CompiledTuple.h"
+#include "souffle/RamTypes.h"
+#include "souffle/RecordTable.h"
 #include <functional>
 #include <iostream>
 #include <limits>

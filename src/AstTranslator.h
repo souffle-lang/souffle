@@ -16,19 +16,19 @@
 
 #pragma once
 
-#include "RamTypes.h"
-#include "SymbolTable.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
 #include "ast/AstNode.h"
 #include "ast/AstQualifiedName.h"
-#include "json11.h"
 #include "ram/RamRelation.h"
 #include "ram/RamStatement.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/SymbolTable.h"
+#include "souffle/json11.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <cassert>
 #include <cstddef>
 #include <map>

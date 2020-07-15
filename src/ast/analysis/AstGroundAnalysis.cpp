@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/analysis/AstGroundAnalysis.h"
-#include "BinaryConstraintOps.h"
 #include "Constraints.h"
 #include "PrecedenceGraph.h"
 #include "RelationTag.h"
@@ -26,7 +25,8 @@
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstConstraintAnalysis.h"
 #include "ast/analysis/AstGroundAnalysis.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <map>
 #include <memory>

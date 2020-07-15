@@ -16,12 +16,10 @@
 
 #include "ast/transform/AstSemanticChecker.h"
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "GraphUtils.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "SrcLocation.h"
 #include "ast/AstAbstract.h"
@@ -44,12 +42,14 @@
 #include "ast/analysis/AstTypeAnalysis.h"
 #include "ast/analysis/AstTypeEnvironmentAnalysis.h"
 #include "ast/analysis/PrecedenceGraph.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

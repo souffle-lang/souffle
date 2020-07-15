@@ -19,7 +19,7 @@
 
 #include "ast/AstQualifiedName.h"
 #include "ast/analysis/AstAnalysis.h"
-#include "profile/ProgramRun.h"
+#include "souffle/profile/ProgramRun.h"
 #include <cstddef>
 #include <iostream>
 #include <memory>

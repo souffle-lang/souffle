@@ -22,7 +22,6 @@
 #include "InterpreterNode.h"
 #include "InterpreterPreamble.h"
 #include "InterpreterRelation.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
@@ -33,7 +32,8 @@
 #include "ram/RamUtils.h"
 #include "ram/RamVisitor.h"
 #include "ram/analysis/RamIndexAnalysis.h"
-#include "utility/MiscUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <memory>

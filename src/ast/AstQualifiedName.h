@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <sstream>
 #include <string>

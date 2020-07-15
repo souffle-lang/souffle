@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "SrcLocation.h"
 #include "ast/AstNode.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <cassert>
 #include <cstdlib>
 #include <ostream>

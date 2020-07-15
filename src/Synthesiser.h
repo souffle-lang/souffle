@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "RecordTable.h"
+#include "souffle/RecordTable.h"
 #include <cstddef>
 #include <map>
 #include <memory>

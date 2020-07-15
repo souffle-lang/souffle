@@ -19,8 +19,8 @@
 #include "SrcLocation.h"
 #include "ast/AstNode.h"
 #include "ast/AstQualifiedName.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <map>
 #include <ostream>
 #include <string>

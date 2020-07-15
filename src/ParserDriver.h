@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "SrcLocation.h"
 #include "ast/AstQualifiedName.h"
 #include "ast/AstTranslationUnit.h"
 #include "parser.hh"
+#include "souffle/RamTypes.h"
 #include <cstdio>
 #include <memory>
 #include <set>

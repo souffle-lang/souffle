@@ -14,7 +14,6 @@
  *
  ***********************************************************************/
 
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "RelationTag.h"
@@ -31,10 +30,11 @@
 #include "ast/AstUtils.h"
 #include "ast/analysis/AuxArityAnalysis.h"
 #include "ast/transform/AstTransforms.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

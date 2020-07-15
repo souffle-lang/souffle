@@ -16,7 +16,6 @@
 
 #include "tests/test.h"
 
-#include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "ParserDriver.h"
@@ -31,7 +30,8 @@
 #include "ast/AstUtils.h"
 #include "ast/analysis/AstGroundAnalysis.h"
 #include "ast/transform/AstTransforms.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <map>
 #include <memory>

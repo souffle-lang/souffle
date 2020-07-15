@@ -17,9 +17,9 @@
 
 #include "tests/test.h"
 
-#include "BTree.h"
-#include "LambdaBTree.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BTree.h"
+#include "souffle/LambdaBTree.h"
+#include "souffle/utility/StreamUtil.h"
 #include <atomic>
 #include <cstddef>
 #include <functional>
@@ -33,8 +33,8 @@
 #include <omp.h>
 #endif
 
-#include "PiggyList.h"
-#include "UnionFind.h"
+#include "souffle/PiggyList.h"
+#include "souffle/UnionFind.h"
 
 namespace souffle {
 namespace test {

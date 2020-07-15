@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "AstTranslator.h"
-#include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
@@ -39,7 +38,6 @@
 #include "ast/analysis/AstTypeEnvironmentAnalysis.h"
 #include "ast/analysis/AuxArityAnalysis.h"
 #include "ast/analysis/PrecedenceGraph.h"
-#include "json11.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
 #include "ram/RamNode.h"
@@ -49,10 +47,12 @@
 #include "ram/RamStatement.h"
 #include "ram/RamTranslationUnit.h"
 #include "ram/RamUtils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/json11.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <chrono>

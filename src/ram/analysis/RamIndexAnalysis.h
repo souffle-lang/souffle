@@ -17,7 +17,7 @@
 #pragma once
 
 #include "ram/analysis/RamAnalysis.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>

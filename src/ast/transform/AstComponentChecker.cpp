@@ -25,7 +25,7 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstType.h"
 #include "ast/analysis/ComponentLookupAnalysis.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <functional>
 #include <map>
 #include <set>

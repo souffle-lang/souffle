@@ -16,8 +16,8 @@
 
 #include "DebugReport.h"
 #include "Global.h"
-#include "utility/FileUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/FileUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <fstream>
 #include <ostream>
 #include <sstream>

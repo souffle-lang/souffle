@@ -27,8 +27,8 @@
 #include "ast/AstRelation.h"
 #include "ast/AstType.h"
 #include "ast/AstUtils.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <iosfwd>

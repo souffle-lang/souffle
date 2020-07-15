@@ -28,8 +28,8 @@
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstIOTypeAnalysis.h"
-#include "utility/FileUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/FileUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <iterator>
 #include <memory>

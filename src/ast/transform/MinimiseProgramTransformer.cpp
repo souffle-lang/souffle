@@ -26,8 +26,8 @@
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstIOTypeAnalysis.h"
 #include "ast/transform/AstTransforms.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

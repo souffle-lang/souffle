@@ -17,7 +17,7 @@
 #pragma once
 
 #include "ast/AstAbstract.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <iosfwd>
 #include <memory>
 #include <utility>

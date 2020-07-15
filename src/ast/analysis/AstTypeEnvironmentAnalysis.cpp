@@ -21,8 +21,8 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstType.h"
 #include "ast/TypeSystem.h"
-#include "utility/MiscUtil.h"
-#include "utility/tinyformat.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/tinyformat.h"
 #include <functional>
 #include <ostream>
 #include <typeinfo>

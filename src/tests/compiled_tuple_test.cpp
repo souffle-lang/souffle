@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "CompiledTuple.h"
+#include "souffle/CompiledTuple.h"
 #include <cstdint>
 #include <iostream>
 #include <string>

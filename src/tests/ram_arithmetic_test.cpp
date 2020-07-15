@@ -21,14 +21,14 @@
 #include "FunctorOps.h"
 #include "Global.h"
 #include "InterpreterEngine.h"
-#include "RamTypes.h"
-#include "SymbolTable.h"
 #include "ram/RamExpression.h"
 #include "ram/RamOperation.h"
 #include "ram/RamProgram.h"
 #include "ram/RamRelation.h"
 #include "ram/RamStatement.h"
 #include "ram/RamTranslationUnit.h"
+#include "souffle/RamTypes.h"
+#include "souffle/SymbolTable.h"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>

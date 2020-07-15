@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "BTree.h"
+#include "souffle/BTree.h"
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>

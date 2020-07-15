@@ -16,11 +16,9 @@
 
 #include "ast/transform/AstTransforms.h"
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "GraphUtils.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
@@ -41,10 +39,12 @@
 #include "ast/analysis/AstTypeAnalysis.h"
 #include "ast/analysis/AstTypeEnvironmentAnalysis.h"
 #include "ast/analysis/PrecedenceGraph.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

@@ -18,8 +18,8 @@
 
 #include "DebugReporter.h"
 #include "ast/transform/AstTransformer.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <functional>
 #include <map>
 #include <memory>

@@ -19,7 +19,7 @@
 #include "ram/RamNode.h"
 #include "ram/RamRelation.h"
 #include "ram/RamStatement.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <map>
 #include <memory>

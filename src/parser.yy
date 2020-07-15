@@ -44,10 +44,10 @@
     #include "ast/AstParserUtils.h"
     #include "ast/AstPragma.h"
     #include "ast/AstProgram.h"
-    #include "BinaryConstraintOps.h"
+    #include "souffle/BinaryConstraintOps.h"
     #include "FunctorOps.h"
-    #include "RamTypes.h"
-    #include "utility/StringUtil.h"
+    #include "souffle/RamTypes.h"
+    #include "souffle/utility/StringUtil.h"
 
     using namespace souffle;
 

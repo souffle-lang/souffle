@@ -24,8 +24,8 @@
 #include "ram/RamProgram.h"
 #include "ram/RamRelation.h"
 #include "ram/RamStatement.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <cstddef>
 #include <functional>
 #include <type_traits>

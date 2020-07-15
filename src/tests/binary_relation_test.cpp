@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "RamTypes.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <algorithm>
 #include <iostream>
 #include <random>
@@ -31,8 +31,8 @@
 #include <omp.h>
 #endif
 
-#include "CompiledTuple.h"
-#include "EquivalenceRelation.h"
+#include "souffle/CompiledTuple.h"
+#include "souffle/EquivalenceRelation.h"
 
 namespace souffle {
 namespace test {

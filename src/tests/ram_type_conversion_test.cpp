@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "RamTypes.h"
+#include "souffle/RamTypes.h"
 #include <random>
 #include <string>
 

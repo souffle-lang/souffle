@@ -18,9 +18,9 @@
 
 #include "InterpreterProgInterface.h"
 #include "InterpreterRelation.h"
-#include "SouffleInterface.h"
-#include "SymbolTable.h"
 #include "ram/analysis/RamIndexAnalysis.h"
+#include "souffle/SouffleInterface.h"
+#include "souffle/SymbolTable.h"
 #include <iosfwd>
 #include <string>
 #include <utility>

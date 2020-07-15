@@ -18,7 +18,7 @@
 
 #include "InterpreterIndex.h"
 #include "InterpreterRelation.h"
-#include "RamTypes.h"
+#include "souffle/RamTypes.h"
 #include <cassert>
 #include <cstddef>
 #include <memory>

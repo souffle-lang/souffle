@@ -15,8 +15,8 @@
  ***********************************************************************/
 #pragma once
 
-#include "CompiledTuple.h"
-#include "RamTypes.h"
+#include "souffle/CompiledTuple.h"
+#include "souffle/RamTypes.h"
 #include <array>
 #include <cassert>
 #include <cstdint>

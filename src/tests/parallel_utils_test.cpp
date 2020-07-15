@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "utility/ParallelUtil.h"
+#include "souffle/utility/ParallelUtil.h"
 #include <string>
 
 namespace souffle {

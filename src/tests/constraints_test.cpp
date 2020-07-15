@@ -17,7 +17,7 @@
 #include "tests/test.h"
 
 #include "Constraints.h"
-#include "utility/StringUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <iosfwd>
 #include <set>

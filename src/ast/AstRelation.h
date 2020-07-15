@@ -22,8 +22,8 @@
 #include "ast/AstAttribute.h"
 #include "ast/AstNode.h"
 #include "ast/AstQualifiedName.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

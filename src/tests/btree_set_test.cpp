@@ -16,9 +16,9 @@
 
 #include "tests/test.h"
 
-#include "BTree.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BTree.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>

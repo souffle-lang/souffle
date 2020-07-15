@@ -10,7 +10,7 @@
 #include "Global.h"
 #include "RelationTag.h"
 #include "ram/analysis/RamIndexAnalysis.h"
-#include "utility/StreamUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>

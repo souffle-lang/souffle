@@ -13,48 +13,48 @@ bin_PROGRAMS = souffle souffle-profile
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_sources = \
-        ProfileDatabase.h                                  \
-        json11.h                                           \
-        profile/Cell.h                                     \
-        profile/CellInterface.h                            \
-        profile/Cli.h                                      \
-        profile/DataComparator.h                           \
-        profile/HtmlGenerator.h                            \
-        profile/Iteration.h                                \
-        profile/OutputProcessor.h                          \
-        profile/ProgramRun.h                               \
-        profile/Reader.h                                   \
-        profile/Relation.h                                 \
-        profile/Row.h                                      \
-        profile/Rule.h                                     \
-        profile/StringUtils.h                              \
-        profile/Table.h                                    \
-        profile/Tui.h                                      \
-        profile/UserInputReader.h                          \
-        profile/htmlCssChartist.h                          \
-        profile/htmlCssStyle.h                             \
-        profile/htmlJsChartistMin.h                        \
-        profile/htmlJsChartistPlugin.h                     \
-        profile/htmlJsMain.h                               \
-        profile/htmlJsTableSort.h                          \
-        profile/htmlJsUtil.h                               \
-        profile/htmlMain.h
+        souffle/ProfileDatabase.h                                  \
+        souffle/json11.h                                           \
+        souffle/profile/Cell.h                                     \
+        souffle/profile/CellInterface.h                            \
+        souffle/profile/Cli.h                                      \
+        souffle/profile/DataComparator.h                           \
+        souffle/profile/HtmlGenerator.h                            \
+        souffle/profile/Iteration.h                                \
+        souffle/profile/OutputProcessor.h                          \
+        souffle/profile/ProgramRun.h                               \
+        souffle/profile/Reader.h                                   \
+        souffle/profile/Relation.h                                 \
+        souffle/profile/Row.h                                      \
+        souffle/profile/Rule.h                                     \
+        souffle/profile/StringUtils.h                              \
+        souffle/profile/Table.h                                    \
+        souffle/profile/Tui.h                                      \
+        souffle/profile/UserInputReader.h                          \
+        souffle/profile/htmlCssChartist.h                          \
+        souffle/profile/htmlCssStyle.h                             \
+        souffle/profile/htmlJsChartistMin.h                        \
+        souffle/profile/htmlJsChartistPlugin.h                     \
+        souffle/profile/htmlJsMain.h                               \
+        souffle/profile/htmlJsTableSort.h                          \
+        souffle/profile/htmlJsUtil.h                               \
+        souffle/profile/htmlMain.h
 
 souffle_swig_sources = \
-        swig/SwigInterface.h                               \
-        swig/SwigInterface.i
+        souffle/swig/SwigInterface.h                               \
+        souffle/swig/SwigInterface.i
 
 souffle_utility_sources = \
-        utility/CacheUtil.h                                \
-        utility/ContainerUtil.h                            \
-        utility/FileUtil.h                                 \
-        utility/EvaluatorUtil.h                            \
-        utility/FunctionalUtil.h                           \
-        utility/MiscUtil.h                                 \
-        utility/ParallelUtil.h                             \
-        utility/StreamUtil.h                               \
-        utility/StringUtil.h                               \
-        utility/tinyformat.h
+        souffle/utility/CacheUtil.h                                \
+        souffle/utility/ContainerUtil.h                            \
+        souffle/utility/FileUtil.h                                 \
+        souffle/utility/EvaluatorUtil.h                            \
+        souffle/utility/FunctionalUtil.h                           \
+        souffle/utility/MiscUtil.h                                 \
+        souffle/utility/ParallelUtil.h                             \
+        souffle/utility/StreamUtil.h                               \
+        souffle/utility/StringUtil.h                               \
+        souffle/utility/tinyformat.h
 
 DIR := ${CURDIR}
 

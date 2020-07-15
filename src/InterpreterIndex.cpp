@@ -15,13 +15,13 @@
  ***********************************************************************/
 
 #include "InterpreterIndex.h"
-#include "BTree.h"
-#include "Brie.h"
-#include "EquivalenceRelation.h"
-#include "PiggyList.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BTree.h"
+#include "souffle/Brie.h"
+#include "souffle/EquivalenceRelation.h"
+#include "souffle/PiggyList.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <algorithm>
 #include <atomic>
 #include <ostream>

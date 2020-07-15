@@ -15,7 +15,6 @@
  *
  ***********************************************************************/
 
-#include "BinaryConstraintOps.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
 #include "ast/AstClause.h"
@@ -26,9 +25,10 @@
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
 #include "ast/transform/AstTransforms.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

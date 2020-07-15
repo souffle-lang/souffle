@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "SymbolTable.h"
-#include "utility/MiscUtil.h"
+#include "souffle/SymbolTable.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>

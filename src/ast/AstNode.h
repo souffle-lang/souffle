@@ -17,7 +17,7 @@
 #pragma once
 
 #include "SrcLocation.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <iosfwd>
 #include <memory>

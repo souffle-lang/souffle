@@ -15,9 +15,7 @@
  ***********************************************************************/
 
 #include "ram/transform/RamTransforms.h"
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
-#include "RamTypes.h"
 #include "RelationTag.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
@@ -29,8 +27,10 @@
 #include "ram/RamUtils.h"
 #include "ram/RamVisitor.h"
 #include "ram/analysis/RamComplexityAnalysis.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

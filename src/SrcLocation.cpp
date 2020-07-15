@@ -15,7 +15,7 @@
  ***********************************************************************/
 
 #include "SrcLocation.h"
-#include "utility/FileUtil.h"
+#include "souffle/utility/FileUtil.h"
 #include <cctype>
 #include <cstdio>
 #include <fstream>

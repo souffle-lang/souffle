@@ -6,8 +6,8 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-#include "RamTypes.h"
-#include "utility/MiscUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/MiscUtil.h"
 #include <ostream>
 
 namespace souffle {

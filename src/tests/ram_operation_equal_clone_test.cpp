@@ -17,12 +17,12 @@
 #include "tests/test.h"
 
 #include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "RelationTag.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
 #include "ram/RamOperation.h"
 #include "ram/RamRelation.h"
+#include "souffle/BinaryConstraintOps.h"
 #include <memory>
 #include <string>
 #include <utility>

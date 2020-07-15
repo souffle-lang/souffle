@@ -16,7 +16,6 @@
 
 #include "tests/test.h"
 
-#include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "RelationTag.h"
 #include "ram/RamCondition.h"
@@ -24,6 +23,7 @@
 #include "ram/RamOperation.h"
 #include "ram/RamRelation.h"
 #include "ram/RamStatement.h"
+#include "souffle/BinaryConstraintOps.h"
 #include <algorithm>
 #include <map>
 #include <memory>

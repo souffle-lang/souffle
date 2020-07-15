@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/AstUtils.h"
-#include "BinaryConstraintOps.h"
 #include "TypeSystem.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
@@ -29,9 +28,10 @@
 #include "ast/AstType.h"
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstTypeAnalysis.h"
-#include "utility/ContainerUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <memory>

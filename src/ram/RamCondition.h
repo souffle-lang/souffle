@@ -17,12 +17,12 @@
 
 #pragma once
 
-#include "BinaryConstraintOps.h"
 #include "ram/RamExpression.h"
 #include "ram/RamNode.h"
 #include "ram/RamRelation.h"
-#include "utility/ContainerUtil.h"
-#include "utility/StreamUtil.h"
+#include "souffle/BinaryConstraintOps.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/StreamUtil.h"
 #include <cassert>
 #include <memory>
 #include <sstream>

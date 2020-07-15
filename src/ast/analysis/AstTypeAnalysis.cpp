@@ -19,7 +19,6 @@
 #include "Constraints.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "RamTypes.h"
 #include "ast/AstArgument.h"
 #include "ast/AstAttribute.h"
 #include "ast/AstClause.h"
@@ -34,9 +33,10 @@
 #include "ast/TypeSystem.h"
 #include "ast/analysis/AstConstraintAnalysis.h"
 #include "ast/analysis/AstTypeEnvironmentAnalysis.h"
-#include "utility/ContainerUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/StringUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

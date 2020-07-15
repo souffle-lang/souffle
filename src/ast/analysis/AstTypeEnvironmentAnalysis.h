@@ -17,11 +17,11 @@
 #pragma once
 
 #include "GraphUtils.h"
-#include "RamTypes.h"
 #include "ast/AstQualifiedName.h"
 #include "ast/TypeSystem.h"
 #include "ast/analysis/AstAnalysis.h"
-#include "utility/ContainerUtil.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <map>
 #include <ostream>
 #include <set>
