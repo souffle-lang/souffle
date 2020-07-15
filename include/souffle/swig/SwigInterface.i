@@ -15,9 +15,9 @@
  *
  ***********************************************************************/
 
-%module SwigInterface 
-%include "std_string.i" 
-%include "std_map.i" 
+%module SwigInterface
+%include "std_string.i"
+%include "std_map.i"
 %include<std_vector.i>
 namespace std {
     %template(map_string_string) map<string, string>;
@@ -35,6 +35,6 @@ souffle::Relation* rel;
 souffle::Relation* rel_out;
 %}
 
-%include "SwigInterface.h" 
+%include "SwigInterface.h"
 %newobject newInstance;
 SWIGSouffleProgram* newInstance(const std::string& name);

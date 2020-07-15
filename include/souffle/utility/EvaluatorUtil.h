@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "../CompiledTuple.h"
-#include "../RamTypes.h"
-#include "tinyformat.h"
+#include "souffle/CompiledTuple.h"
+#include "souffle/RamTypes.h"
+#include "souffle/utility/tinyformat.h"
 
 namespace souffle::evaluator {
 

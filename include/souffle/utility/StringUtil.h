@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../RamTypes.h"
+#include "souffle/RamTypes.h"
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>

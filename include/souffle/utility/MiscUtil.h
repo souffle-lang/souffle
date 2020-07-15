@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "tinyformat.h"
+#include "souffle/utility/tinyformat.h"
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
