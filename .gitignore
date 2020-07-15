@@ -14,7 +14,6 @@ env
 .dirstamp
 
 libtool
-/include
 /auxfiles
 /packaging
 warn.log
