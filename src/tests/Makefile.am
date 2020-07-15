@@ -7,7 +7,7 @@
 
 SUFFIXES = .cpp .h .yy .ll .cc .hh .h
 
-CXXFLAGS += -I${top_srcdir}/src
+CXXFLAGS += -I$(top_srcdir)/src -I$(top_srcdir)/include
 
 ########## Unit Tests
 

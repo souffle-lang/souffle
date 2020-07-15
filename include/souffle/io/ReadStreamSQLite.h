@@ -15,8 +15,8 @@
 #pragma once
 
 #include "souffle/RamTypes.h"
-#include "souffle/ReadStream.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/io/ReadStream.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <cassert>

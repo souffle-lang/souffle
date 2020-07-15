@@ -16,12 +16,12 @@
 
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"
-#include "souffle/WriteStream.h"
+#include "souffle/io/WriteStream.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/ParallelUtil.h"
 #ifdef USE_LIBZ
-#include "souffle/gzfstream.h"
+#include "souffle/io/gzfstream.h"
 #endif
 
 #include <cstddef>

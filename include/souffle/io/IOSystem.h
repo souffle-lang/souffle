@@ -15,17 +15,17 @@
 #pragma once
 
 #include "souffle/RamTypes.h"
-#include "souffle/ReadStream.h"
-#include "souffle/ReadStreamCSV.h"
-#include "souffle/ReadStreamJSON.h"
 #include "souffle/SymbolTable.h"
-#include "souffle/WriteStream.h"
-#include "souffle/WriteStreamCSV.h"
-#include "souffle/WriteStreamJSON.h"
+#include "souffle/io/ReadStream.h"
+#include "souffle/io/ReadStreamCSV.h"
+#include "souffle/io/ReadStreamJSON.h"
+#include "souffle/io/WriteStream.h"
+#include "souffle/io/WriteStreamCSV.h"
+#include "souffle/io/WriteStreamJSON.h"
 
 #ifdef USE_SQLITE
-#include "souffle/ReadStreamSQLite.h"
-#include "souffle/WriteStreamSQLite.h"
+#include "souffle/io/ReadStreamSQLite.h"
+#include "souffle/io/WriteStreamSQLite.h"
 #endif
 
 #include <map>

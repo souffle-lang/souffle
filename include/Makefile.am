@@ -18,30 +18,33 @@ soufflepublic_HEADERS = \
         souffle/ExplainProvenance.h                        \
         souffle/ExplainProvenanceImpl.h                    \
         souffle/ExplainTree.h                              \
-        souffle/IOSystem.h                                 \
         souffle/LambdaBTree.h                              \
         souffle/Logger.h                                   \
         souffle/PiggyList.h                                \
         souffle/ProfileDatabase.h                          \
         souffle/ProfileEvent.h                             \
         souffle/RamTypes.h                                 \
-        souffle/ReadStream.h                               \
-        souffle/ReadStreamCSV.h                            \
-        souffle/ReadStreamJSON.h                           \
-        souffle/ReadStreamSQLite.h                         \
         souffle/RecordTable.h                              \
-        souffle/SerialisationStream.h                      \
         souffle/SignalHandler.h                            \
         souffle/SouffleInterface.h                         \
         souffle/SymbolTable.h                              \
         souffle/Table.h                                    \
         souffle/UnionFind.h                                \
-        souffle/WriteStream.h                              \
-        souffle/WriteStreamCSV.h                           \
-        souffle/WriteStreamJSON.h                          \
-        souffle/WriteStreamSQLite.h                        \
-        souffle/gzfstream.h                                \
         souffle/json11.h
+
+souffleiodir = $(soufflepublicdir)/io
+souffleio_HEADERS = \
+        souffle/io/gzfstream.h                             \
+        souffle/io/IOSystem.h                              \
+        souffle/io/ReadStream.h                            \
+        souffle/io/ReadStreamCSV.h                         \
+        souffle/io/ReadStreamJSON.h                        \
+        souffle/io/ReadStreamSQLite.h                      \
+        souffle/io/SerialisationStream.h                   \
+        souffle/io/WriteStream.h                           \
+        souffle/io/WriteStreamCSV.h                        \
+        souffle/io/WriteStreamJSON.h                       \
+        souffle/io/WriteStreamSQLite.h
 
 souffleprofiledir = $(soufflepublicdir)/profile
 souffleprofile_HEADERS = \

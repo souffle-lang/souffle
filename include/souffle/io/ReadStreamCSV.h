@@ -15,14 +15,14 @@
 #pragma once
 
 #include "souffle/RamTypes.h"
-#include "souffle/ReadStream.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/io/ReadStream.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/StringUtil.h"
 
 #ifdef USE_LIBZ
-#include "souffle/gzfstream.h"
+#include "souffle/io/gzfstream.h"
 #else
 #include <fstream>
 #endif

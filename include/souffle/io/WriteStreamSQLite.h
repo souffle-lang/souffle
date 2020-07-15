@@ -16,7 +16,7 @@
 
 #include "souffle/RamTypes.h"
 #include "souffle/SymbolTable.h"
-#include "souffle/WriteStream.h"
+#include "souffle/io/WriteStream.h"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>

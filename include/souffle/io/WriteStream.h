@@ -16,8 +16,8 @@
 
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
-#include "souffle/SerialisationStream.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/io/SerialisationStream.h"
 #include "souffle/json11.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>
