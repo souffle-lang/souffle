@@ -36,6 +36,10 @@ public:
         return "IOAttributesTransformer";
     }
 
+    IOAttributesTransformer* clone() const override {
+        return new IOAttributesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;

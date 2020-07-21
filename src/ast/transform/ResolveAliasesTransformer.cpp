@@ -65,7 +65,7 @@ public:
     Substitution() = default;
 
     Substitution(const std::string& var, const AstArgument* arg) {
-        varToTerm.insert(std::make_pair(var, std::unique_ptr<AstArgument>(arg->clone())));
+        varToTerm.insert(std::make_pair(var, souffle::clone(arg)));
     }
 
     ~Substitution() = default;
@@ -91,7 +91,7 @@ public:
                 if (auto var = dynamic_cast<AstVariable*>(node.get())) {
                     auto pos = map.find(var->getName());
                     if (pos != map.end()) {
-                        return std::unique_ptr<AstNode>(pos->second->clone());
+                        return souffle::clone(pos->second);
                     }
                 }
 
@@ -132,8 +132,7 @@ public:
         for (const auto& pair : sub.varToTerm) {
             if (varToTerm.find(pair.first) == varToTerm.end()) {
                 // not seen yet, add it in
-                varToTerm.insert(
-                        std::make_pair(pair.first, std::unique_ptr<AstArgument>(pair.second->clone())));
+                varToTerm.insert(std::make_pair(pair.first, souffle::clone(pair.second)));
             }
         }
     }
@@ -166,16 +165,12 @@ public:
     std::unique_ptr<AstArgument> rhs;
 
     Equation(const AstArgument& lhs, const AstArgument& rhs)
-            : lhs(std::unique_ptr<AstArgument>(lhs.clone())), rhs(std::unique_ptr<AstArgument>(rhs.clone())) {
-    }
+            : lhs(souffle::clone(&lhs)), rhs(souffle::clone(&rhs)) {}
 
     Equation(const AstArgument* lhs, const AstArgument* rhs)
-            : lhs(std::unique_ptr<AstArgument>(lhs->clone())),
-              rhs(std::unique_ptr<AstArgument>(rhs->clone())) {}
+            : lhs(souffle::clone(lhs)), rhs(souffle::clone(rhs)) {}
 
-    Equation(const Equation& other)
-            : lhs(std::unique_ptr<AstArgument>(other.lhs->clone())),
-              rhs(std::unique_ptr<AstArgument>(other.rhs->clone())) {}
+    Equation(const Equation& other) : lhs(souffle::clone(other.lhs)), rhs(souffle::clone(other.rhs)) {}
 
     Equation(Equation&& other) = default;
 
@@ -343,7 +338,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::resolveAliases(const AstCl
     }
 
     // III) compute resulting clause
-    return substitution(std::unique_ptr<AstClause>(clause.clone()));
+    return substitution(souffle::clone(&clause));
 }
 
 std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(const AstClause& clause) {
@@ -360,7 +355,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeTrivialEquality(cons
             }
         }
 
-        res->addToBody(std::unique_ptr<AstLiteral>(literal->clone()));
+        res->addToBody(souffle::clone(literal));
     }
 
     // done
@@ -412,7 +407,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
     static int varCounter = 0;
     for (const AstArgument* arg : terms) {
         // create a new mapping for this term
-        auto term = std::unique_ptr<AstArgument>(arg->clone());
+        auto term = souffle::clone(arg);
         auto newVariable = std::make_unique<AstVariable>(" _tmp_" + toString(varCounter++));
         termToVar.push_back(std::make_pair(std::move(term), std::move(newVariable)));
     }
@@ -430,7 +425,7 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
                 auto& variable = pair.second;
 
                 if (*term == *node) {
-                    return std::unique_ptr<AstNode>(variable->clone());
+                    return souffle::clone(variable);
                 }
             }
 
@@ -451,9 +446,8 @@ std::unique_ptr<AstClause> ResolveAliasesTransformer::removeComplexTermsInAtoms(
         auto& term = pair.first;
         auto& variable = pair.second;
 
-        res->addToBody(std::make_unique<AstBinaryConstraint>(BinaryConstraintOp::EQ,
-                std::unique_ptr<AstArgument>(variable->clone()),
-                std::unique_ptr<AstArgument>(term->clone())));
+        res->addToBody(std::make_unique<AstBinaryConstraint>(
+                BinaryConstraintOp::EQ, souffle::clone(variable), souffle::clone(term)));
     }
 
     return res;

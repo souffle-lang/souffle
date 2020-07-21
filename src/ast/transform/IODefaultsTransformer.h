@@ -33,6 +33,10 @@ public:
         return "IODefaultsTransformer";
     }
 
+    IODefaultsTransformer* clone() const override {
+        return new IODefaultsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override {
         bool changed = false;

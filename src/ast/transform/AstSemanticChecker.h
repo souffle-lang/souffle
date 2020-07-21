@@ -31,6 +31,10 @@ public:
         return "AstSemanticChecker";
     }
 
+    AstSemanticChecker* clone() const override {
+        return new AstSemanticChecker();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -39,6 +43,10 @@ class AstExecutionPlanChecker : public AstTransformer {
 public:
     std::string getName() const override {
         return "AstExecutionPlanChecker";
+    }
+
+    AstExecutionPlanChecker* clone() const override {
+        return new AstExecutionPlanChecker();
     }
 
 private:
@@ -53,6 +61,10 @@ public:
 
     // `apply` but doesn't immediately bail if any errors are found.
     void verify(AstTranslationUnit& translationUnit);
+
+    GroundedTermsChecker* clone() const override {
+        return new GroundedTermsChecker();
+    }
 
 private:
     bool transform(AstTranslationUnit& translationUnit) override {

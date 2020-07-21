@@ -70,6 +70,16 @@ std::vector<AstClause*> getClauses(const AstProgram& program, const AstRelation&
     return getClauses(program, rel.getQualifiedName());
 }
 
+std::vector<AstIO*> getIOs(const AstProgram& program, const AstQualifiedName& relationName) {
+    std::vector<AstIO*> ios;
+    for (AstIO* io : program.getIOs()) {
+        if (io->getQualifiedName() == relationName) {
+            ios.push_back(io);
+        }
+    }
+    return ios;
+}
+
 AstRelation* getRelation(const AstProgram& program, const AstQualifiedName& name) {
     return getIf(program.getRelations(), [&](const AstRelation* r) { return r->getQualifiedName() == name; });
 }
@@ -86,6 +96,12 @@ const AstFunctorDeclaration* getFunctorDeclaration(const AstProgram& program, co
 void removeRelationClauses(AstProgram& program, const AstQualifiedName& name) {
     for (const auto* clause : getClauses(program, name)) {
         program.removeClause(clause);
+    }
+}
+
+void removeRelationIOs(AstProgram& program, const AstQualifiedName& name) {
+    for (const auto* io : getIOs(program, name)) {
+        program.removeIO(io);
     }
 }
 
@@ -207,9 +223,9 @@ bool isRule(const AstClause& clause) {
 AstClause* cloneHead(const AstClause* clause) {
     auto* clone = new AstClause();
     clone->setSrcLoc(clause->getSrcLoc());
-    clone->setHead(std::unique_ptr<AstAtom>(clause->getHead()->clone()));
+    clone->setHead(souffle::clone(clause->getHead()));
     if (clause->getExecutionPlan() != nullptr) {
-        clone->setExecutionPlan(std::unique_ptr<AstExecutionPlan>(clause->getExecutionPlan()->clone()));
+        clone->setExecutionPlan(souffle::clone(clause->getExecutionPlan()));
     }
     return clone;
 }
@@ -241,7 +257,7 @@ AstClause* reorderAtoms(const AstClause* clause, const std::vector<unsigned int>
             // Atoms should be reordered
             literalToAdd = bodyLiterals[atomPositions[newOrder[currentAtom++]]];
         }
-        newClause->addToBody(std::unique_ptr<AstLiteral>(literalToAdd->clone()));
+        newClause->addToBody(souffle::clone(literalToAdd));
     }
 
     return newClause;

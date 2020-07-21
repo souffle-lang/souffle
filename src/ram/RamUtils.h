@@ -75,10 +75,9 @@ inline std::unique_ptr<RamCondition> toCondition(const std::vector<std::unique_p
     std::unique_ptr<RamCondition> result;
     for (auto const& cur : conds) {
         if (result == nullptr) {
-            result = std::unique_ptr<RamCondition>(cur->clone());
+            result = souffle::clone(cur);
         } else {
-            result = std::make_unique<RamConjunction>(
-                    std::move(result), std::unique_ptr<RamCondition>(cur->clone()));
+            result = std::make_unique<RamConjunction>(std::move(result), souffle::clone(cur));
         }
     }
     return result;

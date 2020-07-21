@@ -114,8 +114,7 @@ public:
     }
 
     RamConjunction* clone() const override {
-        return new RamConjunction(
-                std::unique_ptr<RamCondition>(lhs->clone()), std::unique_ptr<RamCondition>(rhs->clone()));
+        return new RamConjunction(souffle::clone(lhs), souffle::clone(rhs));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -165,7 +164,7 @@ public:
     }
 
     RamNegation* clone() const override {
-        return new RamNegation(std::unique_ptr<RamCondition>(operand->clone()));
+        return new RamNegation(souffle::clone(operand));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -227,8 +226,7 @@ public:
     }
 
     RamConstraint* clone() const override {
-        return new RamConstraint(op, std::unique_ptr<RamExpression>(lhs->clone()),
-                std::unique_ptr<RamExpression>(rhs->clone()));
+        return new RamConstraint(op, souffle::clone(lhs), souffle::clone(rhs));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -351,8 +349,7 @@ public:
         for (auto& cur : values) {
             newValues.emplace_back(cur->clone());
         }
-        return new RamExistenceCheck(
-                std::unique_ptr<RamRelationReference>(relationRef->clone()), std::move(newValues));
+        return new RamExistenceCheck(souffle::clone(relationRef), std::move(newValues));
     }
 };
 
@@ -371,8 +368,7 @@ public:
         for (auto& cur : values) {
             newValues.emplace_back(cur->clone());
         }
-        return new RamProvenanceExistenceCheck(
-                std::unique_ptr<RamRelationReference>(relationRef->clone()), std::move(newValues));
+        return new RamProvenanceExistenceCheck(souffle::clone(relationRef), std::move(newValues));
     }
 
 protected:
@@ -409,7 +405,7 @@ public:
     }
 
     RamEmptinessCheck* clone() const override {
-        return new RamEmptinessCheck(std::unique_ptr<RamRelationReference>(relationRef->clone()));
+        return new RamEmptinessCheck(souffle::clone(relationRef));
     }
 
     void apply(const RamNodeMapper& map) override {

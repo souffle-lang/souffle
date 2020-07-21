@@ -309,9 +309,9 @@ public:
     /**
      * Get the attribute type of a relation at the column specified by the parameter.
      * The attribute type is in the form "<primitive type>:<type name>".
-     * <primitive type> can be s or n standing for symbol or number which are two primitive types in Souffle.
-     * <type name> is the name given by the user in the Souffle Program after ".type", "symbol_type" or
-     * "number_type". For example, for ".type Node", the type name is "Node".
+     * <primitive type> can be s, f, u, or i standing for symbol, float, unsigned, and integer respectively,
+     * which are the primitive types in Souffle.
+     * <type name> is the name given by the user in the Souffle program
      *
      * @param The index of the column starting starting from 0 (size_t)
      * @return The constant string of the attribute type

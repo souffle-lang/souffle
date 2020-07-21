@@ -85,7 +85,7 @@ void normaliseInlinedHeads(AstProgram& program) {
 
             // Add in everything in the original body
             for (AstLiteral* lit : clause->getBodyLiterals()) {
-                newClause->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                newClause->addToBody(souffle::clone(lit));
             }
 
             // Set up the head arguments in the new clause
@@ -103,12 +103,11 @@ void normaliseInlinedHeads(AstProgram& program) {
                                         : BinaryConstraintOp::EQ;
 
                     // Add a body constraint to set the variable's value to be the original constant
-                    newClause->addToBody(std::make_unique<AstBinaryConstraint>(opEq,
-                            std::make_unique<AstVariable>(newVar.str()),
-                            std::unique_ptr<AstArgument>(constant->clone())));
+                    newClause->addToBody(std::make_unique<AstBinaryConstraint>(
+                            opEq, std::make_unique<AstVariable>(newVar.str()), souffle::clone(constant)));
                 } else {
                     // Already a variable
-                    clauseHead->addArgument(std::unique_ptr<AstArgument>(arg->clone()));
+                    clauseHead->addArgument(souffle::clone(arg));
                 }
             }
 
@@ -292,7 +291,7 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
     static int inlineCount = 0;
 
     // Make a temporary clone so we can rename variables without fear
-    AstClause* atomClause = atomInlineClause->clone();
+    auto atomClause = souffle::clone(atomInlineClause);
 
     struct VariableRenamer : public AstNodeMapper {
         int varnum;
@@ -300,7 +299,7 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
                 // Rename the variable
-                auto newVar = std::unique_ptr<AstVariable>(var->clone());
+                auto newVar = souffle::clone(var);
                 std::stringstream newName;
                 newName << "<inlined_" << var->getName() << "_" << varnum << ">";
                 newVar->setName(newName.str());
@@ -322,9 +321,8 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
         changed = true;
         for (std::pair<AstArgument*, AstArgument*> pair : res.getVector()) {
             // FIXME: float equiv (`FEQ`)
-            constraints.push_back(new AstBinaryConstraint(BinaryConstraintOp::EQ,
-                    std::unique_ptr<AstArgument>(pair.first->clone()),
-                    std::unique_ptr<AstArgument>(pair.second->clone())));
+            constraints.push_back(new AstBinaryConstraint(
+                    BinaryConstraintOp::EQ, souffle::clone(pair.first), souffle::clone(pair.second)));
         }
 
         // Add in the body of the current clause of the inlined atom
@@ -332,8 +330,6 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
             addedLits.push_back(lit->clone());
         }
     }
-
-    delete atomClause;
 
     if (changed) {
         return std::make_pair(NullableVector<AstLiteral*>(addedLits), constraints);
@@ -347,7 +343,7 @@ std::pair<NullableVector<AstLiteral*>, std::vector<AstBinaryConstraint*>> inline
  */
 AstLiteral* negateLiteral(AstLiteral* lit) {
     if (auto* atom = dynamic_cast<AstAtom*>(lit)) {
-        auto* neg = new AstNegation(std::unique_ptr<AstAtom>(atom->clone()));
+        auto* neg = new AstNegation(souffle::clone(atom));
         return neg;
     } else if (auto* neg = dynamic_cast<AstNegation*>(lit)) {
         AstAtom* atom = neg->getAtom()->clone();
@@ -485,7 +481,7 @@ void renameVariables(AstArgument* arg) {
         M(int varnum) : varnum(varnum) {}
         std::unique_ptr<AstNode> operator()(std::unique_ptr<AstNode> node) const override {
             if (auto* var = dynamic_cast<AstVariable*>(node.get())) {
-                auto newVar = std::unique_ptr<AstVariable>(var->clone());
+                auto newVar = souffle::clone(var);
                 std::stringstream newName;
                 newName << var->getName() << "-v" << varnum;
                 newVar->setName(newName.str());
@@ -548,7 +544,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                             new AstAggregator(aggr->getOperator(), std::unique_ptr<AstArgument>(newArg));
                     std::vector<std::unique_ptr<AstLiteral>> newBody;
                     for (AstLiteral* lit : aggr->getBodyLiterals()) {
-                        newBody.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
+                        newBody.push_back(souffle::clone(lit));
                     }
                     newAggr->setBody(std::move(newBody));
                     versions.push_back(newAggr);
@@ -577,7 +573,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                     for (std::vector<AstLiteral*> inlineVersions : literalVersions.getVector()) {
                         std::unique_ptr<AstArgument> target;
                         if (aggr->getTargetExpression() != nullptr) {
-                            target = std::unique_ptr<AstArgument>(aggr->getTargetExpression()->clone());
+                            target = souffle::clone(aggr->getTargetExpression());
                         }
                         auto* newAggr = new AstAggregator(aggr->getOperator(), std::move(target));
 
@@ -585,7 +581,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                         // Add in everything except the current literal being replaced
                         for (size_t j = 0; j < bodyLiterals.size(); j++) {
                             if (i != j) {
-                                newBody.push_back(std::unique_ptr<AstLiteral>(bodyLiterals[j]->clone()));
+                                newBody.push_back(souffle::clone(bodyLiterals[j]));
                             }
                         }
 
@@ -689,8 +685,7 @@ NullableVector<AstArgument*> getInlinedArgument(AstProgram& program, const AstAr
                         if (i == j) {
                             newRecordArg->addArgument(std::unique_ptr<AstArgument>(newArgumentVersion));
                         } else {
-                            newRecordArg->addArgument(
-                                    std::unique_ptr<AstArgument>(recordArguments[j]->clone()));
+                            newRecordArg->addArgument(souffle::clone(recordArguments[j]));
                         }
                     }
                     versions.push_back(newRecordArg);
@@ -861,8 +856,7 @@ NullableVector<std::vector<AstLiteral*>> getInlinedLiteral(AstProgram& program, 
             changed = true;
             for (AstArgument* newLhs : lhsVersions.getVector()) {
                 AstLiteral* newLit = new AstBinaryConstraint(constraint->getOperator(),
-                        std::unique_ptr<AstArgument>(newLhs),
-                        std::unique_ptr<AstArgument>(constraint->getRHS()->clone()));
+                        std::unique_ptr<AstArgument>(newLhs), souffle::clone(constraint->getRHS()));
                 versions.push_back(newLit);
             }
         } else {
@@ -871,8 +865,7 @@ NullableVector<std::vector<AstLiteral*>> getInlinedLiteral(AstProgram& program, 
                 changed = true;
                 for (AstArgument* newRhs : rhsVersions.getVector()) {
                     AstLiteral* newLit = new AstBinaryConstraint(constraint->getOperator(),
-                            std::unique_ptr<AstArgument>(constraint->getLHS()->clone()),
-                            std::unique_ptr<AstArgument>(newRhs));
+                            souffle::clone(constraint->getLHS()), std::unique_ptr<AstArgument>(newRhs));
                     versions.push_back(newLit);
                 }
             }
@@ -922,7 +915,7 @@ std::vector<AstClause*> getInlinedClause(AstProgram& program, const AstClause& c
 
             // The body will remain unchanged
             for (AstLiteral* lit : clause.getBodyLiterals()) {
-                newClause->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                newClause->addToBody(souffle::clone(lit));
             }
 
             versions.push_back(newClause);
@@ -957,7 +950,7 @@ std::vector<AstClause*> getInlinedClause(AstProgram& program, const AstClause& c
                 auto baseClause = std::unique_ptr<AstClause>(cloneHead(&clause));
                 for (AstLiteral* oldLit : bodyLiterals) {
                     if (currLit != oldLit) {
-                        baseClause->addToBody(std::unique_ptr<AstLiteral>(oldLit->clone()));
+                        baseClause->addToBody(souffle::clone(oldLit));
                     }
                 }
 

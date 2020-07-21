@@ -18,6 +18,8 @@
 
 #include "DebugReporter.h"
 #include "ast/transform/AstTransformer.h"
+#include "utility/ContainerUtil.h"
+#include "utility/MiscUtil.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -73,6 +75,10 @@ public:
      */
     static std::unique_ptr<AstClause> removeComplexTermsInAtoms(const AstClause& clause);
 
+    ResolveAliasesTransformer* clone() const override {
+        return new ResolveAliasesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -99,6 +105,10 @@ public:
      */
     static bool removeRelationCopies(AstTranslationUnit& translationUnit);
 
+    RemoveRelationCopiesTransformer* clone() const override {
+        return new RemoveRelationCopiesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override {
         return removeRelationCopies(translationUnit);
@@ -114,6 +124,10 @@ public:
         return "UniqueAggregationVariablesTransformer";
     }
 
+    UniqueAggregationVariablesTransformer* clone() const override {
+        return new UniqueAggregationVariablesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -126,6 +140,10 @@ class MaterializeSingletonAggregationTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "MaterializeSingletonAggregationTransformer";
+    }
+
+    MaterializeSingletonAggregationTransformer* clone() const override {
+        return new MaterializeSingletonAggregationTransformer();
     }
 
 private:
@@ -167,6 +185,10 @@ public:
      */
     static bool materializeAggregationQueries(AstTranslationUnit& translationUnit);
 
+    MaterializeAggregationQueriesTransformer* clone() const override {
+        return new MaterializeAggregationQueriesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override {
         return materializeAggregationQueries(translationUnit);
@@ -196,6 +218,10 @@ public:
      */
     static bool removeEmptyRelations(AstTranslationUnit& translationUnit);
 
+    RemoveEmptyRelationsTransformer* clone() const override {
+        return new RemoveEmptyRelationsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override {
         return removeEmptyRelations(translationUnit);
@@ -220,6 +246,10 @@ public:
         return "RemoveRedundantRelationsTransformer";
     }
 
+    RemoveRedundantRelationsTransformer* clone() const override {
+        return new RemoveRedundantRelationsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -235,6 +265,10 @@ public:
 
     // Check whether two clauses are bijectively equivalent.
     static bool areBijectivelyEquivalent(const AstClause* left, const AstClause* right);
+
+    MinimiseProgramTransformer* clone() const override {
+        return new MinimiseProgramTransformer();
+    }
 
 private:
     class NormalisedClauseRepr;
@@ -287,6 +321,10 @@ public:
         return "ProvenanceTransformer";
     }
 
+    ProvenanceTransformer* clone() const override {
+        return new ProvenanceTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
     bool transformMaxHeight(AstTranslationUnit& translationUnit);
@@ -303,6 +341,10 @@ public:
         return "RemoveBooleanConstraintsTransformer";
     }
 
+    RemoveBooleanConstraintsTransformer* clone() const override {
+        return new RemoveBooleanConstraintsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -314,6 +356,10 @@ class InlineRelationsTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "InlineRelationsTransformer";
+    }
+
+    InlineRelationsTransformer* clone() const override {
+        return new InlineRelationsTransformer();
     }
 
 private:
@@ -334,6 +380,10 @@ public:
         return "PartitionBodyLiteralsTransformer";
     }
 
+    PartitionBodyLiteralsTransformer* clone() const override {
+        return new PartitionBodyLiteralsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -346,6 +396,10 @@ class ReduceExistentialsTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "ReduceExistentialsTransformer";
+    }
+
+    ReduceExistentialsTransformer* clone() const override {
+        return new ReduceExistentialsTransformer();
     }
 
 private:
@@ -363,6 +417,10 @@ public:
         return "ReplaceSingletonVariablesTransformer";
     }
 
+    ReplaceSingletonVariablesTransformer* clone() const override {
+        return new ReplaceSingletonVariablesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -378,6 +436,10 @@ public:
         return "NameUnnamedVariablesTransformer";
     }
 
+    NameUnnamedVariablesTransformer* clone() const override {
+        return new NameUnnamedVariablesTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -389,6 +451,10 @@ class ReorderLiteralsTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "ReorderLiteralsTransformer";
+    }
+
+    ReorderLiteralsTransformer* clone() const override {
+        return new ReorderLiteralsTransformer();
     }
 
 private:
@@ -403,6 +469,10 @@ class NormaliseConstraintsTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "NormaliseConstraintsTransformer";
+    }
+
+    NormaliseConstraintsTransformer* clone() const override {
+        return new NormaliseConstraintsTransformer();
     }
 
 private:
@@ -421,6 +491,10 @@ public:
         return "RemoveRedundantSumsTransformer";
     }
 
+    RemoveRedundantSumsTransformer* clone() const override {
+        return new RemoveRedundantSumsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -432,6 +506,10 @@ class MagicSetTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "MagicSetTransformer";
+    }
+
+    MagicSetTransformer* clone() const override {
+        return new MagicSetTransformer();
     }
 
 private:
@@ -449,6 +527,10 @@ public:
     std::string getName() const override {
         return "RemoveTypecastsTransformer";
     }
+
+    RemoveTypecastsTransformer* clone() const override {
+        return new RemoveTypecastsTransformer();
+    }
 };
 
 /**
@@ -462,6 +544,13 @@ public:
         for (auto& cur : tmp) {
             pipeline.push_back(std::move(cur));
         }
+    }
+
+    PipelineTransformer(std::vector<std::unique_ptr<AstTransformer>> pipeline)
+            : pipeline(std::move(pipeline)) {}
+
+    std::vector<AstTransformer*> getSubtransformers() const override {
+        return toPtrVector(pipeline);
     }
 
     void setDebugReport() override {
@@ -497,6 +586,14 @@ public:
         return "PipelineTransformer";
     }
 
+    PipelineTransformer* clone() const override {
+        std::vector<std::unique_ptr<AstTransformer>> transformers;
+        for (const auto& transformer : pipeline) {
+            transformers.push_back(souffle::clone(transformer));
+        }
+        return new PipelineTransformer(std::move(transformers));
+    }
+
 private:
     std::vector<std::unique_ptr<AstTransformer>> pipeline;
     bool transform(AstTranslationUnit& translationUnit) override;
@@ -512,6 +609,10 @@ public:
 
     ConditionalTransformer(bool cond, std::unique_ptr<AstTransformer> transformer)
             : condition([=]() { return cond; }), transformer(std::move(transformer)) {}
+
+    std::vector<AstTransformer*> getSubtransformers() const override {
+        return {transformer.get()};
+    }
 
     void setDebugReport() override {
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
@@ -540,6 +641,10 @@ public:
         return "ConditionalTransformer";
     }
 
+    ConditionalTransformer* clone() const override {
+        return new ConditionalTransformer(condition, souffle::clone(transformer));
+    }
+
 private:
     std::function<bool()> condition;
     std::unique_ptr<AstTransformer> transformer;
@@ -557,6 +662,9 @@ public:
     WhileTransformer(bool cond, std::unique_ptr<AstTransformer> transformer)
             : condition([=]() { return cond; }), transformer(std::move(transformer)) {}
 
+    std::vector<AstTransformer*> getSubtransformers() const override {
+        return {transformer.get()};
+    }
     void setDebugReport() override {
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
             mt->setDebugReport();
@@ -584,6 +692,10 @@ public:
         return "WhileTransformer";
     }
 
+    WhileTransformer* clone() const override {
+        return new WhileTransformer(condition, souffle::clone(transformer));
+    }
+
 private:
     std::function<bool()> condition;
     std::unique_ptr<AstTransformer> transformer;
@@ -605,6 +717,10 @@ public:
         }
     }
 
+    std::vector<AstTransformer*> getSubtransformers() const override {
+        return {transformer.get()};
+    }
+
     void setVerbosity(bool verbose) override {
         this->verbose = verbose;
         if (auto* mt = dynamic_cast<MetaTransformer*>(transformer.get())) {
@@ -624,6 +740,10 @@ public:
         return "FixpointTransformer";
     }
 
+    FixpointTransformer* clone() const override {
+        return new FixpointTransformer(souffle::clone(transformer));
+    }
+
 private:
     std::unique_ptr<AstTransformer> transformer;
     bool transform(AstTranslationUnit& translationUnit) override;
@@ -640,6 +760,10 @@ public:
         return "PolymorphicObjectsTransformer";
     }
 
+    PolymorphicObjectsTransformer* clone() const override {
+        return new PolymorphicObjectsTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };
@@ -652,6 +776,10 @@ class AstUserDefinedFunctorsTransformer : public AstTransformer {
 public:
     std::string getName() const override {
         return "AstUserDefinedFunctorsTransformer";
+    }
+
+    AstUserDefinedFunctorsTransformer* clone() const override {
+        return new AstUserDefinedFunctorsTransformer();
     }
 
 private:
@@ -679,6 +807,10 @@ class FoldAnonymousRecords : public AstTransformer {
 public:
     std::string getName() const override {
         return "FoldAnonymousRecords";
+    }
+
+    FoldAnonymousRecords* clone() const override {
+        return new FoldAnonymousRecords();
     }
 
 private:
@@ -729,6 +861,10 @@ class ResolveAnonymousRecordsAliases : public AstTransformer {
 public:
     std::string getName() const override {
         return "FoldAnonymousRecords";
+    }
+
+    ResolveAnonymousRecordsAliases* clone() const override {
+        return new ResolveAnonymousRecordsAliases();
     }
 
 private:

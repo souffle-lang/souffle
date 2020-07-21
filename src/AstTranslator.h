@@ -106,7 +106,7 @@ private:
 
         Location(const Location& l) : identifier(l.identifier), element(l.element) {
             if (l.relation != nullptr) {
-                relation = std::unique_ptr<RamRelationReference>(l.relation->clone());
+                relation = souffle::clone(l.relation);
             }
         }
 

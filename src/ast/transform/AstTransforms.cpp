@@ -316,7 +316,7 @@ bool MaterializeSingletonAggregationTransformer::transform(AstTranslationUnit& t
                 assert(node != nullptr);
                 if (auto* current = dynamic_cast<AstAggregator*>(node.get())) {
                     if (*current == aggregate) {
-                        auto replacement = std::unique_ptr<AstVariable>(variable->clone());
+                        auto replacement = souffle::clone(variable);
                         assert(replacement != nullptr);
                         return replacement;
                     }
@@ -382,7 +382,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             auto* aggClause = new AstClause();
             // create the body of the new materialised rule
             for (const auto& cur : agg.getBodyLiterals()) {
-                aggClause->addToBody(std::unique_ptr<AstLiteral>(cur->clone()));
+                aggClause->addToBody(souffle::clone(cur));
             }
             // find stuff for which we need a grounding
             for (const auto& argPair : getGroundedTerms(translationUnit, *aggClause)) {
@@ -404,7 +404,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                         // if this atom contains the variable I need to ground, add it
                         if ((atomVariable != nullptr) && variable->getName() == atomVariable->getName()) {
                             // expand the body with this one so that it will ground this variable
-                            aggClause->addToBody(std::unique_ptr<AstLiteral>(atom->clone()));
+                            aggClause->addToBody(souffle::clone(atom));
                             break;
                         }
                     }
@@ -443,7 +443,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                                 auto res = new AstVariable(name);
 
                                 // extend head
-                                head->addArgument(std::unique_ptr<AstArgument>(res->clone()));
+                                head->addArgument(souffle::clone(res));
 
                                 // return replacement
                                 return std::unique_ptr<AstNode>(res);
@@ -612,10 +612,10 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelationUses(
                 for (AstLiteral* lit : cl->getBodyLiterals()) {
                     if (auto* neg = dynamic_cast<AstNegation*>(lit)) {
                         if (getAtomRelation(neg->getAtom(), &program) != emptyRelation) {
-                            res->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                            res->addToBody(souffle::clone(lit));
                         }
                     } else {
-                        res->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                        res->addToBody(souffle::clone(lit));
                     }
                 }
 
@@ -673,7 +673,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
 
                 // Only keep literals that aren't boolean constraints
                 if (containsFalse || containsTrue) {
-                    auto replacementAggregator = std::unique_ptr<AstAggregator>(aggr->clone());
+                    auto replacementAggregator = souffle::clone(aggr);
                     std::vector<std::unique_ptr<AstLiteral>> newBody;
 
                     bool isEmpty = true;
@@ -684,7 +684,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                             // Don't add in boolean constraints
                             if (dynamic_cast<AstBooleanConstraint*>(lit) == nullptr) {
                                 isEmpty = false;
-                                newBody.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
+                                newBody.push_back(souffle::clone(lit));
                             }
                         }
 
@@ -741,7 +741,7 @@ bool RemoveBooleanConstraintsTransformer::transform(AstTranslationUnit& translat
                 // Only keep non-'true' literals
                 for (AstLiteral* lit : clause->getBodyLiterals()) {
                     if (dynamic_cast<AstBooleanConstraint*>(lit) == nullptr) {
-                        replacementClause->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                        replacementClause->addToBody(souffle::clone(lit));
                     }
                 }
 
@@ -895,7 +895,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
                     }
                 });
                 if (associated) {
-                    disconnectedClause->addToBody(std::unique_ptr<AstLiteral>(bodyLiteral->clone()));
+                    disconnectedClause->addToBody(souffle::clone(bodyLiteral));
                 }
             }
 
@@ -910,7 +910,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
         // a(x) <- b(x), c(y), d(z). --> a(x) <- newrel0(), newrel1(), b(x).
         auto* replacementClause = new AstClause();
         replacementClause->setSrcLoc(clause.getSrcLoc());
-        replacementClause->setHead(std::unique_ptr<AstAtom>(clause.getHead()->clone()));
+        replacementClause->setHead(souffle::clone(clause.getHead()));
 
         // Add the new propositions to the clause first
         for (AstAtom* newAtom : replacementAtoms) {
@@ -928,7 +928,7 @@ bool PartitionBodyLiteralsTransformer::transform(AstTranslationUnit& translation
                 }
             });
             if (associated || !hasVariables) {
-                replacementClause->addToBody(std::unique_ptr<AstLiteral>(bodyLiteral->clone()));
+                replacementClause->addToBody(souffle::clone(bodyLiteral));
             }
         }
 
@@ -1053,11 +1053,11 @@ bool ReduceExistentialsTransformer::transform(AstTranslationUnit& translationUni
 
                 newClause->setSrcLoc(clause->getSrcLoc());
                 if (const AstExecutionPlan* plan = clause->getExecutionPlan()) {
-                    newClause->setExecutionPlan(std::unique_ptr<AstExecutionPlan>(plan->clone()));
+                    newClause->setExecutionPlan(souffle::clone(plan));
                 }
                 newClause->setHead(std::make_unique<AstAtom>(newRelationName.str()));
                 for (AstLiteral* lit : clause->getBodyLiterals()) {
-                    newClause->addToBody(std::unique_ptr<AstLiteral>(lit->clone()));
+                    newClause->addToBody(souffle::clone(lit));
                 }
 
                 program.addClause(std::move(newClause));
@@ -1220,10 +1220,10 @@ bool RemoveRedundantSumsTransformer::transform(AstTranslationUnit& translationUn
                         // Duplicate the body of the aggregate
                         std::vector<std::unique_ptr<AstLiteral>> newBody;
                         for (const auto& lit : agg->getBodyLiterals()) {
-                            newBody.push_back(std::unique_ptr<AstLiteral>(lit->clone()));
+                            newBody.push_back(souffle::clone(lit));
                         }
                         count->setBody(std::move(newBody));
-                        auto number = std::unique_ptr<AstNumericConstant>(constant->clone());
+                        auto number = souffle::clone(constant);
                         // Now it's constant * count : { ... }
                         auto result = std::make_unique<AstIntrinsicFunctor>(
                                 "*", std::move(number), std::move(count));
@@ -1287,9 +1287,8 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
 
                 // create new constraint (+abdulX = constant)
                 auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
-                constraints.insert(new AstBinaryConstraint(BinaryConstraintOp::EQ,
-                        std::unique_ptr<AstArgument>(newVariable->clone()),
-                        std::unique_ptr<AstArgument>(stringConstant->clone())));
+                constraints.insert(new AstBinaryConstraint(
+                        BinaryConstraintOp::EQ, souffle::clone(newVariable), souffle::clone(stringConstant)));
 
                 // update constant to be the variable created
                 return newVariable;
@@ -1308,9 +1307,8 @@ bool NormaliseConstraintsTransformer::transform(AstTranslationUnit& translationU
 
                 // create new constraint (+abdulX = constant)
                 auto newVariable = std::make_unique<AstVariable>(newVariableName.str());
-                constraints.insert(
-                        new AstBinaryConstraint(opEq, std::unique_ptr<AstArgument>(newVariable->clone()),
-                                std::unique_ptr<AstArgument>(numberConstant->clone())));
+                constraints.insert(new AstBinaryConstraint(
+                        opEq, souffle::clone(newVariable), souffle::clone(numberConstant)));
 
                 // update constant to be the variable created
                 return newVariable;
@@ -1366,7 +1364,7 @@ bool RemoveTypecastsTransformer::transform(AstTranslationUnit& translationUnit) 
             // if current node is a typecast, replace with the value directly
             if (auto* cast = dynamic_cast<AstTypeCast*>(node.get())) {
                 changed = true;
-                return std::unique_ptr<AstArgument>(cast->getValue()->clone());
+                return souffle::clone(cast->getValue());
             }
 
             // otherwise, return the original node
@@ -1562,7 +1560,6 @@ bool FoldAnonymousRecords::isValidRecordConstraint(const AstLiteral* literal) {
     auto op = constraint->getOperator();
 
     return isEqConstraint(op) || isEqConstraint(negatedConstraintOp(op));
-    ;
 }
 
 bool FoldAnonymousRecords::containsValidRecordConstraint(const AstClause& clause) {
@@ -1577,21 +1574,20 @@ std::vector<std::unique_ptr<AstLiteral>> FoldAnonymousRecords::expandRecordBinar
         const AstBinaryConstraint& constraint) {
     std::vector<std::unique_ptr<AstLiteral>> replacedContraint;
 
-    const auto& left = dynamic_cast<AstRecordInit&>(*constraint.getLHS());
-    const auto& right = dynamic_cast<AstRecordInit&>(*constraint.getRHS());
+    const auto* left = dynamic_cast<AstRecordInit*>(constraint.getLHS());
+    const auto* right = dynamic_cast<AstRecordInit*>(constraint.getRHS());
+    assert(left != nullptr && "Non-record passed to record method");
+    assert(right != nullptr && "Non-record passed to record method");
 
-    auto leftChildren = left.getChildNodes();
-    auto rightChildren = right.getChildNodes();
+    auto leftChildren = left->getArguments();
+    auto rightChildren = right->getArguments();
 
     assert(leftChildren.size() == rightChildren.size());
 
     // [a, b..] = [c, d...] → a = c, b = d ...
     for (size_t i = 0; i < leftChildren.size(); ++i) {
-        auto leftOperand = static_cast<AstArgument*>(leftChildren[i]->clone());
-        auto rightOperand = static_cast<AstArgument*>(rightChildren[i]->clone());
-
-        auto newConstraint = std::make_unique<AstBinaryConstraint>(constraint.getOperator(),
-                std::unique_ptr<AstArgument>(leftOperand), std::unique_ptr<AstArgument>(rightOperand));
+        auto newConstraint = std::make_unique<AstBinaryConstraint>(
+                constraint.getOperator(), souffle::clone(leftChildren[i]), souffle::clone(rightChildren[i]));
         replacedContraint.push_back(std::move(newConstraint));
     }
 
@@ -1631,18 +1627,18 @@ void FoldAnonymousRecords::transformClause(
 
                 // Else: repeated inequality.
             } else {
-                newBody.push_back(std::unique_ptr<AstLiteral>(literal->clone()));
+                newBody.push_back(souffle::clone(literal));
             }
 
             // else, we simply copy the literal.
         } else {
-            newBody.push_back(std::unique_ptr<AstLiteral>(literal->clone()));
+            newBody.push_back(souffle::clone(literal));
         }
     }
 
     // If no inequality: create a single modified clause.
     if (neqConstraint == nullptr) {
-        auto newClause = std::unique_ptr<AstClause>(clause.clone());
+        auto newClause = souffle::clone(&clause);
         newClause->setBodyLiterals(std::move(newBody));
         newClauses.emplace_back(std::move(newClause));
 
@@ -1651,8 +1647,8 @@ void FoldAnonymousRecords::transformClause(
         auto transformedLiterals = expandRecordBinaryConstraint(*neqConstraint);
 
         for (auto it = begin(transformedLiterals); it != end(transformedLiterals); ++it) {
-            auto newClause = std::unique_ptr<AstClause>(clause.clone());
-            auto copyBody = clone(newBody);
+            auto newClause = souffle::clone(&clause);
+            auto copyBody = souffle::clone(newBody);
             copyBody.push_back(std::move(*it));
 
             newClause->setBodyLiterals(std::move(copyBody));
@@ -1750,7 +1746,7 @@ bool ResolveAnonymousRecordsAliases::replaceNamedVariables(AstTranslationUnit& t
             if (auto variable = dynamic_cast<AstVariable*>(node.get())) {
                 auto iteratorToRecord = varToRecordMap.find(variable->getName());
                 if (iteratorToRecord != varToRecordMap.end()) {
-                    return std::unique_ptr<AstNode>(iteratorToRecord->second->clone());
+                    return souffle::clone(iteratorToRecord->second);
                 }
             }
 

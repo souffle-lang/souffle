@@ -120,7 +120,9 @@ struct RamVisitor : public ram_visitor_tag {
         FORWARD(Choice);
         FORWARD(ParallelIndexChoice);
         FORWARD(IndexChoice);
+        FORWARD(ParallelAggregate);
         FORWARD(Aggregate);
+        FORWARD(ParallelIndexAggregate);
         FORWARD(IndexAggregate);
 
         // Statements
@@ -198,7 +200,9 @@ protected:
     LINK(ParallelIndexChoice, IndexChoice);
     LINK(RelationOperation, TupleOperation);
     LINK(Aggregate, RelationOperation);
+    LINK(ParallelAggregate, Aggregate);
     LINK(IndexAggregate, IndexOperation);
+    LINK(ParallelIndexAggregate, IndexAggregate);
     LINK(IndexOperation, RelationOperation);
     LINK(TupleOperation, NestedOperation);
     LINK(Filter, AbstractConditional);

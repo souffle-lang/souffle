@@ -1,0 +1,56 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+// Test that aggregates that are run in parallel
+// and use an index are evaluated correctly
+
+// index aggregate count
+.decl S, IndexAggregateCount(m:number, n:number)
+.output IndexAggregateCount
+S(1, 1).
+S(1, (n+1)) :- S(1, n), n < 1000.
+IndexAggregateCount(1, x) :- x = count : { S(1, _) }.
+
+// index aggregate max
+.decl A, IndexAggregateMax(m:number, n:number)
+.output IndexAggregateMax
+A(1, 1).
+A(1, (n+1)) :- A(1, n), n < 100.
+IndexAggregateMax(1, x) :- x = max y : { A(1, y) }.
+
+// index aggregate mean
+.decl C, IndexAggregateMean(m:float, n:float)
+.output IndexAggregateMean
+C(1, 1).
+C(1, (n+1)) :- C(1, n), n < 100.
+IndexAggregateMean(1, x) :- x = mean y : { C(1, y) }.
+
+// index aggregate min
+.decl D, IndexAggregateMin(m:number, n:number)
+.output IndexAggregateMin
+D(1, 1).
+D(1, (n+1)) :- D(1, n), n < 100.
+IndexAggregateMin(1, x) :- x = min y : { D(1, y) }.
+
+// index aggregate sum
+.decl F, IndexAggregateSum(m:number, n:number)
+.output IndexAggregateSum
+F(1, 1).
+F(1, (n+1)) :- F(1, n), n < 100.
+IndexAggregateSum(1, x) :- x = sum y : F(1, y).
+
+.decl G, AggregateOverflow(x:float)
+.decl H, IndexAggregateOverflow(x:float, y:float)
+.output AggregateOverflow, IndexAggregateOverflow
+
+G(2^(31)-1).
+G(1).
+
+AggregateOverflow(x) :- x = mean y : G(y).
+
+H(1, 2^(31)-1).
+H(1, 1).
+
+IndexAggregateOverflow(1, x) :- x = mean y : H(1, y).

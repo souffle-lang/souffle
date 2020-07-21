@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ast/AstAbstract.h"
+#include "utility/MiscUtil.h"
 #include <iosfwd>
 #include <memory>
 #include <utility>
@@ -65,7 +66,7 @@ private:
         std::unique_ptr<AstLiteral> atom;
 
         literal clone() const {
-            return literal(negated, std::unique_ptr<AstLiteral>(atom->clone()));
+            return literal(negated, souffle::clone(atom));
         }
     };
 

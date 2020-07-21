@@ -147,7 +147,7 @@ public:
     }
 
     void addBinding(const std::string& newVariableName, const AstArgument* arg) {
-        originalArguments[newVariableName] = std::unique_ptr<AstArgument>(arg->clone());
+        originalArguments[newVariableName] = souffle::clone(arg);
 
         // find the variable dependencies
         std::set<std::string> dependencies;

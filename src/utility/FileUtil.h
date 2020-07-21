@@ -91,20 +91,24 @@ inline bool isExecutable(const std::string& name) {
  * Simple implementation of a which tool
  */
 inline std::string which(const std::string& name) {
-    char buf[PATH_MAX];
-    if ((::realpath(name.c_str(), buf) != nullptr) && isExecutable(buf)) {
-        return buf;
+    // Check if name has path components in it and if so return it immediately
+    if (name.find('/') != std::string::npos) {
+        return name;
     }
+    // Get PATH from environment, if it exists.
     const char* syspath = ::getenv("PATH");
     if (syspath == nullptr) {
         return "";
     }
+    char buf[PATH_MAX];
     std::stringstream sstr;
     sstr << syspath;
     std::string sub;
+
+    // Check for existence of a binary called 'name' in PATH
     while (std::getline(sstr, sub, ':')) {
         std::string path = sub + "/" + name;
-        if (isExecutable(path) && (realpath(path.c_str(), buf) != nullptr)) {
+        if ((::realpath(path.c_str(), buf) != nullptr) && isExecutable(path) && !existDir(path)) {
             return buf;
         }
     }

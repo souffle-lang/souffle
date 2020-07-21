@@ -1050,10 +1050,56 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             return execute(node->getChild(1), ctxt);
         ESAC(UnpackRecord)
 
+        CASE(ParallelAggregate)
+            // TODO (rdowavic): make parallel
+            auto preamble = node->getPreamble();
+
+            InterpreterContext newCtxt(ctxt);
+            auto viewInfo = preamble->getViewInfoForNested();
+            for (const auto& info : viewInfo) {
+                newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
+            }
+            return executeAggregate(newCtxt, cur, *node->getChild(0), node->getChild(1), *node->getChild(2),
+                    node->getRelation()->scan());
+        ESAC(ParallelAggregate)
+
         CASE(Aggregate)
             return executeAggregate(ctxt, cur, *node->getChild(0), node->getChild(1), *node->getChild(2),
                     node->getRelation()->scan());
         ESAC(Aggregate)
+
+        CASE(ParallelIndexAggregate)
+            // TODO (rdowavic): make parallel
+            auto preamble = node->getPreamble();
+
+            InterpreterContext newCtxt(ctxt);
+            auto viewInfo = preamble->getViewInfoForNested();
+            for (const auto& info : viewInfo) {
+                newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
+            }
+            // init temporary tuple for this level
+            size_t arity = cur.getRelation().getArity();
+
+            // get lower and upper boundaries for iteration
+            RamDomain low[arity];
+            RamDomain hig[arity];
+
+            for (size_t i = 0; i < arity; i++) {
+                if (node->getChild(i) != nullptr) {
+                    low[i] = execute(node->getChild(i), newCtxt);
+                    hig[i] = execute(node->getChild(i + arity), newCtxt);
+                } else {
+                    low[i] = MIN_RAM_SIGNED;
+                    hig[i] = MAX_RAM_SIGNED;
+                }
+            }
+
+            size_t viewId = node->getData(0);
+            auto& view = newCtxt.getView(viewId);
+
+            return executeAggregate(newCtxt, cur, *node->getChild(2 * arity), node->getChild(2 * arity + 1),
+                    *node->getChild(2 * arity + 2), view->range(TupleRef(low, arity), TupleRef(hig, arity)));
+        ESAC(ParallelIndexAggregate)
 
         CASE(IndexAggregate)
             // init temporary tuple for this level

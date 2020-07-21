@@ -361,7 +361,7 @@ void SynthesiserDirectRelation::generateTypeStruct(std::ostream& out) {
             if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
                 // index for bottom up phase
                 comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
-                genstruct(comparator_aux, ind.size() - 2);
+                genstruct(comparator_aux, ind.size() - auxillaryArity);
             } else {
                 // index for top down phase
                 comparator_aux = comparator;

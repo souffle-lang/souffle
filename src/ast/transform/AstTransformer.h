@@ -18,6 +18,7 @@
 
 #include <set>
 #include <string>
+#include <vector>
 
 namespace souffle {
 
@@ -33,6 +34,8 @@ public:
     bool apply(AstTranslationUnit& translationUnit);
 
     virtual std::string getName() const = 0;
+
+    virtual AstTransformer* clone() const = 0;
 };
 
 /**
@@ -43,6 +46,9 @@ protected:
     bool verbose = false;
 
 public:
+    /* Get subtransformers */
+    virtual std::vector<AstTransformer*> getSubtransformers() const = 0;
+
     /* Enable the debug-report for all sub-transformations */
     virtual void setDebugReport() = 0;
 
@@ -54,6 +60,8 @@ public:
 
     /* Apply a nested transformer */
     bool applySubtransformer(AstTranslationUnit& translationUnit, AstTransformer* transformer);
+
+    MetaTransformer* clone() const override = 0;
 };
 
 /**
@@ -64,6 +72,10 @@ private:
     bool transform(AstTranslationUnit& translationUnit) override;
 
 public:
+    std::vector<AstTransformer*> getSubtransformers() const override {
+        return {};
+    }
+
     void setDebugReport() override {}
 
     void setVerbosity(bool /* verbose */) override {}
@@ -72,6 +84,10 @@ public:
 
     std::string getName() const override {
         return "NullTransformer";
+    }
+
+    NullTransformer* clone() const override {
+        return new NullTransformer();
     }
 };
 

@@ -116,7 +116,7 @@ public:
     }
 
     RamIO* clone() const override {
-        return new RamIO(std::unique_ptr<RamRelationReference>(relationRef->clone()), directives);
+        return new RamIO(souffle::clone(relationRef), directives);
     }
 
 protected:
@@ -155,7 +155,7 @@ public:
     RamClear(std::unique_ptr<RamRelationReference> relRef) : RamRelationStatement(std::move(relRef)) {}
 
     RamClear* clone() const override {
-        return new RamClear(std::unique_ptr<RamRelationReference>(relationRef->clone()));
+        return new RamClear(souffle::clone(relationRef));
     }
 
 protected:
@@ -247,8 +247,7 @@ public:
     }
 
     RamExtend* clone() const override {
-        auto* res = new RamExtend(std::unique_ptr<RamRelationReference>(second->clone()),
-                std::unique_ptr<RamRelationReference>(first->clone()));
+        auto* res = new RamExtend(souffle::clone(second), souffle::clone(first));
         return res;
     }
 
@@ -277,8 +276,7 @@ public:
             : RamBinRelationStatement(std::move(f), std::move(s)) {}
 
     RamSwap* clone() const override {
-        return new RamSwap(std::unique_ptr<RamRelationReference>(first->clone()),
-                std::unique_ptr<RamRelationReference>(second->clone()));
+        return new RamSwap(souffle::clone(first), souffle::clone(second));
     }
 
 protected:
@@ -319,7 +317,7 @@ public:
     }
 
     RamQuery* clone() const override {
-        return new RamQuery(std::unique_ptr<RamOperation>(operation->clone()));
+        return new RamQuery(souffle::clone(operation));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -408,7 +406,7 @@ public:
     RamSequence* clone() const override {
         auto* res = new RamSequence();
         for (auto& cur : statements) {
-            res->statements.push_back(std::unique_ptr<RamStatement>(cur->clone()));
+            res->statements.push_back(souffle::clone(cur));
         }
         return res;
     }
@@ -450,7 +448,7 @@ public:
     RamParallel* clone() const override {
         auto* res = new RamParallel();
         for (auto& cur : statements) {
-            res->statements.push_back(std::unique_ptr<RamStatement>(cur->clone()));
+            res->statements.push_back(souffle::clone(cur));
         }
         return res;
     }
@@ -494,7 +492,7 @@ public:
     }
 
     RamLoop* clone() const override {
-        return new RamLoop(std::unique_ptr<RamStatement>(body->clone()));
+        return new RamLoop(souffle::clone(body));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -545,7 +543,7 @@ public:
     }
 
     RamExit* clone() const override {
-        return new RamExit(std::unique_ptr<RamCondition>(condition->clone()));
+        return new RamExit(souffle::clone(condition));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -641,8 +639,7 @@ public:
     }
 
     RamLogRelationTimer* clone() const override {
-        return new RamLogRelationTimer(std::unique_ptr<RamStatement>(statement->clone()), message,
-                std::unique_ptr<RamRelationReference>(relationRef->clone()));
+        return new RamLogRelationTimer(souffle::clone(statement), message, souffle::clone(relationRef));
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -688,7 +685,7 @@ public:
     }
 
     RamLogTimer* clone() const override {
-        return new RamLogTimer(std::unique_ptr<RamStatement>(statement->clone()), message);
+        return new RamLogTimer(souffle::clone(statement), message);
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -724,7 +721,7 @@ public:
     }
 
     RamDebugInfo* clone() const override {
-        return new RamDebugInfo(std::unique_ptr<RamStatement>(statement->clone()), message);
+        return new RamDebugInfo(souffle::clone(statement), message);
     }
 
     void apply(const RamNodeMapper& map) override {
@@ -754,7 +751,7 @@ public:
     }
 
     RamLogSize* clone() const override {
-        return new RamLogSize(std::unique_ptr<RamRelationReference>(relationRef->clone()), message);
+        return new RamLogSize(souffle::clone(relationRef), message);
     }
 
 protected:

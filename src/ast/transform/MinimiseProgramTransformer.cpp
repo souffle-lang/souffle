@@ -477,7 +477,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(AstTranslationUnit& tr
             if (auto* atom = dynamic_cast<AstAtom*>(node.get())) {
                 auto pos = canonicalName.find(atom->getQualifiedName());
                 if (pos != canonicalName.end()) {
-                    auto newAtom = std::unique_ptr<AstAtom>(atom->clone());
+                    auto newAtom = souffle::clone(atom);
                     newAtom->setQualifiedName(pos->second);
                     return newAtom;
                 }
@@ -508,7 +508,7 @@ bool MinimiseProgramTransformer::removeRedundantClauses(AstTranslationUnit& tran
     std::set<std::unique_ptr<AstClause>> clausesToRemove;
     for (const auto* clause : program.getClauses()) {
         if (isRedundant(clause)) {
-            clausesToRemove.insert(std::unique_ptr<AstClause>(clause->clone()));
+            clausesToRemove.insert(souffle::clone(clause));
         }
     }
 
@@ -537,14 +537,14 @@ bool MinimiseProgramTransformer::reduceClauseBodies(AstTranslationUnit& translat
 
         if (!redundantPositions.empty()) {
             auto minimisedClause = std::make_unique<AstClause>();
-            minimisedClause->setHead(std::unique_ptr<AstAtom>(clause->getHead()->clone()));
+            minimisedClause->setHead(souffle::clone(clause->getHead()));
             for (size_t i = 0; i < bodyLiterals.size(); i++) {
                 if (!contains(redundantPositions, i)) {
-                    minimisedClause->addToBody(std::unique_ptr<AstLiteral>(bodyLiterals[i]->clone()));
+                    minimisedClause->addToBody(souffle::clone(bodyLiterals[i]));
                 }
             }
             clausesToAdd.insert(std::move(minimisedClause));
-            clausesToRemove.insert(std::unique_ptr<AstClause>(clause->clone()));
+            clausesToRemove.insert(souffle::clone(clause));
         }
     }
 
@@ -552,7 +552,7 @@ bool MinimiseProgramTransformer::reduceClauseBodies(AstTranslationUnit& translat
         program.removeClause(clause.get());
     }
     for (auto& clause : clausesToAdd) {
-        program.addClause(std::unique_ptr<AstClause>(clause->clone()));
+        program.addClause(souffle::clone(clause));
     }
 
     return !clausesToAdd.empty();

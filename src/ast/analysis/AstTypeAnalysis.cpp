@@ -468,7 +468,7 @@ TypeConstraint isSubtypeOfComponent(
 }  // namespace
 
 /* Return a new clause with type-annotated variables */
-AstClause* createAnnotatedClause(
+std::unique_ptr<AstClause> createAnnotatedClause(
         const AstClause* clause, const std::map<const AstArgument*, TypeSet> argumentTypes) {
     // Annotates each variable with its type based on a given type analysis result
     struct TypeAnnotator : public AstNodeMapper {
@@ -501,7 +501,7 @@ AstClause* createAnnotatedClause(
      *  (2) Keep track of the addresses of equivalent arguments in the cloned clause
      * Method (2) was chosen to avoid having to recompute the analysis each time.
      */
-    AstClause* annotatedClause = clause->clone();
+    auto annotatedClause = souffle::clone(clause);
 
     // Maps x -> y, where x is the address of an argument in the original clause, and y
     // is the address of the equivalent argument in the clone.
@@ -778,8 +778,7 @@ void TypeAnalysis::run(const AstTranslationUnit& translationUnit) {
 
         if (debugStream != nullptr) {
             // Store an annotated clause for printing purposes
-            AstClause* annotatedClause = createAnnotatedClause(clause, clauseArgumentTypes);
-            annotatedClauses.emplace_back(annotatedClause);
+            annotatedClauses.emplace_back(createAnnotatedClause(clause, clauseArgumentTypes));
         }
     }
 }

@@ -17,6 +17,7 @@
 
 #include "ast/transform/AstTransformer.h"
 #include "utility/FileUtil.h"
+#include "utility/MiscUtil.h"
 #include <memory>
 #include <ostream>
 #include <set>
@@ -37,6 +38,10 @@ public:
     DebugReporter(std::unique_ptr<AstTransformer> wrappedTransformer)
             : wrappedTransformer(std::move(wrappedTransformer)) {}
 
+    std::vector<AstTransformer*> getSubtransformers() const override {
+        return {wrappedTransformer.get()};
+    }
+
     void setDebugReport() override {}
 
     void setVerbosity(bool verbose) override {
@@ -50,12 +55,16 @@ public:
         if (auto* mt = dynamic_cast<MetaTransformer*>(wrappedTransformer.get())) {
             mt->disableTransformers(transforms);
         } else if (transforms.find(wrappedTransformer->getName()) != transforms.end()) {
-            wrappedTransformer = std::unique_ptr<AstTransformer>(new NullTransformer());
+            wrappedTransformer = std::make_unique<NullTransformer>();
         }
     }
 
     std::string getName() const override {
         return "DebugReporter";
+    }
+
+    DebugReporter* clone() const override {
+        return new DebugReporter(souffle::clone(wrappedTransformer));
     }
 
 private:

@@ -335,6 +335,19 @@ public:
         return std::make_unique<InterpreterNode>(I_Aggregate, &aggregate, std::move(children), rel);
     }
 
+    NodePtr visitParallelAggregate(const RamParallelAggregate& aggregate) override {
+        size_t relId = encodeRelation(aggregate.getRelation());
+        auto rel = relations[relId].get();
+        NodePtrVec children;
+        children.push_back(visit(aggregate.getCondition()));
+        children.push_back(visit(aggregate.getExpression()));
+        children.push_back(visitTupleOperation(aggregate));
+        auto res =
+                std::make_unique<InterpreterNode>(I_ParallelAggregate, &aggregate, std::move(children), rel);
+        res->setPreamble(parentQueryPreamble);
+        return res;
+    }
+
     NodePtr visitIndexAggregate(const RamIndexAggregate& aggregate) override {
         size_t relId = encodeRelation(aggregate.getRelation());
         auto rel = relations[relId].get();
@@ -352,6 +365,27 @@ public:
         data.push_back((encodeView(&aggregate)));
         return std::make_unique<InterpreterNode>(
                 I_IndexAggregate, &aggregate, std::move(children), rel, std::move(data));
+    }
+
+    NodePtr visitParallelIndexAggregate(const RamParallelIndexAggregate& aggregate) override {
+        size_t relId = encodeRelation(aggregate.getRelation());
+        auto rel = relations[relId].get();
+        NodePtrVec children;
+        for (const auto& value : aggregate.getRangePattern().first) {
+            children.push_back(visit(value));
+        }
+        for (const auto& value : aggregate.getRangePattern().second) {
+            children.push_back(visit(value));
+        }
+        children.push_back(visit(aggregate.getCondition()));
+        children.push_back(visit(aggregate.getExpression()));
+        children.push_back(visitTupleOperation(aggregate));
+        std::vector<size_t> data;
+        data.push_back((encodeView(&aggregate)));
+        auto res = std::make_unique<InterpreterNode>(
+                I_ParallelIndexAggregate, &aggregate, std::move(children), rel, std::move(data));
+        res->setPreamble(parentQueryPreamble);
+        return res;
     }
 
     NodePtr visitBreak(const RamBreak& breakOp) override {

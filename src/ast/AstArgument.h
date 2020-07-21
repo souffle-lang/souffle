@@ -287,6 +287,7 @@ class AstFunctor : public AstTerm {
 public:
     virtual TypeAttribute getReturnType() const = 0;
     virtual TypeAttribute getArgType(const size_t arg) const = 0;
+    AstFunctor* clone() const override = 0;
 
 protected:
     using AstTerm::AstTerm;

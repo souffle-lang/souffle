@@ -101,12 +101,12 @@ public:
 
     RamProgram* clone() const override {
         auto* res = new RamProgram();
-        res->main = std::unique_ptr<RamStatement>(main->clone());
+        res->main = souffle::clone(main);
         for (auto& rel : relations) {
-            res->relations.push_back(std::unique_ptr<RamRelation>(rel->clone()));
+            res->relations.push_back(souffle::clone(rel));
         }
         for (auto& sub : subroutines) {
-            res->subroutines[sub.first] = std::unique_ptr<RamStatement>(sub.second->clone());
+            res->subroutines[sub.first] = souffle::clone(sub.second);
         }
         std::map<const RamRelation*, const RamRelation*> refMap;
         res->apply(makeLambdaRamMapper([&](std::unique_ptr<RamNode> node) -> std::unique_ptr<RamNode> {

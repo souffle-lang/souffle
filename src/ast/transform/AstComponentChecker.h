@@ -39,6 +39,10 @@ public:
         return "AstComponentChecker";
     }
 
+    AstComponentChecker* clone() const override {
+        return new AstComponentChecker();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 

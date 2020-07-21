@@ -369,7 +369,7 @@ void AstSemanticCheckerImpl::checkAggregator(const AstAggregator& aggregator) {
             }
             // Get the literal containing the aggregator and put it into a dummy clause
             // so we can get information about groundedness
-            dummyClauseAggregator.addToBody(std::unique_ptr<AstLiteral>(parentLiteral.clone()));
+            dummyClauseAggregator.addToBody(souffle::clone(&parentLiteral));
         });
     });
 
@@ -377,7 +377,7 @@ void AstSemanticCheckerImpl::checkAggregator(const AstAggregator& aggregator) {
         visitDepthFirst(parentLiteral, [&](const AstAggregator& /* otherAggregate */) {
             // Create the other aggregate's dummy clause
             AstClause dummyClauseOther;
-            dummyClauseOther.addToBody(std::unique_ptr<AstLiteral>(parentLiteral.clone()));
+            dummyClauseOther.addToBody(souffle::clone(&parentLiteral));
             // Check dependency between the aggregator and this one
             if (isDependent(dummyClauseAggregator, dummyClauseOther) &&
                     isDependent(dummyClauseOther, dummyClauseAggregator)) {
@@ -773,8 +773,8 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
     // Must keep track of the subnode in Clause 1 that each subnode in Clause 2 matches to
     std::map<const AstArgument*, const AstArgument*> identicalSubnodeMap;
     for (const AstLiteral* lit : literals) {
-        auto firstClone = std::unique_ptr<AstLiteral>(lit->clone());
-        auto secondClone = std::unique_ptr<AstLiteral>(lit->clone());
+        auto firstClone = souffle::clone(lit);
+        auto secondClone = souffle::clone(lit);
 
         // Construct the mapping between equivalent literal subnodes
         std::vector<const AstArgument*> firstCloneArguments;
@@ -808,8 +808,8 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
 
     // Force the given grounded arguments to be grounded in both clauses
     for (const std::unique_ptr<AstArgument>& arg : groundedArguments) {
-        groundingAtomAggregatorless->addArgument(std::unique_ptr<AstArgument>(arg->clone()));
-        groundingAtomOriginal->addArgument(std::unique_ptr<AstArgument>(arg->clone()));
+        groundingAtomAggregatorless->addArgument(souffle::clone(arg));
+        groundingAtomOriginal->addArgument(souffle::clone(arg));
     }
 
     aggregatorlessClause->addToBody(std::move(groundingAtomAggregatorless));
@@ -829,12 +829,12 @@ static const std::vector<SrcLocation> usesInvalidWitness(AstTranslationUnit& tu,
         }
 
         // Otherwise, it can now be considered grounded
-        newlyGroundedArguments.insert(std::unique_ptr<AstArgument>(pair.first->clone()));
+        newlyGroundedArguments.insert(souffle::clone(pair.first));
     }
 
     // All previously grounded are still grounded
     for (const std::unique_ptr<AstArgument>& arg : groundedArguments) {
-        newlyGroundedArguments.insert(std::unique_ptr<AstArgument>(arg->clone()));
+        newlyGroundedArguments.insert(souffle::clone(arg));
     }
 
     // Everything on this level is fine, check subaggregators of each literal
@@ -858,9 +858,8 @@ void AstSemanticCheckerImpl::checkWitnessProblem() {
 
         // Add in all head variables as new ungrounded body literals
         auto headVariables = std::make_unique<AstAtom>("*");
-        visitDepthFirst(*clause.getHead(), [&](const AstVariable& var) {
-            headVariables->addArgument(std::unique_ptr<AstVariable>(var.clone()));
-        });
+        visitDepthFirst(*clause.getHead(),
+                [&](const AstVariable& var) { headVariables->addArgument(souffle::clone(&var)); });
         auto headNegation = std::make_unique<AstNegation>(std::move(headVariables));
         bodyLiterals.push_back(headNegation.get());
 

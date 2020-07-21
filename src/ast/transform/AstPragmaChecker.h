@@ -28,6 +28,10 @@ public:
         return "AstPragmaChecker";
     }
 
+    AstPragmaChecker* clone() const override {
+        return new AstPragmaChecker();
+    }
+
 private:
     bool transform(AstTranslationUnit&) override;
 };

@@ -87,6 +87,7 @@ public:
             const auto& rel = *it;
             if (rel->getQualifiedName() == name) {
                 removeRelationClauses(*this, name);
+                removeRelationIOs(*this, name);
                 relations.erase(it);
                 return true;
             }
@@ -110,6 +111,17 @@ public:
         for (auto it = clauses.begin(); it != clauses.end(); it++) {
             if (**it == *clause) {
                 clauses.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** remove an io */
+    bool removeIO(const AstIO* io) {
+        for (auto it = ios.begin(); it != ios.end(); it++) {
+            if (**it == *io) {
+                ios.erase(it);
                 return true;
             }
         }

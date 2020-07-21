@@ -26,6 +26,10 @@ public:
         return "ComponentInstantiationTransformer";
     }
 
+    ComponentInstantiationTransformer* clone() const override {
+        return new ComponentInstantiationTransformer();
+    }
+
 private:
     bool transform(AstTranslationUnit& translationUnit) override;
 };

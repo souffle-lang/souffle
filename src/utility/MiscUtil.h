@@ -125,5 +125,4 @@ template <typename... Args>
 
 // HACK:  Workaround to suppress spurious reachability warnings.
 #define UNREACHABLE_BAD_CASE_ANALYSIS fatal("unhandled switch branch");
-
 }  // namespace souffle
