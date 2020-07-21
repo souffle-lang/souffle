@@ -15,3 +15,5 @@ A(2).
 .output A(IO=file,filename="AA.csv")
 // Write to sqlite3
 .output A(IO=sqlite,filename="BB.sqlite.output")
+// Write to a CSV but using a different internal relation name
+.output A(IO=file,filename="AB.csv",name="B")

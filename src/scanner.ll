@@ -34,7 +34,7 @@
     #include <unistd.h>
     #include <cstring>
 
-    #include "AstProgram.h"
+    #include "ast/AstProgram.h"
 
     #include "SrcLocation.h"
     #define YYLTYPE SrcLocation
@@ -44,13 +44,13 @@
     #include "parser.hh"
 
     #include "utility/StringUtil.h"
-#include "utility/FileUtil.h"
-#include "utility/StreamUtil.h"
-#include "utility/MiscUtil.h"
-#include "utility/FunctionalUtil.h"
-#include "utility/ContainerUtil.h"
-#include "utility/CacheUtil.h"
-#include "utility/ParallelUtil.h"
+    #include "utility/FileUtil.h"
+    #include "utility/StreamUtil.h"
+    #include "utility/MiscUtil.h"
+    #include "utility/FunctionalUtil.h"
+    #include "utility/ContainerUtil.h"
+    #include "utility/CacheUtil.h"
+    #include "utility/ParallelUtil.h"
 
     #define register
 

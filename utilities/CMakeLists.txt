@@ -47,6 +47,7 @@ ADD_EXECUTABLE(souffle
         ./src/ErrorReport.h
         ./src/AstTransformer.h
         ./src/WriteStreamCSV.h
+        ./src/WriteStreamJSON.h
         ./src/AstTypeAnalysis.h
         ./src/SymbolTable.h
         ./src/InterpreterRelation.h
@@ -55,6 +56,7 @@ ADD_EXECUTABLE(souffle
         ./src/WriteStreamSQLite.h
         ./src/AstTranslator.h
         ./src/ReadStreamCSV.h
+        ./src/ReadStreamJSON.h
         ./src/TypeSystem.h
         ./src/UnaryFunctorOps.h
         ./src/test/test.h

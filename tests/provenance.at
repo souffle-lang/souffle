@@ -49,6 +49,7 @@ m4_define([POSITIVE_PROVENANCE_OUTPUT_TEST],[
 ##########################################################################
 
 POSITIVE_PROVENANCE_TEST([components],[provenance])
+POSITIVE_PROVENANCE_TEST([constraints],[provenance])
 POSITIVE_PROVENANCE_TEST([cprog1],[provenance])
 POSITIVE_PROVENANCE_TEST([eqrel_tests3],[provenance])
 POSITIVE_PROVENANCE_TEST([explain_float_unsigned],[provenance])

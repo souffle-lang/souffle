@@ -150,7 +150,7 @@ public:
 
             // handle negated atom names
             auto bodyRelAtomName = bodyRel;
-            if (bodyRel[0] == '!') {
+            if (bodyRel[0] == '!' && bodyRel != "!=") {
                 bodyRelAtomName = bodyRel.substr(1);
             }
 
@@ -453,13 +453,14 @@ public:
 
             // handle negated atom names
             auto bodyRelAtomName = bodyRel;
-            if (bodyRel[0] == '!') {
+            if (bodyRel[0] == '!' && bodyRel != "!=") {
                 bodyRelAtomName = bodyRel.substr(1);
             }
 
             // construct a label for a node containing a literal (either constraint or atom)
             std::stringstream childLabel;
             if (isConstraint) {
+                // for a binary constraint, display the corresponding values and do not recurse
                 assert(atomRepresentation.size() == 3 && "not a binary constraint");
 
                 childLabel << bodyVariables[atomRepresentation[1]] << " " << bodyRel << " "

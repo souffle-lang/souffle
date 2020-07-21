@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "RamIndexAnalysis.h"
+#include "ram/analysis/RamIndexAnalysis.h"
 #include <cstddef>
 #include <cstdint>
 #include <set>
@@ -33,7 +33,7 @@ public:
     }
 };
 
-using Nodes = std::set<SearchSignature>;
+using Nodes = MinIndexSelection::SearchSet;
 
 SearchSignature setBits(size_t arity, uint64_t mask) {
     SearchSignature search(arity);

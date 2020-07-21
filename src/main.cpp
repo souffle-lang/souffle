@@ -14,16 +14,7 @@
  *
  ***********************************************************************/
 
-#include "AstComponentChecker.h"
-#include "AstNode.h"
-#include "AstPragmaChecker.h"
-#include "AstProgram.h"
-#include "AstSemanticChecker.h"
-#include "AstTransforms.h"
-#include "AstTranslationUnit.h"
 #include "AstTranslator.h"
-#include "AstTypeAnalysis.h"
-#include "ComponentInstantiationTransformer.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Explain.h"
@@ -31,16 +22,27 @@
 #include "InterpreterEngine.h"
 #include "InterpreterProgInterface.h"
 #include "ParserDriver.h"
-#include "PrecedenceGraph.h"
-#include "RamNode.h"
-#include "RamProgram.h"
-#include "RamTransformer.h"
-#include "RamTransforms.h"
-#include "RamTranslationUnit.h"
 #include "RamTypes.h"
 #include "Synthesiser.h"
+#include "ast/AstNode.h"
+#include "ast/AstProgram.h"
+#include "ast/AstTranslationUnit.h"
+#include "ast/analysis/AstTypeAnalysis.h"
+#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/transform/AstComponentChecker.h"
+#include "ast/transform/AstPragmaChecker.h"
+#include "ast/transform/AstSemanticChecker.h"
+#include "ast/transform/AstTransforms.h"
+#include "ast/transform/ComponentInstantiationTransformer.h"
+#include "ast/transform/IOAttributesTransformer.h"
+#include "ast/transform/IODefaultsTransformer.h"
 #include "config.h"
 #include "profile/Tui.h"
+#include "ram/RamNode.h"
+#include "ram/RamProgram.h"
+#include "ram/RamTranslationUnit.h"
+#include "ram/transform/RamTransformer.h"
+#include "ram/transform/RamTransforms.h"
 #include "utility/FileUtil.h"
 #include "utility/StreamUtil.h"
 #include "utility/StringUtil.h"
@@ -418,7 +420,7 @@ int main(int argc, char** argv) {
 
     // Main pipeline
     auto pipeline = std::make_unique<PipelineTransformer>(std::make_unique<AstComponentChecker>(),
-            std::make_unique<ComponentInstantiationTransformer>(),
+            std::make_unique<ComponentInstantiationTransformer>(), std::make_unique<IODefaultsTransformer>(),
             std::make_unique<UniqueAggregationVariablesTransformer>(),
             std::make_unique<AstUserDefinedFunctorsTransformer>(),
             std::make_unique<FixpointTransformer>(
@@ -447,7 +449,7 @@ int main(int argc, char** argv) {
             std::make_unique<RemoveEmptyRelationsTransformer>(),
             std::make_unique<PolymorphicObjectsTransformer>(), std::make_unique<ReorderLiteralsTransformer>(),
             std::move(magicPipeline), std::make_unique<AstExecutionPlanChecker>(),
-            std::move(provenancePipeline));
+            std::move(provenancePipeline), std::make_unique<IOAttributesTransformer>());
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {

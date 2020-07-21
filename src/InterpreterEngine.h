@@ -19,10 +19,10 @@
 #include "Global.h"
 #include "InterpreterGenerator.h"
 #include "InterpreterIndex.h"
-#include "RamIndexAnalysis.h"
-#include "RamTranslationUnit.h"
 #include "RamTypes.h"
 #include "RecordTable.h"
+#include "ram/RamTranslationUnit.h"
+#include "ram/analysis/RamIndexAnalysis.h"
 #include <atomic>
 #include <cstddef>
 #include <deque>

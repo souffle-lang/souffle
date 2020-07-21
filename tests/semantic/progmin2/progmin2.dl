@@ -11,7 +11,12 @@
 .decl F(x:number, y:number)
 .decl G(x:number)
 
+
+// these two are equivalent
 F(0,0).
+F(0,0).
+
+// but not to this
 F(1,2).
 
 // these two are equivalent
@@ -32,6 +37,13 @@ D(x) :- B(x), A(x).
 // these two are redundant
 D(x) :- D(x).
 D(x) :- D(x), x != 1, A(x).
+
+// these two are equivalent
+D(result) :- F(result,y), F(result,x), x != 3, x < y, !E(x), y > 3, E(y), !E(x), x < y.
+D(x) :- F(x,alpha), alpha != 3, !E(alpha), F(x,beta), beta > 3, E(gamma), alpha < beta, gamma = beta, E(beta).
+
+// but not to this
+D(result) :- F(result,y), F(result,x), x != 3, x < y, !E(y), y > 3, E(y), E(x), x < y.
 
 G(x) :- A(x).
 G(x) :- B(x).

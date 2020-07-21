@@ -11,6 +11,7 @@ env
 *.o
 *.a
 *~
+.dirstamp
 
 libtool
 /include
@@ -37,6 +38,8 @@ cmake-build-debug/
 *.deb
 #macosx
 .DS_Store
+
+.vscode
 
 stamp-h1
 /CMakeLists.txt

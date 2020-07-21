@@ -20,7 +20,6 @@
 #include "souffle/CompiledTuple.h"
 #include "souffle/EquivalenceRelation.h"
 #include "souffle/IOSystem.h"
-#include "souffle/IterUtils.h"
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
 #include "souffle/SignalHandler.h"

@@ -72,62 +72,12 @@ endif
 
 souffle_sources = \
         AggregateOp.h                                      \
-        AstAbstract.h                                      \
-        AstAnalysis.h                                      \
-        AstArgument.h                                      \
-        AstAttribute.h                                     \
-        AstClause.h                                        \
-        AstComponent.h                                     \
-        AstComponentChecker.cpp                            \
-        AstComponentChecker.h                              \
-        AstConstraintAnalysis.h                            \
-        AstFunctorDeclaration.h                            \
-        AstGroundAnalysis.cpp                              \
-        AstGroundAnalysis.h                                \
-        AstIO.h                                            \
-        AstIOTypeAnalysis.cpp                              \
-        AstIOTypeAnalysis.h                                \
-        AstLiteral.h                                       \
-        AstNode.h                                          \
-        AstParserUtils.cpp                                 \
-        AstParserUtils.h                                   \
-        AstPragma.h                                        \
-        AstPragmaChecker.cpp                               \
-        AstPragmaChecker.h                                 \
-        AstProfileUse.cpp                                  \
-        AstProfileUse.h                                    \
-        AstProgram.h                                       \
-        AstQualifiedName.h                                 \
-        AstRelation.h                                      \
-        AstSemanticChecker.cpp                             \
-        AstSemanticChecker.h                               \
-        AstTransformer.cpp                                 \
-        AstTransformer.h                                   \
-        AstTransforms.cpp                                  \
-        AstTransforms.h                                    \
-        AstTranslationUnit.h                               \
         AstTranslator.cpp                                  \
         AstTranslator.h                                    \
-        AstType.h                                          \
-        AstTypeAnalysis.cpp                                \
-        AstTypeAnalysis.h                                  \
-        AstTypeEnvironmentAnalysis.cpp                     \
-        AstTypeEnvironmentAnalysis.h                       \
-        AstUtils.cpp                                       \
-        AstUtils.h                                         \
-        AstVisitor.h                                       \
-        AuxArityAnalysis.cpp                               \
-        AuxArityAnalysis.h                                 \
         BinaryConstraintOps.h                              \
-        ComponentInstantiationTransformer.cpp              \
-        ComponentInstantiationTransformer.h                \
-        ComponentLookupAnalysis.cpp                        \
-        ComponentLookupAnalysis.h                          \
         Constraints.h                                      \
         DebugReport.cpp                                    \
         DebugReport.h                                      \
-        DebugReporter.cpp                                  \
-        DebugReporter.h                                    \
         ErrorReport.h                                      \
         EventProcessor.h                                   \
         FunctorOps.cpp                                     \
@@ -136,7 +86,6 @@ souffle_sources = \
         Global.h                                           \
         GraphUtils.h                                       \
         IOSystem.h                                         \
-        InlineRelationsTransformer.cpp                     \
         InterpreterContext.h                               \
         InterpreterEngine.cpp                              \
         InterpreterEngine.h                                \
@@ -149,43 +98,15 @@ souffle_sources = \
         InterpreterRelation.cpp                            \
         InterpreterRelation.h                              \
         LogStatement.h                                     \
-        MagicSet.cpp                                       \
-        MagicSet.h                                         \
-        MinimiseProgramTransformer.cpp                     \
         ParserDriver.cpp                                   \
         ParserDriver.h                                     \
-        PrecedenceGraph.cpp                                \
-        PrecedenceGraph.h                                  \
         ProfileEvent.h                                     \
-        ProvenanceTransformer.cpp                          \
-        RamAnalysis.h                                      \
-        RamComplexityAnalysis.cpp                          \
-        RamComplexityAnalysis.h                            \
-        RamCondition.h                                     \
-        RamExpression.h                                    \
-        RamIndexAnalysis.cpp                               \
-        RamIndexAnalysis.h                                 \
-        RamLevelAnalysis.cpp                               \
-        RamLevelAnalysis.h                                 \
-        RamNode.h                                          \
-        RamOperation.h                                     \
-        RamProgram.h                                       \
-        RamRelation.h                                      \
-        RamStatement.h                                     \
-        RamTransformer.cpp                                 \
-        RamTransformer.h                                   \
-        RamTransforms.cpp                                  \
-        RamTransforms.h                                    \
-        RamTranslationUnit.h                               \
         RamTypes.h                                         \
-        RamUtils.h                                         \
-        RamVisitor.h                                       \
         ReadStream.h                                       \
         ReadStreamCSV.h                                    \
+        ReadStreamJSON.h                                   \
         RecordTable.h                                      \
         RelationTag.h                                      \
-        ReorderLiteralsTransformer.cpp                     \
-        ResolveAliasesTransformer.cpp                      \
         SerialisationStream.h                              \
         SignalHandler.h                                    \
         SrcLocation.cpp                                    \
@@ -194,14 +115,97 @@ souffle_sources = \
         Synthesiser.h                                      \
         SynthesiserRelation.cpp                            \
         SynthesiserRelation.h                              \
-        TypeSystem.cpp                                     \
-        TypeSystem.h                                       \
         Util.cpp                                           \
         WriteStream.h                                      \
         WriteStreamCSV.h                                   \
+        WriteStreamJSON.h                                  \
+        ast/AstAbstract.h                                  \
+        ast/AstArgument.h                                  \
+        ast/AstAttribute.h                                 \
+        ast/AstClause.h                                    \
+        ast/AstComponent.h                                 \
+        ast/AstFunctorDeclaration.h                        \
+        ast/AstIO.h                                        \
+        ast/AstLiteral.h                                   \
+        ast/AstNode.h                                      \
+        ast/AstParserUtils.cpp                             \
+        ast/AstParserUtils.h                               \
+        ast/AstPragma.h                                    \
+        ast/AstProgram.h                                   \
+        ast/AstQualifiedName.h                             \
+        ast/AstRelation.h                                  \
+        ast/AstTranslationUnit.h                           \
+        ast/AstType.h                                      \
+        ast/AstUtils.cpp                                   \
+        ast/AstUtils.h                                     \
+        ast/AstVisitor.h                                   \
+        ast/TypeSystem.cpp                                 \
+        ast/TypeSystem.h                                   \
+        ast/analysis/AstAnalysis.h                         \
+        ast/analysis/AstConstraintAnalysis.h               \
+        ast/analysis/AstGroundAnalysis.cpp                 \
+        ast/analysis/AstGroundAnalysis.h                   \
+        ast/analysis/AstIOTypeAnalysis.cpp                 \
+        ast/analysis/AstIOTypeAnalysis.h                   \
+        ast/analysis/AstProfileUse.cpp                     \
+        ast/analysis/AstProfileUse.h                       \
+        ast/analysis/AstTypeAnalysis.cpp                   \
+        ast/analysis/AstTypeAnalysis.h                     \
+        ast/analysis/AstTypeEnvironmentAnalysis.cpp        \
+        ast/analysis/AstTypeEnvironmentAnalysis.h          \
+        ast/analysis/AuxArityAnalysis.cpp                  \
+        ast/analysis/AuxArityAnalysis.h                    \
+        ast/analysis/ComponentLookupAnalysis.cpp           \
+        ast/analysis/ComponentLookupAnalysis.h             \
+        ast/analysis/PrecedenceGraph.cpp                   \
+        ast/analysis/PrecedenceGraph.h                     \
+        ast/transform/AstComponentChecker.cpp              \
+        ast/transform/AstComponentChecker.h                \
+        ast/transform/AstPragmaChecker.cpp                 \
+        ast/transform/AstPragmaChecker.h                   \
+        ast/transform/AstSemanticChecker.cpp               \
+        ast/transform/AstSemanticChecker.h                 \
+        ast/transform/AstTransformer.cpp                   \
+        ast/transform/AstTransformer.h                     \
+        ast/transform/AstTransforms.cpp                    \
+        ast/transform/AstTransforms.h                      \
+        ast/transform/ComponentInstantiationTransformer.cpp  \
+        ast/transform/ComponentInstantiationTransformer.h  \
+        ast/transform/DebugReporter.cpp                    \
+        ast/transform/DebugReporter.h                      \
+        ast/transform/IOAttributesTransformer.h            \
+        ast/transform/IODefaultsTransformer.h              \
+        ast/transform/InlineRelationsTransformer.cpp       \
+        ast/transform/MagicSet.cpp                         \
+        ast/transform/MagicSet.h                           \
+        ast/transform/MinimiseProgramTransformer.cpp       \
+        ast/transform/ProvenanceTransformer.cpp            \
+        ast/transform/ReorderLiteralsTransformer.cpp       \
+        ast/transform/ResolveAliasesTransformer.cpp        \
         parser.cc                                          \
-        scanner.cc                                         \
         parser.hh                                          \
+        ram/RamCondition.h                                 \
+        ram/RamExpression.h                                \
+        ram/RamNode.h                                      \
+        ram/RamOperation.h                                 \
+        ram/RamProgram.h                                   \
+        ram/RamRelation.h                                  \
+        ram/RamStatement.h                                 \
+        ram/RamTranslationUnit.h                           \
+        ram/RamUtils.h                                     \
+        ram/RamVisitor.h                                   \
+        ram/analysis/RamAnalysis.h                         \
+        ram/analysis/RamComplexityAnalysis.cpp             \
+        ram/analysis/RamComplexityAnalysis.h               \
+        ram/analysis/RamIndexAnalysis.cpp                  \
+        ram/analysis/RamIndexAnalysis.h                    \
+        ram/analysis/RamLevelAnalysis.cpp                  \
+        ram/analysis/RamLevelAnalysis.h                    \
+        ram/transform/RamTransformer.cpp                   \
+        ram/transform/RamTransformer.h                     \
+        ram/transform/RamTransforms.cpp                    \
+        ram/transform/RamTransforms.h                      \
+        scanner.cc                                         \
         stack.hh                                           \
         $(sqlite_sources)                                  \
         $(libz_sources)                                    \
@@ -239,7 +243,6 @@ soufflepublic_HEADERS = \
         ExplainProvenanceImpl.h                            \
         ExplainTree.h                                      \
         IOSystem.h                                         \
-        IterUtils.h                                        \
         LambdaBTree.h                                      \
         Logger.h                                           \
         PiggyList.h                                        \
@@ -248,6 +251,7 @@ soufflepublic_HEADERS = \
         RamTypes.h                                         \
         ReadStream.h                                       \
         ReadStreamCSV.h                                    \
+        ReadStreamJSON.h                                   \
         RecordTable.h                                      \
         SerialisationStream.h                              \
         SignalHandler.h                                    \
@@ -257,6 +261,7 @@ soufflepublic_HEADERS = \
         UnionFind.h                                        \
         WriteStream.h                                      \
         WriteStreamCSV.h                                   \
+        WriteStreamJSON.h                                  \
         json11.h                                           \
         $(souffle_utility_sources)                         \
         $(libz_sources)                                    \

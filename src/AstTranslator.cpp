@@ -15,40 +15,40 @@
  ***********************************************************************/
 
 #include "AstTranslator.h"
-#include "AstAbstract.h"
-#include "AstArgument.h"
-#include "AstAttribute.h"
-#include "AstClause.h"
-#include "AstIO.h"
-#include "AstLiteral.h"
-#include "AstNode.h"
-#include "AstProgram.h"
-#include "AstRelation.h"
-#include "AstTranslationUnit.h"
-#include "AstType.h"
-#include "AstTypeEnvironmentAnalysis.h"
-#include "AstUtils.h"
-#include "AstVisitor.h"
-#include "AuxArityAnalysis.h"
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "LogStatement.h"
-#include "PrecedenceGraph.h"
-#include "RamCondition.h"
-#include "RamExpression.h"
-#include "RamNode.h"
-#include "RamOperation.h"
-#include "RamProgram.h"
-#include "RamRelation.h"
-#include "RamStatement.h"
-#include "RamTranslationUnit.h"
-#include "RamUtils.h"
 #include "RelationTag.h"
 #include "SrcLocation.h"
-#include "TypeSystem.h"
+#include "ast/AstAbstract.h"
+#include "ast/AstArgument.h"
+#include "ast/AstAttribute.h"
+#include "ast/AstClause.h"
+#include "ast/AstIO.h"
+#include "ast/AstLiteral.h"
+#include "ast/AstNode.h"
+#include "ast/AstProgram.h"
+#include "ast/AstRelation.h"
+#include "ast/AstTranslationUnit.h"
+#include "ast/AstType.h"
+#include "ast/AstUtils.h"
+#include "ast/AstVisitor.h"
+#include "ast/TypeSystem.h"
+#include "ast/analysis/AstTypeEnvironmentAnalysis.h"
+#include "ast/analysis/AuxArityAnalysis.h"
+#include "ast/analysis/PrecedenceGraph.h"
 #include "json11.h"
+#include "ram/RamCondition.h"
+#include "ram/RamExpression.h"
+#include "ram/RamNode.h"
+#include "ram/RamOperation.h"
+#include "ram/RamProgram.h"
+#include "ram/RamRelation.h"
+#include "ram/RamStatement.h"
+#include "ram/RamTranslationUnit.h"
+#include "ram/RamUtils.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/StreamUtil.h"
@@ -98,71 +98,18 @@ size_t AstTranslator::getEvaluationArity(const AstAtom* atom) const {
     }
 }
 
-void AstTranslator::translateDirectives(std::map<std::string, std::string>& directives,
-        const AstRelation* rel, const std::string& filePath, const std::string& fileExt) {
-    // set relation name correctly
-    directives["name"] = getRelationName(rel->getQualifiedName());
-    // set a default IO type of file and a default filename if not supplied
-    if (directives.find("IO") == directives.end()) {
-        directives["IO"] = "file";
-    }
-
-    // load intermediate relations from correct files
-    if (directives.at("IO") == "file") {
-        // set filename by relation if not given
-        if (directives.find("filename") == directives.end()) {
-            directives["filename"] = directives.at("name") + fileExt;
-        }
-    }
-    // legacy support for SQLite prior to 2020-03-18
-    // convert dbname to filename
-    if (directives.at("IO") == "sqlite" && directives.find("dbname") != directives.end()) {
-        directives["filename"] = directives.at("dbname");
-    }
-    // if filename is not an absolute path, concat with cmd line facts directory
-    if (directives.find("filename") != directives.end() && directives.at("filename").front() != '/') {
-        directives["filename"] = filePath + "/" + directives.at("filename");
-    }
-
-    // Prepare type system information.
-    std::string name = getRelationName(rel->getQualifiedName());
-    std::vector<std::string> attributesTypes;
-
-    for (const auto* attribute : rel->getAttributes()) {
-        auto type = getTypeQualifier(typeEnv->getType(attribute->getTypeName()));
-        attributesTypes.push_back(type);
-    }
-
-    // Casting due to json11.h type requirements.
-    long long arity{static_cast<long long>(rel->getArity() - auxArityAnalysis->getArity(rel))};
-    long long auxArity{static_cast<long long>(auxArityAnalysis->getArity(rel))};
-
-    const Json rec = getRecordsTypes();
-
-    Json relJson = Json::object{{"arity", arity}, {"auxArity", auxArity},
-            {"types", Json::array(attributesTypes.begin(), attributesTypes.end())}};
-
-    Json types = Json::object{{name, relJson}, {"records", getRecordsTypes()}};
-
-    directives["types"] = types.dump();
-}
-
-std::vector<std::map<std::string, std::string>> AstTranslator::getInputDirectives(
-        const AstRelation* rel, std::string filePath, const std::string& fileExt) {
+std::vector<std::map<std::string, std::string>> AstTranslator::getInputDirectives(const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> inputDirectives;
 
-    std::vector<const AstIO*> relLoads;
-    for (const auto* io : program->getIOs()) {
-        if (io->getQualifiedName() == rel->getQualifiedName() && io->getType() == AstIoType::input) {
-            relLoads.push_back(io);
+    for (const auto* load : program->getIOs()) {
+        if (load->getQualifiedName() != rel->getQualifiedName() || load->getType() != AstIoType::input) {
+            continue;
         }
-    }
-    for (const auto& current : relLoads) {
+
         std::map<std::string, std::string> directives;
-        for (const auto& currentPair : current->getDirectives()) {
+        for (const auto& currentPair : load->getDirectives()) {
             directives.insert(std::make_pair(currentPair.first, unescape(currentPair.second)));
         }
-        directives["operation"] = "input";
         inputDirectives.push_back(directives);
     }
 
@@ -170,89 +117,26 @@ std::vector<std::map<std::string, std::string>> AstTranslator::getInputDirective
         inputDirectives.emplace_back();
     }
 
-    const std::string inputFilePath = (filePath.empty()) ? Global::config().get("fact-dir") : filePath;
-    const std::string inputFileExt = (fileExt.empty()) ? ".facts" : fileExt;
-
-    for (auto& directives : inputDirectives) {
-        translateDirectives(directives, rel, inputFilePath, inputFileExt);
-    }
-
     return inputDirectives;
 }
 
-std::vector<std::map<std::string, std::string>> AstTranslator::getOutputDirectives(
-        const AstRelation* rel, std::string filePath, const std::string& fileExt) {
+std::vector<std::map<std::string, std::string>> AstTranslator::getOutputDirectives(const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> outputDirectives;
 
-    std::vector<const AstIO*> relStores;
     for (const auto* store : program->getIOs()) {
-        if (store->getQualifiedName() == rel->getQualifiedName() &&
-                (store->getType() == AstIoType::output || store->getType() == AstIoType::printsize)) {
-            relStores.push_back(store);
+        if (store->getQualifiedName() != rel->getQualifiedName() || store->getType() == AstIoType::input) {
+            continue;
         }
-    }
 
-    // If stdout is requested then remove all directives from the datalog file.
-    if (Global::config().get("output-dir") == "-") {
-        bool hasOutput = false;
-        for (const auto* current : relStores) {
-            std::map<std::string, std::string> directives;
-            if (current->getType() == AstIoType::printsize) {
-                directives["operation"] = "printsize";
-                directives["IO"] = "stdoutprintsize";
-                outputDirectives.push_back(directives);
-            } else if (!hasOutput) {
-                hasOutput = true;
-                directives["IO"] = "stdout";
-                directives["headers"] = "true";
-                directives["operation"] = "output";
-                outputDirectives.push_back(directives);
-            }
+        std::map<std::string, std::string> directives;
+        for (const auto& currentPair : store->getDirectives()) {
+            directives.insert(std::make_pair(currentPair.first, unescape(currentPair.second)));
         }
-    } else {
-        for (const auto* current : relStores) {
-            std::map<std::string, std::string> directives;
-            for (const auto& currentPair : current->getDirectives()) {
-                directives.insert(std::make_pair(currentPair.first, unescape(currentPair.second)));
-            }
-            if (current->getType() == AstIoType::printsize) {
-                directives["operation"] = "printsize";
-                directives["IO"] = "stdoutprintsize";
-            } else {
-                directives["operation"] = "output";
-            }
-            outputDirectives.push_back(directives);
-        }
+        outputDirectives.push_back(directives);
     }
 
     if (outputDirectives.empty()) {
         outputDirectives.emplace_back();
-    }
-
-    const std::string outputFilePath = (filePath.empty()) ? Global::config().get("output-dir") : filePath;
-    const std::string outputFileExt = (fileExt.empty()) ? ".csv" : fileExt;
-
-    for (auto& directives : outputDirectives) {
-        translateDirectives(directives, rel, outputFilePath, outputFileExt);
-
-        if (directives.find("attributeNames") == directives.end()) {
-            std::string delimiter("\t");
-            if (directives.find("delimiter") != directives.end()) {
-                delimiter = directives.at("delimiter");
-            }
-            std::vector<std::string> attributeNames;
-            for (const auto* attribute : rel->getAttributes()) {
-                attributeNames.push_back(attribute->getName());
-            }
-
-            if (Global::config().has("provenance")) {
-                std::vector<std::string> originalAttributeNames(
-                        attributeNames.begin(), attributeNames.end() - auxArityAnalysis->getArity(rel));
-                directives["attributeNames"] = toString(join(originalAttributeNames, delimiter));
-            } else {
-                directives["attributeNames"] = toString(join(attributeNames, delimiter));
-            }
-        }
     }
 
     return outputDirectives;
@@ -1299,8 +1183,21 @@ std::unique_ptr<RamStatement> AstTranslator::translateRecursiveRelation(
 
 /** make a subroutine to search for subproofs */
 std::unique_ptr<RamStatement> AstTranslator::makeSubproofSubroutine(const AstClause& clause) {
-    // make intermediate clause with constraints
-    std::unique_ptr<AstClause> intermediateClause(clause.clone());
+    auto intermediateClause =
+            std::make_unique<AstClause>(std::unique_ptr<AstAtom>(clause.getHead()->clone()));
+
+    // create a clone where all the constraints are moved to the end
+    for (auto bodyLit : clause.getBodyLiterals()) {
+        // first add all the things that are not constraints
+        if (dynamic_cast<AstConstraint*>(bodyLit) == nullptr) {
+            intermediateClause->addToBody(std::unique_ptr<AstLiteral>(bodyLit->clone()));
+        }
+    }
+
+    // now add all constraints
+    for (auto bodyLit : getBodyLiterals<AstConstraint>(clause)) {
+        intermediateClause->addToBody(std::unique_ptr<AstLiteral>(bodyLit->clone()));
+    }
 
     // name unnamed variables
     nameUnnamedVariables(intermediateClause.get());
@@ -1380,8 +1277,22 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
     //   return 0
     // ...
 
-    // clone clause for mutation
-    auto clauseReplacedAggregates = std::unique_ptr<AstClause>(clause.clone());
+    // clone clause for mutation, rearranging constraints to be at the end
+    auto clauseReplacedAggregates =
+            std::make_unique<AstClause>(std::unique_ptr<AstAtom>(clause.getHead()->clone()));
+
+    // create a clone where all the constraints are moved to the end
+    for (auto bodyLit : clause.getBodyLiterals()) {
+        // first add all the things that are not constraints
+        if (dynamic_cast<AstConstraint*>(bodyLit) == nullptr) {
+            clauseReplacedAggregates->addToBody(std::unique_ptr<AstLiteral>(bodyLit->clone()));
+        }
+    }
+
+    // now add all constraints
+    for (auto bodyLit : getBodyLiterals<AstConstraint>(clause)) {
+        clauseReplacedAggregates->addToBody(std::unique_ptr<AstLiteral>(bodyLit->clone()));
+    }
 
     int aggNumber = 0;
     struct AggregatesToVariables : public AstNodeMapper {
@@ -1502,6 +1413,55 @@ std::unique_ptr<RamStatement> AstTranslator::makeNegationSubproofSubroutine(cons
             appendStmt(searchSequence,
                     std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(negativeExistenceCheck),
                             std::make_unique<RamSubroutineReturn>(std::move(returnFalse)))));
+        } else if (auto neg = dynamic_cast<AstNegation*>(lit)) {
+            auto atom = neg->getAtom();
+
+            size_t auxiliaryArity = auxArityAnalysis->getArity(atom);
+            // get a RamRelationReference
+            auto relRef = translateRelation(atom);
+            // construct a query
+            std::vector<std::unique_ptr<RamExpression>> query;
+
+            // translate variables to subroutine arguments
+            VariablesToArguments varsToArgs(uniqueVariables);
+            atom->apply(varsToArgs);
+
+            auto atomArgs = atom->getArguments();
+            // add each value (subroutine argument) to the search query
+            for (size_t i = 0; i < atom->getArity() - auxiliaryArity; i++) {
+                auto arg = atomArgs[i];
+                query.push_back(translateValue(arg, ValueIndex()));
+            }
+
+            // fill up query with nullptrs for the provenance columns
+            for (size_t i = 0; i < auxiliaryArity; i++) {
+                query.push_back(std::make_unique<RamUndefValue>());
+            }
+
+            // ensure the length of query tuple is correct
+            assert(query.size() == atom->getArity() && "wrong query tuple size");
+
+            // create existence checks to check if the tuple exists or not
+            auto existenceCheck = std::make_unique<RamExistenceCheck>(
+                    std::unique_ptr<RamRelationReference>(relRef->clone()), std::move(query));
+            auto negativeExistenceCheck = std::make_unique<RamNegation>(
+                    std::unique_ptr<RamExistenceCheck>(existenceCheck->clone()));
+
+            // return true if the tuple exists
+            std::vector<std::unique_ptr<RamExpression>> returnTrue;
+            returnTrue.push_back(std::make_unique<RamSignedConstant>(1));
+
+            // return false if the tuple exists
+            std::vector<std::unique_ptr<RamExpression>> returnFalse;
+            returnFalse.push_back(std::make_unique<RamSignedConstant>(0));
+
+            // create a RamQuery to return true/false
+            appendStmt(searchSequence,
+                    std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(existenceCheck),
+                            std::make_unique<RamSubroutineReturn>(std::move(returnFalse)))));
+            appendStmt(searchSequence,
+                    std::make_unique<RamQuery>(std::make_unique<RamFilter>(std::move(negativeExistenceCheck),
+                            std::make_unique<RamSubroutineReturn>(std::move(returnTrue)))));
 
         } else if (auto con = dynamic_cast<AstConstraint*>(lit)) {
             VariablesToArguments varsToArgs(uniqueVariables);
@@ -1559,10 +1519,8 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
 
     // a function to load relations
     const auto& makeRamLoad = [&](std::vector<std::unique_ptr<RamStatement>>& current,
-                                      const AstRelation* relation, const std::string& inputDirectory,
-                                      const std::string& fileExtension) {
-        for (auto directives :
-                getInputDirectives(relation, Global::config().get(inputDirectory), fileExtension)) {
+                                      const AstRelation* relation) {
+        for (auto directives : getInputDirectives(relation)) {
             std::unique_ptr<RamStatement> statement = std::make_unique<RamIO>(
                     std::unique_ptr<RamRelationReference>(translateRelation(relation)), directives);
             if (Global::config().has("profile")) {
@@ -1577,10 +1535,8 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
 
     // a function to store relations
     const auto& makeRamStore = [&](std::vector<std::unique_ptr<RamStatement>>& current,
-                                       const AstRelation* relation, const std::string& outputDirectory,
-                                       const std::string& fileExtension) {
-        for (auto directives :
-                getOutputDirectives(relation, Global::config().get(outputDirectory), fileExtension)) {
+                                       const AstRelation* relation) {
+        for (auto directives : getOutputDirectives(relation)) {
             std::unique_ptr<RamStatement> statement = std::make_unique<RamIO>(
                     std::unique_ptr<RamRelationReference>(translateRelation(relation)), directives);
             if (Global::config().has("profile")) {
@@ -1652,7 +1608,7 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
 
         // load all internal input relations from the facts dir with a .facts extension
         for (const auto& relation : internIns) {
-            makeRamLoad(current, relation, "fact-dir", ".facts");
+            makeRamLoad(current, relation);
         }
 
         // compute the relations themselves
@@ -1664,7 +1620,7 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
 
         // store all internal output relations to the output dir with a .csv extension
         for (const auto& relation : internOuts) {
-            makeRamStore(current, relation, "output-dir", ".csv");
+            makeRamStore(current, relation);
         }
 
         // if provenance is not enabled...
@@ -1718,35 +1674,6 @@ void AstTranslator::translateProgram(const AstTranslationUnit& translationUnit) 
             ramSubs[negationSubroutineLabel] = makeNegationSubproofSubroutine(clause);
         });
     }
-}
-
-const Json AstTranslator::getRecordsTypes() {
-    // Check if the types where already constructed
-    if (!RamRecordTypes.is_null()) {
-        return RamRecordTypes;
-    }
-
-    std::vector<std::string> elementTypes;
-    std::map<std::string, Json> records;
-
-    // Iterate over all record types in the program populating the records map.
-    for (auto* astType : program->getTypes()) {
-        const auto& type = typeEnv->getType(astType->getQualifiedName());
-        if (isA<RecordType>(type)) {
-            elementTypes.clear();
-
-            for (const Type* field : as<RecordType>(type)->getFields()) {
-                elementTypes.push_back(getTypeQualifier(*field));
-            }
-            const size_t recordArity = elementTypes.size();
-            Json recordInfo = Json::object{
-                    {"types", std::move(elementTypes)}, {"arity", static_cast<long long>(recordArity)}};
-            records.emplace(getTypeQualifier(type), std::move(recordInfo));
-        }
-    }
-
-    RamRecordTypes = Json(records);
-    return RamRecordTypes;
 }
 
 std::unique_ptr<RamTranslationUnit> AstTranslator::translateUnit(AstTranslationUnit& tu) {

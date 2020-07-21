@@ -36,7 +36,7 @@ class ReadStreamSQLite : public ReadStream {
 public:
     ReadStreamSQLite(const std::map<std::string, std::string>& rwOperation, SymbolTable& symbolTable,
             RecordTable& recordTable)
-            : ReadStream(rwOperation, symbolTable, recordTable), dbFilename(rwOperation.at("filename")),
+            : ReadStream(rwOperation, symbolTable, recordTable), dbFilename(getFileName(rwOperation)),
               relationName(rwOperation.at("name")) {
         openDB();
         checkTableExists();
@@ -152,8 +152,28 @@ protected:
         throw std::invalid_argument(
                 "Required table or view does not exist in " + dbFilename + " for relation " + relationName);
     }
-    const std::string& dbFilename;
-    const std::string& relationName;
+
+    /**
+     * Return given filename or construct from relation name.
+     * Default name is [configured path]/[relation name].sqlite
+     *
+     * @param rwOperation map of IO configuration options
+     * @return input filename
+     */
+    static std::string getFileName(const std::map<std::string, std::string>& rwOperation) {
+        // legacy support for SQLite prior to 2020-03-18
+        // convert dbname to filename
+        auto name = getOr(rwOperation, "dbname", rwOperation.at("name") + ".sqlite");
+        name = getOr(rwOperation, "filename", name);
+
+        if (name.front() != '/') {
+            name = getOr(rwOperation, "fact-dir", ".") + "/" + name;
+        }
+        return name;
+    }
+
+    const std::string dbFilename;
+    const std::string relationName;
     sqlite3_stmt* selectStatement = nullptr;
     sqlite3* db = nullptr;
 };

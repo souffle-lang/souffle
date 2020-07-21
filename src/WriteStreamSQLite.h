@@ -37,7 +37,7 @@ class WriteStreamSQLite : public WriteStream {
 public:
     WriteStreamSQLite(const std::map<std::string, std::string>& rwOperation, const SymbolTable& symbolTable,
             const RecordTable& recordTable)
-            : WriteStream(rwOperation, symbolTable, recordTable), dbFilename(rwOperation.at("filename")),
+            : WriteStream(rwOperation, symbolTable, recordTable), dbFilename(getFileName(rwOperation)),
               relationName(rwOperation.at("name")) {
         openDB();
         createTables();
@@ -250,8 +250,27 @@ private:
         executeSQL(createTableText.str(), db);
     }
 
-    const std::string& dbFilename;
-    const std::string& relationName;
+    /**
+     * Return given filename or construct from relation name.
+     * Default name is [configured path]/[relation name].sqlite
+     *
+     * @param rwOperation map of IO configuration options
+     * @return input filename
+     */
+    static std::string getFileName(const std::map<std::string, std::string>& rwOperation) {
+        // legacy support for SQLite prior to 2020-03-18
+        // convert dbname to filename
+        auto name = getOr(rwOperation, "dbname", rwOperation.at("name") + ".sqlite");
+        name = getOr(rwOperation, "filename", name);
+
+        if (name.front() != '/') {
+            name = getOr(rwOperation, "output-dir", ".") + "/" + name;
+        }
+        return name;
+    }
+
+    const std::string dbFilename;
+    const std::string relationName;
     const std::string symbolTableName = "__SymbolTable";
 
     std::unordered_map<uint64_t, uint64_t> dbSymbolTable;

@@ -48,22 +48,18 @@ protected:
               typeAttributes(std::move(relTypes)), arity(typeAttributes.size() - auxArity),
               auxiliaryArity(auxArity) {}
 
-    SerialisationStream(
-            RO<SymbolTable>& symTab, RO<RecordTable>& recTab, Json types, char const* const relationName)
+    SerialisationStream(RO<SymbolTable>& symTab, RO<RecordTable>& recTab, Json types)
             : symbolTable(symTab), recordTable(recTab), types(std::move(types)) {
-        setupFromJson(relationName);
+        setupFromJson();
     }
 
     SerialisationStream(RO<SymbolTable>& symTab, RO<RecordTable>& recTab,
             const std::map<std::string, std::string>& rwOperation)
             : symbolTable(symTab), recordTable(recTab) {
-        auto&& relationName = rwOperation.at("name");
-
         std::string parseErrors;
         types = Json::parse(rwOperation.at("types"), parseErrors);
         assert(parseErrors.size() == 0 && "Internal JSON parsing failed.");
-
-        setupFromJson(relationName.c_str());
+        setupFromJson();
     }
 
     RO<SymbolTable>& symbolTable;
@@ -75,8 +71,8 @@ protected:
     size_t auxiliaryArity = 0;
 
 private:
-    void setupFromJson(char const* const relationName) {
-        auto&& relInfo = types[relationName];
+    void setupFromJson() {
+        auto&& relInfo = types["relation"];
         arity = static_cast<size_t>(relInfo["arity"].long_value());
         auxiliaryArity = static_cast<size_t>(relInfo["auxArity"].long_value());
 

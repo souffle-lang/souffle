@@ -273,8 +273,19 @@ public:
     ~ReadFileCSV() override = default;
 
 protected:
+    /**
+     * Return given filename or construct from relation name.
+     * Default name is [configured path]/[relation name].facts
+     *
+     * @param rwOperation map of IO configuration options
+     * @return input filename
+     */
     static std::string getFileName(const std::map<std::string, std::string>& rwOperation) {
-        return getOr(rwOperation, "filename", rwOperation.at("name") + ".facts");
+        auto name = getOr(rwOperation, "filename", rwOperation.at("name") + ".facts");
+        if (name.front() != '/') {
+            name = getOr(rwOperation, "fact-dir", ".") + "/" + name;
+        }
+        return name;
     }
 
     std::string baseName;

@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
         error("failed to create souffle program");
     }
     // load the facts
-    prog->loadAll("./facts");
+    prog->loadAll();
     // run the program
     prog->run();
     // there should be no source2sink

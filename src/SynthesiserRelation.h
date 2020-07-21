@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "RamIndexAnalysis.h"
-#include "RamRelation.h"
+#include "ram/RamRelation.h"
+#include "ram/analysis/RamIndexAnalysis.h"
 #include <cstddef>
 #include <memory>
 #include <ostream>

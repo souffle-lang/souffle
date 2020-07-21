@@ -16,21 +16,21 @@
 
 #include "tests/test.h"
 
-#include "AstAbstract.h"
-#include "AstArgument.h"
-#include "AstClause.h"
-#include "AstGroundAnalysis.h"
-#include "AstLiteral.h"
-#include "AstNode.h"
-#include "AstProgram.h"
-#include "AstQualifiedName.h"
-#include "AstTransforms.h"
-#include "AstTranslationUnit.h"
-#include "AstUtils.h"
 #include "BinaryConstraintOps.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "ParserDriver.h"
+#include "ast/AstAbstract.h"
+#include "ast/AstArgument.h"
+#include "ast/AstClause.h"
+#include "ast/AstLiteral.h"
+#include "ast/AstNode.h"
+#include "ast/AstProgram.h"
+#include "ast/AstQualifiedName.h"
+#include "ast/AstTranslationUnit.h"
+#include "ast/AstUtils.h"
+#include "ast/analysis/AstGroundAnalysis.h"
+#include "ast/transform/AstTransforms.h"
 #include "utility/StringUtil.h"
 #include <algorithm>
 #include <map>
@@ -332,6 +332,91 @@ TEST(AstUtils, ReorderClauseAtoms) {
             std::unique_ptr<AstClause>(reorderAtoms(clause, std::vector<unsigned int>({2, 3, 4, 1, 0})));
     EXPECT_EQ("a(x) :- \n   d(y),\n   c(z),\n   1 != 2,\n   e(x),\n   !e(z),\n   c(x),\n   b(x).",
             toString(*reorderedClause1));
+}
+
+/**
+ * Test the equivalence (or lack of equivalence) of clauses using the MinimiseProgramTransfomer.
+ */
+TEST(AstUtils, CheckClausalEquivalence) {
+    ErrorReport e;
+    DebugReport d;
+
+    std::unique_ptr<AstTranslationUnit> tu = ParserDriver::parseTranslationUnit(
+            R"(
+                .decl A(x:number, y:number)
+                .decl B(x:number)
+                .decl C(x:number)
+
+                A(0,0).
+                A(0,0).
+                A(0,1).
+
+                B(1).
+
+                C(z) :- A(z,y), A(z,x), x != 3, x < y, !B(x), y > 3, B(y).
+                C(r) :- A(r,y), A(r,x), x != 3, x < y, !B(y), y > 3, B(y), B(x), x < y.
+                C(x) :- A(x,a), a != 3, !B(a), A(x,b), b > 3, B(c), a < b, c = b.
+            )",
+            e, d);
+
+    const auto& program = *tu->getProgram();
+
+    // Resolve aliases to remove trivial equalities
+    std::make_unique<ResolveAliasesTransformer>()->apply(*tu);
+    auto aClauses = getClauses(program, "A");
+    auto bClauses = getClauses(program, "B");
+    auto cClauses = getClauses(program, "C");
+
+    EXPECT_EQ(3, aClauses.size());
+    EXPECT_EQ("A(0,0).", toString(*aClauses[0]));
+    EXPECT_EQ("A(0,0).", toString(*aClauses[1]));
+    EXPECT_EQ("A(0,1).", toString(*aClauses[2]));
+
+    EXPECT_EQ(1, bClauses.size());
+    EXPECT_EQ("B(1).", toString(*bClauses[0]));
+
+    EXPECT_EQ(3, cClauses.size());
+    EXPECT_EQ("C(z) :- \n   A(z,y),\n   A(z,x),\n   x != 3,\n   x < y,\n   !B(x),\n   y > 3,\n   B(y).",
+            toString(*cClauses[0]));
+    EXPECT_EQ(
+            "C(r) :- \n   A(r,y),\n   A(r,x),\n   x != 3,\n   x < y,\n   !B(y),\n   y > 3,\n   B(y),\n   "
+            "B(x).",
+            toString(*cClauses[1]));
+    EXPECT_EQ("C(x) :- \n   A(x,a),\n   a != 3,\n   !B(a),\n   A(x,b),\n   b > 3,\n   B(b),\n   a < b.",
+            toString(*cClauses[2]));
+
+    // Check equivalence of these clauses
+    // -- A
+    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[0], aClauses[1]));
+    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[1], aClauses[0]));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[1], aClauses[2]));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(aClauses[0], aClauses[2]));
+
+    // -- C
+    EXPECT_TRUE(MinimiseProgramTransformer::areBijectivelyEquivalent(cClauses[0], cClauses[2]));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(cClauses[0], cClauses[1]));
+    EXPECT_FALSE(MinimiseProgramTransformer::areBijectivelyEquivalent(cClauses[2], cClauses[1]));
+
+    // Make sure equivalent (and only equivalent) clauses are removed by the minimiser
+    std::make_unique<MinimiseProgramTransformer>()->apply(*tu);
+    auto aMinClauses = getClauses(program, "A");
+    auto bMinClauses = getClauses(program, "B");
+    auto cMinClauses = getClauses(program, "C");
+
+    EXPECT_EQ(2, aMinClauses.size());
+    EXPECT_EQ("A(0,0).", toString(*aMinClauses[0]));
+    EXPECT_EQ("A(0,1).", toString(*aMinClauses[1]));
+
+    EXPECT_EQ(1, bMinClauses.size());
+    EXPECT_EQ("B(1).", toString(*bMinClauses[0]));
+
+    EXPECT_EQ(2, cMinClauses.size());
+    EXPECT_EQ("C(z) :- \n   A(z,y),\n   A(z,x),\n   x != 3,\n   x < y,\n   !B(x),\n   y > 3,\n   B(y).",
+            toString(*cMinClauses[0]));
+    EXPECT_EQ(
+            "C(r) :- \n   A(r,y),\n   A(r,x),\n   x != 3,\n   x < y,\n   !B(y),\n   y > 3,\n   B(y),\n   "
+            "B(x).",
+            toString(*cMinClauses[1]));
 }
 
 /**

@@ -1,0 +1,24 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+// This is a functional test for JSON IO handling.
+// JSON output is directed to standard out.
+
+.type List = [
+    head : number,
+    tail : List
+]
+.decl A(x : List)
+A(nil).
+A([1,nil]).
+A([2,[3,nil]]).
+.output A(IO=json)
+
+.type list = [x:number, y:list]
+.decl B(a:number, b:list)
+
+B(1,[1,[2,[3,nil]]]).
+B(4,nil).
+.output B(IO=json)

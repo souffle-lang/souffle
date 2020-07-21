@@ -40,7 +40,7 @@ struct Tuple {
     // the stored data
     Domain data[arity];
 
-    // constructores, destructors and assignment are default
+    // constructors, destructors and assignment are default
 
     // provide access to components
     const Domain& operator[](std::size_t index) const {

@@ -123,12 +123,7 @@ template <typename... Args>
     abort();
 }
 
-// HACK:  Workaround for GCC <= 9.2 which does not perform exhaustive switch analysis.
-//        This is intended to be used to suppress spurious reachability warnings.
-#if defined(__GNUC__) && __GNUC__ < 10
+// HACK:  Workaround to suppress spurious reachability warnings.
 #define UNREACHABLE_BAD_CASE_ANALYSIS fatal("unhandled switch branch");
-#else
-#define UNREACHABLE_BAD_CASE_ANALYSIS (void);
-#endif
 
 }  // namespace souffle

@@ -17,7 +17,7 @@
 #include "tests/test.h"
 
 #include "RamTypes.h"
-#include "TypeSystem.h"
+#include "ast/TypeSystem.h"
 #include "utility/StringUtil.h"
 #include <string>
 #include <vector>

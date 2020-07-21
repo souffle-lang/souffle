@@ -17,8 +17,8 @@
 #include "tests/test.h"
 
 #include "FunctorOps.h"
-#include "RamExpression.h"
 #include "RamTypes.h"
+#include "ram/RamExpression.h"
 #include <memory>
 #include <string>
 #include <utility>
