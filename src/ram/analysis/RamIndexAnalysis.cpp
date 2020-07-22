@@ -163,7 +163,7 @@ SearchSignature& SearchSignature::set(size_t pos, AttributeConstraint constraint
 
 std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
     size_t len = signature.constraints.size();
-    for (size_t i = 0; i < len; ++i) {
+    for (size_t i = len-1; i >= 0; --i) {
         switch (signature.constraints[i]) {
             case AttributeConstraint::None: out << 0; break;
             case AttributeConstraint::Equal: out << 1; break;
