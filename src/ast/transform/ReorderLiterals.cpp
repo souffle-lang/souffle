@@ -15,6 +15,7 @@
  *
  ***********************************************************************/
 
+#include "ast/transform/ReorderLiterals.h"
 #include "Global.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
@@ -25,7 +26,6 @@
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstProfileUse.h"
-#include "ast/transform/AstTransforms.h"
 #include <algorithm>
 #include <cmath>
 #include <functional>

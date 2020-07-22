@@ -57,6 +57,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <typeinfo>
 #include <utility>

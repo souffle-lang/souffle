@@ -15,6 +15,7 @@
  *
  ***********************************************************************/
 
+#include "ast/transform/ResolveAliases.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
 #include "ast/AstClause.h"
@@ -24,9 +25,9 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
-#include "ast/transform/AstTransforms.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>

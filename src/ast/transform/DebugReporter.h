@@ -16,13 +16,12 @@
 #pragma once
 
 #include "ast/transform/AstTransformer.h"
-#include "souffle/utility/FileUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace souffle {
 

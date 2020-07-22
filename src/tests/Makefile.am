@@ -87,6 +87,11 @@ check_PROGRAMS += ast_program_test
 ast_program_test_SOURCES = ast_program_test.cpp test.h
 ast_program_test_LDADD = ../libsouffle.la
 
+# ast transformers test
+check_PROGRAMS += ast_transformers_test
+ast_transformers_test_SOURCES = ast_transformers_test.cpp test.h
+ast_transformers_test_LDADD = ../libsouffle.la
+
 # ast utils test
 check_PROGRAMS += ast_utils_test
 ast_utils_test_SOURCES = ast_utils_test.cpp test.h

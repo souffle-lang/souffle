@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "ast/transform/ComponentInstantiationTransformer.h"
+#include "ast/transform/ComponentInstantiation.h"
 #include "ErrorReport.h"
 #include "ast/AstArgument.h"
 #include "ast/AstAttribute.h"

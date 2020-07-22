@@ -14,8 +14,8 @@
  *
  ***********************************************************************/
 
+#include "ast/transform/InlineRelations.h"
 #include "AggregateOp.h"
-#include "FunctorOps.h"
 #include "RelationTag.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
@@ -28,13 +28,13 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
-#include "ast/transform/AstTransforms.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <set>
 #include <string>

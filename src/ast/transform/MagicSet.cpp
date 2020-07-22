@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MagicSet.cpp
+ * @file MagicSetTransformer.cpp
  *
  * Define classes and functionality related to the magic set transformation.
  *
@@ -25,12 +25,13 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include "ast/analysis/AstIOTypeAnalysis.h"
-#include "ast/transform/AstTransforms.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
+#include <algorithm>
+#include <optional>
 #include <utility>
 
 namespace souffle {
