@@ -34,10 +34,6 @@ souffle_sources = \
         RelationTag.h                                      \
         SrcLocation.cpp                                    \
         SrcLocation.h                                      \
-        Synthesiser.cpp                                    \
-        Synthesiser.h                                      \
-        SynthesiserRelation.cpp                            \
-        SynthesiserRelation.h                              \
         Util.cpp                                           \
         ast/AstAbstract.h                                  \
         ast/AstArgument.h                                  \
@@ -137,7 +133,11 @@ souffle_sources = \
         ram/transform/RamTransforms.cpp                    \
         ram/transform/RamTransforms.h                      \
         scanner.cc                                         \
-        stack.hh
+        stack.hh                                           \
+        synthesiser/Synthesiser.cpp                        \
+        synthesiser/Synthesiser.h                          \
+        synthesiser/SynthesiserRelation.cpp                \
+        synthesiser/SynthesiserRelation.h
 
 # -- build souffle as a library so it can be reused in testing
 noinst_LTLIBRARIES = libsouffle.la

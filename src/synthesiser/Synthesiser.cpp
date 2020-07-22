@@ -14,12 +14,12 @@
  *
  ***********************************************************************/
 
-#include "Synthesiser.h"
+#include "synthesiser/Synthesiser.h"
 #include "AggregateOp.h"
 #include "FunctorOps.h"
 #include "Global.h"
 #include "RelationTag.h"
-#include "SynthesiserRelation.h"
+#include "synthesiser/SynthesiserRelation.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
 #include "ram/RamNode.h"

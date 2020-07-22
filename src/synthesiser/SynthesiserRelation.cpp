@@ -6,7 +6,7 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-#include "SynthesiserRelation.h"
+#include "synthesiser/SynthesiserRelation.h"
 #include "Global.h"
 #include "RelationTag.h"
 #include "ram/analysis/RamIndexAnalysis.h"

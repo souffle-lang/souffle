@@ -19,7 +19,6 @@
 #include "ErrorReport.h"
 #include "Global.h"
 #include "ParserDriver.h"
-#include "Synthesiser.h"
 #include "ast/AstNode.h"
 #include "ast/AstProgram.h"
 #include "ast/AstTranslationUnit.h"
@@ -46,6 +45,7 @@
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
+#include "synthesiser/Synthesiser.h"
 #include <cassert>
 #include <chrono>
 #include <cstdio>
