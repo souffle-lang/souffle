@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstTranslator.h
+ * @file AstToRamTranslator.h
  *
  * Translator from AST into RAM
  *
@@ -62,9 +62,9 @@ class TypeEnvironment;
 /**
  * Main class for AST Translator
  */
-class AstTranslator {
+class AstToRamTranslator {
 public:
-    AstTranslator() = default;
+    AstToRamTranslator() = default;
 
     /** translates AST to translation unit  */
     std::unique_ptr<RamTranslationUnit> translateUnit(AstTranslationUnit& tu);
@@ -347,7 +347,7 @@ private:
         void createValueIndex(const AstClause& clause);
 
     protected:
-        AstTranslator& translator;
+        AstToRamTranslator& translator;
 
         // create value index
         ValueIndex valueIndex;
@@ -365,7 +365,7 @@ private:
         const AuxiliaryArity* auxArityAnalysis;
 
     public:
-        ClauseTranslator(AstTranslator& translator)
+        ClauseTranslator(AstToRamTranslator& translator)
                 : translator(translator), auxArityAnalysis(translator.auxArityAnalysis) {}
 
         std::unique_ptr<RamStatement> translateClause(
@@ -378,7 +378,7 @@ private:
         std::unique_ptr<RamCondition> createCondition(const AstClause& originalClause) override;
 
     public:
-        ProvenanceClauseTranslator(AstTranslator& translator) : ClauseTranslator(translator) {}
+        ProvenanceClauseTranslator(AstToRamTranslator& translator) : ClauseTranslator(translator) {}
     };
 
     /**

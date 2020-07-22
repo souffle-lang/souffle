@@ -17,8 +17,8 @@ nodist_souffle_SOURCES = $(BUILT_SOURCES)
 
 souffle_sources = \
         AggregateOp.h                                      \
-        AstTranslator.cpp                                  \
-        AstTranslator.h                                    \
+        AstToRamTranslator.cpp                             \
+        AstToRamTranslator.h                               \
         Constraints.h                                      \
         DebugReport.cpp                                    \
         DebugReport.h                                      \

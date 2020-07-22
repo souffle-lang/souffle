@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "AstTranslator.h"
+#include "AstToRamTranslator.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Global.h"
@@ -525,7 +525,7 @@ int main(int argc, char** argv) {
     /* translate AST to RAM */
     debugReport.startSection();
     std::unique_ptr<RamTranslationUnit> ramTranslationUnit =
-            AstTranslator().translateUnit(*astTranslationUnit);
+            AstToRamTranslator().translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
 
     std::unique_ptr<RamTransformer> ramTransform = std::make_unique<RamTransformerSequence>(

@@ -525,7 +525,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             assert(pscan.getTupleId() == 0 && "not outer-most loop");
 
-            assert(rel.getArity() > 0 && "AstTranslator failed/no parallel scans for nullaries");
+            assert(rel.getArity() > 0 && "AstToRamTranslator failed/no parallel scans for nullaries");
 
             assert(!preambleIssued && "only first loop can be made parallel");
             preambleIssued = true;
@@ -555,7 +555,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             PRINT_BEGIN_COMMENT(out);
 
-            assert(rel.getArity() > 0 && "AstTranslator failed/no scans for nullaries");
+            assert(rel.getArity() > 0 && "AstToRamTranslator failed/no scans for nullaries");
 
             out << "for(const auto& env" << id << " : "
                 << "*" << relName << ") {\n";
@@ -572,7 +572,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto relName = synthesiser.getRelationName(rel);
             auto identifier = choice.getTupleId();
 
-            assert(rel.getArity() > 0 && "AstTranslator failed/no choice for nullaries");
+            assert(rel.getArity() > 0 && "AstToRamTranslator failed/no choice for nullaries");
 
             PRINT_BEGIN_COMMENT(out);
 
@@ -599,7 +599,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             assert(pchoice.getTupleId() == 0 && "not outer-most loop");
 
-            assert(rel.getArity() > 0 && "AstTranslator failed/no parallel choice for nullaries");
+            assert(rel.getArity() > 0 && "AstToRamTranslator failed/no parallel choice for nullaries");
 
             assert(!preambleIssued && "only first loop can be made parallel");
             preambleIssued = true;
@@ -639,7 +639,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             const auto& rangePatternLower = iscan.getRangePattern().first;
             const auto& rangePatternUpper = iscan.getRangePattern().second;
 
-            assert(arity > 0 && "AstTranslator failed/no index scans for nullaries");
+            assert(arity > 0 && "AstToRamTranslator failed/no index scans for nullaries");
 
             PRINT_BEGIN_COMMENT(out);
 
@@ -674,7 +674,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             assert(piscan.getTupleId() == 0 && "not outer-most loop");
 
-            assert(arity > 0 && "AstTranslator failed/no parallel index scan for nullaries");
+            assert(arity > 0 && "AstToRamTranslator failed/no parallel index scan for nullaries");
 
             assert(!preambleIssued && "only first loop can be made parallel");
             preambleIssued = true;
@@ -720,7 +720,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto keys = isa->getSearchSignature(&ichoice);
 
             // check list of keys
-            assert(arity > 0 && "AstTranslator failed");
+            assert(arity > 0 && "AstToRamTranslator failed");
 
             out << "const Tuple<RamDomain," << arity << "> lower{{";
             out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
@@ -761,7 +761,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             assert(pichoice.getTupleId() == 0 && "not outer-most loop");
 
-            assert(arity > 0 && "AstTranslator failed");
+            assert(arity > 0 && "AstToRamTranslator failed");
 
             assert(!preambleIssued && "only first loop can be made parallel");
             preambleIssued = true;
@@ -1663,7 +1663,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             auto relName = synthesiser.getRelationName(rel);
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
             auto arity = rel.getArity();
-            assert(arity > 0 && "AstTranslator failed");
+            assert(arity > 0 && "AstToRamTranslator failed");
             std::string after;
             if (Global::config().has("profile") && !exists.getRelation().isTemp()) {
                 out << R"_((reads[)_" << synthesiser.lookupReadIdx(rel.getName()) << R"_(]++,)_";
