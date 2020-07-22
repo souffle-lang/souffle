@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "InterpreterIndex.h"
-#include "InterpreterRelation.h"
+#include "interpreter/InterpreterIndex.h"
+#include "interpreter/InterpreterRelation.h"
 #include "souffle/RamTypes.h"
 #include <cassert>
 #include <cstddef>

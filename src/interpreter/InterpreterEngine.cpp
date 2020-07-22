@@ -13,15 +13,15 @@
  * Define the Interpreter Engine class.
  ***********************************************************************/
 
-#include "InterpreterEngine.h"
+#include "interpreter/InterpreterEngine.h"
 #include "AggregateOp.h"
 #include "FunctorOps.h"
-#include "InterpreterContext.h"
-#include "InterpreterGenerator.h"
-#include "InterpreterIndex.h"
-#include "InterpreterNode.h"
-#include "InterpreterPreamble.h"
-#include "InterpreterRelation.h"
+#include "interpreter/InterpreterContext.h"
+#include "interpreter/InterpreterGenerator.h"
+#include "interpreter/InterpreterIndex.h"
+#include "interpreter/InterpreterNode.h"
+#include "interpreter/InterpreterPreamble.h"
+#include "interpreter/InterpreterRelation.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
 #include "ram/RamOperation.h"

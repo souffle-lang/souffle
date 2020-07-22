@@ -28,17 +28,6 @@ souffle_sources = \
         Global.cpp                                         \
         Global.h                                           \
         GraphUtils.h                                       \
-        InterpreterContext.h                               \
-        InterpreterEngine.cpp                              \
-        InterpreterEngine.h                                \
-        InterpreterGenerator.h                             \
-        InterpreterIndex.cpp                               \
-        InterpreterIndex.h                                 \
-        InterpreterNode.h                                  \
-        InterpreterPreamble.h                              \
-        InterpreterProgInterface.h                         \
-        InterpreterRelation.cpp                            \
-        InterpreterRelation.h                              \
         LogStatement.h                                     \
         ParserDriver.cpp                                   \
         ParserDriver.h                                     \
@@ -113,6 +102,17 @@ souffle_sources = \
         ast/transform/ProvenanceTransformer.cpp            \
         ast/transform/ReorderLiteralsTransformer.cpp       \
         ast/transform/ResolveAliasesTransformer.cpp        \
+        interpreter/InterpreterContext.h                   \
+        interpreter/InterpreterEngine.cpp                  \
+        interpreter/InterpreterEngine.h                    \
+        interpreter/InterpreterGenerator.h                 \
+        interpreter/InterpreterIndex.cpp                   \
+        interpreter/InterpreterIndex.h                     \
+        interpreter/InterpreterNode.h                      \
+        interpreter/InterpreterPreamble.h                  \
+        interpreter/InterpreterProgInterface.h             \
+        interpreter/InterpreterRelation.cpp                \
+        interpreter/InterpreterRelation.h                  \
         parser.cc                                          \
         parser.hh                                          \
         ram/RamCondition.h                                 \

@@ -20,7 +20,7 @@
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "InterpreterEngine.h"
+#include "interpreter/InterpreterEngine.h"
 #include "ram/RamExpression.h"
 #include "ram/RamOperation.h"
 #include "ram/RamProgram.h"

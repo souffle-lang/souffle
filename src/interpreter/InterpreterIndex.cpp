@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "InterpreterIndex.h"
+#include "interpreter/InterpreterIndex.h"
 #include "souffle/BTree.h"
 #include "souffle/Brie.h"
 #include "souffle/EquivalenceRelation.h"

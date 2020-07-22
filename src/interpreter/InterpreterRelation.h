@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "InterpreterIndex.h"
+#include "interpreter/InterpreterIndex.h"
 #include "souffle/RamTypes.h"
 #include <cstdint>
 #include <deque>

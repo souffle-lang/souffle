@@ -17,8 +17,8 @@
 #pragma once
 
 #include "Global.h"
-#include "InterpreterGenerator.h"
-#include "InterpreterIndex.h"
+#include "interpreter/InterpreterGenerator.h"
+#include "interpreter/InterpreterIndex.h"
 #include "ram/RamTranslationUnit.h"
 #include "ram/analysis/RamIndexAnalysis.h"
 #include "souffle/RamTypes.h"

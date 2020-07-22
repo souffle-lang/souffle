@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "InterpreterEngine.h"
-#include "InterpreterIndex.h"
-#include "InterpreterRelation.h"
+#include "interpreter/InterpreterEngine.h"
+#include "interpreter/InterpreterIndex.h"
+#include "interpreter/InterpreterRelation.h"
 #include "ram/RamNode.h"
 #include "ram/RamProgram.h"
 #include "ram/RamRelation.h"

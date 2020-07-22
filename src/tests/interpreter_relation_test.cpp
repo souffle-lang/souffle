@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "InterpreterProgInterface.h"
-#include "InterpreterRelation.h"
+#include "interpreter/InterpreterProgInterface.h"
+#include "interpreter/InterpreterRelation.h"
 #include "ram/analysis/RamIndexAnalysis.h"
 #include "souffle/SouffleInterface.h"
 #include "souffle/SymbolTable.h"
