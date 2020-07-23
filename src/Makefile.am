@@ -171,10 +171,35 @@ souffle_sources = \
         ram/analysis/RamIndexAnalysis.h                                        \
         ram/analysis/RamLevelAnalysis.cpp                                      \
         ram/analysis/RamLevelAnalysis.h                                        \
+        ram/transform/ChoiceConversion.cpp                                     \
+        ram/transform/ChoiceConversion.h                                       \
+        ram/transform/CollapseFilters.cpp                                      \
+        ram/transform/CollapseFilters.h                                        \
+        ram/transform/EliminateDuplicates.cpp                                  \
+        ram/transform/EliminateDuplicates.h                                    \
+        ram/transform/ExpandFilter.cpp                                         \
+        ram/transform/ExpandFilter.h                                           \
+        ram/transform/HoistAggregate.cpp                                       \
+        ram/transform/HoistAggregate.h                                         \
+        ram/transform/HoistConditions.cpp                                      \
+        ram/transform/HoistConditions.h                                        \
+        ram/transform/IfConversion.cpp                                         \
+        ram/transform/IfConversion.h                                           \
+        ram/transform/IndexedInequality.cpp                                    \
+        ram/transform/IndexedInequality.h                                      \
+        ram/transform/MakeIndex.cpp                                            \
+        ram/transform/MakeIndex.h                                              \
+        ram/transform/Parallel.cpp                                             \
+        ram/transform/Parallel.h                                               \
         ram/transform/RamTransformer.cpp                                       \
         ram/transform/RamTransformer.h                                         \
-        ram/transform/RamTransforms.cpp                                        \
-        ram/transform/RamTransforms.h                                          \
+        ram/transform/ReorderConditions.cpp                                    \
+        ram/transform/ReorderConditions.h                                      \
+        ram/transform/ReorderFilterBreak.cpp                                   \
+        ram/transform/ReorderFilterBreak.h                                     \
+        ram/transform/ReportIndex.h                                            \
+        ram/transform/TupleId.cpp                                              \
+        ram/transform/TupleId.h                                                \
         scanner.cc                                                             \
         stack.hh                                                               \
         synthesiser/Synthesiser.cpp                                            \
