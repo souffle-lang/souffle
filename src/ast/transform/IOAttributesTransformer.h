@@ -46,7 +46,37 @@ private:
 
         changed |= setAttributeNames(translationUnit);
         changed |= setAttributeTypes(translationUnit);
+        changed |= setAttributeParams(translationUnit);
 
+        return changed;
+    }
+
+    bool setAttributeParams(AstTranslationUnit& translationUnit) {
+        bool changed = false;
+        AstProgram* program = translationUnit.getProgram();
+        auto auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();
+
+        for (AstIO* io : program->getIOs()) {
+            AstRelation* rel = getRelation(*translationUnit.getProgram(), io->getQualifiedName());
+            // Prepare type system information.
+            std::vector<std::string> attributesParams;
+
+            for (const auto* attribute : rel->getAttributes()) {
+                attributesParams.push_back(attribute->getName());
+            }
+
+            // Casting due to json11.h type requirements.
+            long long arity{static_cast<long long>(rel->getArity() - auxArityAnalysis->getArity(rel))};
+            long long auxArity{static_cast<long long>(auxArityAnalysis->getArity(rel))};
+
+            Json relJson = Json::object{{"arity", arity}, {"auxArity", auxArity},
+                    {"params", Json::array(attributesParams.begin(), attributesParams.end())}};
+
+            Json params = Json::object{{"relation", relJson}, {"records", getRecordsParams(translationUnit)}};
+
+            io->addDirective("params", params.dump());
+            changed = true;
+        }
         return changed;
     }
 
@@ -147,6 +177,36 @@ private:
 
         ramRecordTypes = Json(records);
         return ramRecordTypes;
+    }
+
+    Json getRecordsParams(AstTranslationUnit& translationUnit) const {
+        static Json ramRecordParams;
+        // Check if the types where already constructed
+        if (!ramRecordParams.is_null()) {
+            return ramRecordParams;
+        }
+
+        AstProgram* program = translationUnit.getProgram();
+        std::vector<std::string> elementParams;
+        std::map<std::string, Json> records;
+
+        // Iterate over all record types in the program populating the records map.
+        for (auto* astType : program->getTypes()) {
+            if (isA<AstRecordType>(astType)) {
+                elementParams.clear();
+
+                for (const auto field : as<AstRecordType>(astType)->getFields()) {
+                    elementParams.push_back(field->getName());
+                }
+                const size_t recordArity = elementParams.size();
+                Json recordInfo = Json::object{
+                        {"types", std::move(elementParams)}, {"arity", static_cast<long long>(recordArity)}};
+                records.emplace(astType->getQualifiedName().toString(), std::move(recordInfo));
+            }
+        }
+
+        ramRecordParams = Json(records);
+        return ramRecordParams;
     }
 };
 

@@ -158,8 +158,7 @@ inline std::vector<std::string> split(const std::string& s, char delim, int time
 
 class ExplainProvenance {
 public:
-    ExplainProvenance(SouffleProgram& prog, bool useSublevels)
-            : prog(prog), symTable(prog.getSymbolTable()), useSublevels(useSublevels) {}
+    ExplainProvenance(SouffleProgram& prog) : prog(prog), symTable(prog.getSymbolTable()) {}
     virtual ~ExplainProvenance() = default;
 
     virtual void setup() = 0;
@@ -193,7 +192,6 @@ public:
 protected:
     SouffleProgram& prog;
     SymbolTable& symTable;
-    bool useSublevels;
 
     std::vector<RamDomain> argsToNums(
             const std::string& relName, const std::vector<std::string>& args) const {

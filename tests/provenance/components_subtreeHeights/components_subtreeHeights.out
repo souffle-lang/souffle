@@ -1,7 +1,0 @@
-myCompInstance1.TheAnswer(42) 
---------------------------(R1)
-           Test(42)           
-myCompInstance1.TheAnswer(42)
-myCompInstance1.TheAnswer(42) 
---------------------------(R1)
-myCompInstance1.TheAnswer2(43)

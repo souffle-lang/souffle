@@ -158,61 +158,19 @@ void SynthesiserDirectRelation::computeIndices() {
                     ind.push_back(i);
                 }
             }
-            if (Global::config().get("provenance") == "subtreeHeights") {
-                // TODO (sarah): assumption index is used exclusively for provenance in case a height
-                // parameter occurs in order of columns before regular columns (at least only in this case it
-                // needs to be copied) -- verify this!!
-
-                auto firstProvenanceColumn = (getArity() - relation.getAuxiliaryArity());
-
-                // position of last non provenance column
-                auto nonProv = std::find_if(ind.rbegin(), ind.rend(),
-                        [firstProvenanceColumn](size_t i) { return i < firstProvenanceColumn; });
-                auto indNonProv = std::distance(nonProv, ind.rend());
-
-                // position of first height column
-                auto prov = std::find_if(ind.begin(), ind.end(),
-                        [firstProvenanceColumn](size_t i) { return i >= firstProvenanceColumn + 1; });
-                auto indProv = std::distance(ind.begin(), prov);
-
-                if (indNonProv > indProv) {
-                    provenanceIndexNumbers.insert(index_nr);
-                } else {
-                    // index was not added for provenance and can therefore be used as master index
-                    masterIndex = index_nr;
-                }
-
-                // add provenance annotations to the index but in reverse order
-                // add height columns if not already contained
-                for (size_t i = getArity() - relation.getAuxiliaryArity() + 1; i < getArity(); i++) {
-                    if (curIndexElems.find(i) == curIndexElems.end()) {
-                        ind.push_back(i);
-                    }
-                }
-
-                // remove rule annotation if already in the index order
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
-                    ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
-                }
-                // add rule as last parameter
-                ind.push_back(getArity() - relation.getAuxiliaryArity());
-            } else {
-                // remove any provenance annotations already in the index order
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity() + 1) !=
-                        curIndexElems.end()) {
-                    ind.erase(
-                            std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity() + 1));
-                }
-
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
-                    ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
-                }
-
-                // add provenance annotations to the index, but in reverse order
-                ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
-                ind.push_back(getArity() - relation.getAuxiliaryArity());
-                masterIndex = 0;
+            // remove any provenance annotations already in the index order
+            if (curIndexElems.find(getArity() - relation.getAuxiliaryArity() + 1) != curIndexElems.end()) {
+                ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity() + 1));
             }
+
+            if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
+                ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
+            }
+
+            // add provenance annotations to the index, but in reverse order
+            ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
+            ind.push_back(getArity() - relation.getAuxiliaryArity());
+            masterIndex = 0;
         } else if (ind.size() == getArity()) {
             masterIndex = index_nr;
         }

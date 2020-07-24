@@ -1,4 +1,0 @@
-explain Test(42)
-explain myCompInstance1.TheAnswer(42)
-explain myCompInstance1.TheAnswer2(43)
-exit

@@ -21,7 +21,7 @@ dnl $1 -- test name
 dnl $2 -- category
 m4_define([POSITIVE_PROVENANCE_TEST],[
   m4_ifblank(m4_join([],ENV_CONFS), [
-    m4_define([PROV_FLAGS], [[], [-c], [-c -j8]])
+    m4_define([PROV_FLAGS], [[], [-j8], [-c], [-c -j8]])
   ], [
     m4_define([PROV_FLAGS], [ENV_CONFS])
   ])
@@ -59,13 +59,6 @@ POSITIVE_PROVENANCE_TEST([path],[provenance])
 POSITIVE_PROVENANCE_TEST([path_explain_negation],[provenance])
 POSITIVE_PROVENANCE_OUTPUT_TEST([path_explain_output],[provenance])
 POSITIVE_PROVENANCE_TEST([same_gen],[provenance])
-#POSITIVE_PROVENANCE_TEST([components_subtreeHeights],[provenance])
-#POSITIVE_PROVENANCE_TEST([cprog1_subtreeHeights],[provenance])
-#POSITIVE_PROVENANCE_TEST([high_arity_subtreeHeights],[provenance])
-#POSITIVE_PROVENANCE_TEST([negation_subtreeHeights],[provenance])
-#POSITIVE_PROVENANCE_TEST([path_subtreeHeights],[provenance])
-#POSITIVE_PROVENANCE_TEST([path_explain_negation_subtreeHeights],[provenance])
-#POSITIVE_PROVENANCE_OUTPUT_TEST([path_explain_output_subtreeHeights],[provenance])
 POSITIVE_PROVENANCE_TEST([query_1],[provenance])
 POSITIVE_PROVENANCE_TEST([query_2],[provenance])
 POSITIVE_PROVENANCE_TEST([query_3],[provenance])

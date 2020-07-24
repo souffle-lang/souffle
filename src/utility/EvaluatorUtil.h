@@ -45,26 +45,16 @@ void runRange(A from, A to, F&& go) {
     return runRange(from, to, A(from <= to ? 1 : -1), std::forward<F>(go));
 }
 
-namespace details {
-template <typename A>
-A symbol2numeric(const std::string& s);
-
-#define SYM_2_NUMERIC_OVERLOAD(ty)                \
-    template <>                                   \
-    ty symbol2numeric<ty>(const std::string& s) { \
-        return ty##FromString(s);                 \
-    }
-
-SYM_2_NUMERIC_OVERLOAD(RamFloat)
-SYM_2_NUMERIC_OVERLOAD(RamSigned)
-SYM_2_NUMERIC_OVERLOAD(RamUnsigned)
-#undef SYM_2_NUMERIC_OVERLOAD
-}  // namespace details
-
 template <typename A>
 A symbol2numeric(const std::string& src) {
     try {
-        return details::symbol2numeric<A>(src);
+        if constexpr (std::is_same_v<RamFloat, A>) {
+            return RamFloatFromString(src);
+        } else if constexpr (std::is_same_v<RamSigned, A>) {
+            return RamSignedFromString(src);
+        } else if constexpr (std::is_same_v<RamUnsigned, A>) {
+            return RamUnsignedFromString(src);
+        }
     } catch (...) {
         tfm::format(std::cerr, "error: wrong string provided by `to_number(\"%s\")` functor.\n", src);
         raise(SIGFPE);

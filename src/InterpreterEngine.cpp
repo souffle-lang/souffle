@@ -658,8 +658,10 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
             RamDomain low[arity];
             RamDomain high[arity];
             for (size_t i = 0; i < arity - 2; i++) {
-                low[i] = node->getChild(i) ? execute(node->getChild(i), ctxt) : MIN_RAM_SIGNED;
-                high[i] = node->getChild(i) ? execute(node->getChild(i), ctxt) : MAX_RAM_SIGNED;
+                assert(node->getChild(i) != nullptr &&
+                        "ProvenanceExistenceCheck should always be specified for payload");
+                low[i] = execute(node->getChild(i), ctxt);
+                high[i] = execute(node->getChild(i), ctxt);
             }
 
             low[arity - 2] = MIN_RAM_SIGNED;
@@ -669,7 +671,17 @@ RamDomain InterpreterEngine::execute(const InterpreterNode* node, InterpreterCon
 
             // obtain view
             size_t viewPos = node->getData(0);
-            return ctxt.getView(viewPos)->contains(TupleRef(low, arity), TupleRef(high, arity));
+
+            // get an equalRange
+            auto equalRange = ctxt.getView(viewPos)->range(TupleRef(low, arity), TupleRef(high, arity));
+
+            // if range is empty
+            if (equalRange.begin() == equalRange.end()) {
+                return false;
+            }
+
+            // check whether the height is less than the current height
+            return (*equalRange.begin())[arity - 1] <= execute(node->getChild(arity - 1), ctxt);
         ESAC(ProvenanceExistenceCheck)
 
         CASE(Constraint)

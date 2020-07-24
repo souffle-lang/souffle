@@ -98,8 +98,8 @@ struct AstVisitor : public ast_visitor_tag {
 
         // literals
         FORWARD(Atom)
-        FORWARD(Negation)
         FORWARD(ProvenanceNegation)
+        FORWARD(Negation)
         FORWARD(BooleanConstraint)
         FORWARD(BinaryConstraint)
 
