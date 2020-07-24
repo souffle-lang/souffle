@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/AstTypeEnvironmentAnalysis.h"
+#include "ast/analysis/AstTypeEnvironment.h"
 #include "GraphUtils.h"
 #include "ast/AstAttribute.h"
 #include "ast/AstProgram.h"
@@ -23,6 +23,7 @@
 #include "ast/TypeSystem.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/tinyformat.h"
+#include <algorithm>
 #include <functional>
 #include <ostream>
 #include <typeinfo>

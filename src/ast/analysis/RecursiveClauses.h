@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file PrecedenceGraph.h
+ * @file RecursiveClauses.h
  *
  * Defines the class to build the precedence graph,
  * compute strongly connected components of the precedence graph, and
@@ -18,37 +18,38 @@
 
 #pragma once
 
-#include "GraphUtils.h"
-#include "ast/AstRelation.h"
 #include "ast/analysis/AstAnalysis.h"
 #include <iostream>
+#include <set>
 #include <string>
 
 namespace souffle {
 
+class AstClause;
 class AstTranslationUnit;
 
 /**
- * Analysis pass computing the precedence graph of the relations of the datalog progam.
+ * Analysis pass identifying clauses which are recursive.
  */
-class PrecedenceGraphAnalysis : public AstAnalysis {
+class RecursiveClausesAnalysis : public AstAnalysis {
 public:
-    static constexpr const char* name = "precedence-graph";
+    static constexpr const char* name = "recursive-clauses";
 
-    PrecedenceGraphAnalysis() : AstAnalysis(name) {}
+    RecursiveClausesAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
-    /** Output precedence graph in graphviz format to a given stream */
     void print(std::ostream& os) const override;
 
-    const Graph<const AstRelation*, AstNameComparison>& graph() const {
-        return backingGraph;
+    bool recursive(const AstClause* clause) const {
+        return recursiveClauses.count(clause) != 0u;
     }
 
 private:
-    /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
-    Graph<const AstRelation*, AstNameComparison> backingGraph;
+    std::set<const AstClause*> recursiveClauses;
+
+    /** Determines whether the given clause is recursive within the given program */
+    bool computeIsRecursive(const AstClause& clause, const AstTranslationUnit& translationUnit) const;
 };
 
 }  // end of namespace souffle

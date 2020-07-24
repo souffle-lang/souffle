@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstConstraintAnalysis.h
+ * @file AstConstraint.h
  *
  * Contains AST Constraint Analysis Infrastructure for doing constraint analysis on AST objects
  *

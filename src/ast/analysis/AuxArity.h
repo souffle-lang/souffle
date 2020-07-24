@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AuxArityAnalysis.h
+ * @file AuxArity.h
  *
  * Define of AST analyses classes
  *

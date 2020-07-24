@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstTypeAnalysis.h
+ * @file AstType.h
  *
  * A collection of type analyses operating on AST constructs.
  *

@@ -18,8 +18,8 @@
 #pragma once
 
 #include "ast/AstUtils.h"
-#include "ast/analysis/AstTypeEnvironmentAnalysis.h"
-#include "ast/analysis/AuxArityAnalysis.h"
+#include "ast/analysis/AstTypeEnvironment.h"
+#include "ast/analysis/AuxArity.h"
 #include "ast/transform/AstTransformer.h"
 #include <map>
 #include <string>

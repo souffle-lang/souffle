@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/Provenance.h"
-#include "Global.h"
 #include "RelationTag.h"
 #include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
@@ -28,7 +27,6 @@
 #include "ast/AstRelation.h"
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
-#include "ast/analysis/AuxArityAnalysis.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -38,7 +36,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <functional>
 #include <iosfwd>
 #include <memory>
 #include <string>

@@ -14,11 +14,12 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/AstTypeAnalysis.h"
+#include "ast/analysis/AstType.h"
 #include "AggregateOp.h"
 #include "Constraints.h"
 #include "FunctorOps.h"
 #include "Global.h"
+#include "ast/AstAbstract.h"
 #include "ast/AstArgument.h"
 #include "ast/AstAttribute.h"
 #include "ast/AstClause.h"
@@ -31,11 +32,12 @@
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
 #include "ast/TypeSystem.h"
-#include "ast/analysis/AstConstraintAnalysis.h"
-#include "ast/analysis/AstTypeEnvironmentAnalysis.h"
+#include "ast/analysis/AstConstraint.h"
+#include "ast/analysis/AstTypeEnvironment.h"
 #include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
+#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>

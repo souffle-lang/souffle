@@ -27,7 +27,7 @@
 #include "ast/AstRelation.h"
 #include "ast/AstType.h"
 #include "ast/AstVisitor.h"
-#include "ast/analysis/AstTypeAnalysis.h"
+#include "ast/analysis/AstType.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"

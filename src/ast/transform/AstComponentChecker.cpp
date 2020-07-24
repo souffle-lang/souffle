@@ -24,7 +24,7 @@
 #include "ast/AstRelation.h"
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstType.h"
-#include "ast/analysis/ComponentLookupAnalysis.h"
+#include "ast/analysis/ComponentLookup.h"
 #include "souffle/utility/StringUtil.h"
 #include <functional>
 #include <map>

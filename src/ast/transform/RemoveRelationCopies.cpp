@@ -23,7 +23,7 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include "ast/AstVisitor.h"
-#include "ast/analysis/AstIOTypeAnalysis.h"
+#include "ast/analysis/AstIOType.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <algorithm>
 #include <cassert>

@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstGroundAnalysis.h
+ * @file AstGround.h
  *
  * Defines a function for computing the grounded arguments in a clause
  *

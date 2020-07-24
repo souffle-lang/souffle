@@ -28,7 +28,7 @@
 #include "ast/AstQualifiedName.h"
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
-#include "ast/analysis/AstGroundAnalysis.h"
+#include "ast/analysis/AstGround.h"
 #include "ast/transform/MinimiseProgram.h"
 #include "ast/transform/RemoveRelationCopies.h"
 #include "ast/transform/ResolveAliases.h"

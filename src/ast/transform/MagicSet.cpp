@@ -24,7 +24,7 @@
 #include "ast/AstRelation.h"
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
-#include "ast/analysis/AstIOTypeAnalysis.h"
+#include "ast/analysis/AstIOType.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"

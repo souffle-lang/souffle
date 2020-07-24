@@ -14,17 +14,16 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/AstGroundAnalysis.h"
+#include "ast/analysis/AstGround.h"
 #include "Constraints.h"
-#include "PrecedenceGraph.h"
 #include "RelationTag.h"
 #include "ast/AstArgument.h"
 #include "ast/AstClause.h"
 #include "ast/AstLiteral.h"
+#include "ast/AstRelation.h"
 #include "ast/AstTranslationUnit.h"
-#include "ast/AstVisitor.h"
-#include "ast/analysis/AstConstraintAnalysis.h"
-#include "ast/analysis/AstGroundAnalysis.h"
+#include "ast/analysis/AstConstraint.h"
+#include "ast/analysis/RelationDetailCache.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/StreamUtil.h"
 #include <algorithm>

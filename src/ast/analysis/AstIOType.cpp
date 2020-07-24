@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "ast/analysis/AstIOTypeAnalysis.h"
+#include "ast/analysis/AstIOType.h"
 #include "ast/AstIO.h"
 #include "ast/AstProgram.h"
 #include "ast/AstQualifiedName.h"

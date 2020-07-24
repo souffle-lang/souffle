@@ -22,7 +22,7 @@
 #include "ast/AstNode.h"
 #include "ast/AstProgram.h"
 #include "ast/AstTranslationUnit.h"
-#include "ast/analysis/AstTypeAnalysis.h"
+#include "ast/analysis/AstType.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/transform/AstComponentChecker.h"
 #include "ast/transform/AstPragmaChecker.h"

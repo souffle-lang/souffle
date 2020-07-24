@@ -58,23 +58,35 @@ souffle_sources = \
         ast/TypeSystem.cpp                                                     \
         ast/TypeSystem.h                                                       \
         ast/analysis/AstAnalysis.h                                             \
-        ast/analysis/AstConstraintAnalysis.h                                   \
-        ast/analysis/AstGroundAnalysis.cpp                                     \
-        ast/analysis/AstGroundAnalysis.h                                       \
-        ast/analysis/AstIOTypeAnalysis.cpp                                     \
-        ast/analysis/AstIOTypeAnalysis.h                                       \
+        ast/analysis/AstConstraint.h                                           \
+        ast/analysis/AstGround.cpp                                             \
+        ast/analysis/AstGround.h                                               \
+        ast/analysis/AstIOType.cpp                                             \
+        ast/analysis/AstIOType.h                                               \
         ast/analysis/AstProfileUse.cpp                                         \
         ast/analysis/AstProfileUse.h                                           \
-        ast/analysis/AstTypeAnalysis.cpp                                       \
-        ast/analysis/AstTypeAnalysis.h                                         \
-        ast/analysis/AstTypeEnvironmentAnalysis.cpp                            \
-        ast/analysis/AstTypeEnvironmentAnalysis.h                              \
-        ast/analysis/AuxArityAnalysis.cpp                                      \
-        ast/analysis/AuxArityAnalysis.h                                        \
-        ast/analysis/ComponentLookupAnalysis.cpp                               \
-        ast/analysis/ComponentLookupAnalysis.h                                 \
+        ast/analysis/AstType.cpp                                               \
+        ast/analysis/AstType.h                                                 \
+        ast/analysis/AstTypeEnvironment.cpp                                    \
+        ast/analysis/AstTypeEnvironment.h                                      \
+        ast/analysis/AuxArity.cpp                                              \
+        ast/analysis/AuxArity.h                                                \
+        ast/analysis/ComponentLookup.cpp                                       \
+        ast/analysis/ComponentLookup.h                                         \
         ast/analysis/PrecedenceGraph.cpp                                       \
         ast/analysis/PrecedenceGraph.h                                         \
+        ast/analysis/RecursiveClauses.cpp                                      \
+        ast/analysis/RecursiveClauses.h                                        \
+        ast/analysis/RedundantRelations.cpp                                    \
+        ast/analysis/RedundantRelations.h                                      \
+        ast/analysis/RelationDetailCache.cpp                                   \
+        ast/analysis/RelationDetailCache.h                                     \
+        ast/analysis/RelationSchedule.cpp                                      \
+        ast/analysis/RelationSchedule.h                                        \
+        ast/analysis/SCCGraph.cpp                                              \
+        ast/analysis/SCCGraph.h                                                \
+        ast/analysis/TopologicallySortedSCCGraph.cpp                           \
+        ast/analysis/TopologicallySortedSCCGraph.h                             \
         ast/transform/AstComponentChecker.cpp                                  \
         ast/transform/AstComponentChecker.h                                    \
         ast/transform/AstPragmaChecker.cpp                                     \

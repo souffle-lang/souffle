@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file PrecedenceGraph.h
+ * @file RedundantRelations.h
  *
  * Defines the class to build the precedence graph,
  * compute strongly connected components of the precedence graph, and
@@ -18,37 +18,38 @@
 
 #pragma once
 
-#include "GraphUtils.h"
-#include "ast/AstRelation.h"
 #include "ast/analysis/AstAnalysis.h"
 #include <iostream>
+#include <set>
 #include <string>
 
 namespace souffle {
-
 class AstTranslationUnit;
+class PrecedenceGraphAnalysis;
+class AstRelation;
 
 /**
- * Analysis pass computing the precedence graph of the relations of the datalog progam.
+ * Analysis pass identifying relations which do not contribute to the computation
+ * of the output relations.
  */
-class PrecedenceGraphAnalysis : public AstAnalysis {
+class RedundantRelationsAnalysis : public AstAnalysis {
 public:
-    static constexpr const char* name = "precedence-graph";
+    static constexpr const char* name = "redundant-relations";
 
-    PrecedenceGraphAnalysis() : AstAnalysis(name) {}
+    RedundantRelationsAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
-    /** Output precedence graph in graphviz format to a given stream */
     void print(std::ostream& os) const override;
 
-    const Graph<const AstRelation*, AstNameComparison>& graph() const {
-        return backingGraph;
+    const std::set<const AstRelation*>& getRedundantRelations() const {
+        return redundantRelations;
     }
 
 private:
-    /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
-    Graph<const AstRelation*, AstNameComparison> backingGraph;
+    PrecedenceGraphAnalysis* precedenceGraph = nullptr;
+
+    std::set<const AstRelation*> redundantRelations;
 };
 
 }  // end of namespace souffle

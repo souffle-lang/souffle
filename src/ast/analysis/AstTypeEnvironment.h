@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstTypeEnvironmentAnalysis.h
+ * @file AstTypeEnvironment.h
  *
  * A wrapper for TypeEnvironment to be used for AST Analysis
  *
@@ -16,17 +16,14 @@
 
 #pragma once
 
-#include "GraphUtils.h"
 #include "ast/AstQualifiedName.h"
 #include "ast/TypeSystem.h"
 #include "ast/analysis/AstAnalysis.h"
-#include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <map>
 #include <ostream>
 #include <set>
 #include <string>
-#include <vector>
 
 namespace souffle {
 

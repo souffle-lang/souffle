@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstIOTypeAnalysis.h
+ * @file AstIOType.h
  *
  * Declares methods to identify a relation as input, output, or printsize.
  *

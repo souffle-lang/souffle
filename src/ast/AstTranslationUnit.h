@@ -22,7 +22,8 @@
 #include "Global.h"
 #include "ast/AstProgram.h"
 #include "ast/analysis/AstAnalysis.h"
-#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/RecursiveClauses.h"
+#include "ast/analysis/SCCGraph.h"
 #include <iosfwd>
 #include <map>
 #include <memory>

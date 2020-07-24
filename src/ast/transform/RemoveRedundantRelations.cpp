@@ -16,7 +16,7 @@
 #include "ast/AstProgram.h"
 #include "ast/AstRelation.h"
 #include "ast/AstTranslationUnit.h"
-#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/RedundantRelations.h"
 #include <set>
 
 namespace souffle {

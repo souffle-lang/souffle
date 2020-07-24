@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 
-#include "ComponentLookupAnalysis.h"
+#include "ast/analysis/ComponentLookup.h"
 #include "ast/AstComponent.h"
 #include "ast/AstProgram.h"
 #include "ast/AstTranslationUnit.h"
