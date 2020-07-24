@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <list>
 #include <map>
 #include <memory>
 #include <set>
@@ -219,7 +220,7 @@ public:
     using Chain = std::vector<SearchSignature>;
     // A chain is a vector of SearchSignature to support inserting incomparable elements later
     // E.g. 1 --> 2 we don't have 1 and 2 as comparable but they form a valid lex-order
-    using ChainOrderMap = std::vector<Chain>;
+    using ChainOrderMap = std::list<Chain>;
 
     class SearchComparator {
     public:

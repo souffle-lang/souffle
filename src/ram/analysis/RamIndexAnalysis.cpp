@@ -317,28 +317,26 @@ void MinIndexSelection::solve() {
         SearchSignature initDelta = *(chain.begin());
         insertIndex(ids, initDelta);
 
+        // build the lex-order from back to front ensuring no duplication with prev delta
         for (auto iit = chain.begin(); next(iit) != chain.end(); ++iit) {
             SearchSignature delta = SearchSignature::getDelta(*next(iit), *iit);
             insertIndex(ids, delta);
         }
 
-        // if we see duplicates in the lex-order then remove duplicates
-        bool changed = true;
-        while (changed) {
-            changed = false;
-            for (size_t i = 0; i < ids.size(); ++i) {
-                for (size_t j = i + 1; j < ids.size(); ++j) {
-                    if (ids[i] == ids[j]) {
-                        ids.erase(ids.begin() + i);
-                        changed = true;
-                        break;
-                    }
-                }
-                if (changed) {
-                    break;
-                }
+        // prune repeated deltas from right to left
+        std::reverse(ids.begin(), ids.end());
+        std::unordered_set<uint32_t> seen;
+        auto newEnd = std::remove_if(ids.begin(), ids.end(), [&seen](uint32_t value) {
+            if (seen.find(value) != std::end(seen)) {
+                return true;
+            } else {
+                seen.insert(value);
+                return false;
             }
-        }
+        });
+
+        ids.erase(newEnd, ids.end());
+        std::reverse(ids.begin(), ids.end());
 
         assert(!ids.empty());
         orders.push_back(ids);
@@ -428,13 +426,12 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 
 const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
-    
     bool changed = true;
     while (changed) {
         changed = false;
-        for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
+        for (auto lhs_it = chains.begin(); !changed && lhs_it != chains.end(); ++lhs_it) {
             const auto lhs = *lhs_it;
-            for (auto rhs_it = std::next(lhs_it); rhs_it != chains.end(); ++rhs_it) {
+            for (auto rhs_it = std::next(lhs_it); !changed && rhs_it != chains.end(); ++rhs_it) {
                 const auto rhs = *rhs_it;
 
                 // merge the two chains
@@ -565,31 +562,26 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::mergeChains(
                 changed = true;
 
                 // remove previous 2 chains
-                chains.erase(std::remove(chains.begin(), chains.end(), lhs), chains.end());
-                chains.erase(std::remove(chains.begin(), chains.end(), rhs), chains.end());
+                chains.erase(lhs_it);
+                chains.erase(rhs_it);
 
                 // insert merge chain
                 chains.push_back(mergedChain);
-                break;
-            }
-            if (changed) {
-                break;
             }
         }
     }
-     
+
     return dischargeToMergeChains(chains);
 }
 
 const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains(
         MinIndexSelection::ChainOrderMap& chains) {
-    
     bool changed = true;
     while (changed) {
         changed = false;
-        for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
+        for (auto lhs_it = chains.begin(); !changed && lhs_it != chains.end(); ++lhs_it) {
             const auto lhs = *lhs_it;
-            for (auto rhs_it = std::next(lhs_it); rhs_it != chains.end(); ++rhs_it) {
+            for (auto rhs_it = std::next(lhs_it); !changed && rhs_it != chains.end(); ++rhs_it) {
                 const auto rhs = *rhs_it;
 
                 // merge the two chains
@@ -744,19 +736,15 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::dischargeToMergeChains
                 changed = true;
 
                 // remove previous 2 chains
-                chains.erase(std::remove(chains.begin(), chains.end(), lhs), chains.end());
-                chains.erase(std::remove(chains.begin(), chains.end(), rhs), chains.end());
+                chains.erase(lhs_it);
+                chains.erase(rhs_it);
 
-                // insert merge chain
+                // insert merged chain
                 chains.push_back(mergedChain);
-                break;
-            }
-            if (changed) {
-                break;
             }
         }
     }
-        
+
     return chains;
 }
 
@@ -778,9 +766,8 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
     }
     if (Global::config().has("provenance")) {
         return attributesToDischarge;
-    } 
-    
-     
+    }
+
     auto chains = getAllChains();
     // find the chain that the operation lives inside
     for (auto chain : chains) {
@@ -802,7 +789,7 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
             break;  // we only care about the chain that the operation belongs to
         }
     }
-    
+
     return attributesToDischarge;
 }
 
@@ -899,8 +886,8 @@ void RamIndexAnalysis::print(std::ostream& os) const {
         /* print searches */
         for (auto& search : indexes.getSearches()) {
             os << "\t\t";
-            os << search;            
-	    os << "\n";
+            os << search;
+            os << "\n";
         }
 
         os << "\tNumber of Indexes: " << indexes.getAllOrders().size() << "\n";
