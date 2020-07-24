@@ -58,7 +58,8 @@ public:
     size_t arity() const;
 
     // array subscript operator
-    AttributeConstraint operator[](std::size_t pos) const;
+    AttributeConstraint& operator[](std::size_t pos);
+    const AttributeConstraint& operator[](std::size_t pos) const;
 
     // comparison operators
     bool operator<(const SearchSignature& other) const;
@@ -73,8 +74,7 @@ public:
     static SearchSignature getDelta(const SearchSignature& lhs, const SearchSignature& rhs);
     static SearchSignature getFullSearchSignature(size_t arity);
     static SearchSignature getDischarged(const SearchSignature& signature);
-    // set a constraint
-    SearchSignature& set(size_t pos, AttributeConstraint constraint);
+
     friend std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
 
     // hashing class

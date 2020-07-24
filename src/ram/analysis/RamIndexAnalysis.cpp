@@ -40,11 +40,17 @@ size_t SearchSignature::arity() const {
     return constraints.size();
 }
 
-// array subscript operator
-AttributeConstraint SearchSignature::operator[](std::size_t pos) const {
+// convenient operator overload
+AttributeConstraint& SearchSignature::operator[](std::size_t pos) {
     assert(pos < constraints.size());
     return constraints[pos];
 }
+
+const AttributeConstraint& SearchSignature::operator[](std::size_t pos) const {
+    assert(pos < constraints.size());
+    return constraints[pos];
+}
+
 
 // comparison operators
 bool SearchSignature::operator<(const SearchSignature& other) const {
@@ -148,17 +154,10 @@ SearchSignature SearchSignature::getDischarged(const SearchSignature& signature)
     SearchSignature res = signature;  // copy original
     for (size_t i = 0; i < res.arity(); ++i) {
         if (res[i] == AttributeConstraint::Inequal) {
-            res.set(i, AttributeConstraint::None);
+            res[i] = AttributeConstraint::None;
         }
     }
     return res;
-}
-
-// set a constraint
-SearchSignature& SearchSignature::set(size_t pos, AttributeConstraint constraint) {
-    assert(pos < constraints.size());
-    constraints[pos] = constraint;
-    return *this;
 }
 
 std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
@@ -349,7 +348,7 @@ void MinIndexSelection::solve() {
 
         SearchSignature k(search.arity());
         for (size_t i = 0; i < l; i++) {
-            k.set(orders[idx][i], AttributeConstraint::Equal);
+            k[orders[idx][i]] = AttributeConstraint::Equal;
         }
         for (size_t i = 0; i < search.arity(); ++i) {
             if (k[i] == AttributeConstraint::None && search[i] != AttributeConstraint::None) {
@@ -910,7 +909,7 @@ SearchSignature searchSignature(size_t arity, Iter const& bgn, Iter const& end) 
     size_t i = 0;
     for (auto cur = bgn; cur != end; ++cur, ++i) {
         if (!isRamUndefValue(*cur)) {
-            keys.set(i, AttributeConstraint::Equal);
+            keys[i] = AttributeConstraint::Equal;
         }
     }
     return keys;
@@ -931,12 +930,12 @@ SearchSignature RamIndexAnalysis::getSearchSignature(const RamIndexOperation* se
     for (size_t i = 0; i < arity; ++i) {
         // if both bounds are undefined
         if (isRamUndefValue(lower[i]) && isRamUndefValue(upper[i])) {
-            keys.set(i, AttributeConstraint::None);
+            keys[i] = AttributeConstraint::None;
             // if bounds are equal we have an equality
         } else if (*lower[i] == *upper[i]) {
-            keys.set(i, AttributeConstraint::Equal);
+            keys[i] = AttributeConstraint::Equal;
         } else {
-            keys.set(i, AttributeConstraint::Inequal);
+            keys[i] = AttributeConstraint::Inequal;
         }
     }
     return keys;
@@ -952,13 +951,13 @@ SearchSignature RamIndexAnalysis::getSearchSignature(
     // all payload attributes should be equalities
     for (size_t i = 0; i < values.size() - auxiliaryArity; i++) {
         if (!isRamUndefValue(values[i])) {
-            keys.set(i, AttributeConstraint::Equal);
+            keys[i] = AttributeConstraint::Equal;
         }
     }
 
     // all auxiliary attributes should be free
     for (size_t i = values.size() - auxiliaryArity; i < values.size(); i++) {
-        keys.set(i, AttributeConstraint::None);
+        keys[i] = AttributeConstraint::None;
     }
 
     return keys;

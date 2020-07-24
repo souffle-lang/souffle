@@ -39,7 +39,7 @@ SearchSignature setBits(size_t arity, uint64_t mask) {
     SearchSignature search(arity);
     for (size_t i = 0; i < arity; ++i) {
         if (mask % 2) {
-            search.set(i, AttributeConstraint::Equal);
+            search[i] = AttributeConstraint::Equal;
         }
         mask /= 2;
     }
@@ -89,27 +89,27 @@ TEST(Matching, TestOver64BitSignature) {
 
     size_t arity = 100;
     SearchSignature first(arity);
-    first.set(99, AttributeConstraint::Equal);
-    first.set(75, AttributeConstraint::Equal);
-    first.set(50, AttributeConstraint::Equal);
-    first.set(25, AttributeConstraint::Equal);
-    first.set(0, AttributeConstraint::Equal);
+    first[99] = AttributeConstraint::Equal;
+    first[75] = AttributeConstraint::Equal;
+    first[50] = AttributeConstraint::Equal;
+    first[25] = AttributeConstraint::Equal;
+    first[0] = AttributeConstraint::Equal;
 
     SearchSignature second(arity);
-    second.set(99, AttributeConstraint::Equal);
-    second.set(75, AttributeConstraint::Equal);
-    second.set(50, AttributeConstraint::Equal);
+    second[99] = AttributeConstraint::Equal;
+    second[75] = AttributeConstraint::Equal;
+    second[50] = AttributeConstraint::Equal;
 
     SearchSignature third(arity);
-    third.set(99, AttributeConstraint::Equal);
-    third.set(75, AttributeConstraint::Equal);
+    third[99] = AttributeConstraint::Equal;
+    third[75] = AttributeConstraint::Equal;
 
     SearchSignature fourth(arity);
-    fourth.set(99, AttributeConstraint::Equal);
+    fourth[99] = AttributeConstraint::Equal;
 
     SearchSignature fifth(arity);
-    fifth.set(25, AttributeConstraint::Equal);
-    fifth.set(0, AttributeConstraint::Equal);
+    fifth[25] = AttributeConstraint::Equal;
+    fifth[0] = AttributeConstraint::Equal;
 
     nodes.insert(first);
     nodes.insert(second);
