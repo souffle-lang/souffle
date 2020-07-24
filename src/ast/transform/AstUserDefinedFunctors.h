@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstUserDefinedFunctorsTransformer.h
+ * @file AstUserDefinedFunctors.h
  *
  * Transformation that passes the type information from user functors
  * declaration to functors instances

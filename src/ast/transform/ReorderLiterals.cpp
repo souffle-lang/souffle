@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ReorderLiteralsTransformer.cpp
+ * @file ReorderLiterals.cpp
  *
  * Define classes and functionality related to the ReorderLiterals
  * transformer.
@@ -392,7 +392,7 @@ bool ReorderLiteralsTransformer::transform(AstTranslationUnit& translationUnit) 
     // --- profile-guided reordering ---
     if (Global::config().has("profile-use")) {
         // parse supplied profile information
-        auto* profileUse = translationUnit.getAnalysis<AstProfileUse>();
+        auto* profileUse = translationUnit.getAnalysis<AstProfileUseAnalysis>();
 
         auto profilerSips = [&](std::vector<AstAtom*> atoms, const std::set<std::string>& boundVariables) {
             // Goal: reorder based on the given profiling information

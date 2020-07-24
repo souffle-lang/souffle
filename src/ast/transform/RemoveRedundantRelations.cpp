@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file RemoveRedundantRelationsTransformer.cpp
+ * @file RemoveRedundantRelations.cpp
  *
  ***********************************************************************/
 
@@ -23,7 +23,7 @@ namespace souffle {
 
 bool RemoveRedundantRelationsTransformer::transform(AstTranslationUnit& translationUnit) {
     bool changed = false;
-    auto* redundantRelationsAnalysis = translationUnit.getAnalysis<RedundantRelations>();
+    auto* redundantRelationsAnalysis = translationUnit.getAnalysis<RedundantRelationsAnalysis>();
     const std::set<const AstRelation*>& redundantRelations =
             redundantRelationsAnalysis->getRedundantRelations();
     if (!redundantRelations.empty()) {

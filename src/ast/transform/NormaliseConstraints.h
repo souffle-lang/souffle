@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file NormaliseConstraintsTransformer.h
+ * @file NormaliseConstraints.h
  *
  * Transformation pass to normalise constraints.
  * E.g.: a(x) :- b(x, 1). -> a(x) :- b(x, tmp0), tmp0=1.

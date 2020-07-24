@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MinimiseProgramTransformer.h
+ * @file MinimiseProgram.h
  *
  * Transformation pass to remove equivalent rules.
  *

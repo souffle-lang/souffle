@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file InlineRelationsTransformer.cpp
+ * @file InlineRelations.cpp
  *
  * Define classes and functionality related to inlining.
  *

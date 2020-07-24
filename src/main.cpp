@@ -540,14 +540,14 @@ int main(int argc, char** argv) {
 
         // Output the precedence graph in graphviz dot format and return
         if (Global::config().get("show") == "precedence-graph") {
-            astTranslationUnit->getAnalysis<PrecedenceGraph>()->print(std::cout);
+            astTranslationUnit->getAnalysis<PrecedenceGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }
 
         // Output the scc graph in graphviz dot format and return
         if (Global::config().get("show") == "scc-graph") {
-            astTranslationUnit->getAnalysis<SCCGraph>()->print(std::cout);
+            astTranslationUnit->getAnalysis<SCCGraphAnalysis>()->print(std::cout);
             std::cout << std::endl;
             return 0;
         }

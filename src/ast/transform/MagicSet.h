@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MagicSetTransformer.h
+ * @file MagicSet.h
  *
  * Define classes and functionality related to the magic set transformation.
  *

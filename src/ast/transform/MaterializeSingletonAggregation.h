@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MaterializeSingletonAggregationTransformer.h
+ * @file MaterializeSingletonAggregation.h
  *
  * Replaces literals containing single-valued aggregates with
  * a synthesised relation

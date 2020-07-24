@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file PartitionBodyLiteralsTransformer.h
+ * @file PartitionBodyLiterals.h
  *
  * Transformation pass to move literals into new clauses
  * if they are independent of remaining literals.

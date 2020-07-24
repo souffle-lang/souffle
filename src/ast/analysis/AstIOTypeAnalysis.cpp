@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file AstIOTypeAnalysis.h
+ * @file AstIOTypeAnalysis.cpp
  *
  * Implements methods to identify a relation as input, output, or printsize.
  *

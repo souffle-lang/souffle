@@ -19,7 +19,6 @@
 #include "FunctorOps.h"
 #include "Global.h"
 #include "RelationTag.h"
-#include "synthesiser/SynthesiserRelation.h"
 #include "ram/RamCondition.h"
 #include "ram/RamExpression.h"
 #include "ram/RamNode.h"
@@ -40,6 +39,7 @@
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include "souffle/utility/tinyformat.h"
+#include "synthesiser/SynthesiserRelation.h"
 #include <algorithm>
 #include <cassert>
 #include <cctype>

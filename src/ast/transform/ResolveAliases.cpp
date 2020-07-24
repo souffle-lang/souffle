@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ResolveAliasesTransformer.cpp
+ * @file ResolveAliases.cpp
  *
  * Define classes and functionality related to the ResolveAliases
  * transformer.

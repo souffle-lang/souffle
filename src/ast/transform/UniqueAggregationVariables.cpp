@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file UniqueAggregationVariablesTransformer.cpp
+ * @file UniqueAggregationVariables.cpp
  *
  ***********************************************************************/
 

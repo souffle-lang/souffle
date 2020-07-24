@@ -56,7 +56,7 @@ class RamTupleElement;
 class RamOperation;
 class RamTranslationUnit;
 class RamExpression;
-class RecursiveClauses;
+class RecursiveClausesAnalysis;
 class TypeEnvironment;
 
 /**
@@ -423,11 +423,11 @@ private:
      * @return a corresponding statement or null if there are no non-recursive clauses.
      */
     std::unique_ptr<RamStatement> translateNonRecursiveRelation(
-            const AstRelation& rel, const RecursiveClauses* recursiveClauses);
+            const AstRelation& rel, const RecursiveClausesAnalysis* recursiveClauses);
 
     /** translate RAM code for recursive relations in a strongly-connected component */
     std::unique_ptr<RamStatement> translateRecursiveRelation(
-            const std::set<const AstRelation*>& scc, const RecursiveClauses* recursiveClauses);
+            const std::set<const AstRelation*>& scc, const RecursiveClausesAnalysis* recursiveClauses);
 
     /** translate RAM code for subroutine to get subproofs */
     std::unique_ptr<RamStatement> makeSubproofSubroutine(const AstClause& clause);

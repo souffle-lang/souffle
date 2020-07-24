@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ComponentInstantiationTransformer.cpp
+ * @file ComponentInstantiation.cpp
  *
  * Instantiate Components
  *

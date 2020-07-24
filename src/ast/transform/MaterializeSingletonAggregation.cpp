@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MaterializeSingletonAggregationTransformer.cpp
+ * @file MaterializeSingletonAggregation.cpp
  *
  ***********************************************************************/
 

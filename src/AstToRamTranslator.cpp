@@ -98,7 +98,8 @@ size_t AstToRamTranslator::getEvaluationArity(const AstAtom* atom) const {
     }
 }
 
-std::vector<std::map<std::string, std::string>> AstToRamTranslator::getInputDirectives(const AstRelation* rel) {
+std::vector<std::map<std::string, std::string>> AstToRamTranslator::getInputDirectives(
+        const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> inputDirectives;
 
     for (const auto* load : program->getIOs()) {
@@ -120,7 +121,8 @@ std::vector<std::map<std::string, std::string>> AstToRamTranslator::getInputDire
     return inputDirectives;
 }
 
-std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDirectives(const AstRelation* rel) {
+std::vector<std::map<std::string, std::string>> AstToRamTranslator::getOutputDirectives(
+        const AstRelation* rel) {
     std::vector<std::map<std::string, std::string>> outputDirectives;
 
     for (const auto* store : program->getIOs()) {
@@ -835,7 +837,7 @@ std::unique_ptr<RamExpression> AstToRamTranslator::translateConstant(AstConstant
 
 /** generate RAM code for a non-recursive relation */
 std::unique_ptr<RamStatement> AstToRamTranslator::translateNonRecursiveRelation(
-        const AstRelation& rel, const RecursiveClauses* recursiveClauses) {
+        const AstRelation& rel, const RecursiveClausesAnalysis* recursiveClauses) {
     /* start with an empty sequence */
     std::vector<std::unique_ptr<RamStatement>> res;
 
@@ -934,7 +936,7 @@ void AstToRamTranslator::nameUnnamedVariables(AstClause* clause) {
 
 /** generate RAM code for recursive relations in a strongly-connected component */
 std::unique_ptr<RamStatement> AstToRamTranslator::translateRecursiveRelation(
-        const std::set<const AstRelation*>& scc, const RecursiveClauses* recursiveClauses) {
+        const std::set<const AstRelation*>& scc, const RecursiveClausesAnalysis* recursiveClauses) {
     // initialize sections
     std::vector<std::unique_ptr<RamStatement>> preamble;
     std::vector<std::unique_ptr<RamStatement>> updateTable;
@@ -1434,16 +1436,16 @@ void AstToRamTranslator::translateProgram(const AstTranslationUnit& translationU
     typeEnv = &translationUnit.getAnalysis<TypeEnvironmentAnalysis>()->getTypeEnvironment();
 
     // obtain recursive clauses from analysis
-    const auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClauses>();
+    const auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClausesAnalysis>();
 
     // obtain strongly connected component (SCC) graph from analysis
-    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraph>();
+    const auto& sccGraph = *translationUnit.getAnalysis<SCCGraphAnalysis>();
 
     // obtain some topological order over the nodes of the SCC graph
-    const auto& sccOrder = *translationUnit.getAnalysis<TopologicallySortedSCCGraph>();
+    const auto& sccOrder = *translationUnit.getAnalysis<TopologicallySortedSCCGraphAnalysis>();
 
     // obtain the schedule of relations expired at each index of the topological order
-    const auto& expirySchedule = translationUnit.getAnalysis<RelationSchedule>()->schedule();
+    const auto& expirySchedule = translationUnit.getAnalysis<RelationScheduleAnalysis>()->schedule();
 
     // get auxiliary arity analysis
     auxArityAnalysis = translationUnit.getAnalysis<AuxiliaryArity>();

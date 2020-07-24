@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ProvenanceTransformer.cpp
+ * @file Provenance.cpp
  *
  * Implements AstTransformer for adding provenance information via extra columns
  *

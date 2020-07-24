@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MaterializeAggregationQueriesTransformer.cpp
+ * @file MaterializeAggregationQueries.cpp
  *
  ***********************************************************************/
 

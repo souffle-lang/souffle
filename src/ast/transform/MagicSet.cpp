@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MagicSetTransformer.cpp
+ * @file MagicSet.cpp
  *
  * Define classes and functionality related to the magic set transformation.
  *

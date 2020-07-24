@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file FixpointTransformer.h
+ * @file Fixpoint.h
  *
  * Transformer that repeatedly executes a sub-transformer until no changes are made
  *

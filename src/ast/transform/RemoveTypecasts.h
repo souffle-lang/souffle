@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file RemoveTypecastsTransformer.h
+ * @file RemoveTypecasts.h
  *
  * Defines AST transformation passes.
  *

@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ReplaceSingletonVariablesTransformer.cpp
+ * @file ReplaceSingletonVariables.cpp
  *
  ***********************************************************************/
 

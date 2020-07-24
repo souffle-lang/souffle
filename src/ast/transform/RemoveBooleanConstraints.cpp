@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file RemoveBooleanConstraintsTransformer.cpp
+ * @file RemoveBooleanConstraints.cpp
  *
  ***********************************************************************/
 

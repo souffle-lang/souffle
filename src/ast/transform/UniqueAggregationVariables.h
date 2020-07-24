@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file UniqueAggregationVariablesTransformer.h
+ * @file UniqueAggregationVariables.h
  *
  ***********************************************************************/
 

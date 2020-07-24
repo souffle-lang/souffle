@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ConditionalTransformer.h
+ * @file Conditional.h
  *
  * Transformer that executes a sub-transformer iff a condition holds
  *

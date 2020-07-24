@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file InlineRelationsTransformer.h
+ * @file InlineRelations.h
  *
  * Transformation pass to inline marked relations
  *

@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file PipelineTransformer.h
+ * @file Pipeline.h
  *
  * Transformer that holds an arbitrary number of sub-transformations
  *

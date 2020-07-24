@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file NameUnnamedVariablesTransformer.h
+ * @file NameUnnamedVariables.h
  *
  * Transformation pass to replace unnamed variables
  * with singletons.

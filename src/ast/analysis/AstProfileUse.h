@@ -31,12 +31,12 @@ class AstTranslationUnit;
 /**
  * AstAnalysis that loads profile data and has a profile query interface.
  */
-class AstProfileUse : public AstAnalysis {
+class AstProfileUseAnalysis : public AstAnalysis {
 public:
     /** Name of analysis */
     static constexpr const char* name = "profile-use";
 
-    AstProfileUse()
+    AstProfileUseAnalysis()
             : AstAnalysis(name), programRun(std::make_shared<profile::ProgramRun>(profile::ProgramRun())) {}
 
     /** Run analysis */

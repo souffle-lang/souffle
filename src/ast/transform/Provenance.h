@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ProvenanceTransformer.h
+ * @file Provenance.h
  *
  * Transformation pass to add provenance information
  *

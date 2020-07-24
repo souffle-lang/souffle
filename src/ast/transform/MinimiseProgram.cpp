@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MinimiseProgramTransformer.cpp
+ * @file MinimiseProgram.cpp
  *
  * Define classes and functionality related to program minimisation.
  *

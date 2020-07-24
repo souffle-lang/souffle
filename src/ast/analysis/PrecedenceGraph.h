@@ -43,11 +43,11 @@ class AstTranslationUnit;
 /**
  * Analysis pass computing the precedence graph of the relations of the datalog progam.
  */
-class PrecedenceGraph : public AstAnalysis {
+class PrecedenceGraphAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "precedence-graph";
 
-    PrecedenceGraph() : AstAnalysis(name) {}
+    PrecedenceGraphAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
@@ -67,11 +67,11 @@ private:
  * Analysis pass identifying relations which do not contribute to the computation
  * of the output relations.
  */
-class RedundantRelations : public AstAnalysis {
+class RedundantRelationsAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "redundant-relations";
 
-    RedundantRelations() : AstAnalysis(name) {}
+    RedundantRelationsAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
@@ -82,7 +82,7 @@ public:
     }
 
 private:
-    PrecedenceGraph* precedenceGraph = nullptr;
+    PrecedenceGraphAnalysis* precedenceGraph = nullptr;
 
     std::set<const AstRelation*> redundantRelations;
 };
@@ -90,11 +90,11 @@ private:
 /**
  * Analysis pass identifying clauses which are recursive.
  */
-class RecursiveClauses : public AstAnalysis {
+class RecursiveClausesAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "recursive-clauses";
 
-    RecursiveClauses() : AstAnalysis(name) {}
+    RecursiveClausesAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
@@ -114,11 +114,11 @@ private:
 /**
  * Analysis pass mapping identifiers with relations and clauses.
  */
-class RelationDetailCache : public AstAnalysis {
+class RelationDetailCacheAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "relation-detail";
 
-    RelationDetailCache() : AstAnalysis(name) {}
+    RelationDetailCacheAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
@@ -151,11 +151,11 @@ private:
 /**
  * Analysis pass computing the strongly connected component (SCC) graph for the datalog program.
  */
-class SCCGraph : public AstAnalysis {
+class SCCGraphAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "scc-graph";
 
-    SCCGraph() : AstAnalysis(name) {}
+    SCCGraphAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
@@ -317,7 +317,7 @@ public:
     void print(std::ostream& os) const override;
 
 private:
-    PrecedenceGraph* precedenceGraph = nullptr;
+    PrecedenceGraphAnalysis* precedenceGraph = nullptr;
 
     /** Map from node number to SCC number */
     std::map<const AstRelation*, size_t> relationToScc;
@@ -341,11 +341,11 @@ private:
 /**
  * Analysis pass computing a topologically sorted strongly connected component (SCC) graph.
  */
-class TopologicallySortedSCCGraph : public AstAnalysis {
+class TopologicallySortedSCCGraphAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "topological-scc-graph";
 
-    TopologicallySortedSCCGraph() : AstAnalysis(name) {}
+    TopologicallySortedSCCGraphAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
@@ -376,7 +376,7 @@ public:
 
 private:
     /** The strongly connected component (SCC) graph. */
-    SCCGraph* sccGraph = nullptr;
+    SCCGraphAnalysis* sccGraph = nullptr;
 
     /** The final topological ordering of the SCCs. */
     std::vector<size_t> sccOrder;
@@ -393,9 +393,9 @@ private:
  * A single step in a relation schedule, consisting of the relations computed in the step
  * and the relations that are no longer required at that step.
  */
-class RelationScheduleStep {
+class RelationScheduleAnalysisStep {
 public:
-    RelationScheduleStep(std::set<const AstRelation*> computedRelations,
+    RelationScheduleAnalysisStep(std::set<const AstRelation*> computedRelations,
             std::set<const AstRelation*> expiredRelations, const bool isRecursive)
             : computedRelations(std::move(computedRelations)), expiredRelations(std::move(expiredRelations)),
               isRecursive(isRecursive) {}
@@ -415,7 +415,7 @@ public:
     void print(std::ostream& os) const;
 
     /** Add support for printing nodes */
-    friend std::ostream& operator<<(std::ostream& out, const RelationScheduleStep& other) {
+    friend std::ostream& operator<<(std::ostream& out, const RelationScheduleAnalysisStep& other) {
         other.print(out);
         return out;
     }
@@ -429,15 +429,15 @@ private:
 /**
  * Analysis pass computing a schedule for computing relations.
  */
-class RelationSchedule : public AstAnalysis {
+class RelationScheduleAnalysis : public AstAnalysis {
 public:
     static constexpr const char* name = "relation-schedule";
 
-    RelationSchedule() : AstAnalysis(name) {}
+    RelationScheduleAnalysis() : AstAnalysis(name) {}
 
     void run(const AstTranslationUnit& translationUnit) override;
 
-    const std::vector<RelationScheduleStep>& schedule() const {
+    const std::vector<RelationScheduleAnalysisStep>& schedule() const {
         return relationSchedule;
     }
 
@@ -445,11 +445,11 @@ public:
     void print(std::ostream& os) const override;
 
 private:
-    TopologicallySortedSCCGraph* topsortSCCGraph = nullptr;
-    PrecedenceGraph* precedenceGraph = nullptr;
+    TopologicallySortedSCCGraphAnalysis* topsortSCCGraphAnalysis = nullptr;
+    PrecedenceGraphAnalysis* precedenceGraph = nullptr;
 
     /** Relations computed and expired relations at each step */
-    std::vector<RelationScheduleStep> relationSchedule;
+    std::vector<RelationScheduleAnalysisStep> relationSchedule;
 
     std::vector<std::set<const AstRelation*>> computeRelationExpirySchedule(
             const AstTranslationUnit& translationUnit);

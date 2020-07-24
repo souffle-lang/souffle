@@ -153,10 +153,10 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 
 std::map<const AstArgument*, bool> getGroundedTerms(const AstTranslationUnit& tu, const AstClause& clause) {
     struct Analysis : public AstConstraintAnalysis<BoolDisjunctVar> {
-        const RelationDetailCache& relCache;
+        const RelationDetailCacheAnalysis& relCache;
         std::set<const AstAtom*> ignore;
 
-        Analysis(const AstTranslationUnit& tu) : relCache(*tu.getAnalysis<RelationDetailCache>()) {}
+        Analysis(const AstTranslationUnit& tu) : relCache(*tu.getAnalysis<RelationDetailCacheAnalysis>()) {}
 
         // atoms are producing grounded variables
         void visitAtom(const AstAtom& cur) override {

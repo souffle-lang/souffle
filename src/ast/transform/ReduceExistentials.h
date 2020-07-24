@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ReduceExistentialsTransformer.h
+ * @file ReduceExistentials.h
  *
  * Transformation pass to reduce unnecessary computation for
  * relations that only appear in the form A(_,...,_).

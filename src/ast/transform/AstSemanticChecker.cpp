@@ -71,10 +71,10 @@ struct AstSemanticCheckerImpl {
 
 private:
     const IOType& ioTypes = *tu.getAnalysis<IOType>();
-    const PrecedenceGraph& precedenceGraph = *tu.getAnalysis<PrecedenceGraph>();
-    const RecursiveClauses& recursiveClauses = *tu.getAnalysis<RecursiveClauses>();
+    const PrecedenceGraphAnalysis& precedenceGraph = *tu.getAnalysis<PrecedenceGraphAnalysis>();
+    const RecursiveClausesAnalysis& recursiveClauses = *tu.getAnalysis<RecursiveClausesAnalysis>();
     const TypeEnvironmentAnalysis& typeEnvAnalysis = *tu.getAnalysis<TypeEnvironmentAnalysis>();
-    const SCCGraph& sccGraph = *tu.getAnalysis<SCCGraph>();
+    const SCCGraphAnalysis& sccGraph = *tu.getAnalysis<SCCGraphAnalysis>();
 
     const TypeEnvironment& typeEnv = typeEnvAnalysis.getTypeEnvironment();
     const AstProgram& program = *tu.getProgram();
@@ -879,7 +879,7 @@ void AstSemanticCheckerImpl::checkWitnessProblem() {
  * Find a cycle consisting entirely of inlined relations.
  * If no cycle exists, then an empty vector is returned.
  */
-std::vector<AstQualifiedName> findInlineCycle(const PrecedenceGraph& precedenceGraph,
+std::vector<AstQualifiedName> findInlineCycle(const PrecedenceGraphAnalysis& precedenceGraph,
         std::map<const AstRelation*, const AstRelation*>& origins, const AstRelation* current,
         AstRelationSet& unvisited, AstRelationSet& visiting, AstRelationSet& visited) {
     std::vector<AstQualifiedName> result;
@@ -1186,10 +1186,10 @@ void AstSemanticCheckerImpl::checkNamespaces() {
 }
 
 bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
-    auto* relationSchedule = translationUnit.getAnalysis<RelationSchedule>();
-    auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClauses>();
+    auto* relationSchedule = translationUnit.getAnalysis<RelationScheduleAnalysis>();
+    auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClausesAnalysis>();
 
-    for (const RelationScheduleStep& step : relationSchedule->schedule()) {
+    for (const RelationScheduleAnalysisStep& step : relationSchedule->schedule()) {
         const std::set<const AstRelation*>& scc = step.computed();
         for (const AstRelation* rel : scc) {
             for (const AstClause* clause : getClauses(*translationUnit.getProgram(), *rel)) {

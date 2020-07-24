@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file PolymorphicObjectsTransformer.h
+ * @file PolymorphicObjects.h
  *
  * Transformation pass to determine instances of polymorphic object
  * objects = Functors (plus, minus...) ∪ binary constraints (>, ≥ ...) ∪ aggregation ∪ numeric constants

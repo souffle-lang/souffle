@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file IOAttributesTransformer.h
+ * @file IOAttributes.h
  *
  * Defines AST transformation to set attribute names and types in IO
  * operations.

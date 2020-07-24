@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file MaterializeAggregationQueriesTransformer.h
+ * @file MaterializeAggregationQueries.h
  *
  * Transformation pass to create artificial relations for bodies of
  * aggregation functions consisting of more than a single atom.
