@@ -1945,7 +1945,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             out << "auto existenceCheck = " << relName << "->"
                 << "lowerUpperRange";
             out << "_" << isa->getSearchSignature(&provExists);
-            out << "(Tuple<RamDomain," << arity << ">{{";
 
             // parts refers to payload + rule number
             size_t parts = arity - auxiliaryArity + 1;
@@ -1960,25 +1959,65 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         "ProvenanceExistenceCheck should always be specified for payload");
             }
 
-            out << join(vals.begin(), vals.begin() + parts, ",", recWithDefault);
+            std::stringstream low;
+            std::stringstream high;
+
+            low << "Tuple<RamDomain," << arity << ">{{";
+            high << "Tuple<RamDomain," << arity << ">{{";
+
+            for (size_t column = 0; column < parts; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                        break;
+                    case 'u':
+                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
+                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
+                        break;
+                    case 'f':
+                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
+                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
+                        break;
+                    default:
+                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                }
+
+                // if we have an inequality where either side is not set
+                if (column != 0) {
+                    low << ", ";
+                    high << ", ";
+                }
+
+                if (isRamUndefValue(vals[column])) {
+                    low << supremum;
+                    high << infimum;
+                } else {
+                    low << "ramBitCast(";
+                    visit(vals[column], low);
+                    low << ")";
+                    high << "ramBitCast(";
+                    visit(vals[column], high);
+                    high << ")";
+                }
+            }
 
             // extra 0 for provenance height annotations
             for (size_t i = 0; i < auxiliaryArity - 2; i++) {
-                out << "0,";
+                low << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+                high << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
             }
-            out << "0";
+            low << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+            high << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
 
-            // repeat original pattern for the upper bound
-            out << "}},Tuple<RamDomain," << arity << ">{{";
-            out << join(vals.begin(), vals.begin() + parts, ",", recWithDefault);
+            low << "}}";
+            high << "}}";
 
-            // extra 0 for provenance height annotations
-            for (size_t i = 0; i < auxiliaryArity - 2; i++) {
-                out << "0,";
-            }
-            out << "0";
-
-            out << "}}," << ctxName << ");\n";
+            out << "(" << low.str() << "," << high.str() << "," << ctxName << ");\n";
             out << "if (existenceCheck.empty()) return false; else return ((*existenceCheck.begin())["
                 << arity - auxiliaryArity + 1 << "] <= ";
 

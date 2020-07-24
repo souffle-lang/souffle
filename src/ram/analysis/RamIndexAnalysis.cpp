@@ -163,7 +163,7 @@ SearchSignature& SearchSignature::set(size_t pos, AttributeConstraint constraint
 
 std::ostream& operator<<(std::ostream& out, const SearchSignature& signature) {
     size_t len = signature.constraints.size();
-    for (size_t i = len-1; i >= 0; --i) {
+    for (size_t i = 0; i < len; ++i) {
         switch (signature.constraints[i]) {
             case AttributeConstraint::None: out << 0; break;
             case AttributeConstraint::Equal: out << 1; break;
@@ -892,20 +892,15 @@ void RamIndexAnalysis::print(std::ostream& os) const {
 
         /* Print searches */
         os << "Relation " << relName << "\n";
-        os << "\tNumber of Primitive Searches: " << indexes.getSearches().size() << "\n";
+        os << "\tNumber of Searches: " << indexes.getSearches().size() << "\n";
 
         const auto& attrib = rel.getAttributeNames();
-        size_t arity = rel.getArity();
 
         /* print searches */
-        for (auto& cols : indexes.getSearches()) {
+        for (auto& search : indexes.getSearches()) {
             os << "\t\t";
-            for (size_t i = 0; i < arity; i++) {
-                if (cols[i] != AttributeConstraint::None) {
-                    os << attrib[i] << " ";
-                }
-            }
-            os << "\n";
+            os << search;            
+	    os << "\n";
         }
 
         os << "\tNumber of Indexes: " << indexes.getAllOrders().size() << "\n";
