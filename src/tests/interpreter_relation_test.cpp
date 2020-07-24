@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file interpreter_relation_test.h
+ * @file interpreter_relation_test.cpp
  *
  * Tests InterpreterRelInterface
  *

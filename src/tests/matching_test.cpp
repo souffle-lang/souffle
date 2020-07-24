@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file matching_test.h
+ * @file matching_test.cpp
  *
  * Test cases for the computation of optimal indices.
  *

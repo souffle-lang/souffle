@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file InterpreterPreamble
+ * @file InterpreterPreamble.h
  *
  * Declares the InterpreterPreamble class.
  * Each Query operation has an InterpreterPreamble assoicated with it.

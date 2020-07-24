@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file ram_arithmetic_test.cpp
+ * @file ram_relation_test.cpp
  *
  * Tests arithmetic evaluation by the Interpreter.
  *

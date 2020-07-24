@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file symbol_table_test.h
+ * @file symbol_table_test.cpp
  *
  * Tests souffle's symbol table.
  *

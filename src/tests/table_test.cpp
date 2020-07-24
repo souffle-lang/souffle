@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file table_test.h
+ * @file table_test.cpp
  *
  * Test cases for the Table data structure.
  *

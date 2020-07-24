@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file IndexAnalysis.cpp
+ * @file RamIndexAnalysis.cpp
  *
  * Computes indexes for relations in a translation unit
  *
