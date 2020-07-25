@@ -51,7 +51,6 @@ const AttributeConstraint& SearchSignature::operator[](std::size_t pos) const {
     return constraints[pos];
 }
 
-
 // comparison operators
 bool SearchSignature::operator<(const SearchSignature& other) const {
     assert(constraints.size() == other.constraints.size());
@@ -313,12 +312,19 @@ void MinIndexSelection::solve() {
     assert(!chains.empty());
     for (const auto& chain : chains) {
         std::vector<uint32_t> ids;
+
         SearchSignature initDelta = *(chain.begin());
         insertIndex(ids, initDelta);
 
-        // build the lex-order from back to front ensuring no duplication with prev delta
+        // build the lex-order
         for (auto iit = chain.begin(); next(iit) != chain.end(); ++iit) {
-            SearchSignature delta = SearchSignature::getDelta(*next(iit), *iit);
+            bool end = (next(next(iit)) == chain.end());
+            // discharge everything but end of chain
+            SearchSignature delta =
+                    end ? SearchSignature::getDelta(*next(iit), SearchSignature::getDischarged(*iit))
+                        : SearchSignature::getDelta(SearchSignature::getDischarged(*next(iit)),
+                                  SearchSignature::getDischarged(*iit));
+
             insertIndex(ids, delta);
         }
 
@@ -338,6 +344,7 @@ void MinIndexSelection::solve() {
         std::reverse(ids.begin(), ids.end());
 
         assert(!ids.empty());
+
         orders.push_back(ids);
     }
 
