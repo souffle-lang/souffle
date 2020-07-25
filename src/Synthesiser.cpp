@@ -196,6 +196,68 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             };
         }
 
+        std::pair<std::stringstream, std::stringstream> getPaddedRangeBounds(const RamRelation& rel,
+                const std::vector<RamExpression*>& rangePatternLower,
+                const std::vector<RamExpression*>& rangePatternUpper) {
+            std::stringstream low;
+            std::stringstream high;
+
+            size_t realArity = rel.getArity();  // making this distinction for provenance
+            size_t arity = rangePatternLower.size();
+
+            low << "Tuple<RamDomain," << realArity << ">{{";
+            high << "Tuple<RamDomain," << realArity << ">{{";
+
+            for (size_t column = 0; column < arity; column++) {
+                std::string supremum;
+                std::string infimum;
+
+                switch (rel.getAttributeTypes()[column][0]) {
+                    case 'i':
+                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                        break;
+                    case 'u':
+                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
+                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
+                        break;
+                    case 'f':
+                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
+                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
+                        break;
+                    default:
+                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                }
+
+                // if we have an inequality where either side is not set
+                if (column != 0) {
+                    low << ", ";
+                    high << ", ";
+                }
+
+                if (isRamUndefValue(rangePatternLower[column])) {
+                    low << supremum;
+                } else {
+                    low << "ramBitCast(";
+                    visit(rangePatternLower[column], low);
+                    low << ")";
+                }
+
+                if (isRamUndefValue(rangePatternUpper[column])) {
+                    high << infimum;
+                } else {
+                    high << "ramBitCast(";
+                    visit(rangePatternUpper[column], high);
+                    high << ")";
+                }
+            }
+
+            low << "}}";
+            high << "}}";
+            return std::make_pair(std::move(low), std::move(high));
+        }
+
         // -- relation statements --
 
         void visitIO(const RamIO& io, std::ostream& out) override {
@@ -642,50 +704,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             assert(arity > 0 && "AstTranslator failed/no index scans for nullaries");
 
             PRINT_BEGIN_COMMENT(out);
-
-            out << "Tuple<RamDomain," << arity << "> lower{{";
-            out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            out << "Tuple<RamDomain," << arity << "> upper{{";
-            out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            for (size_t column = 0; column < arity; column++) {
-                std::string supremum;
-                std::string infimum;
-
-                switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                        break;
-                    case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                        break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-                    default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                }
-
-                // if we have an inequality where either side is not set
-                if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = " << supremum << ";\n";
-                }
-                if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = " << infimum << ";\n";
-                }
-            }
-
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
+            auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
 
             out << "auto range = " << relName << "->"
-                << "lowerUpperRange_" << keys << "(lower, upper," << ctxName << ");\n";
+                << "lowerUpperRange_" << keys << "(" << rangeBounds.first.str() << ","
+                << rangeBounds.second.str() << "," << ctxName << ");\n";
             out << "for(const auto& env" << identifier << " : range) {\n";
 
             visitTupleOperation(iscan, out);
@@ -711,50 +735,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             preambleIssued = true;
 
             PRINT_BEGIN_COMMENT(out);
-
-            out << "Tuple<RamDomain," << arity << "> lower{{";
-            out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            out << "Tuple<RamDomain," << arity << "> upper{{";
-            out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            for (size_t column = 0; column < arity; column++) {
-                std::string supremum;
-                std::string infimum;
-
-                switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                        break;
-                    case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                        break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-                    default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                }
-
-                // if we have an inequality where either side is not set
-                if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = " << supremum << ";\n";
-                }
-                if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = " << infimum << ";\n";
-                }
-            }
-
+            auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
             out << "auto range = " << relName
                 << "->"
                 // TODO (b-scholz): context may be missing here?
-                << "lowerUpperRange_" << keys << "(lower,upper);\n";
+                << "lowerUpperRange_" << keys << "(" << rangeBounds.first.str() << ","
+                << rangeBounds.second.str() << ");\n";
             out << "auto part = range.partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
@@ -783,50 +769,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
 
             // check list of keys
             assert(arity > 0 && "AstTranslator failed");
-
-            out << "Tuple<RamDomain," << arity << "> lower{{";
-            out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            out << "Tuple<RamDomain," << arity << "> upper{{";
-            out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            for (size_t column = 0; column < arity; column++) {
-                std::string supremum;
-                std::string infimum;
-
-                switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                        break;
-                    case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                        break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-                    default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                }
-
-                // if we have an inequality where either side is not set
-                if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = " << supremum << ";\n";
-                }
-                if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = " << infimum << ";\n";
-                }
-            }
-
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(rel) + ")";
+            auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
 
             out << "auto range = " << relName << "->"
-                << "lowerUpperRange_" << keys << "(lower,upper," << ctxName << ");\n";
+                << "lowerUpperRange_" << keys << "(" << rangeBounds.first.str() << ","
+                << rangeBounds.second.str() << "," << ctxName << ");\n";
             out << "for(const auto& env" << identifier << " : range) {\n";
             out << "if( ";
 
@@ -860,50 +808,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
             preambleIssued = true;
 
             PRINT_BEGIN_COMMENT(out);
-
-            out << "Tuple<RamDomain," << arity << "> lower{{";
-            out << join(rangePatternLower.begin(), rangePatternLower.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            out << "Tuple<RamDomain," << arity << "> upper{{";
-            out << join(rangePatternUpper.begin(), rangePatternUpper.begin() + arity, ",", recWithDefault);
-            out << "}};\n";
-
-            for (size_t column = 0; column < arity; column++) {
-                std::string supremum;
-                std::string infimum;
-
-                switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                        break;
-                    case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                        break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-                    default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                }
-
-                // if we have an inequality where either side is not set
-                if (isRamUndefValue(rangePatternLower[column])) {
-                    out << "lower[" << column << "] = " << supremum << ";\n";
-                }
-                if (isRamUndefValue(rangePatternUpper[column])) {
-                    out << "upper[" << column << "] = " << infimum << ";\n";
-                }
-            }
-
+            auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
             out << "auto range = " << relName
                 << "->"
                 // TODO (b-scholz): context may be missing here?
-                << "lowerUpperRange_" << keys << "(lower, upper);\n";
+                << "lowerUpperRange_" << keys << "(" << rangeBounds.first.str() << ","
+                << rangeBounds.second.str() << ");\n";
             out << "auto part = range.partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
@@ -1067,50 +977,13 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 out << "for(const auto& env" << identifier << " : "
                     << "*" << relName << ") {\n";
             } else {
-                const auto& patternsLower = aggregate.getRangePattern().first;
-                const auto& patternsUpper = aggregate.getRangePattern().second;
+                const auto& rangePatternLower = aggregate.getRangePattern().first;
+                const auto& rangePatternUpper = aggregate.getRangePattern().second;
 
-                out << tuple_type << " lower{{";
-                out << join(patternsLower.begin(), patternsLower.begin() + arity, ",", recWithDefault);
-                out << "}};\n";
-
-                out << tuple_type << " upper{{";
-                out << join(patternsUpper.begin(), patternsUpper.begin() + arity, ",", recWithDefault);
-                out << "}};\n";
-
-                for (size_t column = 0; column < arity; column++) {
-                    std::string supremum;
-                    std::string infimum;
-
-                    switch (rel.getAttributeTypes()[column][0]) {
-                        case 'i':
-                            supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                            infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                            break;
-                        case 'u':
-                            supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                            infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                            break;
-                        case 'f':
-                            supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                            infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                            break;
-                        default:
-                            supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                            infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                    }
-
-                    // if we have an inequality where either side is not set
-                    if (isRamUndefValue(patternsLower[column])) {
-                        out << "lower[" << column << "] = " << supremum << ";\n";
-                    }
-                    if (isRamUndefValue(patternsUpper[column])) {
-                        out << "upper[" << column << "] = " << infimum << ";\n";
-                    }
-                }
-
+                auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
                 out << "auto range = " << relName << "->"
-                    << "lowerUpperRange_" << keys << "(lower,upper," << ctxName << ");\n";
+                    << "lowerUpperRange_" << keys << "(" << rangeBounds.first.str() << ","
+                    << rangeBounds.second.str() << "," << ctxName << ");\n";
 
                 out << "auto part = range.partition();\n";
                 out << "#pragma omp for reduction(" << op << ":" << sharedVariable << ")\n";
@@ -1266,50 +1139,14 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 out << "for(const auto& env" << identifier << " : "
                     << "*" << relName << ") {\n";
             } else {
-                const auto& patternsLower = aggregate.getRangePattern().first;
-                const auto& patternsUpper = aggregate.getRangePattern().second;
+                const auto& rangePatternLower = aggregate.getRangePattern().first;
+                const auto& rangePatternUpper = aggregate.getRangePattern().second;
 
-                out << tuple_type << " lower{{";
-                out << join(patternsLower.begin(), patternsLower.begin() + arity, ",", recWithDefault);
-                out << "}};\n";
-
-                out << tuple_type << " upper{{";
-                out << join(patternsUpper.begin(), patternsUpper.begin() + arity, ",", recWithDefault);
-                out << "}};\n";
-
-                for (size_t column = 0; column < arity; column++) {
-                    std::string supremum;
-                    std::string infimum;
-
-                    switch (rel.getAttributeTypes()[column][0]) {
-                        case 'i':
-                            supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                            infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                            break;
-                        case 'u':
-                            supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                            infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                            break;
-                        case 'f':
-                            supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                            infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                            break;
-                        default:
-                            supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                            infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                    }
-
-                    // if we have an inequality where either side is not set
-                    if (isRamUndefValue(patternsLower[column])) {
-                        out << "lower[" << column << "] = " << supremum << ";\n";
-                    }
-                    if (isRamUndefValue(patternsUpper[column])) {
-                        out << "upper[" << column << "] = " << infimum << ";\n";
-                    }
-                }
+                auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
 
                 out << "auto range = " << relName << "->"
-                    << "lowerUpperRange_" << keys << "(lower,upper," << ctxName << ");\n";
+                    << "lowerUpperRange_" << keys << "(" << rangeBounds.first.str() << ","
+                    << rangeBounds.second.str() << "," << ctxName << ");\n";
 
                 // aggregate result
                 out << "for(const auto& env" << identifier << " : range) {\n";
@@ -1865,68 +1702,16 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 return;
             }
 
-            std::stringstream low;
-            std::stringstream high;
-
-            low << "Tuple<RamDomain," << arity << ">{{";
-            high << "Tuple<RamDomain," << arity << ">{{";
-
             auto rangePatternLower = exists.getValues();
             auto rangePatternUpper = exists.getValues();
 
-            for (size_t column = 0; column < arity; column++) {
-                std::string supremum;
-                std::string infimum;
-
-                switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                        break;
-                    case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                        break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-                    default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                }
-
-                // if we have an inequality where either side is not set
-                if (column != 0) {
-                    low << ", ";
-                    high << ", ";
-                }
-
-                if (isRamUndefValue(rangePatternLower[column])) {
-                    low << supremum;
-                } else {
-                    low << "ramBitCast(";
-                    visit(rangePatternLower[column], low);
-                    low << ")";
-                }
-
-                if (isRamUndefValue(rangePatternUpper[column])) {
-                    high << infimum;
-                } else {
-                    high << "ramBitCast(";
-                    visit(rangePatternUpper[column], high);
-                    high << ")";
-                }
-            }
-
-            low << "}}";
-            high << "}}";
-
+            auto rangeBounds = getPaddedRangeBounds(rel, rangePatternLower, rangePatternUpper);
             // else we conduct a range query
             out << "!" << relName << "->"
                 << "lowerUpperRange";
             out << "_" << isa->getSearchSignature(&exists);
-            out << "(" << low.str() << "," << high.str() << "," << ctxName << ").empty()" << after;
+            out << "(" << rangeBounds.first.str() << "," << rangeBounds.second.str() << "," << ctxName
+                << ").empty()" << after;
             PRINT_END_COMMENT(out);
         }
 
@@ -1959,65 +1744,23 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                         "ProvenanceExistenceCheck should always be specified for payload");
             }
 
-            std::stringstream low;
-            std::stringstream high;
+            auto valsCopy = std::vector<RamExpression*>(vals.begin(), vals.begin() + parts);
+            auto rangeBounds = getPaddedRangeBounds(rel, valsCopy, valsCopy);
 
-            low << "Tuple<RamDomain," << arity << ">{{";
-            high << "Tuple<RamDomain," << arity << ">{{";
+            // remove the ending }} from both strings
+            rangeBounds.first.seekp(-2, std::ios_base::end);
+            rangeBounds.second.seekp(-2, std::ios_base::end);
 
-            for (size_t column = 0; column < parts; column++) {
-                std::string supremum;
-                std::string infimum;
-
-                switch (rel.getAttributeTypes()[column][0]) {
-                    case 'i':
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                        break;
-                    case 'u':
-                        supremum = "ramBitCast<RamDomain, RamUnsigned>(MIN_RAM_UNSIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamUnsigned>(MAX_RAM_UNSIGNED)";
-                        break;
-                    case 'f':
-                        supremum = "ramBitCast<RamDomain, RamFloat>(MIN_RAM_FLOAT)";
-                        infimum = "ramBitCast<RamDomain, RamFloat>(MAX_RAM_FLOAT)";
-                        break;
-                    default:
-                        supremum = "ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                        infimum = "ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
-                }
-
-                // if we have an inequality where either side is not set
-                if (column != 0) {
-                    low << ", ";
-                    high << ", ";
-                }
-
-                if (isRamUndefValue(vals[column])) {
-                    low << supremum;
-                    high << infimum;
-                } else {
-                    low << "ramBitCast(";
-                    visit(vals[column], low);
-                    low << ")";
-                    high << "ramBitCast(";
-                    visit(vals[column], high);
-                    high << ")";
-                }
-            }
-
-            // extra 0 for provenance height annotations
+            // extra bounds for provenance height annotations
             for (size_t i = 0; i < auxiliaryArity - 2; i++) {
-                low << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-                high << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+                rangeBounds.first << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+                rangeBounds.second << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
             }
-            low << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
-            high << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+            rangeBounds.first << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)}}";
+            rangeBounds.second << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)}}";
 
-            low << "}}";
-            high << "}}";
-
-            out << "(" << low.str() << "," << high.str() << "," << ctxName << ");\n";
+            out << "(" << rangeBounds.first.str() << "," << rangeBounds.second.str() << "," << ctxName
+                << ");\n";
             out << "if (existenceCheck.empty()) return false; else return ((*existenceCheck.begin())["
                 << arity - auxiliaryArity + 1 << "] <= ";
 

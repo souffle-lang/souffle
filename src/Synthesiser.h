@@ -17,6 +17,7 @@
 #pragma once
 
 #include "RecordTable.h"
+#include "ram/RamExpression.h"
 #include <cstddef>
 #include <map>
 #include <memory>
