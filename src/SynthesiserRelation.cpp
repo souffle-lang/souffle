@@ -49,46 +49,6 @@ std::unique_ptr<SynthesiserRelation> SynthesiserRelation::getSynthesiserRelation
     }
 
     assert(rel != nullptr && "relation type not specified");
-    /*
-    auto chains = indexSet.getAllChains();
-
-    size_t inequalities = 0;
-    for (const auto& chain : chains) {
-        auto end = *chain.rbegin();
-        bool hasIndexedInequality = false;
-        for (size_t i = 0; i < end.arity(); ++i) {
-            if (end[i] == AttributeConstraint::Inequal) {
-                hasIndexedInequality = true;
-            }
-        }
-        if (hasIndexedInequality) {
-            ++inequalities;
-        }
-    }
-
-    std::cout << "Relation: " << ramRel.getName() << "\t";
-    std::cout << "Indexes: " << chains.size() << "\t";
-    std::cout << "Inequalities: " << inequalities << "\t";
-    std::cout << "Chains: ";
-    bool isFirst = true;
-    for (const auto& chain : chains) {
-        if (isFirst) {
-            std::cout << "|";
-            isFirst = false;
-        }
-        bool first = true;
-        for (auto search : chain) {
-            if (first) {
-                first = false;
-            } else {
-                std::cout << "-->";
-            }
-            std::cout << search;
-        }
-        std::cout << "|";
-    }
-    std::cout << "\n";
-    */
     // generate index set
     rel->computeIndices();
 
