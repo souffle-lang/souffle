@@ -1,6 +1,9 @@
-Error: Atoms argument type is not a subtype of its declared type in file type_as2.dl at line 22
+Error: Atom's argument type is not a subtype of its declared type in file type_as2.dl at line 22
 B(as(x, symbol)) :- A(x).
 --^-----------------------
+The argument's declared type is symbol1 in file type_as2.dl at line 21
+.decl B(x: symbol1)
+-----------^--------
 Error: Unable to deduce type of the argument (cast) in file type_as2.dl at line 23
 B(as(x, float)) :- A(x).
 --^----------------------

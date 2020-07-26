@@ -1,4 +1,7 @@
-Error: Atoms argument type is not a subtype of its declared type in file type_system14.dl at line 24
+Error: Atom's argument type is not a subtype of its declared type in file type_system14.dl at line 24
 RG(val) :- RD(val), RE(cat("",val)).
 ---^---------------------------------
+The argument's declared type is B in file type_system14.dl at line 21
+.decl RG(x:B)
+-----------^--
 1 errors generated, evaluation aborted

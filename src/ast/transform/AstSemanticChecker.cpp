@@ -231,7 +231,7 @@ AstSemanticCheckerImpl::AstSemanticCheckerImpl(AstTranslationUnit& tu) : tu(tu) 
                     std::string negOrAgg = hasNegation ? "negation" : "aggregation";
                     messages.push_back(
                             DiagnosticMessage("has cyclic " + negOrAgg, foundLiteral->getSrcLoc()));
-                    report.addDiagnostic(Diagnostic(Diagnostic::ERROR,
+                    report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR,
                             DiagnosticMessage("Unable to stratify relation(s) {" + relationsListStr + "}"),
                             messages));
                     break;
@@ -1187,6 +1187,7 @@ void AstSemanticCheckerImpl::checkNamespaces() {
 bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
     auto* relationSchedule = translationUnit.getAnalysis<RelationSchedule>();
     auto* recursiveClauses = translationUnit.getAnalysis<RecursiveClauses>();
+    auto&& report = translationUnit.getErrorReport();
 
     for (const RelationScheduleStep& step : relationSchedule->schedule()) {
         const std::set<const AstRelation*>& scc = step.computed();
@@ -1212,7 +1213,7 @@ bool AstExecutionPlanChecker::transform(AstTranslationUnit& translationUnit) {
                 if (version <= maxVersion) {
                     for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
                         if (cur.first >= version) {
-                            translationUnit.getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR,
+                            report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR,
                                     DiagnosticMessage(
                                             "execution plan for version " + std::to_string(cur.first),
                                             cur.second->getSrcLoc()),
@@ -1258,8 +1259,16 @@ void TypeChecker::visitAtom(const AstAtom& atom) {
                 return isA<RecordType>(type) && !isA<SubsetType>(type);
             });
             if (!validAttribute && !Global::config().has("legacy")) {
-                report.addError("Atoms argument type is not a subtype of its declared type",
-                        arguments[i]->getSrcLoc());
+                auto primaryDiagnostic =
+                        DiagnosticMessage("Atom's argument type is not a subtype of its declared type",
+                                arguments[i]->getSrcLoc());
+
+                auto declaredTypeInfo =
+                        DiagnosticMessage(tfm::format("The argument's declared type is %s", typeName),
+                                attributes[i]->getSrcLoc());
+
+                report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR, std::move(primaryDiagnostic),
+                        {std::move(declaredTypeInfo)}));
             }
         }
     }
