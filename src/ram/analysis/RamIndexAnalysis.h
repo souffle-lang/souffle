@@ -326,7 +326,7 @@ protected:
     /** @Brief maps search columns to an lexicographical order (labeled by a number) */
     int map(SearchSignature cols) const {
         assert(orders.size() == chainToOrder.size() && "Order and Chain Sizes do not match!!");
-	int i = 0;
+        int i = 0;
         for (auto it = chainToOrder.begin(); it != chainToOrder.end(); ++it, ++i) {
             if (std::find(it->begin(), it->end(), cols) != it->end()) {
                 assert((size_t)i < orders.size());

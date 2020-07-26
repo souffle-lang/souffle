@@ -25,7 +25,7 @@ Limit(h) :- h = sum w : Edge(_,_,w).
 Path(a,c,w) :- Edge(a,c,w).
 Path(a,c,w1+w2) :-
   Limit(h),
-  Edge(a,b,w1), 
+  Edge(a,b,w1),
   Path(b,c,w2),
     w2 < h-w1.
 

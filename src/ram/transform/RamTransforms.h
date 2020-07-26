@@ -372,13 +372,11 @@ public:
      */
     using ExpressionPair = std::pair<std::unique_ptr<RamExpression>, std::unique_ptr<RamExpression>>;
 
-
-
-    ExpressionPair getSignedExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier); 
-    ExpressionPair getUnsignedExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier); 
-    ExpressionPair getFloatExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier); 
+    ExpressionPair getSignedExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
+    ExpressionPair getUnsignedExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
+    ExpressionPair getFloatExpressionPair(const RamConstraint* binRelOp, size_t& element, int identifier);
     ExpressionPair getLowerUpperExpression(RamCondition* c, size_t& element, int level);
-    
+
     /**
      * @brief Construct query patterns for an indexable operation
      * @param Query pattern that is to be constructed
