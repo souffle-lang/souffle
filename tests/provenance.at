@@ -21,7 +21,7 @@ dnl $1 -- test name
 dnl $2 -- category
 m4_define([POSITIVE_PROVENANCE_TEST],[
   m4_ifblank(m4_join([],ENV_CONFS), [
-    m4_define([PROV_FLAGS], [[], [-j8], [-c], [-c -j8]])
+    m4_define([PROV_FLAGS], [[-j8], [-c -j8]])
   ], [
     m4_define([PROV_FLAGS], [ENV_CONFS])
   ])
@@ -35,7 +35,7 @@ dnl $1 -- test name
 dnl $2 -- category
 m4_define([POSITIVE_PROVENANCE_OUTPUT_TEST],[
   m4_ifblank(m4_join([],ENV_CONFS), [
-    m4_define([PROV_FLAGS], [[], [-c], [-c -j8]])
+    m4_define([PROV_FLAGS], [[-j8], [-c -j8]])
   ], [
     m4_define([PROV_FLAGS], [ENV_CONFS])
   ])

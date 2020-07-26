@@ -16,13 +16,13 @@
 
 A(-55).
 A(55).
-A(0.6).
+A(0.5).
 A(2).
 
 
 C(y)                      :- y = max a : A(a).                 // 55
 C(y)                      :- y = min a : A(a).                 // -55
-C(y)                      :- y = sum a : {A(a)}.               // 3
+C(y)                      :- y = sum a : {A(a)}.               // 2.5
 C(to_float(y))            :- y = count : {A(_)}.               // 4
 C(to_float(to_number(y))) :- y = mean x : {x = z + 1, A(z)}.   // 1
 C(to_float(to_number(y))) :- y = mean x : A(x).                // 0

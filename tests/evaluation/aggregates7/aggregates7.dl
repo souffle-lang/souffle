@@ -45,12 +45,12 @@ IndexAggregateSum(1, x) :- x = sum y : F(1, y).
 .decl H, IndexAggregateOverflow(x:float, y:float)
 .output AggregateOverflow, IndexAggregateOverflow
 
-G(2^(31)-1).
-G(1).
+G(2147483640).
+G(2147483630).
 
 AggregateOverflow(x) :- x = mean y : G(y).
 
-H(1, 2^(31)-1).
-H(1, 1).
+H(1, 2147483640).
+H(1, 2147483630).
 
 IndexAggregateOverflow(1, x) :- x = mean y : H(1, y).

@@ -200,7 +200,7 @@ private:
                 }
                 const size_t recordArity = elementParams.size();
                 Json recordInfo = Json::object{
-                        {"types", std::move(elementParams)}, {"arity", static_cast<long long>(recordArity)}};
+                        {"params", std::move(elementParams)}, {"arity", static_cast<long long>(recordArity)}};
                 records.emplace(astType->getQualifiedName().toString(), std::move(recordInfo));
             }
         }

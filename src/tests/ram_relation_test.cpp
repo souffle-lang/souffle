@@ -32,6 +32,7 @@
 #include "ram/RamTranslationUnit.h"
 #include <algorithm>
 #include <cstddef>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -169,6 +170,8 @@ TEST(IO_store, Float) {
     }
 
     std::stringstream expected;
+    expected << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
+
     expected << "---------------"
              << "\n"
              << "test"
@@ -334,10 +337,11 @@ TEST(IO_store, MixedTypes) {
     DebugReport debugReport;
 
     std::vector<std::unique_ptr<RamExpression>> exprs;
+    RamFloat floatValue = 27.75;
     exprs.push_back(std::make_unique<RamSignedConstant>(3));
     exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamUnsigned>(27))));
-    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(27.27))));
-    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(27.27))));
+    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(floatValue))));
+    exprs.push_back(std::make_unique<RamSignedConstant>(ramBitCast(static_cast<RamFloat>(floatValue))));
     exprs.push_back(std::make_unique<RamSignedConstant>(symbolTable.lookup("meow")));
 
     std::unique_ptr<RamStatement> main = std::make_unique<RamSequence>(
@@ -363,13 +367,14 @@ TEST(IO_store, MixedTypes) {
     std::cout.rdbuf(oldCoutStreambuf);
 
     std::stringstream expected;
+    expected << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     expected << "---------------"
              << "\n"
              << "test"
              << "\n"
              << "==============="
              << "\n"
-             << 3 << "\t" << 27 << "\t" << 27.27 << "\t" << 27.27 << "\t"
+             << 3 << "\t" << 27 << "\t" << floatValue << "\t" << floatValue << "\t"
              << "meow"
              << "\n"
              << "==============="
@@ -578,7 +583,7 @@ test
 
 TEST(IO_load, MixedTypesLoad) {
     std::streambuf* backupCin = std::cin.rdbuf();
-    std::istringstream testInput("meow	-3	3	0.3");
+    std::istringstream testInput("meow	-3	3	0.5");
     std::cin.rdbuf(testInput.rdbuf());
 
     Global::config().set("jobs", "1");
@@ -634,7 +639,7 @@ TEST(IO_load, MixedTypesLoad) {
     std::string expected = R"(---------------
 test
 ===============
-meow	-3	3	0.3
+meow	-3	3	0.5
 ===============
 )";
 

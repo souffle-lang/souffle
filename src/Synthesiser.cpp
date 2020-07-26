@@ -44,6 +44,7 @@
 #include <cassert>
 #include <cctype>
 #include <functional>
+#include <iomanip>
 #include <map>
 #include <sstream>
 #include <type_traits>
@@ -2142,6 +2143,7 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
         }
     };
 
+    out << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     // emit code
     CodeEmitter(*this).visit(stmt, out);
 }

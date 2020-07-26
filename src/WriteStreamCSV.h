@@ -25,6 +25,7 @@
 #endif
 
 #include <cstddef>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <ostream>
@@ -76,6 +77,7 @@ public:
         if (getOr(rwOperation, "headers", "false") == "true") {
             file << rwOperation.at("attributeNames") << std::endl;
         }
+        file << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     }
 
     ~WriteFileCSV() override = default;
@@ -117,6 +119,7 @@ public:
         if (getOr(rwOperation, "headers", "false") == "true") {
             file << rwOperation.at("attributeNames") << std::endl;
         }
+        file << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     }
 
     ~WriteGZipFileCSV() override = default;
@@ -159,6 +162,7 @@ public:
             std::cout << "\n" << rwOperation.at("attributeNames");
         }
         std::cout << "\n===============\n";
+        std::cout << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     }
 
     ~WriteCoutCSV() override {

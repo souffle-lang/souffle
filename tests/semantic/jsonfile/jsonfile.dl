@@ -11,22 +11,25 @@
     tail : List
 ]
 .decl A(x : List)
+
 A(nil).
 A([1,nil]).
 A([2,[3,nil]]).
-.output A(IO=jsonfile,filename="A.json")
+.output A(IO=jsonfile,filename="writeA.json")
 
 .type list = [x:number, y:list]
 .decl B(a:number, b:list)
 
 B(1,[1,[2,[3,nil]]]).
 B(4,nil).
-.output B(IO=jsonfile,filename="B.json")
+.output B(IO=jsonfile,filename="writeB.json")
 
 .decl C(x : List)
-.input C(IO=jsonfile,filename="C.json")
+.input C(IO=jsonfile,filename="readA.json")
 .output C(IO=json)
+.output C(IO=json, format=object)
 
 .decl D(a:number, b:list)
-.input D(IO=jsonfile,filename="D.json")
+.input D(IO=jsonfile,filename="readB.json")
 .output D(IO=json)
+.output D(IO=json, format=object)

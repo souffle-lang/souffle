@@ -22,3 +22,9 @@ A([2,[3,nil]]).
 B(1,[1,[2,[3,nil]]]).
 B(4,nil).
 .output B(IO=json)
+
+.type symbols = [x:symbol, y:symbols]
+.decl C(a:number, b:symbols)
+
+C(1,["a",["b",nil]]).
+.output C(IO=json, format=object)
