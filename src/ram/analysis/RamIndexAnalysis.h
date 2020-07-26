@@ -67,6 +67,7 @@ public:
     bool operator!=(const SearchSignature& other) const;
 
     bool empty() const;
+    bool containsEquality() const;
     bool containsInequality() const;
     static bool isComparable(const SearchSignature& lhs, const SearchSignature& rhs);
     static bool isSubset(const SearchSignature& lhs, const SearchSignature& rhs);
@@ -212,9 +213,11 @@ private:
 class MinIndexSelection {
 public:
     using AttributeIndex = uint32_t;
+    using AttributeSet = std::unordered_set<AttributeIndex>;
     using SignatureMap = std::unordered_map<SearchSignature, SearchSignature, SearchSignature::Hasher>;
     using SignatureIndexMap = std::unordered_map<SearchSignature, AttributeIndex, SearchSignature::Hasher>;
     using IndexSignatureMap = std::unordered_map<AttributeIndex, SearchSignature>;
+    using DischargeMap = std::unordered_map<SearchSignature, AttributeSet, SearchSignature::Hasher>;
     using LexOrder = std::vector<AttributeIndex>;
     using OrderCollection = std::vector<LexOrder>;
     using Chain = std::vector<SearchSignature>;
@@ -234,7 +237,6 @@ public:
     // SearchSignatures only have a partial order, however we need to produce a unique ordering of searches
     // when we output the name of the index and therefore we order the SearchSignatures arbitrarily by their
     // hashes
-    using AttributeSet = std::unordered_set<AttributeIndex>;
 
     /** @Brief Add new key to an Index Set */
     inline void addSearch(SearchSignature cols) {
@@ -303,6 +305,7 @@ public:
 protected:
     SignatureIndexMap signatureToIndexA;  // mapping of a SearchSignature on A to its unique index
     SignatureIndexMap signatureToIndexB;  // mapping of a SearchSignature on B to its unique index
+    DischargeMap dischargedMap;           // mapping of a SearchSignature to the attributes to discharge
     IndexSignatureMap indexToSignature;   // mapping of a unique index to its SearchSignature
     SearchSet searches;                   // set of search patterns on table
     OrderCollection orders;               // collection of lexicographical orders
@@ -323,14 +326,14 @@ protected:
     /** @Brief maps search columns to an lexicographical order (labeled by a number) */
     int map(SearchSignature cols) const {
         assert(orders.size() == chainToOrder.size() && "Order and Chain Sizes do not match!!");
-        int i = 0;
+	int i = 0;
         for (auto it = chainToOrder.begin(); it != chainToOrder.end(); ++it, ++i) {
             if (std::find(it->begin(), it->end(), cols) != it->end()) {
                 assert((size_t)i < orders.size());
                 return i;
             }
         }
-
+        std::cout << "Couldnt find: " << cols << std::endl;
         fatal("cannot find matching lexicographical order");
     }
 
@@ -360,11 +363,14 @@ protected:
     /** @Brief get all chains from the matching */
     const ChainOrderMap getChainsFromMatching(const MaxMatching::Matchings& match, const SearchSet& nodes);
 
-    /** @Brief merge chains to produce a minimal chain cover (without discharging) */
-    const ChainOrderMap mergeChains(ChainOrderMap& chains);
+    /** @Brief checks if two chains form an antichain */
+    bool formsAntichain(const Chain& left, const Chain& right) const;
 
-    /** @Brief merge chains to discharge 1 inequality for 1 less chain */
-    const ChainOrderMap dischargeToMergeChains(ChainOrderMap& chains);
+    /** @Brief merge chains with 1->2 edges in the delta that are permissable */
+    void mergeChains(ChainOrderMap& chains, DischargeMap& map);
+
+    /** @Brief merge chains by discharging a single inequality at a time */
+    void dischargeToMergeChains(ChainOrderMap& chains, DischargeMap& map);
 
     /** @Brief get all nodes which are unmatched from A-> B */
     const SearchSet getUnmatchedKeys(const MaxMatching::Matchings& match, const SearchSet& nodes) {
