@@ -1,15 +1,24 @@
 Warning: No rules/facts defined for relation D in file union_types.dl at line 18
 .decl D (i:three)
 ------^-----------
-Error: Atoms argument type is not a subtype of its declared type in file union_types.dl at line 33
+Error: Atom's argument type is not a subtype of its declared type in file union_types.dl at line 33
 G(X) :- E(X). // error
 --^--------------------
-Error: Atoms argument type is not a subtype of its declared type in file union_types.dl at line 36
+The argument's declared type is one in file union_types.dl at line 20
+.decl G (i:one)
+-----------^----
+Error: Atom's argument type is not a subtype of its declared type in file union_types.dl at line 36
 E(X) :- F(X), !A(X), !B(X). // error.
 -----------------^--------------------
-Error: Atoms argument type is not a subtype of its declared type in file union_types.dl at line 36
+The argument's declared type is one in file union_types.dl at line 15
+.decl A (i:one)
+-----------^----
+Error: Atom's argument type is not a subtype of its declared type in file union_types.dl at line 36
 E(X) :- F(X), !A(X), !B(X). // error.
 ------------------------^-------------
+The argument's declared type is two in file union_types.dl at line 16
+.decl B (i:two)
+-----------^----
 Error: Unable to deduce type for variable X in file union_types.dl at line 37
 E(X) :- F(X), A(X), B(X). // error
 --^--------------------------------

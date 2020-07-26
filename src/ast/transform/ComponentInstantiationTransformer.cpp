@@ -62,7 +62,7 @@ struct ComponentContent {
                     return (element->getQualifiedName() == type->getQualifiedName());
                 });
         if (foundItem != types.end()) {
-            Diagnostic err(Diagnostic::ERROR,
+            Diagnostic err(Diagnostic::Type::ERROR,
                     DiagnosticMessage(
                             "Redefinition of type " + toString(type->getQualifiedName()), type->getSrcLoc()),
                     {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
@@ -78,7 +78,7 @@ struct ComponentContent {
                     return (element->getQualifiedName() == rel->getQualifiedName());
                 });
         if (foundItem != relations.end()) {
-            Diagnostic err(Diagnostic::ERROR,
+            Diagnostic err(Diagnostic::Type::ERROR,
                     DiagnosticMessage("Redefinition of relation " + toString(rel->getQualifiedName()),
                             rel->getSrcLoc()),
                     {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
@@ -100,7 +100,7 @@ struct ComponentContent {
         if (foundItem != ios.end()) {
             auto type = (*foundItem)->getType();
             if (type == newIO->getType() && newIO->getType() != AstIoType::output) {
-                Diagnostic err(Diagnostic::ERROR,
+                Diagnostic err(Diagnostic::Type::ERROR,
                         DiagnosticMessage("Redefinition I/O operation " + toString(newIO->getQualifiedName()),
                                 newIO->getSrcLoc()),
                         {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});

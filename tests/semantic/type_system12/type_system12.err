@@ -1,10 +1,19 @@
-Error: Atoms argument type is not a subtype of its declared type in file type_system12.dl at line 38
+Error: Atom's argument type is not a subtype of its declared type in file type_system12.dl at line 38
 C(x) :- B(x).                      // Error
 --^-----------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system12.dl at line 39
+The argument's declared type is S1 in file type_system12.dl at line 37
+.decl C(x : S1)
+------------^---
+Error: Atom's argument type is not a subtype of its declared type in file type_system12.dl at line 39
 C(x) :- !A(x), B(x).               // Error
 --^-----------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system12.dl at line 39
+The argument's declared type is S1 in file type_system12.dl at line 37
+.decl C(x : S1)
+------------^---
+Error: Atom's argument type is not a subtype of its declared type in file type_system12.dl at line 39
 C(x) :- !A(x), B(x).               // Error
 -----------^--------------------------------
+The argument's declared type is S2 in file type_system12.dl at line 23
+.decl A(x : S2)
+------------^---
 3 errors generated, evaluation aborted

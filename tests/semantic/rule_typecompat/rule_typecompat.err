@@ -13,9 +13,12 @@ Warning: No rules/facts defined for relation D in file rule_typecompat.dl at lin
 Warning: No rules/facts defined for relation E in file rule_typecompat.dl at line 10
 .decl E (r:R, s:S)
 ------^------------
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 15
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 15
 A(x) :- B(x).
 --^-----------
+The argument's declared type is T in file rule_typecompat.dl at line 6
+.decl A (t:T)
+-----------^--
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 18
 A(x) :- F(x,x).
 --^-------------
@@ -40,9 +43,12 @@ A(x) :- G(x,x).
 Warning: Variable y only occurs once in file rule_typecompat.dl at line 25
 A(x) :- G(x,y).
 ------------^---
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 28
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 28
 G(x,x) :- A(x).
 ----^-----------
+The argument's declared type is R in file rule_typecompat.dl at line 12
+.decl G (t:T, r:R)
+----------------^--
 Error: Ungrounded variable y in file rule_typecompat.dl at line 30
 G(x,y) :- A(x).
 ----^-----------
@@ -64,9 +70,12 @@ A(x) :- A(x), B(y), C(z).
 Warning: Variable z only occurs once in file rule_typecompat.dl at line 36
 A(x) :- A(x), B(y), C(z).
 ----------------------^---
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 39
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 39
 F(x,y) :- F(x,z), G(z,y).
 ----^---------------------
+The argument's declared type is T in file rule_typecompat.dl at line 11
+.decl F (r:R, t:T)
+----------------^--
 Error: Ungrounded variable y in file rule_typecompat.dl at line 41
 F(x,y) :- F(x,z), G(z,x).
 ----^---------------------
@@ -112,21 +121,33 @@ F(x,y) :- F(x,v), F(w,y), A(w), D(v).
 Warning: Variable w only occurs once in file rule_typecompat.dl at line 52
 F(x,y) :- F(x,v), F(w,y), !H(v), !D(v).
 --------------------^-------------------
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 52
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 52
 F(x,y) :- F(x,v), F(w,y), !H(v), !D(v).
 ------------------------------------^---
+The argument's declared type is R in file rule_typecompat.dl at line 9
+.decl D (r:R)
+-----------^--
 Warning: Variable v only occurs once in file rule_typecompat.dl at line 53
 F(x,y) :- F(x,v), F(w,y), !H(w), !D(w).
 --------------^-------------------------
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 53
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 53
 F(x,y) :- F(x,v), F(w,y), !H(w), !D(w).
 -----------------------------^----------
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 54
+The argument's declared type is T in file rule_typecompat.dl at line 5
+.decl H (t:T)
+-----------^--
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 54
 F(x,y) :- F(x,v), F(w,y), !H(w), !D(v).
 -----------------------------^----------
-Error: Atoms argument type is not a subtype of its declared type in file rule_typecompat.dl at line 54
+The argument's declared type is T in file rule_typecompat.dl at line 5
+.decl H (t:T)
+-----------^--
+Error: Atom's argument type is not a subtype of its declared type in file rule_typecompat.dl at line 54
 F(x,y) :- F(x,v), F(w,y), !H(w), !D(v).
 ------------------------------------^---
+The argument's declared type is R in file rule_typecompat.dl at line 9
+.decl D (r:R)
+-----------^--
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 57
 F(x,y) :- F(x,y),  x > y.
 --^-----------------------

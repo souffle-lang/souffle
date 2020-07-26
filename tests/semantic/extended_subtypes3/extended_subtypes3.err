@@ -1,19 +1,37 @@
-Error: Atoms argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 20
+Error: Atom's argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 20
 SymbolChain(a, a, a) :- SymbolChain(a, _, _).
 ---------------^------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 20
+The argument's declared type is symbolB in file extended_subtypes3.dl at line 18
+.decl SymbolChain(a: symbolA, b: symbolB, c: symbolC)
+---------------------------------^--------------------
+Error: Atom's argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 20
 SymbolChain(a, a, a) :- SymbolChain(a, _, _).
 ------------------^---------------------------
-Error: Atoms argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 21
+The argument's declared type is symbolC in file extended_subtypes3.dl at line 18
+.decl SymbolChain(a: symbolA, b: symbolB, c: symbolC)
+---------------------------------------------^--------
+Error: Atom's argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 21
 SymbolChain(b, b, b) :- SymbolChain(_, b, _).
 ------------------^---------------------------
-Error: Atoms argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 33
+The argument's declared type is symbolC in file extended_subtypes3.dl at line 18
+.decl SymbolChain(a: symbolA, b: symbolB, c: symbolC)
+---------------------------------------------^--------
+Error: Atom's argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 33
 RecordSubtypes(x, [1, x], x) :- RecordSubtypes(x, _, _). // error in [1, x] and x
 --------------------------^-------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 34
+The argument's declared type is S2List in file extended_subtypes3.dl at line 31
+.decl RecordSubtypes(a: List, b: S1List, c: S2List)
+--------------------------------------------^-------
+Error: Atom's argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 34
 RecordSubtypes(y, y, y) :- RecordSubtypes(y, _, _). // Should be error in second place and third place.
 ------------------^-------------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 34
+The argument's declared type is S1List in file extended_subtypes3.dl at line 31
+.decl RecordSubtypes(a: List, b: S1List, c: S2List)
+---------------------------------^------------------
+Error: Atom's argument type is not a subtype of its declared type in file extended_subtypes3.dl at line 34
 RecordSubtypes(y, y, y) :- RecordSubtypes(y, _, _). // Should be error in second place and third place.
 ---------------------^----------------------------------------------------------------------------------
+The argument's declared type is S2List in file extended_subtypes3.dl at line 31
+.decl RecordSubtypes(a: List, b: S1List, c: S2List)
+--------------------------------------------^-------
 6 errors generated, evaluation aborted

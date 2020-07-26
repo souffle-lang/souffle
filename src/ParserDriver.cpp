@@ -100,7 +100,7 @@ void ParserDriver::addPragma(std::unique_ptr<AstPragma> p) {
 void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> f) {
     const std::string& name = f->getName();
     if (const AstFunctorDeclaration* prev = getFunctorDeclaration(*translationUnit->getProgram(), name)) {
-        Diagnostic err(Diagnostic::ERROR,
+        Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of functor " + toString(name), f->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
@@ -112,7 +112,7 @@ void ParserDriver::addFunctorDeclaration(std::unique_ptr<AstFunctorDeclaration> 
 void ParserDriver::addRelation(std::unique_ptr<AstRelation> r) {
     const auto& name = r->getQualifiedName();
     if (AstRelation* prev = getRelation(*translationUnit->getProgram(), name)) {
-        Diagnostic err(Diagnostic::ERROR,
+        Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of relation " + toString(name), r->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
@@ -125,7 +125,7 @@ void ParserDriver::addIO(std::unique_ptr<AstIO> d) {
     if (d->getType() == AstIoType::printsize) {
         for (const auto& cur : translationUnit->getProgram()->getIOs()) {
             if (cur->getQualifiedName() == d->getQualifiedName() && cur->getType() == AstIoType::printsize) {
-                Diagnostic err(Diagnostic::ERROR,
+                Diagnostic err(Diagnostic::Type::ERROR,
                         DiagnosticMessage("Redefinition of printsize directives for relation " +
                                                   toString(d->getQualifiedName()),
                                 d->getSrcLoc()),
@@ -141,7 +141,7 @@ void ParserDriver::addIO(std::unique_ptr<AstIO> d) {
 void ParserDriver::addType(std::unique_ptr<AstType> type) {
     const auto& name = type->getQualifiedName();
     if (const AstType* prev = getType(*translationUnit->getProgram(), name)) {
-        Diagnostic err(Diagnostic::ERROR,
+        Diagnostic err(Diagnostic::Type::ERROR,
                 DiagnosticMessage("Redefinition of type " + toString(name), type->getSrcLoc()),
                 {DiagnosticMessage("Previous definition", prev->getSrcLoc())});
         translationUnit->getErrorReport().addDiagnostic(err);
@@ -217,7 +217,8 @@ void ParserDriver::error(const SrcLocation& loc, const std::string& msg) {
     translationUnit->getErrorReport().addError(msg, loc);
 }
 void ParserDriver::error(const std::string& msg) {
-    translationUnit->getErrorReport().addDiagnostic(Diagnostic(Diagnostic::ERROR, DiagnosticMessage(msg)));
+    translationUnit->getErrorReport().addDiagnostic(
+            Diagnostic(Diagnostic::Type::ERROR, DiagnosticMessage(msg)));
 }
 
 }  // end of namespace souffle

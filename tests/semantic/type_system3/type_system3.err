@@ -1,12 +1,21 @@
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 39
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 39
 number_primi_relation_1_2_B(X) :- number_relation(X). // Error: The source is more general than sink
 ----------------------------^------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 40
+The argument's declared type is number_primi_1_2 in file type_system3.dl at line 30
+.decl number_primi_relation_1_2_B(x:number_primi_1_2)
+------------------------------------^-----------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 40
 number_primi_relation_2_3(X) :- number_relation(X).   // Error: The source is more general than sink
 --------------------------^--------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 42
+The argument's declared type is number_primi_2_3 in file type_system3.dl at line 31
+.decl number_primi_relation_2_3(x:number_primi_2_3)
+----------------------------------^-----------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 42
 number_primi_relation_1(X) :- number_primi_relation_2(X). // Error: the types are disjoint.
 ------------------------^-------------------------------------------------------------------
+The argument's declared type is number_primi_1 in file type_system3.dl at line 26
+.decl number_primi_relation_1(x:number_primi_1)
+--------------------------------^---------------
 Error: Unable to deduce type for variable X in file type_system3.dl at line 46
 number_primi_relation_1_2_A(X) :- number_primi_relation_1(X), number_primi_relation_2(X). // Error: the types of sources are disjoint. No solution.
 ----------------------------^-----------------------------------------------------------------------------------------------------------------------
@@ -16,33 +25,60 @@ number_primi_relation_1_2_A(X) :- number_primi_relation_1(X), number_primi_relat
 Error: Unable to deduce type for variable X in file type_system3.dl at line 46
 number_primi_relation_1_2_A(X) :- number_primi_relation_1(X), number_primi_relation_2(X). // Error: the types of sources are disjoint. No solution.
 --------------------------------------------------------------------------------------^-------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 47
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 47
 number_primi_relation_1_2_A(X) :- number_relation(X), !number_primi_relation_1(X), !number_primi_relation_2(X). // Error: The source is more general than sinks
 ----------------------------^-----------------------------------------------------------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 47
+The argument's declared type is number_primi_1_2 in file type_system3.dl at line 29
+.decl number_primi_relation_1_2_A(x:number_primi_1_2)
+------------------------------------^-----------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 47
 number_primi_relation_1_2_A(X) :- number_relation(X), !number_primi_relation_1(X), !number_primi_relation_2(X). // Error: The source is more general than sinks
 -------------------------------------------------------------------------------^--------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 47
+The argument's declared type is number_primi_1 in file type_system3.dl at line 26
+.decl number_primi_relation_1(x:number_primi_1)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 47
 number_primi_relation_1_2_A(X) :- number_relation(X), !number_primi_relation_1(X), !number_primi_relation_2(X). // Error: The source is more general than sinks
 ------------------------------------------------------------------------------------------------------------^---------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 48
+The argument's declared type is number_primi_2 in file type_system3.dl at line 27
+.decl number_primi_relation_2(x:number_primi_2)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 48
 number_primi_relation_1_2_A(X) :- number_primi_relation_1_2_B(X), !number_primi_relation_1(X), !number_primi_relation_2(X). // Error: The source is more general than some of the sinks (negations)
 -------------------------------------------------------------------------------------------^--------------------------------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 48
+The argument's declared type is number_primi_1 in file type_system3.dl at line 26
+.decl number_primi_relation_1(x:number_primi_1)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 48
 number_primi_relation_1_2_A(X) :- number_primi_relation_1_2_B(X), !number_primi_relation_1(X), !number_primi_relation_2(X). // Error: The source is more general than some of the sinks (negations)
 ------------------------------------------------------------------------------------------------------------------------^---------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 50
+The argument's declared type is number_primi_2 in file type_system3.dl at line 27
+.decl number_primi_relation_2(x:number_primi_2)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 50
 number_primi_relation_3(X) :- number_primi_relation_2_3(X). // Error: The source is more general than sink
 ------------------------^----------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 117
+The argument's declared type is number_primi_3 in file type_system3.dl at line 28
+.decl number_primi_relation_3(x:number_primi_3)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 117
 symbol_primi_relation_1_2_B(X) :- symbol_relation(X). // error: source is more general than the sink
 ----------------------------^------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 118
+The argument's declared type is symbol_primi_1_2 in file type_system3.dl at line 108
+.decl symbol_primi_relation_1_2_B(x:symbol_primi_1_2)
+------------------------------------^-----------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 118
 symbol_primi_relation_2_3(X) :- symbol_relation(X). // error: source is more general than the sink
 --------------------------^------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 120
+The argument's declared type is symbol_primi_2_3 in file type_system3.dl at line 109
+.decl symbol_primi_relation_2_3(x:symbol_primi_2_3)
+----------------------------------^-----------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 120
 symbol_primi_relation_1(X) :- symbol_primi_relation_2(X). // error: disjoint types.
 ------------------------^-----------------------------------------------------------
+The argument's declared type is symbol_primi_1 in file type_system3.dl at line 104
+.decl symbol_primi_relation_1(x:symbol_primi_1)
+--------------------------------^---------------
 Error: Unable to deduce type for variable X in file type_system3.dl at line 124
 symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1(X), symbol_primi_relation_2(X). // error, disjoint sources.
 ----------------------------^-----------------------------------------------------------------------------------------
@@ -52,24 +88,42 @@ symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1(X), symbol_primi_relat
 Error: Unable to deduce type for variable X in file type_system3.dl at line 124
 symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1(X), symbol_primi_relation_2(X). // error, disjoint sources.
 --------------------------------------------------------------------------------------^-------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 125
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 125
 symbol_primi_relation_1_2_A(X) :- symbol_relation(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X). // error: source is more general than the sinks
 ----------------------------^-----------------------------------------------------------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 125
+The argument's declared type is symbol_primi_1_2 in file type_system3.dl at line 107
+.decl symbol_primi_relation_1_2_A(x:symbol_primi_1_2)
+------------------------------------^-----------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 125
 symbol_primi_relation_1_2_A(X) :- symbol_relation(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X). // error: source is more general than the sinks
 -------------------------------------------------------------------------------^--------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 125
+The argument's declared type is symbol_primi_1 in file type_system3.dl at line 104
+.decl symbol_primi_relation_1(x:symbol_primi_1)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 125
 symbol_primi_relation_1_2_A(X) :- symbol_relation(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X). // error: source is more general than the sinks
 ------------------------------------------------------------------------------------------------------------^---------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 126
+The argument's declared type is symbol_primi_2 in file type_system3.dl at line 105
+.decl symbol_primi_relation_2(x:symbol_primi_2)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 126
 symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1_2_B(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X). // error: source is more general than the sinks
 -------------------------------------------------------------------------------------------^--------------------------------------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 126
+The argument's declared type is symbol_primi_1 in file type_system3.dl at line 104
+.decl symbol_primi_relation_1(x:symbol_primi_1)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 126
 symbol_primi_relation_1_2_A(X) :- symbol_primi_relation_1_2_B(X), !symbol_primi_relation_1(X), !symbol_primi_relation_2(X). // error: source is more general than the sinks
 ------------------------------------------------------------------------------------------------------------------------^---------------------------------------------------
-Error: Atoms argument type is not a subtype of its declared type in file type_system3.dl at line 128
+The argument's declared type is symbol_primi_2 in file type_system3.dl at line 105
+.decl symbol_primi_relation_2(x:symbol_primi_2)
+--------------------------------^---------------
+Error: Atom's argument type is not a subtype of its declared type in file type_system3.dl at line 128
 symbol_primi_relation_3(X) :- symbol_primi_relation_2_3(X). // error: source is more general than the sink
 ------------------------^----------------------------------------------------------------------------------
+The argument's declared type is symbol_primi_3 in file type_system3.dl at line 106
+.decl symbol_primi_relation_3(x:symbol_primi_3)
+--------------------------------^---------------
 Error: Union type number_symbol is defined over {number, symbol} (multiple primitive types in union) in file type_system3.dl at line 167
 .type number_symbol = number | symbol // error
 ^----------------------------------------------
