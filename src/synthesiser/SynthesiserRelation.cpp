@@ -801,7 +801,7 @@ void SynthesiserIndirectRelation::generateTypeStruct(std::ostream& out) {
 
     // end struct
     out << "};\n";
-}  // namespace souffle
+}
 
 // -------- Brie Relation --------
 
