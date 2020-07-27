@@ -81,11 +81,10 @@ public:
     // hashing class
     class Hasher {
     public:
-        size_t operator()(const SearchSignature& s) const {
-            auto& vec = s.constraints;
-            std::size_t seed = vec.size();
-            for (auto& i : vec) {
-                seed ^= static_cast<size_t>(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        size_t operator()(const SearchSignature& searchSignature) const {
+            std::size_t seed = searchSignature.arity();
+            for (auto& constraint : searchSignature.constraints) {
+                seed ^= static_cast<size_t>(constraint) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             }
             return seed;
         }
