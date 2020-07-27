@@ -56,11 +56,7 @@ const AttributeConstraint& SearchSignature::operator[](std::size_t pos) const {
 bool SearchSignature::operator<(const SearchSignature& other) const {
     assert(constraints.size() == other.constraints.size());
     assert(isComparable(*this, other));  // be ordered to place them in a container together
-    if (isStrictSubset(*this, other)) {
-        return true;
-    } else {
-        return false;
-    }
+    return isStrictSubset(*this, other);
 }
 
 bool SearchSignature::operator==(const SearchSignature& other) const {
