@@ -69,7 +69,9 @@ public:
  */
 class NullTransformer : public MetaTransformer {
 private:
-    bool transform(AstTranslationUnit& translationUnit) override;
+    bool transform(AstTranslationUnit& /* translationUnit */) override {
+        return false;
+    }
 
 public:
     std::vector<AstTransformer*> getSubtransformers() const override {

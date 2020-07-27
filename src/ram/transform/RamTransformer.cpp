@@ -21,10 +21,11 @@
 #include "ram/RamNode.h"
 #include "ram/RamProgram.h"
 #include "ram/RamTranslationUnit.h"
+#include "utility/StringUtil.h"
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
+#include <type_traits>
 
 namespace souffle {
 

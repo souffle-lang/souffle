@@ -20,8 +20,6 @@
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
 #include <chrono>
-#include <cstdio>
-#include <utility>
 
 namespace souffle {
 

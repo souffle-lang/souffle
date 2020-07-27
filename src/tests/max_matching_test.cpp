@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file max_matching_test.h
+ * @file max_matching_test.cpp
  *
  * Test cases for the computation of maximum matching.
  *

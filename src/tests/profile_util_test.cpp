@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file profile_util_test.h
+ * @file profile_util_test.cpp
  *
  * Test cases for the profile utilities.
  *

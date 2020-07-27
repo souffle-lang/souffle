@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file type_system_test.h
+ * @file constraints_test.cpp
  *
  * Tests souffle's type system operations.
  *

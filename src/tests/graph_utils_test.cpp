@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file type_system_test.h
+ * @file graph_utils_test.cpp
  *
  * Tests souffle's type system operations.
  *

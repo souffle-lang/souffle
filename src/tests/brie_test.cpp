@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file brie_test.h
+ * @file brie_test.cpp
  *
  * A test case testing the trie implementation.
  *

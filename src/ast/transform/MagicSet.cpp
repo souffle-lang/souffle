@@ -26,11 +26,12 @@
 #include "ast/AstRelation.h"
 #include "ast/AstTranslationUnit.h"
 #include "ast/AstUtils.h"
-#include "ast/analysis/AstIOTypeAnalysis.h"
-#include "ast/transform/AstTransforms.h"
+#include "ast/analysis/AstIOType.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"
+#include <algorithm>
+#include <optional>
 #include <utility>
 
 namespace souffle {

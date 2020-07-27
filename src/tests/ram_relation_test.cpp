@@ -8,21 +8,19 @@
 
 /************************************************************************
  *
- * @file ram_arithmetic_test.cpp
+ * @file ram_relation_test.cpp
  *
  * Tests arithmetic evaluation by the Interpreter.
  *
  ***********************************************************************/
 
-#include "tests/test.h"
-
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Global.h"
-#include "InterpreterEngine.h"
 #include "RamTypes.h"
 #include "RelationTag.h"
 #include "SymbolTable.h"
+#include "interpreter/InterpreterEngine.h"
 #include "json11.h"
 #include "ram/RamExpression.h"
 #include "ram/RamOperation.h"
@@ -30,6 +28,7 @@
 #include "ram/RamRelation.h"
 #include "ram/RamStatement.h"
 #include "ram/RamTranslationUnit.h"
+#include "tests/test.h"
 #include <algorithm>
 #include <cstddef>
 #include <iomanip>

@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file IndexAnalysis.cpp
+ * @file RamIndexAnalysis.cpp
  *
  * Computes indexes for relations in a translation unit
  *
@@ -319,26 +319,6 @@ void MinIndexSelection::solve() {
     // Extract the chains given the nodes and matchings
     ChainOrderMap chains = getChainsFromMatching(matchings, searches);
 
-    // At the very end if we have multiple inequalities in a search then it's arbitrary which one to keep
-    // Example: 001->221 we can remove either inequality
-    for (auto& chain : chains) {
-        // remove extra inequalities
-        bool seenInequality = false;
-        auto& search = *chain.rbegin();
-        auto original = search;
-
-        for (size_t i = 0; i < search.arity(); ++i) {
-            if (search[i] == AttributeConstraint::Inequal) {
-                if (!seenInequality) {
-                    seenInequality = true;
-                } else {
-                    dischargedMap[original].insert(i);
-                    search[i] = AttributeConstraint::None;
-                }
-            }
-        }
-    }
-
     // Should never get no chains back as we never call calculate on an empty graph
     assert(!chains.empty());
     for (const auto& chain : chains) {
@@ -595,6 +575,25 @@ void MinIndexSelection::mergeChains(
 
                 // insert merged chain
                 chains.push_back(mergedChain);
+            }
+        }
+    }
+    // At the very end if we have multiple inequalities in a search then it's arbitrary which one to keep
+    // Example: 001->221 we can remove either inequality
+    for (auto& chain : chains) {
+        // remove extra inequalities
+        bool seenInequality = false;
+        auto& search = *chain.rbegin();
+        auto original = search;
+
+        for (size_t i = 0; i < search.arity(); ++i) {
+            if (search[i] == AttributeConstraint::Inequal) {
+                if (!seenInequality) {
+                    seenInequality = true;
+                } else {
+                    dischargedMap[original].insert(i);
+                    search[i] = AttributeConstraint::None;
+                }
             }
         }
     }

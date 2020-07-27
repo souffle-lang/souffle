@@ -23,6 +23,7 @@
 #include "ast/AstQualifiedName.h"
 #include "ast/AstVisitor.h"
 #include "ast/analysis/AstAnalysis.h"
+#include "ast/transform/AstTransformer.h"
 #include "utility/StreamUtil.h"
 #include <cstddef>
 #include <map>
@@ -36,6 +37,23 @@
 namespace souffle {
 
 class AstTranslationUnit;
+
+/**
+ * Magic Set Transformation
+ */
+class MagicSetTransformer : public AstTransformer {
+public:
+    std::string getName() const override {
+        return "MagicSetTransformer";
+    }
+
+    MagicSetTransformer* clone() const override {
+        return new MagicSetTransformer();
+    }
+
+private:
+    bool transform(AstTranslationUnit& translationUnit) override;
+};
 
 class AdornedPredicate {
 private:

@@ -22,7 +22,8 @@
 #include "Global.h"
 #include "ast/AstProgram.h"
 #include "ast/analysis/AstAnalysis.h"
-#include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/RecursiveClauses.h"
+#include "ast/analysis/SCCGraph.h"
 #include <iosfwd>
 #include <map>
 #include <memory>
@@ -56,8 +57,8 @@ public:
             if (debug) {
                 std::stringstream ss;
                 analyses[name]->print(ss);
-                if (nullptr == dynamic_cast<PrecedenceGraph*>(analyses[name].get()) &&
-                        nullptr == dynamic_cast<SCCGraph*>(analyses[name].get())) {
+                if (nullptr == dynamic_cast<PrecedenceGraphAnalysis*>(analyses[name].get()) &&
+                        nullptr == dynamic_cast<SCCGraphAnalysis*>(analyses[name].get())) {
                     debugReport.addSection(name, "Ast Analysis [" + name + "]", ss.str());
                 } else {
                     debugReport.addSection(

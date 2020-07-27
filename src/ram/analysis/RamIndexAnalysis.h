@@ -333,7 +333,6 @@ protected:
                 return i;
             }
         }
-        std::cout << "Couldnt find: " << cols << std::endl;
         fatal("cannot find matching lexicographical order");
     }
 

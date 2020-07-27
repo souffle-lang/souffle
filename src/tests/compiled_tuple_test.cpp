@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file compiled_test.h
+ * @file compiled_tuple_test.cpp
  *
  * Test cases for the RAM tuple data structure.
  *

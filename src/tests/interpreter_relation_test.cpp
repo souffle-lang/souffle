@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file interpreter_relation_test.h
+ * @file interpreter_relation_test.cpp
  *
  * Tests InterpreterRelInterface
  *
@@ -16,10 +16,10 @@
 
 #include "tests/test.h"
 
-#include "InterpreterProgInterface.h"
-#include "InterpreterRelation.h"
 #include "SouffleInterface.h"
 #include "SymbolTable.h"
+#include "interpreter/InterpreterProgInterface.h"
+#include "interpreter/InterpreterRelation.h"
 #include "ram/analysis/RamIndexAnalysis.h"
 #include <iosfwd>
 #include <string>

@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file btree_multiset_test.h
+ * @file btree_multiset_test.cpp
  *
  * A test case testing the B-trees utilization as multisets.
  *

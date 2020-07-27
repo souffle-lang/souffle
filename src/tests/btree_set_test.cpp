@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file btree_set_test.h
+ * @file btree_set_test.cpp
  *
  * A test case testing the B-trees utilization as sets.
  *
