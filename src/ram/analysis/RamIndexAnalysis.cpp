@@ -439,9 +439,10 @@ const MinIndexSelection::ChainOrderMap MinIndexSelection::getChainsFromMatching(
 }
 
 bool MinIndexSelection::formsAntichain(const Chain& left, const Chain& right) const {
-    for (auto s1 : left) {
-        for (auto s2 : right) {
-            if (!SearchSignature::isSubset(s1, s2) && !SearchSignature::isSubset(s2, s1)) {
+    for (auto& leftSearchSignature : left) {
+        for (auto& rightSearchSignature : right) {
+            if (!SearchSignature::isSubset(leftSearchSignature, rightSearchSignature) &&
+                    !SearchSignature::isSubset(rightSearchSignature, leftSearchSignature)) {
                 return true;
             }
         }
