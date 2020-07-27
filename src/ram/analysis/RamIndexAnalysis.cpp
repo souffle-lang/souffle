@@ -458,9 +458,9 @@ void MinIndexSelection::mergeChains(
     bool changed = true;
     while (changed) {
         changed = false;
-        for (auto lhs_it = chains.begin(); !changed && lhs_it != chains.end(); ++lhs_it) {
+        for (auto lhs_it = chains.begin(); lhs_it != chains.end(); ++lhs_it) {
             auto lhs = *lhs_it;
-            for (auto rhs_it = std::next(lhs_it); !changed && rhs_it != chains.end(); ++rhs_it) {
+            for (auto rhs_it = std::next(lhs_it); rhs_it != chains.end(); ++rhs_it) {
                 auto rhs = *rhs_it;
 
                 // if both chains end with a search with an inequality then we can't merge
@@ -575,6 +575,10 @@ void MinIndexSelection::mergeChains(
 
                 // insert merged chain
                 chains.push_back(mergedChain);
+                break;
+            }
+            if (changed) {
+                break;
             }
         }
     }
