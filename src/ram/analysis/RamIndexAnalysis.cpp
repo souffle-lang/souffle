@@ -334,7 +334,7 @@ void MinIndexSelection::solve() {
         std::unordered_set<size_t> duplicates;
         for (size_t i = 0; i < ids.size(); ++i) {
             size_t index = ids.size() - 1 - i;
-            if (seen.count(ids[index])) {
+            if (seen.count(ids[index]) != 0) {
                 duplicates.insert(index);
             } else {
                 seen.insert(ids[index]);
