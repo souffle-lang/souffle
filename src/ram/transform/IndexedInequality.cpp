@@ -143,13 +143,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                         continue;
                     }
                     // if lower and upper bounds are equal its also not a box query
-                    if (*(pattern.first[i]) == *(pattern.second[i])) {
-                        foundRealIndexableOperation = true;
-                        break;
-                    } else {
-                        foundRealIndexableOperation = true;
-                        break;
-                    }
+                    foundRealIndexableOperation = true;
+                    break;
                 }
                 if (!foundRealIndexableOperation) {
                     // need to rewrite the node with a semantically equivalent operation to get rid of the
