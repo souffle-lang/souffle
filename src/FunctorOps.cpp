@@ -258,6 +258,24 @@ bool isInfixFunctorOp(const FunctorOp op) {
     return isInfixFunctorOp(xs.front().get().symbol);
 }
 
+FunctorOp getMinOp(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return FunctorOp::FMIN;
+        case 'u': return FunctorOp::UMIN;
+        case 'i': return FunctorOp::MIN; assert("Unsupported Type");
+        default: return FunctorOp::MIN;
+    }
+}
+
+FunctorOp getMaxOp(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return FunctorOp::FMAX;
+        case 'u': return FunctorOp::UMAX;
+        case 'i': return FunctorOp::MAX; assert("Unsupported Type");
+        default: return FunctorOp::MAX;
+    }
+}
+
 std::ostream& operator<<(std::ostream& os, FunctorOp op) {
     return os << functorOpNameLegacy(op);
 }

@@ -81,13 +81,15 @@ public:
 
     /**
      * @brief Construct query patterns for an indexable operation
+     * @param Attribute types to indicate type of each attribute in the relation
      * @param Query pattern that is to be constructed
      * @param Flag to indicate whether operation is indexable
      * @param A list of conditions that will be transformed to query patterns
      * @param Tuple identifier of the indexable operation
      * @result Remaining conditions that could not be transformed to an index
      */
-    std::unique_ptr<RamCondition> constructPattern(RamPattern& queryPattern, bool& indexable,
+    std::unique_ptr<RamCondition> constructPattern(const std::vector<std::string>& attributeTypes,
+            RamPattern& queryPattern, bool& indexable,
             std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier);
 
     /**

@@ -65,6 +65,51 @@ inline std::ostream& operator<<(std::ostream& os, BinaryConstraintOp x) {
     return os << toBinaryConstraintSymbol(x);
 }
 
+inline BinaryConstraintOp getEqConstraint(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return BinaryConstraintOp::FEQ;
+        case 'u': return BinaryConstraintOp::EQ;
+        case 'i': return BinaryConstraintOp::EQ; assert("Unsupported type");
+        default: return BinaryConstraintOp::EQ;
+    }
+}
+
+inline BinaryConstraintOp getLessEqualConstraint(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return BinaryConstraintOp::FLE;
+        case 'u': return BinaryConstraintOp::ULE;
+        case 'i': return BinaryConstraintOp::LE; assert("Unsupported type");
+        default: return BinaryConstraintOp::LE;
+    }
+}
+
+inline BinaryConstraintOp getGreaterEqualConstraint(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return BinaryConstraintOp::FGE;
+        case 'u': return BinaryConstraintOp::UGE;
+        case 'i': return BinaryConstraintOp::GE; assert("Unsupported type");
+        default: return BinaryConstraintOp::GE;
+    }
+}
+
+inline BinaryConstraintOp getLessThanConstraint(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return BinaryConstraintOp::FLT;
+        case 'u': return BinaryConstraintOp::ULT;
+        case 'i': return BinaryConstraintOp::LT; assert("Unsupported Type");
+        default: return BinaryConstraintOp::LT;
+    }
+}
+
+inline BinaryConstraintOp getGreaterThanConstraint(const std::string& type) {
+    switch (type[0]) {
+        case 'f': return BinaryConstraintOp::FGT;
+        case 'u': return BinaryConstraintOp::UGT;
+        case 'i': return BinaryConstraintOp::GT; assert("Unsupported Type");
+        default: return BinaryConstraintOp::GT;
+    }
+}
+
 inline bool isEqConstraint(const BinaryConstraintOp constraintOp) {
     switch (constraintOp) {
         case BinaryConstraintOp::EQ:

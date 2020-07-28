@@ -615,6 +615,8 @@ MinIndexSelection::AttributeSet MinIndexSelection::getAttributesToDischarge(
             rel.getRepresentation() != RelationRepresentation::DEFAULT) {
         return allInequalities;
     }
+
+    // do not support indexed inequalities with provenance
     if (Global::config().has("provenance")) {
         return allInequalities;
     }

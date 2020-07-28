@@ -150,4 +150,10 @@ constexpr char FUNCTOR_INTRINSIC_PREFIX_NEGATE_NAME[] = "negate";
 bool isInfixFunctorOp(std::string_view symbol);
 bool isInfixFunctorOp(FunctorOp op);
 
+/**
+ * Given a type of an an attribute it returns the appropriate min/max functor operation
+ */
+
+FunctorOp getMinOp(const std::string& type);
+FunctorOp getMaxOp(const std::string& type);
 }  // end of namespace souffle

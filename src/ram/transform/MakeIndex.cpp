@@ -262,8 +262,9 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
     return {std::make_unique<RamUndefValue>(), std::make_unique<RamUndefValue>()};
 }
 
-std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern& queryPattern,
-        bool& indexable, std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier) {
+std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
+        const std::vector<std::string>& attributeTypes, RamPattern& queryPattern, bool& indexable,
+        std::vector<std::unique_ptr<RamCondition>> conditionList, int identifier) {
     // Remaining conditions which cannot be handled by an index
     std::unique_ptr<RamCondition> condition;
     auto addCondition = [&](std::unique_ptr<RamCondition> c) {
@@ -280,6 +281,7 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
         std::unique_ptr<RamExpression> lowerExpression;
         std::unique_ptr<RamExpression> upperExpression;
         std::tie(lowerExpression, upperExpression) = getLowerUpperExpression(cond.get(), element, identifier);
+        auto type = attributeTypes[element];
 
         // we have new bounds if at least one is defined
         if (!isRamUndefValue(lowerExpression.get()) || !isRamUndefValue(upperExpression.get())) {
@@ -307,19 +309,19 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
                 // simply hoist <expr1> = <expr2> to the outer loop
                 if (!isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
                     // FIXME: `FEQ` handling; need to know if the expr is a float exp or not
-                    addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::EQ,
+                    addCondition(std::make_unique<RamConstraint>(getEqConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(lowerExpression)));
                 }
                 // new lower bound i.e. Tuple[level, element] >= <expr2>
                 // we need to hoist <expr1> >= <expr2> to the outer loop
                 else if (!isRamUndefValue(lowerExpression.get()) && isRamUndefValue(upperExpression.get())) {
-                    addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::GE,
+                    addCondition(std::make_unique<RamConstraint>(getGreaterEqualConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(lowerExpression)));
                 }
                 // new upper bound i.e. Tuple[level, element] <= <expr2>
                 // we need to hoist <expr1> <= <expr2> to the outer loop
                 else if (isRamUndefValue(lowerExpression.get()) && !isRamUndefValue(upperExpression.get())) {
-                    addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::LE,
+                    addCondition(std::make_unique<RamConstraint>(getLessEqualConstraint(type),
                             souffle::clone(queryPattern.first[element]), std::move(upperExpression)));
                 }
                 // if either bound is defined but they aren't equal we must consider the cases for updating
@@ -333,13 +335,13 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
                     // if Tuple[level, element] >= <expr1> and we see Tuple[level, element] = <expr2>
                     // need to hoist <expr2> >= <expr1> to the outer loop
                     if (!isRamUndefValue(queryPattern.first[element].get())) {
-                        addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::GE,
+                        addCondition(std::make_unique<RamConstraint>(getGreaterEqualConstraint(type),
                                 souffle::clone(lowerExpression), std::move(queryPattern.first[element])));
                     }
                     // if Tuple[level, element] <= <expr1> and we see Tuple[level, element] = <expr2>
                     // need to hoist <expr2> <= <expr1> to the outer loop
                     if (!isRamUndefValue(queryPattern.second[element].get())) {
-                        addCondition(std::make_unique<RamConstraint>(BinaryConstraintOp::LE,
+                        addCondition(std::make_unique<RamConstraint>(getLessEqualConstraint(type),
                                 souffle::clone(upperExpression), std::move(queryPattern.second[element])));
                     }
                     // finally replace bounds with equality constraint
@@ -353,7 +355,7 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
                     maxArguments.push_back(std::move(lowerExpression));
 
                     queryPattern.first[element] =
-                            std::make_unique<RamIntrinsicOperator>(FunctorOp::MAX, std::move(maxArguments));
+                            std::make_unique<RamIntrinsicOperator>(getMaxOp(type), std::move(maxArguments));
                     // if we have a new upper bound
                 } else if (!isRamUndefValue(upperExpression.get())) {
                     // we want the tightest upper bound so we take the min
@@ -362,7 +364,7 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(RamPattern&
                     minArguments.push_back(std::move(upperExpression));
 
                     queryPattern.second[element] =
-                            std::make_unique<RamIntrinsicOperator>(FunctorOp::MIN, std::move(minArguments));
+                            std::make_unique<RamIntrinsicOperator>(getMinOp(type), std::move(minArguments));
                 }
             }
         } else {
@@ -389,8 +391,8 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
         }
 
         bool indexable = false;
-        std::unique_ptr<RamCondition> condition = constructPattern(
-                queryPattern, indexable, toConjunctionList(&agg->getCondition()), identifier);
+        std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern,
+                indexable, toConjunctionList(&agg->getCondition()), identifier);
         if (indexable) {
             return std::make_unique<RamIndexAggregate>(souffle::clone(&agg->getOperation()),
                     agg->getFunction(), std::make_unique<RamRelationReference>(&rel),
@@ -412,8 +414,8 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteScan(const RamScan* s
         }
 
         bool indexable = false;
-        std::unique_ptr<RamCondition> condition = constructPattern(
-                queryPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
+        std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(), queryPattern,
+                indexable, toConjunctionList(&filter->getCondition()), identifier);
         if (indexable) {
             std::unique_ptr<RamOperation> op = souffle::clone(&filter->getOperation());
             if (!isRamTrue(condition.get())) {
@@ -437,7 +439,7 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteIndexScan(const RamIn
 
         bool indexable = false;
         // strengthen the pattern with construct pattern
-        std::unique_ptr<RamCondition> condition = constructPattern(
+        std::unique_ptr<RamCondition> condition = constructPattern(rel.getAttributeTypes(),
                 strengthenedPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
 
         if (indexable) {
