@@ -54,7 +54,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
     visitDepthFirst(program, [&](const AstClause& clause) {
         visitDepthFirst(clause, [&](const AstAggregator& agg) {
             // check whether a materialization is required
-            if (!needsMaterializedRelation(agg)) {
+            if (!needsMaterializedRelation(const_cast<AstAggregator&>(agg), program)) {
                 return;
             }
             changed = true;
@@ -196,17 +196,44 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
     return changed;
 }
 
-bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(const AstAggregator& agg) {
+bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(
+        AstAggregator& agg, AstProgram& program) {
     // everything with more than 1 body literal => materialize
-    if (agg.getBodyLiterals().size() > 1) {
+    int countAtoms = 0;
+    const AstAtom* atom = nullptr;
+    for (const auto& literal : agg.getBodyLiterals()) {
+        const AstAtom* currentAtom = dynamic_cast<const AstAtom*>(literal);
+        if (currentAtom != nullptr) {
+            ++countAtoms;
+            atom = currentAtom;
+        }
+    }
+
+    if (countAtoms > 1) {
         return true;
     }
 
-    // Inspect remaining atom more closely
-    const AstAtom* atom = dynamic_cast<const AstAtom*>(agg.getBodyLiterals()[0]);
+    auto newAtom = std::make_unique<AstAtom>();
+    // Create a dummy true atom so that an aggregate without any atom
+    // can be evaluated without materialising
     if (atom == nullptr) {
-        // No atoms, so materialize
-        return true;
+        std::string relName = "+Tautology";
+        newAtom->setQualifiedName(relName);
+        auto clause = std::make_unique<AstClause>();
+        clause->setHead(souffle::clone(newAtom));
+        program.addClause(std::move(clause));
+        if (getRelation(program, relName) == nullptr) {
+            auto tautologyRel = std::make_unique<AstRelation>();
+            tautologyRel->setQualifiedName(relName);
+            program.addRelation(std::move(tautologyRel));
+        }
+        VecOwn<AstLiteral> newBody;
+        for (const auto& lit : agg.getBodyLiterals()) {
+            newBody.push_back(souffle::clone(lit));
+        }
+        newBody.push_back(souffle::clone(newAtom));
+        agg.setBody(std::move(newBody));
+        atom = newAtom.get();
     }
 
     // If the same variable occurs several times => materialize

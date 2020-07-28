@@ -1,0 +1,20 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+// Test that aggregates with a SINGLE atom in their body and any amount
+// of constraints are NOT materialised -- they don't need to be! Only
+// aggregates with more than one atom need materialising.
+.decl point(x:number, y:number)
+point(0, 0).
+point(1, 1).
+point(2, 2).
+point(-1, 1).
+point(-1, -1).
+point(3, -3).
+
+.decl out(r:number, x:number)
+.output out
+out(0,0).
+out(r+1, z) :- r < 30, out(r,_), z = count : { point(x,y), x <= r + 1, x >= -r - 1, y <= r + 1, y >= -r - 1 }.

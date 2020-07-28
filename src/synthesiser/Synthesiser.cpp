@@ -945,7 +945,6 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 case AggregateOp::FSUM:
                 case AggregateOp::USUM:
                 case AggregateOp::COUNT:
-
                 case AggregateOp::SUM: {
                     op = "+";
                     break;
@@ -1290,13 +1289,12 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 case AggregateOp::MEAN:
                 case AggregateOp::FSUM:
                 case AggregateOp::USUM:
-
+                case AggregateOp::COUNT:
                 case AggregateOp::SUM: {
                     op = "+";
                     break;
                 }
 
-                case AggregateOp::COUNT: break;
                 default: fatal("Unhandled aggregate operation");
             }
 
