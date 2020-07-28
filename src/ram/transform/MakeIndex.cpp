@@ -281,12 +281,12 @@ std::unique_ptr<RamCondition> MakeIndexTransformer::constructPattern(
         std::unique_ptr<RamExpression> lowerExpression;
         std::unique_ptr<RamExpression> upperExpression;
         std::tie(lowerExpression, upperExpression) = getLowerUpperExpression(cond.get(), element, identifier);
-        auto type = attributeTypes[element];
 
         // we have new bounds if at least one is defined
         if (!isRamUndefValue(lowerExpression.get()) || !isRamUndefValue(upperExpression.get())) {
             // if no previous bounds are set then just assign them, consider both bounds to be set (but not
             // necessarily defined) in all remaining cases
+            auto type = attributeTypes[element];
             indexable = true;
             if (isRamUndefValue(queryPattern.first[element].get()) &&
                     isRamUndefValue(queryPattern.second[element].get())) {
