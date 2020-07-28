@@ -112,7 +112,6 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                                 std::make_unique<RamRelationReference>(&ichoice->getRelation()),
                                 ichoice->getTupleId(), souffle::clone(&ichoice->getCondition()),
                                 std::move(updatedPattern), std::move(filter), ichoice->getProfileText());
-
                     } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
                         node = std::make_unique<RamIndexAggregate>(std::move(filter), iagg->getFunction(),
                                 std::make_unique<RamRelationReference>(&iagg->getRelation()),
