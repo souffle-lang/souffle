@@ -460,14 +460,23 @@ void AstToRamTranslator::ClauseTranslator::createValueIndex(const AstClause& cla
         if (auto agg = dynamic_cast<const AstAggregator*>(&arg)) {
             if (auto aggLoc = addGenerator()) {
                 // bind aggregator variables to locations
-                const AstAtom& atom = dynamic_cast<const AstAtom&>(*agg->getBodyLiterals()[0]);
-                size_t pos = 0;
-                for (auto* arg : atom.getArguments()) {
-                    if (const auto* var = dynamic_cast<const AstVariable*>(arg)) {
-                        valueIndex.addVarReference(
-                                *var, *aggLoc, (int)pos, translator.translateRelation(&atom));
+                const AstAtom* atom = nullptr;
+                for (auto lit : agg->getBodyLiterals()) {
+                    if (atom == nullptr) {
+                        atom = dynamic_cast<const AstAtom*>(lit);
+                    } else {
+                        break;
                     }
-                    ++pos;
+                }
+                if (atom != nullptr) {
+                    size_t pos = 0;
+                    for (auto* arg : atom->getArguments()) {
+                        if (const auto* var = dynamic_cast<const AstVariable*>(arg)) {
+                            valueIndex.addVarReference(
+                                    *var, *aggLoc, (int)pos, translator.translateRelation(atom));
+                        }
+                        ++pos;
+                    }
                 }
             }
         }
@@ -681,7 +690,7 @@ std::unique_ptr<RamStatement> AstToRamTranslator::ClauseTranslator::translateCla
                 if (atom == nullptr) {
                     atom = dynamic_cast<const AstAtom*>(lit);
                 } else {
-                    assert(dynamic_cast<const AstAtom*>(lit) != nullptr &&
+                    assert(dynamic_cast<const AstAtom*>(lit) == nullptr &&
                             "Unsupported complex aggregation body encountered!");
                 }
             }

@@ -76,7 +76,7 @@ bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
                             souffle::clone(&indexChoice->getOperation()), indexChoice->getProfileText());
                 }
             } else if (const RamAggregate* aggregate = dynamic_cast<RamAggregate*>(node.get())) {
-                if (aggregate->getTupleId() == 0) {
+                if (aggregate->getTupleId() == 0 && !aggregate->getRelation().isNullary()) {
                     changed = true;
                     const RamRelation& rel = aggregate->getRelation();
                     return std::make_unique<RamParallelAggregate>(
@@ -88,7 +88,7 @@ bool ParallelTransformer::parallelizeOperations(RamProgram& program) {
                 }
             } else if (const RamIndexAggregate* indexAggregate =
                                dynamic_cast<RamIndexAggregate*>(node.get())) {
-                if (indexAggregate->getTupleId() == 0) {
+                if (indexAggregate->getTupleId() == 0 && !indexAggregate->getRelation().isNullary()) {
                     changed = true;
                     const RamRelation& rel = indexAggregate->getRelation();
                     RamPattern queryPattern = clone(indexAggregate->getRangePattern());
