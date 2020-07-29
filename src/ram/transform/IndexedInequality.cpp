@@ -93,7 +93,8 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
 
                 if (condition) {
                     auto nestedOp = souffle::clone(&indexOperation->getOperation());
-                    auto filter = std::make_unique<RamFilter>(std::move(condition), std::move(nestedOp));
+                    auto filter =
+                            std::make_unique<RamFilter>(souffle::clone(condition), souffle::clone(nestedOp));
 
                     // need to rewrite the node with the same index operation
                     if (const RamIndexScan* iscan = dynamic_cast<RamIndexScan*>(node.get())) {
@@ -112,10 +113,17 @@ bool IndexedInequalityTransformer::transformIndexToFilter(RamProgram& program) {
                                 std::make_unique<RamRelationReference>(&ichoice->getRelation()),
                                 ichoice->getTupleId(), souffle::clone(&ichoice->getCondition()),
                                 std::move(updatedPattern), std::move(filter), ichoice->getProfileText());
+                        // in the case of an aggregate we must strengthen the condition of the aggregate
+                        // it doesn't make sense to nest a filter operation because the aggregate needs the
+                        // condition
                     } else if (const RamIndexAggregate* iagg = dynamic_cast<RamIndexAggregate*>(node.get())) {
-                        node = std::make_unique<RamIndexAggregate>(std::move(filter), iagg->getFunction(),
+                        auto strengthenedCondition = addCondition(
+                                std::unique_ptr<RamCondition>(souffle::clone(&iagg->getCondition())),
+                                std::move(condition));
+
+                        node = std::make_unique<RamIndexAggregate>(std::move(nestedOp), iagg->getFunction(),
                                 std::make_unique<RamRelationReference>(&iagg->getRelation()),
-                                souffle::clone(&iagg->getExpression()), souffle::clone(&iagg->getCondition()),
+                                souffle::clone(&iagg->getExpression()), std::move(strengthenedCondition),
                                 std::move(updatedPattern), iagg->getTupleId());
                     } else {
                         fatal("New RamIndexOperation subclass found but not supported while making index.");

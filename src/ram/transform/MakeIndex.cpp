@@ -400,6 +400,7 @@ std::unique_ptr<RamOperation> MakeIndexTransformer::rewriteAggregate(const RamAg
                     agg->getTupleId());
         }
     }
+
     return nullptr;
 }
 
