@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include "ram/RamTranslationUnit.h"
-#include "ram/analysis/RamIndexAnalysis.h"
-#include "ram/transform/RamTransformer.h"
+#include "ram/TranslationUnit.h"
+#include "ram/analysis/IndexAnalysis.h"
+#include "ram/transform/Transformer.h"
 #include <string>
 
 namespace souffle {

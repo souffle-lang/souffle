@@ -20,7 +20,7 @@
 #include "SymbolTable.h"
 #include "interpreter/InterpreterProgInterface.h"
 #include "interpreter/InterpreterRelation.h"
-#include "ram/analysis/RamIndexAnalysis.h"
+#include "ram/analysis/IndexAnalysis.h"
 #include <iosfwd>
 #include <string>
 #include <utility>

@@ -13,14 +13,14 @@
  ***********************************************************************/
 
 #include "ram/transform/ReorderConditions.h"
-#include "ram/RamCondition.h"
-#include "ram/RamNode.h"
-#include "ram/RamOperation.h"
-#include "ram/RamProgram.h"
-#include "ram/RamStatement.h"
-#include "ram/RamUtils.h"
-#include "ram/RamVisitor.h"
-#include "ram/analysis/RamComplexityAnalysis.h"
+#include "ram/Condition.h"
+#include "ram/Node.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
+#include "ram/Statement.h"
+#include "ram/Utils.h"
+#include "ram/Visitor.h"
+#include "ram/analysis/ComplexityAnalysis.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>
 #include <functional>

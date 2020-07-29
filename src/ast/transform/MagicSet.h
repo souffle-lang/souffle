@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstClause.h"
-#include "ast/AstLiteral.h"
-#include "ast/AstQualifiedName.h"
-#include "ast/AstVisitor.h"
-#include "ast/analysis/AstAnalysis.h"
-#include "ast/transform/AstTransformer.h"
+#include "ast/Abstract.h"
+#include "ast/Argument.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/QualifiedName.h"
+#include "ast/Visitor.h"
+#include "ast/analysis/Analysis.h"
+#include "ast/transform/Transformer.h"
 #include "utility/StreamUtil.h"
 #include <cstddef>
 #include <map>

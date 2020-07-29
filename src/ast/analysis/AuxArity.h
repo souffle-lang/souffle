@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "ast/AstLiteral.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstUtils.h"
-#include "ast/analysis/AstAnalysis.h"
+#include "ast/Literal.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
+#include "ast/analysis/Analysis.h"
 #include <cstddef>
 #include <string>
 

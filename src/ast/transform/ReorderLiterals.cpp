@@ -17,15 +17,15 @@
 
 #include "ast/transform/ReorderLiterals.h"
 #include "Global.h"
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstClause.h"
-#include "ast/AstLiteral.h"
-#include "ast/AstProgram.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstUtils.h"
-#include "ast/AstVisitor.h"
-#include "ast/analysis/AstProfileUse.h"
+#include "ast/Abstract.h"
+#include "ast/Argument.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
+#include "ast/Visitor.h"
+#include "ast/analysis/ProfileUse.h"
 #include <algorithm>
 #include <cmath>
 #include <functional>

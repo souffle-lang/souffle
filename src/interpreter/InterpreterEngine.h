@@ -21,8 +21,8 @@
 #include "RecordTable.h"
 #include "interpreter/InterpreterGenerator.h"
 #include "interpreter/InterpreterIndex.h"
-#include "ram/RamTranslationUnit.h"
-#include "ram/analysis/RamIndexAnalysis.h"
+#include "ram/TranslationUnit.h"
+#include "ram/analysis/IndexAnalysis.h"
 #include <atomic>
 #include <cstddef>
 #include <deque>

@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "ram/analysis/RamIndexAnalysis.h"
+#include "ram/analysis/IndexAnalysis.h"
 #include <cstddef>
 #include <cstdint>
 #include <set>

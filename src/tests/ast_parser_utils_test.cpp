@@ -16,10 +16,10 @@
 
 #include "tests/test.h"
 
-#include "ast/AstClause.h"
-#include "ast/AstLiteral.h"
-#include "ast/AstNode.h"
-#include "ast/AstParserUtils.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/Node.h"
+#include "ast/ParserUtils.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StringUtil.h"
 #include <memory>

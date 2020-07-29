@@ -34,7 +34,7 @@
     #include <unistd.h>
     #include <cstring>
 
-    #include "ast/AstProgram.h"
+    #include "ast/Program.h"
 
     #include "SrcLocation.h"
     #define YYLTYPE SrcLocation

@@ -18,11 +18,11 @@
 
 #include "ast/analysis/RedundantRelations.h"
 #include "GraphUtils.h"
-#include "ast/AstNode.h"
-#include "ast/AstProgram.h"
-#include "ast/AstRelation.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/analysis/AstIOType.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/IOType.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "utility/StreamUtil.h"
 #include <set>

@@ -13,11 +13,11 @@
  ***********************************************************************/
 
 #include "ram/transform/HoistAggregate.h"
-#include "ram/RamNode.h"
-#include "ram/RamOperation.h"
-#include "ram/RamProgram.h"
-#include "ram/RamStatement.h"
-#include "ram/RamVisitor.h"
+#include "ram/Node.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
+#include "ram/Statement.h"
+#include "ram/Visitor.h"
 #include "utility/MiscUtil.h"
 #include <cassert>
 #include <functional>

@@ -19,11 +19,11 @@
 #include "BinaryConstraintOps.h"
 #include "FunctorOps.h"
 #include "RelationTag.h"
-#include "ram/RamCondition.h"
-#include "ram/RamExpression.h"
-#include "ram/RamOperation.h"
-#include "ram/RamRelation.h"
-#include "ram/RamStatement.h"
+#include "ram/Condition.h"
+#include "ram/Expression.h"
+#include "ram/Operation.h"
+#include "ram/Relation.h"
+#include "ram/Statement.h"
 #include <algorithm>
 #include <map>
 #include <memory>

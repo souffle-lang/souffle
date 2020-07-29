@@ -19,8 +19,8 @@
 #pragma once
 
 #include "GraphUtils.h"
-#include "ast/AstRelation.h"
-#include "ast/analysis/AstAnalysis.h"
+#include "ast/Relation.h"
+#include "ast/analysis/Analysis.h"
 #include <iostream>
 #include <string>
 

@@ -13,11 +13,11 @@
  ***********************************************************************/
 
 #include "ast/transform/UniqueAggregationVariables.h"
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstProgram.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstVisitor.h"
+#include "ast/Abstract.h"
+#include "ast/Argument.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Visitor.h"
 #include "utility/StringUtil.h"
 #include <set>
 #include <vector>

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "ast/AstUtils.h"
-#include "ast/transform/AstTransformer.h"
+#include "ast/Utils.h"
+#include "ast/transform/Transformer.h"
 #include <map>
 #include <string>
 #include <vector>

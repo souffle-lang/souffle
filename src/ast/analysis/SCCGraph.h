@@ -19,9 +19,9 @@
 #pragma once
 
 #include "GraphUtils.h"
-#include "ast/AstRelation.h"
-#include "ast/analysis/AstAnalysis.h"
-#include "ast/analysis/AstIOType.h"
+#include "ast/Relation.h"
+#include "ast/analysis/Analysis.h"
+#include "ast/analysis/IOType.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include <cstddef>
 #include <iostream>

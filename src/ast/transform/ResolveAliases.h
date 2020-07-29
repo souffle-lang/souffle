@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "ast/transform/AstTransformer.h"
+#include "ast/transform/Transformer.h"
 #include <memory>
 #include <string>
 

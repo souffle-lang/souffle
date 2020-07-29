@@ -14,11 +14,11 @@
 
 #include "ast/transform/RemoveRedundantSums.h"
 #include "AggregateOp.h"
-#include "ast/AstAbstract.h"
-#include "ast/AstArgument.h"
-#include "ast/AstNode.h"
-#include "ast/AstProgram.h"
-#include "ast/AstTranslationUnit.h"
+#include "ast/Abstract.h"
+#include "ast/Argument.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>

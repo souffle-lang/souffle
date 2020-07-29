@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include "ast/AstUtils.h"
-#include "ast/analysis/AstTypeEnvironment.h"
+#include "ast/Utils.h"
 #include "ast/analysis/AuxArity.h"
-#include "ast/transform/AstTransformer.h"
+#include "ast/analysis/TypeEnvironment.h"
+#include "ast/transform/Transformer.h"
 #include <map>
 #include <string>
 #include <vector>

@@ -15,7 +15,7 @@
  ***********************************************************************/
 
 #include "interpreter/InterpreterRelation.h"
-#include "ram/analysis/RamIndexAnalysis.h"
+#include "ram/analysis/IndexAnalysis.h"
 #include <algorithm>
 #include <cassert>
 #include <set>

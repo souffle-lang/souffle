@@ -13,12 +13,12 @@
  ***********************************************************************/
 
 #include "ast/transform/NameUnnamedVariables.h"
-#include "ast/AstArgument.h"
-#include "ast/AstClause.h"
-#include "ast/AstNode.h"
-#include "ast/AstProgram.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstUtils.h"
+#include "ast/Argument.h"
+#include "ast/Clause.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
 #include <cstddef>
 #include <memory>
 #include <ostream>

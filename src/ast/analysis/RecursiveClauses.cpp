@@ -17,13 +17,13 @@
  ***********************************************************************/
 
 #include "ast/analysis/RecursiveClauses.h"
-#include "ast/AstClause.h"
-#include "ast/AstLiteral.h"
-#include "ast/AstNode.h"
-#include "ast/AstProgram.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/AstUtils.h"
-#include "ast/AstVisitor.h"
+#include "ast/Clause.h"
+#include "ast/Literal.h"
+#include "ast/Node.h"
+#include "ast/Program.h"
+#include "ast/TranslationUnit.h"
+#include "ast/Utils.h"
+#include "ast/Visitor.h"
 #include "ast/analysis/RelationDetailCache.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

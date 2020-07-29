@@ -13,12 +13,12 @@
  ***********************************************************************/
 
 #include "ram/transform/HoistConditions.h"
-#include "ram/RamCondition.h"
-#include "ram/RamNode.h"
-#include "ram/RamOperation.h"
-#include "ram/RamProgram.h"
-#include "ram/RamStatement.h"
-#include "ram/RamVisitor.h"
+#include "ram/Condition.h"
+#include "ram/Node.h"
+#include "ram/Operation.h"
+#include "ram/Program.h"
+#include "ram/Statement.h"
+#include "ram/Visitor.h"
 #include "utility/MiscUtil.h"
 #include <functional>
 #include <memory>

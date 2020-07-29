@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "ast/AstQualifiedName.h"
-#include "ast/analysis/AstAnalysis.h"
+#include "ast/QualifiedName.h"
+#include "ast/analysis/Analysis.h"
 #include <cstddef>
 #include <map>
 #include <set>

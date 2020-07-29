@@ -17,9 +17,9 @@
  ***********************************************************************/
 
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
-#include "ast/AstQualifiedName.h"
-#include "ast/AstRelation.h"
-#include "ast/AstTranslationUnit.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
 #include "ast/analysis/SCCGraph.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

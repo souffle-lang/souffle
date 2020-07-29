@@ -18,9 +18,9 @@
 
 #include "ast/analysis/RelationSchedule.h"
 #include "GraphUtils.h"
-#include "ast/AstQualifiedName.h"
-#include "ast/AstRelation.h"
-#include "ast/AstTranslationUnit.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/SCCGraph.h"
 #include "ast/analysis/TopologicallySortedSCCGraph.h"

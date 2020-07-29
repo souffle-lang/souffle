@@ -18,7 +18,7 @@
 
 #include "FunctorOps.h"
 #include "RamTypes.h"
-#include "ram/RamExpression.h"
+#include "ram/Expression.h"
 #include <memory>
 #include <string>
 #include <utility>

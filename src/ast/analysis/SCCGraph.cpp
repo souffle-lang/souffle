@@ -19,11 +19,11 @@
 #include "ast/analysis/SCCGraph.h"
 #include "Global.h"
 #include "GraphUtils.h"
-#include "ast/AstProgram.h"
-#include "ast/AstQualifiedName.h"
-#include "ast/AstRelation.h"
-#include "ast/AstTranslationUnit.h"
-#include "ast/analysis/AstIOType.h"
+#include "ast/Program.h"
+#include "ast/QualifiedName.h"
+#include "ast/Relation.h"
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/IOType.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>
 #include <cassert>

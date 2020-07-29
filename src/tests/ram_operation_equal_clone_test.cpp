@@ -19,10 +19,10 @@
 #include "AggregateOp.h"
 #include "BinaryConstraintOps.h"
 #include "RelationTag.h"
-#include "ram/RamCondition.h"
-#include "ram/RamExpression.h"
-#include "ram/RamOperation.h"
-#include "ram/RamRelation.h"
+#include "ram/Condition.h"
+#include "ram/Expression.h"
+#include "ram/Operation.h"
+#include "ram/Relation.h"
 #include <memory>
 #include <string>
 #include <utility>

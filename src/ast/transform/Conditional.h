@@ -17,7 +17,7 @@
 #pragma once
 
 #include "DebugReporter.h"
-#include "ast/transform/AstTransformer.h"
+#include "ast/transform/Transformer.h"
 #include <functional>
 #include <memory>
 #include <set>
