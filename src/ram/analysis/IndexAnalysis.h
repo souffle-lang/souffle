@@ -364,7 +364,8 @@ protected:
     /** @Brief checks if two chains form an antichain */
     bool formsAntichain(const Chain& left, const Chain& right) const;
 
-    /** @Brief merge chains with 1->2 edges in the delta that are permissable */
+    /** @Brief merge chains with 1->2 edges in the delta if we can produce a chain that can form a valid
+     * lex-order */
     void mergeChains(ChainOrderMap& chains, DischargeMap& map);
 
     /** @Brief merge chains by discharging a single inequality at a time */
