@@ -1,4 +1,18 @@
 souffle (@VERSION@-1) UNRELEASED; urgency=low
+  * Stop overmaterialising aggregate bodies (rdowavic)
+  * Parallelise aggregate computation (rdowavic)
+  * Add JSON IO (GaloisNeko)
+  * Extend program minimiser (azreika)
+  * Use greater precision for floating point output (mmcgr)
+  * Fix duplicated symbols with multiple souffle object files (luc-tielen)
+  * Fix multithreaded, interpreted, provenance (taipan-snake)
+  * Fix provenance constraint explanation (taipan-snake)
+  * Fix path detection for souffle tools (mmcgr)
+  * Fix output directory use (mmcgr)
+
+ -- Martin McGrane <mmcgrane@it.usyd.edu.au>  Wed, 29 Jul 2020 11:54:01 +1100
+
+souffle (2.0.0); urgency=low
   * Added `--legacy` flag to allow use of legacy options (darth-tytus)
   * Added `--show [...]` flag to show various extra bits of information for
     debugging/optimising (lyndonhenry)

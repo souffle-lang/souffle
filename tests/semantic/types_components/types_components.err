@@ -1,0 +1,3 @@
+Warning: No rules/facts defined for relation cfg.edge in file types_components.dl at line 18
+      .decl edge(a:TNode,b:TNode)
+------------^---------------------

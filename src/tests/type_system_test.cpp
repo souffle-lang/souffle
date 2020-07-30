@@ -255,4 +255,13 @@ TEST(TypeSystem, RecordSubsets) {
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, R)));
 }
 
+TEST(TypeSystem, EquivTypes) {
+    TypeEnvironment env;
+
+    auto& A = env.createType<SubsetType>("A", env.getType("number"));
+    auto& U = env.createType<UnionType>("U", toVector(dynamic_cast<const Type*>(&A)));
+
+    EXPECT_TRUE(areEquivalentTypes(A, U));
+}
+
 }  // namespace souffle::test

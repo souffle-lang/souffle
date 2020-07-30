@@ -1,0 +1,39 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2020, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+//
+// Types components
+// Check if types are deduced correctly, created for #1520
+//
+
+
+// aeflores' example
+.type BasicBlock <: symbol
+
+.comp Graph<N> {
+      .type TNode = N
+      .decl edge(a:TNode,b:TNode)
+}
+
+.init cfg = Graph<BasicBlock>
+
+.decl reach(a:BasicBlock, b:BasicBlock, c:BasicBlock)
+reach(origin, mid, end) :- reach(origin, z, end),
+                           cfg.edge(z, mid),
+                           mid != end.
+
+
+// azreika's example
+.type TypeOne = symbol
+.type TypeTwo = TypeOne
+
+.decl A(X:TypeOne)
+A("hello").
+
+.decl B(X:TypeTwo)
+B(X) :- A(Y), B(X), X != Y.
+
+.output B()

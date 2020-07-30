@@ -365,11 +365,7 @@ private:
  */
 class TypeEnvironment {
 public:
-    TypeEnvironment()
-            : constantTypes(initializeConstantTypes()),
-              constantNumericTypes(TypeSet(getType("__numberConstant"), getType("__unsignedConstant"),
-                      getType("__floatConstant"))),
-              primitiveTypes(initializePrimitiveTypes()){};
+    TypeEnvironment() = default;
 
     TypeEnvironment(const TypeEnvironment&) = delete;
 
@@ -446,10 +442,11 @@ private:
     /** The list of covered types. */
     std::map<AstQualifiedName, std::unique_ptr<Type>> types;
 
-    const TypeSet constantTypes;
-    const TypeSet constantNumericTypes;
+    const TypeSet constantTypes = initializeConstantTypes();
+    const TypeSet constantNumericTypes =
+            TypeSet(getType("__numberConstant"), getType("__unsignedConstant"), getType("__floatConstant"));
 
-    const TypeSet primitiveTypes;
+    const TypeSet primitiveTypes = initializePrimitiveTypes();
 };
 
 // ---------------------------------------------------------------
@@ -513,5 +510,11 @@ TypeSet getGreatestCommonSubtypes(const Types&... types) {
  * Determine if there exist a type t such that a <: t and b <: t
  */
 bool haveCommonSupertype(const Type& a, const Type& b);
+
+/**
+ * Determine if two types are equivalent.
+ * That is, check if a <: b and b <: a
+ */
+bool areEquivalentTypes(const Type& a, const Type& b);
 
 }  // end namespace souffle
