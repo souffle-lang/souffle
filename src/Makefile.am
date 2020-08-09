@@ -81,7 +81,6 @@ endif
 
 
 souffle_sources = \
-        Constraints.h                                      \
         DebugReport.cpp                                    \
         DebugReport.h                                      \
         ErrorReport.h                                      \
@@ -144,6 +143,7 @@ souffle_sources = \
         ast/analysis/ComponentLookup.cpp                   \
         ast/analysis/ComponentLookup.h                     \
         ast/analysis/Constraint.h                          \
+        ast/analysis/ConstraintSystem.h                    \
         ast/analysis/Ground.cpp                            \
         ast/analysis/Ground.h                              \
         ast/analysis/IOType.cpp                            \
