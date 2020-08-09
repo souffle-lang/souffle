@@ -14,7 +14,6 @@
  *
  ***********************************************************************/
 
-#include "AstToRamTranslator.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "Explain.h"
@@ -61,6 +60,7 @@
 #include "ast/transform/SemanticChecker.h"
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast/transform/UserDefinedFunctors.h"
+#include "ast2ram/AstToRamTranslator.h"
 #include "config.h"
 #include "interpreter/InterpreterEngine.h"
 #include "interpreter/InterpreterProgInterface.h"
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
 #else
         // Check that -j option has not been changed from the default
         if (Global::config().get("jobs") != "1" && !Global::config().has("no-warn")) {
-            //    std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
+            std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
         }
 #endif
 
