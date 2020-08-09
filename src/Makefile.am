@@ -81,8 +81,6 @@ endif
 
 
 souffle_sources = \
-        AstToRamTranslator.cpp                             \
-        AstToRamTranslator.h                               \
         Constraints.h                                      \
         DebugReport.cpp                                    \
         DebugReport.h                                      \
@@ -245,6 +243,8 @@ souffle_sources = \
         ast/transform/UserDefinedFunctors.cpp              \
         ast/transform/UserDefinedFunctors.h                \
         ast/transform/While.h                              \
+        ast2ram/AstToRamTranslator.cpp                     \
+        ast2ram/AstToRamTranslator.h                       \
         interpreter/InterpreterContext.h                   \
         interpreter/InterpreterEngine.cpp                  \
         interpreter/InterpreterEngine.h                    \
