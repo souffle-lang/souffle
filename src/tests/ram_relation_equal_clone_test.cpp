@@ -16,7 +16,7 @@
 
 #include "tests/test.h"
 
-#include "RelationTag.h"
+#include "parser/RelationTag.h"
 #include "ram/Relation.h"
 #include <string>
 

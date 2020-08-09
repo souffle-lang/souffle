@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include "BinaryConstraintOps.h"
 #include "ExplainProvenance.h"
 #include "ExplainTree.h"
 #include "RamTypes.h"
 #include "SouffleInterface.h"
 #include "SymbolTable.h"
+#include "parser/BinaryConstraintOps.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

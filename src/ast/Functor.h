@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "TypeAttribute.h"
 #include "ast/Term.h"
+#include "parser/TypeAttribute.h"
 #include <cstddef>
 
 namespace souffle {

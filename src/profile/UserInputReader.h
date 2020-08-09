@@ -257,20 +257,11 @@ public:
     }
     void moveCursor(char direction) {
         switch (direction) {
-            case 'A':
-                historyUp();
-                break;
-            case 'B':
-                historyDown();
-                break;
-            case 'C':
-                moveCursorRight();
-                break;
-            case 'D':
-                moveCursorLeft();
-                break;
-            default:
-                break;
+            case 'A': historyUp(); break;
+            case 'B': historyDown(); break;
+            case 'C': moveCursorRight(); break;
+            case 'D': moveCursorLeft(); break;
+            default: break;
         }
     }
     void moveCursorRight() {

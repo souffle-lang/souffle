@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "TypeAttribute.h"
+#include "parser/TypeAttribute.h"
 #include "ram/AbstractOperator.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

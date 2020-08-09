@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "TypeAttribute.h"
 #include "ast/Node.h"
 #include "parser/SrcLocation.h"
+#include "parser/TypeAttribute.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

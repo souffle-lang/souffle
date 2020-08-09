@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "AggregateOp.h"
+#include "parser/AggregateOp.h"
 #include "ram/AbstractParallel.h"
 #include "ram/Choice.h"
 #include "ram/Condition.h"

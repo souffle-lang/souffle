@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include "RelationTag.h"
 #include "ast/Attribute.h"
 #include "ast/Node.h"
 #include "ast/NodeMapper.h"
 #include "ast/QualifiedName.h"
+#include "parser/RelationTag.h"
 #include "parser/SrcLocation.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"

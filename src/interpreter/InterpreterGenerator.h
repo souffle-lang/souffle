@@ -19,11 +19,11 @@
 
 #include "Global.h"
 #include "RamTypes.h"
-#include "RelationTag.h"
 #include "interpreter/InterpreterIndex.h"
 #include "interpreter/InterpreterNode.h"
 #include "interpreter/InterpreterPreamble.h"
 #include "interpreter/InterpreterRelation.h"
+#include "parser/RelationTag.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

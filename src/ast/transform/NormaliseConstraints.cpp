@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/NormaliseConstraints.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
@@ -27,6 +26,7 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
+#include "parser/BinaryConstraintOps.h"
 #include "utility/MiscUtil.h"
 #include <cassert>
 #include <memory>

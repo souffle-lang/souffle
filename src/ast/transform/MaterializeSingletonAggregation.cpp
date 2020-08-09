@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/MaterializeSingletonAggregation.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -30,6 +29,7 @@
 #include "ast/Utils.h"
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
+#include "parser/BinaryConstraintOps.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"
 #include <cassert>

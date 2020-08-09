@@ -81,25 +81,18 @@ endif
 
 
 souffle_sources = \
-        AggregateOp.h                                      \
         AstToRamTranslator.cpp                             \
         AstToRamTranslator.h                               \
-        BinaryConstraintOps.h                              \
         Constraints.h                                      \
         DebugReport.cpp                                    \
         DebugReport.h                                      \
         ErrorReport.h                                      \
-        FunctorOps.cpp                                     \
-        FunctorOps.h                                       \
         Global.cpp                                         \
         Global.h                                           \
         GraphUtils.h                                       \
         RamTypes.h                                         \
         RecordTable.h                                      \
-        RelationTag.h                                      \
         SignalHandler.h                                    \
-        TypeAttribute.h                                    \
-        TypeAttribute.cpp                                  \
         ast/Aggregator.h                                   \
         ast/Argument.h                                     \
         ast/Atom.h                                         \
@@ -263,12 +256,19 @@ souffle_sources = \
         interpreter/InterpreterProgInterface.h             \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \
+        parser/AggregateOp.h                               \
+        parser/BinaryConstraintOps.h                       \
+        parser/FunctorOps.cpp                              \
+        parser/FunctorOps.h                                \
         parser/ParserDriver.cpp                            \
         parser/ParserDriver.h                              \
         parser/ParserUtils.cpp                             \
         parser/ParserUtils.h                               \
+        parser/RelationTag.h                               \
         parser/SrcLocation.cpp                             \
         parser/SrcLocation.h                               \
+        parser/TypeAttribute.h                             \
+        parser/TypeAttribute.cpp                           \
         parser/parser.cc                                   \
         parser/parser.hh                                   \
         parser/scanner.cc                                  \
@@ -423,7 +423,7 @@ soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = \
         BTree.h                                            \
-        BinaryConstraintOps.h                              \
+        parser/BinaryConstraintOps.h                       \
         Brie.h                                             \
         CompiledOptions.h                                  \
         CompiledSouffle.h                                  \

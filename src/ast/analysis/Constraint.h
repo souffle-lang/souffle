@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include "Constraints.h"
 #include "ast/Argument.h"
 #include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
+#include "ast/analysis/ConstraintSystem.h"
 #include <map>
 #include <memory>
 #include <ostream>

@@ -16,7 +16,6 @@
 
 #include "tests/test.h"
 
-#include "AggregateOp.h"
 #include "DebugReport.h"
 #include "ErrorReport.h"
 #include "ast/Argument.h"
@@ -30,6 +29,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
+#include "parser/AggregateOp.h"
 #include "parser/ParserDriver.h"
 #include <algorithm>
 #include <iostream>

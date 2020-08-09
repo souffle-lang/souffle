@@ -16,9 +16,9 @@
 
 #include "tests/test.h"
 
-#include "BinaryConstraintOps.h"
-#include "FunctorOps.h"
-#include "RelationTag.h"
+#include "parser/BinaryConstraintOps.h"
+#include "parser/FunctorOps.h"
+#include "parser/RelationTag.h"
 #include "ram/Break.h"
 #include "ram/Clear.h"
 #include "ram/Condition.h"

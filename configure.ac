@@ -275,7 +275,7 @@ AC_CONFIG_FILES([
   tests/atlocal
   tests/interface/functors/Makefile
 ])
-AC_CONFIG_LINKS([include/souffle/BinaryConstraintOps.h:src/BinaryConstraintOps.h])
+AC_CONFIG_LINKS([include/souffle/BinaryConstraintOps.h:src/parser/BinaryConstraintOps.h])
 AC_CONFIG_LINKS([include/souffle/BTree.h:src/BTree.h])
 AC_CONFIG_LINKS([include/souffle/CompiledOptions.h:src/CompiledOptions.h])
 AC_CONFIG_LINKS([include/souffle/RecordTable.h:src/RecordTable.h])
@@ -303,7 +303,7 @@ AC_CONFIG_LINKS([include/souffle/SignalHandler.h:src/SignalHandler.h])
 AC_CONFIG_LINKS([include/souffle/SouffleInterface.h:src/SouffleInterface.h])
 AC_CONFIG_LINKS([include/souffle/SymbolTable.h:src/SymbolTable.h])
 AC_CONFIG_LINKS([include/souffle/Table.h:src/Table.h])
-AC_CONFIG_LINKS([include/souffle/TypeAttribute.h:src/TypeAttribute.h])
+AC_CONFIG_LINKS([include/souffle/TypeAttribute.h:src/parser/TypeAttribute.h])
 AC_CONFIG_LINKS([include/souffle/Brie.h:src/Brie.h])
 AC_CONFIG_LINKS([include/souffle/UnionFind.h:src/UnionFind.h])
 AC_CONFIG_LINKS([include/souffle/utility/CacheUtil.h:src/utility/CacheUtil.h])

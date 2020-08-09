@@ -13,8 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/PolymorphicObjects.h"
-#include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
 #include "RamTypes.h"
 #include "ast/Aggregator.h"
 #include "ast/BinaryConstraint.h"
@@ -27,6 +25,8 @@
 #include "ast/Utils.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
+#include "parser/AggregateOp.h"
+#include "parser/BinaryConstraintOps.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include <memory>

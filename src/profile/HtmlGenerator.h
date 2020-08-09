@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "ProfileEvent.h"
 #include "OutputProcessor.h"
+#include "ProfileEvent.h"
 #include "htmlCssChartist.h"
 #include "htmlCssStyle.h"
 #include "htmlJsChartistMin.h"

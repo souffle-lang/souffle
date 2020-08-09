@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "AggregateOp.h"
+#include "parser/AggregateOp.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

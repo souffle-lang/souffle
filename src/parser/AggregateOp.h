@@ -17,7 +17,7 @@
 #pragma once
 
 #include "RamTypes.h"
-#include "TypeAttribute.h"
+#include "parser/TypeAttribute.h"
 #include "utility/MiscUtil.h"
 #include <cstdint>
 #include <ostream>

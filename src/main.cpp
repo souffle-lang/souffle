@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
 #else
         // Check that -j option has not been changed from the default
         if (Global::config().get("jobs") != "1" && !Global::config().has("no-warn")) {
-            std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
+            //    std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
         }
 #endif
 

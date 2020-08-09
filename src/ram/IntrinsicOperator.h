@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "FunctorOps.h"
+#include "parser/FunctorOps.h"
 #include "ram/AbstractOperator.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

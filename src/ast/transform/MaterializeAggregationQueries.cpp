@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/MaterializeAggregationQueries.h"
-#include "AggregateOp.h"
 #include "RamTypes.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
@@ -35,6 +34,7 @@
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
+#include "parser/AggregateOp.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"
 #include <algorithm>

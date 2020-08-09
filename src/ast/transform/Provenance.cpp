@@ -15,8 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/Provenance.h"
-#include "BinaryConstraintOps.h"
-#include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -40,6 +38,8 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/Utils.h"
 #include "ast/Variable.h"
+#include "parser/BinaryConstraintOps.h"
+#include "parser/RelationTag.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"

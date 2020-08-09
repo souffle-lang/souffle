@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include "FunctorOps.h"
-#include "TypeAttribute.h"
 #include "ast/Argument.h"
 #include "ast/Functor.h"
 #include "ast/Node.h"
+#include "parser/FunctorOps.h"
 #include "parser/SrcLocation.h"
+#include "parser/TypeAttribute.h"
 #include "utility/ContainerUtil.h"
 #include "utility/StreamUtil.h"
 #include <cassert>

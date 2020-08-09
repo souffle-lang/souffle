@@ -16,7 +16,6 @@
 
 #include "ast/transform/ComponentChecker.h"
 #include "ErrorReport.h"
-#include "RelationTag.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
@@ -26,6 +25,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Type.h"
 #include "ast/analysis/ComponentLookup.h"
+#include "parser/RelationTag.h"
 #include "parser/SrcLocation.h"
 #include "utility/StringUtil.h"
 #include <functional>

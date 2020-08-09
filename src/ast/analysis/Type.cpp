@@ -15,9 +15,6 @@
  ***********************************************************************/
 
 #include "ast/analysis/Type.h"
-#include "AggregateOp.h"
-#include "Constraints.h"
-#include "FunctorOps.h"
 #include "Global.h"
 #include "RamTypes.h"
 #include "ast/Aggregator.h"
@@ -45,8 +42,11 @@
 #include "ast/Variable.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/Constraint.h"
+#include "ast/analysis/ConstraintSystem.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
+#include "parser/AggregateOp.h"
+#include "parser/FunctorOps.h"
 #include "utility/ContainerUtil.h"
 #include "utility/FunctionalUtil.h"
 #include "utility/MiscUtil.h"

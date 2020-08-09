@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "RelationTag.h"
+#include "parser/RelationTag.h"
 #include "ram/Node.h"
 #include "utility/ContainerUtil.h"
 #include <cassert>

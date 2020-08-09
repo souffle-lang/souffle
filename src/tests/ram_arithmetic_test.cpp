@@ -18,11 +18,11 @@
 
 #include "DebugReport.h"
 #include "ErrorReport.h"
-#include "FunctorOps.h"
 #include "Global.h"
 #include "RamTypes.h"
 #include "SymbolTable.h"
 #include "interpreter/InterpreterEngine.h"
+#include "parser/FunctorOps.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"
 #include "ram/Program.h"

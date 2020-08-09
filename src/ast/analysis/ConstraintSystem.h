@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file Constraints.h
+ * @file ConstraintSystem.h
  *
  * A basic set of utilities for solving systems of constraints.
  *

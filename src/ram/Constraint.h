@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "BinaryConstraintOps.h"
+#include "parser/BinaryConstraintOps.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

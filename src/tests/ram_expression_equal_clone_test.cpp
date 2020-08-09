@@ -16,8 +16,8 @@
 
 #include "tests/test.h"
 
-#include "FunctorOps.h"
-#include "TypeAttribute.h"
+#include "parser/FunctorOps.h"
+#include "parser/TypeAttribute.h"
 #include "ram/AutoIncrement.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"

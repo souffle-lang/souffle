@@ -15,14 +15,14 @@
  ***********************************************************************/
 
 #include "synthesiser/Synthesiser.h"
-#include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
-#include "FunctorOps.h"
 #include "Global.h"
 #include "RamTypes.h"
-#include "RelationTag.h"
 #include "SymbolTable.h"
 #include "json11.h"
+#include "parser/AggregateOp.h"
+#include "parser/BinaryConstraintOps.h"
+#include "parser/FunctorOps.h"
+#include "parser/RelationTag.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"

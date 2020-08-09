@@ -17,9 +17,9 @@
 #pragma once
 
 #include "RamTypes.h"
-#include "RelationTag.h"
 #include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
+#include "parser/RelationTag.h"
 #include "parser/SrcLocation.h"
 #include "parser/parser.hh"
 #include <cstdio>

@@ -13,10 +13,10 @@
  ***********************************************************************/
 
 #include "ram/transform/MakeIndex.h"
-#include "BinaryConstraintOps.h"
-#include "FunctorOps.h"
 #include "RamTypes.h"
-#include "RelationTag.h"
+#include "parser/BinaryConstraintOps.h"
+#include "parser/FunctorOps.h"
+#include "parser/RelationTag.h"
 #include "ram/Condition.h"
 #include "ram/Constraint.h"
 #include "ram/Expression.h"

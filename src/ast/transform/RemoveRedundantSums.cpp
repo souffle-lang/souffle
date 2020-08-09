@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/RemoveRedundantSums.h"
-#include "AggregateOp.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/IntrinsicFunctor.h"
@@ -23,6 +22,7 @@
 #include "ast/NumericConstant.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
+#include "parser/AggregateOp.h"
 #include "utility/MiscUtil.h"
 #include <algorithm>
 #include <memory>

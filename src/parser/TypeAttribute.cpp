@@ -6,8 +6,8 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-#include "RamTypes.h"
 #include "TypeAttribute.h"
+#include "RamTypes.h"
 #include "utility/MiscUtil.h"
 #include <ostream>
 

@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "AggregateOp.h"
 #include "ram/AbstractParallel.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"

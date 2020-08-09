@@ -15,7 +15,6 @@
  ***********************************************************************/
 
 #include "ast/transform/MinimiseProgram.h"
-#include "BinaryConstraintOps.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
@@ -34,6 +33,7 @@
 #include "ast/Utils.h"
 #include "ast/Variable.h"
 #include "ast/analysis/IOType.h"
+#include "parser/BinaryConstraintOps.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StringUtil.h"

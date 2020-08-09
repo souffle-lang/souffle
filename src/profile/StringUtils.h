@@ -70,36 +70,21 @@ inline std::string formatNum(int precision, int64_t amount) {
         if (r >= 100) {  // 1000 > result >= 100
 
             switch (precision) {
-                case 1:
-                    result = result.substr(0, 1) + "00";
-                    break;
-                case 2:
-                    result = result.substr(0, 2) + "0";
-                    break;
-                case 3:
-                    result = result.substr(0, 3);
-                    break;
-                default:
-                    result = result.substr(0, precision + 1);
+                case 1: result = result.substr(0, 1) + "00"; break;
+                case 2: result = result.substr(0, 2) + "0"; break;
+                case 3: result = result.substr(0, 3); break;
+                default: result = result.substr(0, precision + 1);
             }
         } else if (r >= 10) {  // 100 > result >= 10
             switch (precision) {
-                case 1:
-                    result = result.substr(0, 1) + "0";
-                    break;
-                case 2:
-                    result = result.substr(0, 2);
-                    break;
-                default:
-                    result = result.substr(0, precision + 1);
+                case 1: result = result.substr(0, 1) + "0"; break;
+                case 2: result = result.substr(0, 2); break;
+                default: result = result.substr(0, precision + 1);
             }
         } else {  // 10 > result > 0
             switch (precision) {
-                case 1:
-                    result = result.substr(0, 1);
-                    break;
-                default:
-                    result = result.substr(0, precision + 1);
+                case 1: result = result.substr(0, 1); break;
+                default: result = result.substr(0, precision + 1);
             }
         }
         result += abbreviations.at(i);

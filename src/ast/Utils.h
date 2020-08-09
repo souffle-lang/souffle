@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "FunctorOps.h"
+#include "parser/FunctorOps.h"
 #include <cstddef>
 #include <map>
 #include <set>

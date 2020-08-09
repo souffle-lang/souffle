@@ -8,7 +8,7 @@
 
 #include "synthesiser/SynthesiserRelation.h"
 #include "Global.h"
-#include "RelationTag.h"
+#include "parser/RelationTag.h"
 #include "ram/analysis/IndexAnalysis.h"
 #include "utility/StreamUtil.h"
 #include <algorithm>

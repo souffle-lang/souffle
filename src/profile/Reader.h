@@ -8,9 +8,9 @@
 
 #pragma once
 
+#include "Iteration.h"
 #include "ProfileDatabase.h"
 #include "ProfileEvent.h"
-#include "Iteration.h"
 #include "ProgramRun.h"
 #include "Relation.h"
 #include "Rule.h"

@@ -14,7 +14,6 @@
 
 #include "ast/transform/ReduceExistentials.h"
 #include "GraphUtils.h"
-#include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -31,6 +30,7 @@
 #include "ast/Utils.h"
 #include "ast/Visitor.h"
 #include "ast/analysis/IOType.h"
+#include "parser/RelationTag.h"
 #include "utility/MiscUtil.h"
 #include <functional>
 #include <memory>

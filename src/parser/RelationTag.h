@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file RelationTag.h
+ * @file parser/RelationTag.h
  *
  * Identifies the available relation tags, including qualifiers and
  * representations.

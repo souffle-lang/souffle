@@ -16,9 +16,9 @@
 
 #include "tests/test.h"
 
-#include "AggregateOp.h"
-#include "BinaryConstraintOps.h"
-#include "RelationTag.h"
+#include "parser/AggregateOp.h"
+#include "parser/BinaryConstraintOps.h"
+#include "parser/RelationTag.h"
 #include "ram/Aggregate.h"
 #include "ram/Break.h"
 #include "ram/Choice.h"
