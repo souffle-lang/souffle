@@ -20,7 +20,7 @@
 #include "ErrorReport.h"
 #include "FunctorOps.h"
 #include "Global.h"
-#include "LogStatement.h"
+#include "profile/LogStatement.h"
 #include "RelationTag.h"
 #include "TypeAttribute.h"
 #include "ast/Aggregator.h"

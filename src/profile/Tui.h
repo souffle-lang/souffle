@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../ProfileEvent.h"
+#include "ProfileEvent.h"
 #include "HtmlGenerator.h"
 #include "OutputProcessor.h"
 #include "Reader.h"

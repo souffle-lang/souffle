@@ -13,7 +13,7 @@ bin_PROGRAMS = souffle souffle-profile
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
 souffle_profile_sources = \
-        ProfileDatabase.h                                  \
+        profile/ProfileDatabase.h                          \
         json11.h                                           \
         profile/Cell.h                                     \
         profile/CellInterface.h                            \
@@ -89,20 +89,17 @@ souffle_sources = \
         DebugReport.cpp                                    \
         DebugReport.h                                      \
         ErrorReport.h                                      \
-        EventProcessor.h                                   \
         FunctorOps.cpp                                     \
         FunctorOps.h                                       \
         Global.cpp                                         \
         Global.h                                           \
         GraphUtils.h                                       \
-        LogStatement.h                                     \
-        ProfileEvent.h                                     \
         RamTypes.h                                         \
         RecordTable.h                                      \
         RelationTag.h                                      \
         SignalHandler.h                                    \
         TypeAttribute.h                                    \
-        Util.cpp                                           \
+        TypeAttribute.cpp                                  \
         ast/Aggregator.h                                   \
         ast/Argument.h                                     \
         ast/Atom.h                                         \
@@ -276,6 +273,9 @@ souffle_sources = \
         parser/parser.hh                                   \
         parser/scanner.cc                                  \
         parser/stack.hh                                    \
+        profile/EventProcessor.h                           \
+        profile/LogStatement.h                             \
+        profile/ProfileEvent.h                             \
         ram/AbstractAggregate.h                            \
         ram/AbstractChoice.h                               \
         ram/AbstractConditional.h                          \
@@ -429,16 +429,12 @@ soufflepublic_HEADERS = \
         CompiledSouffle.h                                  \
         CompiledTuple.h                                    \
         EquivalenceRelation.h                              \
-        EventProcessor.h                                   \
         Explain.h                                          \
         ExplainProvenance.h                                \
         ExplainProvenanceImpl.h                            \
         ExplainTree.h                                      \
         LambdaBTree.h                                      \
-        Logger.h                                           \
         PiggyList.h                                        \
-        ProfileDatabase.h                                  \
-        ProfileEvent.h                                     \
         RamTypes.h                                         \
         RecordTable.h                                      \
         SignalHandler.h                                    \
@@ -447,6 +443,10 @@ soufflepublic_HEADERS = \
         Table.h                                            \
         UnionFind.h                                        \
         json11.h                                           \
+        profile/Logger.h                                   \
+        profile/ProfileDatabase.h                          \
+        profile/ProfileEvent.h                             \
+        profile/EventProcessor.h                           \
         $(souffle_utility_sources)                         \
         $(souffle_io_sources)                              \
         $(libz_sources)                                    \
