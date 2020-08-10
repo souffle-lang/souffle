@@ -12,6 +12,19 @@ bin_PROGRAMS = souffle souffle-profile
 
 nodist_souffle_profile_SOURCES = $(BUILT_SOURCES)
 
+souffle_io_sources = \
+        io/IOSystem.h                                      \
+        io/ReadStream.h                                    \
+        io/ReadStreamCSV.h                                 \
+        io/ReadStreamJSON.h                                \
+        io/SerialisationStream.h                           \
+        io/WriteStream.h                                   \
+        io/WriteStreamCSV.h                                \
+        io/WriteStreamJSON.h
+
+souffle_parser_sources = \
+        parser/BinaryConstraintOps.h
+
 souffle_profile_sources = \
         profile/ProfileDatabase.h                          \
         json11.h                                           \
@@ -56,15 +69,6 @@ souffle_utility_sources = \
         utility/StringUtil.h                               \
         utility/tinyformat.h
 
-souffle_io_sources = \
-        io/IOSystem.h                                      \
-        io/ReadStream.h                                    \
-        io/ReadStreamCSV.h                                 \
-        io/ReadStreamJSON.h                                \
-        io/SerialisationStream.h                           \
-        io/WriteStream.h                                   \
-        io/WriteStreamCSV.h                                \
-        io/WriteStreamJSON.h
 
 DIR := ${CURDIR}
 
@@ -257,7 +261,6 @@ souffle_sources = \
         interpreter/InterpreterRelation.cpp                \
         interpreter/InterpreterRelation.h                  \
         parser/AggregateOp.h                               \
-        parser/BinaryConstraintOps.h                       \
         parser/FunctorOps.cpp                              \
         parser/FunctorOps.h                                \
         parser/ParserDriver.cpp                            \
@@ -400,6 +403,7 @@ souffle_sources = \
         synthesiser/SynthesiserRelation.h                  \
         $(libz_sources)                                    \
         $(souffle_io_sources)                              \
+        $(souffle_parser_sources)                          \
         $(souffle_profile_sources)                         \
         $(souffle_utility_sources)                         \
         $(sqlite_sources)                                  
@@ -423,7 +427,6 @@ soufflepublicdir = $(includedir)/souffle
 
 soufflepublic_HEADERS = \
         BTree.h                                            \
-        parser/BinaryConstraintOps.h                       \
         Brie.h                                             \
         CompiledOptions.h                                  \
         CompiledSouffle.h                                  \
@@ -447,10 +450,19 @@ soufflepublic_HEADERS = \
         profile/ProfileDatabase.h                          \
         profile/ProfileEvent.h                             \
         profile/EventProcessor.h                           \
-        $(souffle_utility_sources)                         \
         $(souffle_io_sources)                              \
+        $(souffle_utility_sources)                         \
+        $(souffle_parser_sources)                          \
         $(libz_sources)                                    \
         $(sqlite_sources)
+
+souffleiodir = $(soufflepublicdir)/io
+
+souffleio_HEADERS = $(souffle_io_sources)
+
+souffleparserdir = $(soufflepublicdir)/parser
+
+souffleparser_HEADERS = $(souffle_parser_sources)
 
 souffleprofiledir = $(soufflepublicdir)/profile
 
@@ -463,10 +475,6 @@ souffleswig_HEADERS = $(souffle_swig_sources)
 souffleutilitydir = $(soufflepublicdir)/utility
 
 souffleutility_HEADERS = $(souffle_utility_sources)
-
-souffleiodir = $(soufflepublicdir)/io
-
-souffleio_HEADERS = $(souffle_io_sources)
 
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh

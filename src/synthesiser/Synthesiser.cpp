@@ -1295,7 +1295,8 @@ void Synthesiser::emitCode(std::ostream& out, const RamStatement& stmt) {
                 default: fatal("Unhandled aggregate operation");
             }
 
-            char const* type;
+            // this should crash the compiler
+            char const* type="@Undefined@"; 
             switch (getTypeAttributeAggregate(aggregate.getFunction())) {
                 case TypeAttribute::Signed: type = "RamSigned"; break;
                 case TypeAttribute::Unsigned: type = "RamUnsigned"; break;
