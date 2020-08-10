@@ -275,7 +275,7 @@ AC_CONFIG_FILES([
   tests/atlocal
   tests/interface/functors/Makefile
 ])
-AC_CONFIG_LINKS([include/souffle/BinaryConstraintOps.h:src/parser/BinaryConstraintOps.h])
+AC_CONFIG_LINKS([include/souffle/parser/BinaryConstraintOps.h:src/parser/BinaryConstraintOps.h])
 AC_CONFIG_LINKS([include/souffle/BTree.h:src/BTree.h])
 AC_CONFIG_LINKS([include/souffle/CompiledOptions.h:src/CompiledOptions.h])
 AC_CONFIG_LINKS([include/souffle/RecordTable.h:src/RecordTable.h])

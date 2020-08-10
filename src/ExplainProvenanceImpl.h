@@ -21,7 +21,7 @@
 #include "RamTypes.h"
 #include "SouffleInterface.h"
 #include "SymbolTable.h"
-#include "BinaryConstraintOps.h"
+#include "parser/BinaryConstraintOps.h"
 #include "utility/ContainerUtil.h"
 #include "utility/MiscUtil.h"
 #include "utility/StreamUtil.h"
