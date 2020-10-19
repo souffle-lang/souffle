@@ -10,6 +10,9 @@ A(1,2).
 B(1,2).
 .decl C(x:number, y:number) brie
 C(1,2).
+.decl D(x:number, y:number) ordered
+D(1,2).
+
 .decl F(x:number, y:number) brie brie
 .decl G(x:number, y:number) brie btree
 .decl H(x:number, y:number) brie eqrel
@@ -19,5 +22,7 @@ C(1,2).
 .decl P(x:number, y:number) eqrel brie
 .decl Q(x:number, y:number) eqrel btree
 .decl R(x:number, y:number) eqrel eqrel
+.decl S(x:number, y:number) ordered eqrel
+.decl T(x:number, y:number) eqrel ordered
 
 .output A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD

@@ -112,6 +112,7 @@
 "overridable"                         { return yy::parser::make_OVERRIDABLE_QUALIFIER(yylloc); }
 "printsize"                           { return yy::parser::make_PRINTSIZE_QUALIFIER(yylloc); }
 "eqrel"                               { return yy::parser::make_EQREL_QUALIFIER(yylloc); }
+"ordered"                             { return yy::parser::make_ORDERED_QUALIFIER(yylloc); }
 "inline"                              { return yy::parser::make_INLINE_QUALIFIER(yylloc); }
 "magic"                               { return yy::parser::make_MAGIC_QUALIFIER(yylloc); }
 "brie"                                { return yy::parser::make_BRIE_QUALIFIER(yylloc); }

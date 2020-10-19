@@ -1,28 +1,34 @@
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 13
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 16
 .decl F(x:number, y:number) brie brie
 ---------------------------------^----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 14
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 17
 .decl G(x:number, y:number) brie btree
 ---------------------------------^-----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 15
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 18
 .decl H(x:number, y:number) brie eqrel
 ---------------------------------^-----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 16
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 19
 .decl K(x:number, y:number) btree brie
 ----------------------------------^----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 17
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 20
 .decl L(x:number, y:number) btree btree
 ----------------------------------^-----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 18
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 21
 .decl M(x:number, y:number) btree eqrel
 ----------------------------------^-----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 19
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 22
 .decl P(x:number, y:number) eqrel brie
 ----------------------------------^----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 20
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 23
 .decl Q(x:number, y:number) eqrel btree
 ----------------------------------^-----
-Error: btree/brie/eqrel qualifier already set in file qualifiers.dl at line 21
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 24
 .decl R(x:number, y:number) eqrel eqrel
 ----------------------------------^-----
-9 errors generated, evaluation aborted
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 25
+.decl S(x:number, y:number) ordered eqrel
+------------------------------------^-----
+Error: btree/brie/eqrel/ordered qualifier already set in file qualifiers.dl at line 26
+.decl T(x:number, y:number) eqrel ordered
+----------------------------------^-------
+11 errors generated, evaluation aborted

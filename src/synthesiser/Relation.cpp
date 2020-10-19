@@ -57,6 +57,8 @@ Own<Relation> Relation::getSynthesiserRelation(
         rel = new EqrelRelation(ramRel, indexSet, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::INFO) {
         rel = new InfoRelation(ramRel, indexSet, isProvenance);
+    } else if (ramRel.getRepresentation() == RelationRepresentation::IBTREE) {
+        rel = new IndirectRelation(ramRel, indexSet, isProvenance);
     } else {
         // Handle the data structure command line flag
         if (ramRel.getArity() > 6) {

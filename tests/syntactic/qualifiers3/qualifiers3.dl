@@ -26,5 +26,10 @@ D(1,2).
 D(2,3).
 D(1,2).
 D(2,3).
+.decl E(x:number, y:number) ordered
+E(1,2).
+E(2,3).
+E(1,2).
+E(2,3).
 
-.output A,B,C,D
+.output A,B,C,D,E

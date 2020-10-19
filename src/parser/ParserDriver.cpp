@@ -211,7 +211,7 @@ std::set<RelationTag> ParserDriver::addDeprecatedTag(
 
 std::set<RelationTag> ParserDriver::addReprTag(
         RelationTag tag, SrcLocation tagLoc, std::set<RelationTag> tags) {
-    return addTag(tag, {RelationTag::BTREE, RelationTag::BRIE, RelationTag::EQREL}, std::move(tagLoc),
+    return addTag(tag, {RelationTag::BTREE, RelationTag::BRIE, RelationTag::EQREL, RelationTag::ORDERED}, std::move(tagLoc),
             std::move(tags));
 }
 

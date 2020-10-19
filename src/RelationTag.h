@@ -33,6 +33,7 @@ enum class RelationTag {
     BRIE,         // use brie data-structure
     BTREE,        // use btree data-structure
     EQREL,        // use union data-structure
+    ORDERED,      // ordered relation
 };
 
 /** Space of qualifiers that a relation can have */
@@ -51,6 +52,7 @@ enum class RelationRepresentation {
     DEFAULT,  // use default data-structure
     BRIE,     // use brie data-structure
     BTREE,    // use btree data-structure
+    IBTREE,   // use indirect btree data-structure
     EQREL,    // use union data-structure
     INFO,     // info relation for provenance
 };
@@ -62,7 +64,8 @@ inline bool isRelationRepresentationTag(const RelationTag& tag) {
     switch (tag) {
         case RelationTag::BRIE:
         case RelationTag::BTREE:
-        case RelationTag::EQREL: return true;
+        case RelationTag::EQREL:
+        case RelationTag::ORDERED: return true;
         default: return false;
     }
 }
@@ -107,6 +110,7 @@ inline RelationRepresentation getRelationRepresentationFromTag(const RelationTag
         case RelationTag::BRIE: return RelationRepresentation::BRIE;
         case RelationTag::BTREE: return RelationRepresentation::BTREE;
         case RelationTag::EQREL: return RelationRepresentation::EQREL;
+        case RelationTag::ORDERED: return RelationRepresentation::IBTREE;
         default: fatal("invalid relation tag");
     }
 
@@ -125,6 +129,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationTag qualifier) {
         case RelationTag::BRIE: return os << "brie";
         case RelationTag::BTREE: return os << "btree";
         case RelationTag::EQREL: return os << "eqrel";
+        case RelationTag::ORDERED: return os << "ordered";
     }
 
     UNREACHABLE_BAD_CASE_ANALYSIS
@@ -149,6 +154,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationRepresentation represe
         case RelationRepresentation::BTREE: return os << "btree";
         case RelationRepresentation::BRIE: return os << "brie";
         case RelationRepresentation::EQREL: return os << "eqrel";
+        case RelationRepresentation::IBTREE: return os << "ibtree";
         case RelationRepresentation::INFO: return os << "info";
         case RelationRepresentation::DEFAULT: return os;
     }

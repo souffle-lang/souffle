@@ -220,6 +220,7 @@
 %token BRIE_QUALIFIER            "BRIE datastructure qualifier"
 %token BTREE_QUALIFIER           "BTREE datastructure qualifier"
 %token EQREL_QUALIFIER           "equivalence relation qualifier"
+%token ORDERED_QUALIFIER         "ordered relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token INLINE_QUALIFIER          "relation qualifier inline"
 %token MAGIC_QUALIFIER           "relation qualifier magic"
@@ -513,6 +514,7 @@ relation_tags
   | relation_tags        BRIE_QUALIFIER { $$ = driver.addReprTag(RelationTag::BRIE    , @2, $1); }
   | relation_tags       BTREE_QUALIFIER { $$ = driver.addReprTag(RelationTag::BTREE   , @2, $1); }
   | relation_tags       EQREL_QUALIFIER { $$ = driver.addReprTag(RelationTag::EQREL   , @2, $1); }
+  | relation_tags       ORDERED_QUALIFIER { $$ = driver.addReprTag(RelationTag::ORDERED   , @2, $1); }
   ;
 
 /**
