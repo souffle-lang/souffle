@@ -157,10 +157,6 @@ void Engine::createRelation(const ram::Relation& id, const size_t idx) {
     relations[idx] = mk<RelationHandle>(std::move(res));
 }
 
-const ram::Program& Engine::getRAMProgram() {
-    return tUnit.getProgram();
-}
-
 const std::vector<void*>& Engine::loadDLL() {
     if (!dll.empty()) {
         return dll;
