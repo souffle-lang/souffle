@@ -23,59 +23,6 @@
 #include "interpreter/Node.h"
 #include "interpreter/Relation.h"
 #include "interpreter/ViewContext.h"
-#include "ram/Aggregate.h"
-#include "ram/AutoIncrement.h"
-#include "ram/Break.h"
-#include "ram/Call.h"
-#include "ram/Choice.h"
-#include "ram/Clear.h"
-#include "ram/Conjunction.h"
-#include "ram/Constant.h"
-#include "ram/Constraint.h"
-#include "ram/DebugInfo.h"
-#include "ram/EmptinessCheck.h"
-#include "ram/ExistenceCheck.h"
-#include "ram/Exit.h"
-#include "ram/Extend.h"
-#include "ram/False.h"
-#include "ram/Filter.h"
-#include "ram/IO.h"
-#include "ram/IndexAggregate.h"
-#include "ram/IndexChoice.h"
-#include "ram/IndexScan.h"
-#include "ram/IntrinsicOperator.h"
-#include "ram/LogRelationTimer.h"
-#include "ram/LogSize.h"
-#include "ram/LogTimer.h"
-#include "ram/Loop.h"
-#include "ram/Negation.h"
-#include "ram/NestedIntrinsicOperator.h"
-#include "ram/PackRecord.h"
-#include "ram/Parallel.h"
-#include "ram/ParallelAggregate.h"
-#include "ram/ParallelChoice.h"
-#include "ram/ParallelIndexAggregate.h"
-#include "ram/ParallelIndexChoice.h"
-#include "ram/ParallelIndexScan.h"
-#include "ram/ParallelScan.h"
-#include "ram/Program.h"
-#include "ram/Project.h"
-#include "ram/ProvenanceExistenceCheck.h"
-#include "ram/Query.h"
-#include "ram/Relation.h"
-#include "ram/RelationSize.h"
-#include "ram/Scan.h"
-#include "ram/Sequence.h"
-#include "ram/Statement.h"
-#include "ram/SubroutineArgument.h"
-#include "ram/SubroutineReturn.h"
-#include "ram/Swap.h"
-#include "ram/TranslationUnit.h"
-#include "ram/True.h"
-#include "ram/TupleElement.h"
-#include "ram/TupleOperation.h"
-#include "ram/UnpackRecord.h"
-#include "ram/UserDefinedOperator.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
@@ -139,8 +86,19 @@ namespace {
 constexpr RamDomain RAM_BIT_SHIFT_MASK = RAM_DOMAIN_SIZE - 1;
 }
 
+Engine::Engine(ram::TranslationUnit& tUnit)
+        : profileEnabled(Global::config().has("profile")), isProvenance(Global::config().has("provenance")),
+          numOfThreads(std::stoi(Global::config().get("jobs"))), tUnit(tUnit),
+          isa(tUnit.getAnalysis<ram::analysis::IndexAnalysis>()), generator(mk<NodeGenerator>(*this)) {
+#ifdef _OPENMP
+    if (numOfThreads > 0) {
+        omp_set_num_threads(numOfThreads);
+    }
+#endif
+}
+
 Engine::RelationHandle& Engine::getRelationHandle(const size_t idx) {
-    return generator.getRelationHandle(idx);
+    return *relations[idx];
 }
 
 void Engine::swapRelation(const size_t ramRel1, const size_t ramRel2) {
@@ -177,7 +135,30 @@ void* Engine::getMethodHandle(const std::string& method) {
 }
 
 VecOwn<Engine::RelationHandle>& Engine::getRelationMap() {
-    return generator.getRelations();
+    return relations;
+}
+
+void Engine::createRelation(const ram::Relation& id, const size_t idx) {
+    if (relations.size() < idx + 1) {
+        relations.resize(idx + 1);
+    }
+
+    RelationHandle res;
+    const auto& orderSet = isa->getIndexes(id.getName());
+    if (id.getRepresentation() == RelationRepresentation::EQREL) {
+        res = createEqrelRelation(id, orderSet);
+    } else {
+        if (isProvenance) {
+            res = createProvenanceRelation(id, orderSet);
+        } else {
+            res = createBTreeRelation(id, orderSet);
+        }
+    }
+    relations[idx] = mk<RelationHandle>(std::move(res));
+}
+
+const ram::Program& Engine::getRAMProgram() {
+    return tUnit.getProgram();
 }
 
 const std::vector<void*>& Engine::loadDLL() {
@@ -301,11 +282,11 @@ void Engine::generateIR() {
     const ram::Program& program = tUnit.getProgram();
     if (subroutine.empty()) {
         for (const auto& sub : program.getSubroutines()) {
-            subroutine.push_back(generator.generateTree(*sub.second));
+            subroutine.push_back(generator->generateTree(*sub.second));
         }
     }
     if (main == nullptr) {
-        main = generator.generateTree(program.getMain());
+        main = generator->generateTree(program.getMain());
     }
 }
 

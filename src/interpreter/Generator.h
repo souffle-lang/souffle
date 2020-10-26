@@ -19,6 +19,7 @@
 
 #include "Global.h"
 #include "RelationTag.h"
+#include "interpreter/Engine.h"
 #include "interpreter/Index.h"
 #include "interpreter/Relation.h"
 #include "interpreter/ViewContext.h"
@@ -115,10 +116,8 @@ class NodeGenerator : public ram::Visitor<Own<Node>> {
     using RelationHandle = Own<RelationWrapper>;
 
 public:
-    NodeGenerator(ram::Program& program, ram::analysis::IndexAnalysis* isa)
-            : isa(isa), isProvenance(Global::config().has("provenance")),
-              profileEnabled(Global::config().has("profile")), program(&program) {
-        visitDepthFirst(program, [&](const ram::Relation& relation) {
+    NodeGenerator(Engine& engine) : engine(engine) {
+        visitDepthFirst(engine.tUnit.getProgram(), [&](const ram::Relation& relation) {
             assert(relationMap.find(relation.getName()) == relationMap.end() && "double-naming of relations");
             relationMap[relation.getName()] = &relation;
         });
@@ -222,14 +221,14 @@ public:
 
     NodePtr visitEmptinessCheck(const ram::EmptinessCheck& emptiness) override {
         size_t relId = encodeRelation(emptiness.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("EmptinessCheck", lookup(emptiness.getRelation()));
         return mk<EmptinessCheck>(type, &emptiness, rel);
     }
 
     NodePtr visitRelationSize(const ram::RelationSize& size) override {
         size_t relId = encodeRelation(size.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("RelationSize", lookup(size.getRelation()));
         return mk<RelationSize>(type, &size, rel);
     }
@@ -266,7 +265,7 @@ public:
     }
 
     NodePtr visitTupleOperation(const ram::TupleOperation& search) override {
-        if (profileEnabled) {
+        if (engine.profileEnabled) {
             return mk<TupleOperation>(I_TupleOperation, &search, visit(search.getOperation()));
         }
         return visit(search.getOperation());
@@ -275,7 +274,7 @@ public:
     NodePtr visitScan(const ram::Scan& scan) override {
         orderingContext.addTupleWithDefaultOrder(scan.getTupleId(), scan);
         size_t relId = encodeRelation(scan.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("Scan", lookup(scan.getRelation()));
         return mk<Scan>(type, &scan, rel, visitTupleOperation(scan));
     }
@@ -283,7 +282,7 @@ public:
     NodePtr visitParallelScan(const ram::ParallelScan& pScan) override {
         orderingContext.addTupleWithDefaultOrder(pScan.getTupleId(), pScan);
         size_t relId = encodeRelation(pScan.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("ParallelScan", lookup(pScan.getRelation()));
         auto res = mk<ParallelScan>(type, &pScan, rel, visitTupleOperation(pScan));
         res->setViewContext(parentQueryViewContext);
@@ -302,7 +301,7 @@ public:
         orderingContext.addTupleWithIndexOrder(piscan.getTupleId(), piscan);
         SuperInstruction indexOperation = getIndexSuperInstInfo(piscan);
         size_t relId = encodeRelation(piscan.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("ParallelIndexScan", lookup(piscan.getRelation()));
         auto res = mk<ParallelIndexScan>(type, &piscan, rel, visitTupleOperation(piscan),
                 encodeIndexPos(piscan), std::move(indexOperation));
@@ -313,7 +312,7 @@ public:
     NodePtr visitChoice(const ram::Choice& choice) override {
         orderingContext.addTupleWithDefaultOrder(choice.getTupleId(), choice);
         size_t relId = encodeRelation(choice.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("Choice", lookup(choice.getRelation()));
         return mk<Choice>(type, &choice, rel, visit(choice.getCondition()), visitTupleOperation(choice));
     }
@@ -321,7 +320,7 @@ public:
     NodePtr visitParallelChoice(const ram::ParallelChoice& pChoice) override {
         orderingContext.addTupleWithDefaultOrder(pChoice.getTupleId(), pChoice);
         size_t relId = encodeRelation(pChoice.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("ParallelChoice", lookup(pChoice.getRelation()));
         auto res = mk<ParallelChoice>(
                 type, &pChoice, rel, visit(pChoice.getCondition()), visitTupleOperation(pChoice));
@@ -341,7 +340,7 @@ public:
         orderingContext.addTupleWithIndexOrder(piChoice.getTupleId(), piChoice);
         SuperInstruction indexOperation = getIndexSuperInstInfo(piChoice);
         size_t relId = encodeRelation(piChoice.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("ParallelIndexChoice", lookup(piChoice.getRelation()));
         auto res = mk<ParallelIndexChoice>(type, &piChoice, rel, visit(piChoice.getCondition()),
                 visit(piChoice.getOperation()), encodeIndexPos(piChoice), std::move(indexOperation));
@@ -365,7 +364,7 @@ public:
         orderingContext.addNewTuple(aggregate.getTupleId(), 1);
         NodePtr nested = visitTupleOperation(aggregate);
         size_t relId = encodeRelation(aggregate.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("Aggregate", lookup(aggregate.getRelation()));
         return mk<Aggregate>(type, &aggregate, rel, std::move(expr), std::move(cond), std::move(nested));
     }
@@ -377,7 +376,7 @@ public:
         orderingContext.addNewTuple(pAggregate.getTupleId(), 1);
         NodePtr nested = visitTupleOperation(pAggregate);
         size_t relId = encodeRelation(pAggregate.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("ParallelAggregate", lookup(pAggregate.getRelation()));
         auto res = mk<ParallelAggregate>(
                 type, &pAggregate, rel, std::move(expr), std::move(cond), std::move(nested));
@@ -394,7 +393,7 @@ public:
         orderingContext.addNewTuple(iAggregate.getTupleId(), 1);
         NodePtr nested = visitTupleOperation(iAggregate);
         size_t relId = encodeRelation(iAggregate.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("IndexAggregate", lookup(iAggregate.getRelation()));
         return mk<IndexAggregate>(type, &iAggregate, rel, std::move(expr), std::move(cond), std::move(nested),
                 encodeView(&iAggregate), std::move(indexOperation));
@@ -408,7 +407,7 @@ public:
         orderingContext.addNewTuple(piAggregate.getTupleId(), 1);
         NodePtr nested = visitTupleOperation(piAggregate);
         size_t relId = encodeRelation(piAggregate.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("ParallelIndexAggregate", lookup(piAggregate.getRelation()));
         auto res = mk<ParallelIndexAggregate>(type, &piAggregate, rel, std::move(expr), std::move(cond),
                 std::move(nested), encodeView(&piAggregate), std::move(indexOperation));
@@ -427,7 +426,7 @@ public:
     NodePtr visitProject(const ram::Project& project) override {
         SuperInstruction superOp = getProjectSuperInstInfo(project);
         size_t relId = encodeRelation(project.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("Project", lookup(project.getRelation()));
         return mk<Project>(type, &project, rel, std::move(superOp));
     }
@@ -472,14 +471,14 @@ public:
         // in the interpreter. The index is stored in the
         // data array of the Node as the first
         // entry.
-        auto subs = program->getSubroutines();
+        auto subs = engine.tUnit.getProgram().getSubroutines();
         size_t subroutineId = distance(subs.begin(), subs.find(call.getName()));
         return mk<Call>(I_Call, &call, subroutineId);
     }
 
     NodePtr visitLogRelationTimer(const ram::LogRelationTimer& timer) override {
         size_t relId = encodeRelation(timer.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodePtrVec children;
         children.push_back(visit(timer.getStatement()));
         return mk<LogRelationTimer>(I_LogRelationTimer, &timer, visit(timer.getStatement()), rel);
@@ -499,20 +498,20 @@ public:
 
     NodePtr visitClear(const ram::Clear& clear) override {
         size_t relId = encodeRelation(clear.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         NodeType type = constructNodeType("Clear", lookup(clear.getRelation()));
         return mk<Clear>(type, &clear, rel);
     }
 
     NodePtr visitLogSize(const ram::LogSize& size) override {
         size_t relId = encodeRelation(size.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         return mk<LogSize>(I_LogSize, &size, rel);
     }
 
     NodePtr visitIO(const ram::IO& io) override {
         size_t relId = encodeRelation(io.getRelation());
-        auto rel = relations[relId].get();
+        auto rel = getRelationHandle(relId);
         return mk<IO>(I_IO, &io, rel);
     }
 
@@ -582,17 +581,6 @@ public:
         fatal("unsupported node type: %s", typeid(node).name());
     }
 
-public:
-    /** @brief Move relation map */
-    VecOwn<RelationHandle>& getRelations() {
-        return relations;
-    }
-
-    /** @brief Return relation handle from given index */
-    RelationHandle& getRelationHandle(const size_t idx) {
-        return *relations[idx];
-    }
-
 private:
     /**
      * @class OrderingContext
@@ -622,7 +610,7 @@ private:
         template <class RamNode>
         void addTupleWithDefaultOrder(size_t tupleId, const RamNode& node) {
             auto interpreterRel = generator.encodeRelation(node.getRelation());
-            insertOrder(tupleId, (**generator.relations[interpreterRel]).getIndexOrder(0));
+            insertOrder(tupleId, (*generator.getRelationHandle(interpreterRel))->getIndexOrder(0));
         }
 
         /** @brief Bind tuple with the corresponding index order.
@@ -634,7 +622,7 @@ private:
         void addTupleWithIndexOrder(size_t tupleId, const RamNode& node) {
             auto interpreterRel = generator.encodeRelation(node.getRelation());
             auto indexId = generator.encodeIndexPos(node);
-            auto order = (**generator.relations[interpreterRel]).getIndexOrder(indexId);
+            auto order = (*generator.getRelationHandle(interpreterRel))->getIndexOrder(indexId);
             insertOrder(tupleId, order);
         }
 
@@ -681,8 +669,8 @@ private:
     template <class RamNode>
     size_t encodeIndexPos(RamNode& node) {
         const std::string& name = node.getRelation();
-        auto& orderSet = isa->getIndexes(name);
-        ram::analysis::SearchSignature signature = isa->getSearchSignature(&node);
+        auto& orderSet = engine.isa->getIndexes(name);
+        ram::analysis::SearchSignature signature = engine.isa->getSearchSignature(&node);
         // A zero signature is equivalent as a full order signature.
         if (signature.empty()) {
             signature = ram::analysis::SearchSignature::getFullSearchSignature(signature.arity());
@@ -724,9 +712,13 @@ private:
         }
         size_t id = getNewRelId();
         relTable[relName] = id;
-        auto indexes = isa->getIndexes(relName);
-        createRelation(lookup(relName), indexes, id);
+        engine.createRelation(lookup(relName), id);
         return id;
+    }
+
+    /* @brief Get a relation instance from engine */
+    RelationHandle* getRelationHandle(const size_t idx) {
+        return engine.relations[idx].get();
     }
 
     /**
@@ -756,35 +748,13 @@ private:
     }
 
     /**
-     * @brief Create and add relation into the runtime environment.
-     */
-    void createRelation(
-            const ram::Relation& id, const ram::analysis::MinIndexSelection& orderSet, const size_t idx) {
-        if (relations.size() < idx + 1) {
-            relations.resize(idx + 1);
-        }
-
-        RelationHandle res;
-        if (id.getRepresentation() == RelationRepresentation::EQREL) {
-            res = createEqrelRelation(id, orderSet);
-        } else {
-            if (isProvenance) {
-                res = createProvenanceRelation(id, orderSet);
-            } else {
-                res = createBTreeRelation(id, orderSet);
-            }
-        }
-        relations[idx] = mk<RelationHandle>(std::move(res));
-    }
-
-    /**
      * @brief Encode and return the super-instruction information about a index operation.
      */
     SuperInstruction getIndexSuperInstInfo(const ram::IndexOperation& ramIndex) {
         size_t arity = getArity(ramIndex.getRelation());
         auto interpreterRel = encodeRelation(ramIndex.getRelation());
         auto indexId = encodeIndexPos(ramIndex);
-        auto order = (**relations[interpreterRel]).getIndexOrder(indexId);
+        auto order = (*getRelationHandle(interpreterRel))->getIndexOrder(indexId);
         SuperInstruction indexOperation(arity);
         const auto& first = ramIndex.getRangePattern().first;
         for (size_t i = 0; i < arity; ++i) {
@@ -862,7 +832,7 @@ private:
         } else {
             fatal("Unrecognized ram::AbstractExistenceCheck.");
         }
-        auto order = (**relations[interpreterRel]).getIndexOrder(indexId);
+        auto order = (*getRelationHandle(interpreterRel))->getIndexOrder(indexId);
         size_t arity = getArity(abstractExist.getRelation());
         SuperInstruction superOp(arity);
         const auto& children = abstractExist.getValues();
@@ -935,8 +905,6 @@ private:
 
     /** Environment encoding, store a mapping from ram::Node to its operation index id. */
     std::unordered_map<const ram::Node*, size_t> indexTable;
-    /** Used by index encoding */
-    ram::analysis::IndexAnalysis* isa;
     /** Points to the current viewContext during the generation.
      * It is used to passing viewContext between parent query and its nested parallel operation.
      * As parallel operation requires its own view information. */
@@ -951,15 +919,9 @@ private:
     std::unordered_map<std::string, size_t> relTable;
     /** name / relation mapping */
     std::unordered_map<std::string, const ram::Relation*> relationMap;
-    /** Symbol table for relations */
-    VecOwn<RelationHandle> relations;
-    /** If generating a provenance program */
-    const bool isProvenance;
-    /** If profile is enable in this program */
-    const bool profileEnabled;
-    /** ram::Program */
-    ram::Program* program;
     /** ordering context */
     OrderingContext orderingContext = OrderingContext(*this);
+    /** Reference to the engine instance */
+    Engine& engine;
 };
 }  // namespace souffle::interpreter

@@ -18,11 +18,62 @@
 
 #include "Global.h"
 #include "interpreter/Context.h"
-#include "interpreter/Generator.h"
 #include "interpreter/Index.h"
 #include "interpreter/Node.h"
 #include "interpreter/Relation.h"
+#include "ram/Aggregate.h"
+#include "ram/AutoIncrement.h"
+#include "ram/Break.h"
+#include "ram/Call.h"
+#include "ram/Choice.h"
+#include "ram/Clear.h"
+#include "ram/Conjunction.h"
+#include "ram/Constant.h"
+#include "ram/Constraint.h"
+#include "ram/DebugInfo.h"
+#include "ram/EmptinessCheck.h"
+#include "ram/ExistenceCheck.h"
+#include "ram/Exit.h"
+#include "ram/Extend.h"
+#include "ram/False.h"
+#include "ram/Filter.h"
+#include "ram/IO.h"
+#include "ram/IndexAggregate.h"
+#include "ram/IndexChoice.h"
+#include "ram/IndexScan.h"
+#include "ram/IntrinsicOperator.h"
+#include "ram/LogRelationTimer.h"
+#include "ram/LogSize.h"
+#include "ram/LogTimer.h"
+#include "ram/Loop.h"
+#include "ram/Negation.h"
+#include "ram/NestedIntrinsicOperator.h"
+#include "ram/PackRecord.h"
+#include "ram/Parallel.h"
+#include "ram/ParallelAggregate.h"
+#include "ram/ParallelChoice.h"
+#include "ram/ParallelIndexAggregate.h"
+#include "ram/ParallelIndexChoice.h"
+#include "ram/ParallelIndexScan.h"
+#include "ram/ParallelScan.h"
+#include "ram/Program.h"
+#include "ram/Project.h"
+#include "ram/ProvenanceExistenceCheck.h"
+#include "ram/Query.h"
+#include "ram/Relation.h"
+#include "ram/RelationSize.h"
+#include "ram/Scan.h"
+#include "ram/Sequence.h"
+#include "ram/Statement.h"
+#include "ram/SubroutineArgument.h"
+#include "ram/SubroutineReturn.h"
+#include "ram/Swap.h"
 #include "ram/TranslationUnit.h"
+#include "ram/True.h"
+#include "ram/TupleElement.h"
+#include "ram/TupleOperation.h"
+#include "ram/UnpackRecord.h"
+#include "ram/UserDefinedOperator.h"
 #include "ram/analysis/Index.h"
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
@@ -42,6 +93,7 @@
 namespace souffle::interpreter {
 
 class ProgInterface;
+class NodeGenerator;
 
 /**
  * @class Engine
@@ -50,18 +102,11 @@ class ProgInterface;
 class Engine {
     using RelationHandle = Own<RelationWrapper>;
     friend ProgInterface;
+    friend NodeGenerator;
 
 public:
-    Engine(ram::TranslationUnit& tUnit)
-            : profileEnabled(Global::config().has("profile")),
-              numOfThreads(std::stoi(Global::config().get("jobs"))), tUnit(tUnit),
-              isa(tUnit.getAnalysis<ram::analysis::IndexAnalysis>()), generator(tUnit.getProgram(), isa) {
-#ifdef _OPENMP
-        if (numOfThreads > 0) {
-            omp_set_num_threads(numOfThreads);
-        }
-#endif
-    }
+    Engine(ram::TranslationUnit& tUnit);
+
     /** @brief Execute the main program */
     void executeMain();
     /** @brief Execute the subroutine program */
@@ -99,6 +144,8 @@ private:
     int incCounter();
     /** @brief Return the relation map. */
     VecOwn<RelationHandle>& getRelationMap();
+    /** @brief Create and add relation into the runtime environment.  */
+    void createRelation(const ram::Relation& id, const size_t idx);
 
     // -- Defines template for specialized interpreter operation -- */
     template <typename Rel>
@@ -155,6 +202,8 @@ private:
 
     /** If profile is enable in this program */
     const bool profileEnabled;
+    /** If running a provenance program */
+    const bool isProvenance;
     /** subroutines */
     VecOwn<Node> subroutine;
     /** main program */
@@ -175,10 +224,12 @@ private:
     ram::TranslationUnit& tUnit;
     /** IndexAnalysis */
     ram::analysis::IndexAnalysis* isa;
-    /** Interpreter program generator */
-    NodeGenerator generator;
     /** Record Table*/
     RecordTable recordTable;
+    /** Symbol table for relations */
+    VecOwn<RelationHandle> relations;
+    /** Interpreter program generator */
+    Own<NodeGenerator> generator;
 };
 
 }  // namespace souffle::interpreter
