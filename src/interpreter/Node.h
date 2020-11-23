@@ -70,7 +70,6 @@ struct RelationWrapper;
     FOR_EACH(Expand, ExistenceCheck)\
     FOR_EACH_PROVENANCE(Expand, ProvenanceExistenceCheck)\
     Forward(Constraint)\
-    Forward(TupleOperation)\
     FOR_EACH(Expand, Scan)\
     FOR_EACH(Expand, ParallelScan)\
     FOR_EACH(Expand, IndexScan)\
@@ -555,13 +554,6 @@ public:
  */
 class Constraint : public BinaryNode {
     using BinaryNode::BinaryNode;
-};
-
-/**
- * @class TupleOperation
- */
-class TupleOperation : public UnaryNode {
-    using UnaryNode::UnaryNode;
 };
 
 /**
