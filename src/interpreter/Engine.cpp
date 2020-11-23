@@ -281,6 +281,7 @@ void Engine::executeMain() {
     } else {
         ProfileEventSingleton::instance().setOutputFile(Global::config().get("profile"));
         // Prepare the frequency table for threaded use
+        // frequency count in interpreter is disabled, but we still need the entry to be there.
         const ram::Program& program = tUnit.getProgram();
         ram::visitDepthFirst(program, [&](const ram::TupleOperation& node) {
             if (!node.getProfileText().empty()) {
@@ -888,20 +889,6 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 #undef COMPARE_EQ_NE
         ESAC(Constraint)
 
-        CASE(TupleOperation)
-            bool result = execute(shadow.getChild(), ctxt);
-
-            if (profileEnabled && !cur.getProfileText().empty()) {
-                auto& currentFrequencies = frequencies[cur.getProfileText()];
-                while (currentFrequencies.size() <= getIterationNumber()) {
-#pragma omp critical(frequencies)
-                    currentFrequencies.emplace_back(0);
-                }
-                frequencies[cur.getProfileText()][getIterationNumber()]++;
-            }
-            return result;
-        ESAC(TupleOperation)
-
 #define SCAN(Structure, Arity, ...)                                    \
     CASE(Scan, Structure, Arity)                                       \
         const auto& rel = *static_cast<RelType*>(node->getRelation()); \
@@ -1039,14 +1026,6 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             if (execute(shadow.getCondition(), ctxt)) {
                 // process nested
                 result = execute(shadow.getNestedOperation(), ctxt);
-            }
-
-            if (profileEnabled && !cur.getProfileText().empty()) {
-                auto& currentFrequencies = frequencies[cur.getProfileText()];
-                while (currentFrequencies.size() <= getIterationNumber()) {
-                    currentFrequencies.emplace_back(0);
-                }
-                frequencies[cur.getProfileText()][getIterationNumber()]++;
             }
             return result;
         ESAC(Filter)
@@ -1232,10 +1211,6 @@ template <typename Rel>
 RamDomain Engine::evalExistenceCheck(const ExistenceCheck& shadow, Context& ctxt) {
     constexpr size_t Arity = Rel::Arity;
     size_t viewPos = shadow.getViewId();
-
-    if (profileEnabled && !shadow.isTemp()) {
-        reads[shadow.getRelationName()]++;
-    }
 
     const auto& superInfo = shadow.getSuperInst();
     // for total we use the exists test

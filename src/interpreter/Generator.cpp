@@ -166,9 +166,6 @@ NodePtr NodeGenerator::visitNestedOperation(const ram::NestedOperation& nested) 
 }
 
 NodePtr NodeGenerator::visitTupleOperation(const ram::TupleOperation& search) {
-    if (engine.profileEnabled) {
-        return mk<TupleOperation>(I_TupleOperation, &search, visit(search.getOperation()));
-    }
     return visit(search.getOperation());
 }
 
