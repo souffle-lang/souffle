@@ -1,10 +1,13 @@
 import collections
 import typing as ty
 
-import souffle._souffle_py as _py
+import souffle._souffle_py as _py # type: ignore
 
 
 class Relation:
+    _rel: _py.Relation
+    _tt: ty.Optional[ty.Type[ty.Tuple]]
+
     def __init__(self, rel: _py.Relation):
         self._rel = rel
         self._tt = None
@@ -37,13 +40,14 @@ class Relation:
     @property
     def named_tuple_type(self) -> ty.Type:
         if self._tt is None:
-            self._tt = collections.namedtuple(
-                f"{self.name}_tuple", self.attr_names)
+            self._tt = collections.namedtuple( # type: ignore
+                f"{self.name}_tuple",
+                self.attr_names)
 
         return self._tt
 
     @property
-    def tuples(self) -> ty.Iterator[ty.NamedTuple]:
+    def tuples(self) -> ty.Iterator[ty.Tuple]:
         tt = self.named_tuple_type
         return map(lambda x: tt(*x), self.raw_tuples)
 
@@ -64,7 +68,11 @@ class Relation:
         return self.named_tuple_type(*self._rel.get_attr_types())
 
     def _split_attr_types(self) -> ty.Iterator[ty.Tuple[str, str]]:
-        return map(lambda v: tuple(v.split(":")), self._rel.get_attr_types())
+        def split_type(v: str) -> ty.Tuple[str, str]:
+            s, l = v.split(":")
+            return (s, l)
+
+        return map(split_type, self._rel.get_attr_types())
 
     def contains(self, tup: ty.Tuple) -> bool:
         return self._rel.contains(tup)

@@ -383,7 +383,6 @@ souffle_profile_SOURCES = souffle_prof.cpp
 souffle_profile_CPPFLAGS = $(souffle_CPPFLAGS)
 
 lib_LTLIBRARIES = libsouffle_py.la
-
 libsouffle_py_la_SOURCES = pybind/cpp/souffle_py.cpp
 libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_py_la_CPPFLAGS =                                     \
@@ -525,9 +524,12 @@ $(builddir)/parser/parser.cc $(builddir)/parser/stack.hh $(builddir)/parser/scan
 # There may be a cleaner way to do this but setup.py needs the library
 # in the source tree
 all-local: $(SOUFFLE_PY)
-	cd $(top_srcdir) && python setup.py build
+	cd $(top_srcdir) && python setup.py build --build-base=python_build
 
-# FIXME: Windows copy
+clean-local:
+	rm -rf $(top_srcdir)/python_build
+
+# FIXME: Windows version
 # Is there a more generic way to refer to the shared object?
-$(SOUFFLE_PY): $(top_builddir)/src/libsouffle_py.la
+$(SOUFFLE_PY): $(LTLIBRARIES)
 	cp $(top_builddir)/src/.libs/libsouffle_py.so $(SOUFFLE_PY)

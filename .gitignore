@@ -51,4 +51,4 @@ debian/changelog
 
 __pycache__
 src/.libs
-build
+python_build

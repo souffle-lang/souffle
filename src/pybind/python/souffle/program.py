@@ -4,7 +4,7 @@ import pathlib
 import sys
 import typing as ty
 
-import souffle._souffle_py as _py
+import souffle._souffle_py as _py  # type: ignore
 import souffle.relation as rel
 
 _PATH_TYPE = ty.Union[pathlib.Path, str]
@@ -45,7 +45,13 @@ def _make_relations(rels: ty.Iterable[_py.Relation]) -> ty.Dict[str, rel.Relatio
 
 
 class Program:
-    __loaded = []
+    __loaded: ty.List[pathlib.Path] = []
+    _name: str
+    _program: _py.Program
+    _output_relations: ty.Optional[ty.Dict[str, rel.Relation]]
+    _input_relations: ty.Optional[ty.Dict[str, rel.Relation]]
+    _internal_relations: ty.Optional[ty.Dict[str, rel.Relation]]
+    _relations: ty.Optional[ty.Dict[str, rel.Relation]]
 
     def __init__(self, name, path: _PATH_TYPE = None):
         if not name:
@@ -74,6 +80,7 @@ class Program:
         if not any(same):
             loader = _get_plat_dll()
             loader.LoadLibrary(abs_path)
+            self.__loaded.append(abs_path)
 
     def run(self) -> None:
         self._program.run()
