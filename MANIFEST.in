@@ -1,0 +1,1 @@
+include src/pybind/python/souffle/_souffle_py.*

@@ -23,6 +23,7 @@ AC_SUBST([ISODATE])
 
 #LT_PREREQ([2.4])
 LT_INIT([dlopen])
+AC_ENABLE_SHARED
 
 AC_CANONICAL_TARGET # target_cpu, target_vendor, and target_os
 AC_CANONICAL_BUILD  # build_cpu, build_vendor, and build_os

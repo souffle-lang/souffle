@@ -55,7 +55,8 @@ WARNINGS=""
 SWIGLANG=""
 
 # find header files of souffle
-HEADER_DIRS=" -I$(dirname $0)/../include -I$(dirname $0)/include "
+HEADER_DIRS=" -I$(realpath $(dirname $0)/../include) -I$(realpath $(dirname $0)/include) "
+LIBS_DIRS=" -L$(realpath $(dirname $0)/../src/.libs) -L$(realpath $(dirname $0)/.libs) "
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
 # default getopt is an old BSD getopt, so need this for portability
@@ -114,6 +115,11 @@ cd "$OLDPWD"
 # Make temp folder and copy relevant files there
 if [ -n "$SWIGLANG" ]
 then
+  if [ "$SWIGLANG" = "pybind" ]
+  then
+    $CXX -shared -fPIC -D__EMBEDDED_SOUFFLE__ -DSOUFFLE_PYBIND_PROGRAM $CXXFLAGS $CPPFLAGS -o$dir/$exe.so $dir/$exe.cpp $HEADER_DIRS $LIBS_DIRS $OMP_FLAG $LDFLAGS -lsouffle_py $LIBS
+    exit 0
+  fi
   # set environment variables
   # directory where swig interface files are in souffle
   TMP_DIR="$(mktemp -d)"

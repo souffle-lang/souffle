@@ -119,6 +119,12 @@ using ram::analysis::IndexAnalysis;
 using namespace ram;
 using namespace stream_write_qualified_char_as_number;
 
+// TODO: This code really needs to be moved to a templating engine
+static auto PYBIND_BEGIN_STR = "#ifdef SOUFFLE_PYBIND_PROGRAM\n";
+static auto PYBIND_END_STR = "#endif // SOUFFLE_PYBIND_PROGRAM\n";
+#define PYBIND_BEGIN (out << PYBIND_BEGIN_STR)
+#define PYBIND_END (out << PYBIND_END_STR)
+
 /** Lookup frequency counter */
 unsigned Synthesiser::lookupFreqIdx(const std::string& txt) {
     static unsigned ctr;
@@ -347,7 +353,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             // get some table details
             if (op == "input") {
-                out << "try {";
+                PYBIND_BEGIN;
+                out << "try {\n";
+                PYBIND_END;
                 out << "std::map<std::string, std::string> directiveMap(";
                 printDirectives(directives);
                 out << ");\n";
@@ -358,11 +366,15 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 out << "directiveMap, symTable, recordTable";
                 out << ")->readAll(*" << synthesiser.getRelationName(synthesiser.lookup(io.getRelation()));
                 out << ");\n";
+                PYBIND_BEGIN;
                 out << "} catch (std::exception& e) {std::cerr << \"Error loading data: \" << e.what() "
                        "<< "
                        "'\\n';}\n";
+                PYBIND_END;
             } else if (op == "output" || op == "printsize") {
-                out << "try {";
+                PYBIND_BEGIN;
+                out << "try {\n";
+                PYBIND_END;
                 out << "std::map<std::string, std::string> directiveMap(";
                 printDirectives(directives);
                 out << ");\n";
@@ -373,7 +385,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 out << "directiveMap, symTable, recordTable";
                 out << ")->writeAll(*" << synthesiser.getRelationName(synthesiser.lookup(io.getRelation()))
                     << ");\n";
+                PYBIND_BEGIN;
                 out << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
+                PYBIND_END;
             } else {
                 assert("Wrong i/o operation");
             }
@@ -667,13 +681,17 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "PARALLEL_START\n";
             out << preamble.str();
             out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
+            PYBIND_BEGIN;
             out << "try{\n";
+            PYBIND_END;
             out << "for(const auto& env0 : *it) {\n";
 
             visitTupleOperation(pscan, out);
 
             out << "}\n";
+            PYBIND_BEGIN;
             out << "} catch(std::exception &e) { signalHandler->error(e.what());}\n";
+            PYBIND_END;
             out << "}\n";
 
             PRINT_END_COMMENT(out);
@@ -741,7 +759,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "PARALLEL_START\n";
             out << preamble.str();
             out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
+            PYBIND_BEGIN;
             out << "try{\n";
+            PYBIND_END;
             out << "for(const auto& env0 : *it) {\n";
             out << "if( ";
 
@@ -754,7 +774,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "break;\n";
             out << "}\n";
             out << "}\n";
+            PYBIND_BEGIN;
             out << "} catch(std::exception &e) { signalHandler->error(e.what());}\n";
+            PYBIND_END;
             out << "}\n";
 
             PRINT_END_COMMENT(out);
@@ -814,13 +836,17 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "PARALLEL_START\n";
             out << preamble.str();
             out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
+            PYBIND_BEGIN;
             out << "try{\n";
+            PYBIND_END;
             out << "for(const auto& env0 : *it) {\n";
 
             visitTupleOperation(piscan, out);
 
             out << "}\n";
+            PYBIND_BEGIN;
             out << "} catch(std::exception &e) { signalHandler->error(e.what());}\n";
+            PYBIND_END;
             out << "}\n";
 
             PRINT_END_COMMENT(out);
@@ -887,7 +913,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "PARALLEL_START\n";
             out << preamble.str();
             out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
-            out << "try{";
+            PYBIND_BEGIN;
+            out << "try{\n";
+            PYBIND_END;
             out << "for(const auto& env0 : *it) {\n";
             out << "if( ";
 
@@ -900,7 +928,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "break;\n";
             out << "}\n";
             out << "}\n";
+            PYBIND_BEGIN;
             out << "} catch(std::exception &e) { signalHandler->error(e.what());}\n";
+            PYBIND_END;
             out << "}\n";
 
             PRINT_END_COMMENT(out);
@@ -2638,7 +2668,9 @@ void runFunction(std::string  inputDirectoryArg   = "",
 
     for (auto store : storeIOs) {
         auto const& directive = store->getDirectives();
-        os << "try {";
+        os << PYBIND_BEGIN_STR;
+        os << "try {\n";
+        os << PYBIND_END_STR;
         os << "std::map<std::string, std::string> directiveMap(";
         printDirectives(directive);
         os << ");\n";
@@ -2649,7 +2681,9 @@ void runFunction(std::string  inputDirectoryArg   = "",
         os << "directiveMap, symTable, recordTable";
         os << ")->writeAll(*" << getRelationName(lookup(store->getRelation())) << ");\n";
 
+        os << PYBIND_BEGIN_STR;
         os << "} catch (std::exception& e) {std::cerr << e.what();exit(1);}\n";
+        os << PYBIND_END_STR;
     }
     os << "}\n";  // end of printAll() method
 
@@ -2658,7 +2692,9 @@ void runFunction(std::string  inputDirectoryArg   = "",
     os << "void loadAll(std::string inputDirectoryArg = \"\") override {\n";
 
     for (auto load : loadIOs) {
-        os << "try {";
+        os << PYBIND_BEGIN_STR;
+        os << "try {\n";
+        os << PYBIND_END_STR;
         os << "std::map<std::string, std::string> directiveMap(";
         printDirectives(load->getDirectives());
         os << ");\n";
@@ -2669,8 +2705,10 @@ void runFunction(std::string  inputDirectoryArg   = "",
         os << "directiveMap, symTable, recordTable";
         os << ")->readAll(*" << getRelationName(lookup(load->getRelation()));
         os << ");\n";
+        os << PYBIND_BEGIN_STR;
         os << "} catch (std::exception& e) {std::cerr << \"Error loading data: \" << e.what() << "
               "'\\n';}\n";
+        os << PYBIND_END_STR;
     }
 
     os << "}\n";  // end of loadAll() method
@@ -2686,6 +2724,7 @@ void runFunction(std::string  inputDirectoryArg   = "",
 
         Json types = Json::object{{"relation", relJson}};
 
+        // No need for PYBIND, these never get called from python
         os << "try {";
         os << "std::map<std::string, std::string> rwOperation;\n";
         os << "rwOperation[\"IO\"] = \"stdout\";\n";
