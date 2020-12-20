@@ -47,6 +47,7 @@ def _make_relations(rels: ty.Iterable[_py.Relation]) -> ty.Dict[str, rel.Relatio
 class Program:
     __loaded: ty.List[pathlib.Path] = []
     _name: str
+    _path: pathlib.Path
     _program: _py.Program
     _output_relations: ty.Optional[ty.Dict[str, rel.Relation]]
     _input_relations: ty.Optional[ty.Dict[str, rel.Relation]]
@@ -66,7 +67,7 @@ class Program:
         if not path.suffix:
             path = path.with_suffix(_get_plat_extension())
 
-        self.load_program(path)
+        self._path = self.load_program(path)
         self._name = name
         self._program = _py.Program(name)
         self._output_relations = None
@@ -74,13 +75,23 @@ class Program:
         self._internal_relations = None
         self._relations = None
 
-    def load_program(self, path: _PATH_TYPE) -> None:
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def path(self) -> pathlib.Path:
+        return self._path
+
+    def load_program(self, path: _PATH_TYPE) -> pathlib.Path:
         abs_path = pathlib.Path(path).resolve()
         same = map(lambda pp: os.path.samefile(abs_path, pp), self.__loaded)
         if not any(same):
             loader = _get_plat_dll()
             loader.LoadLibrary(abs_path)
             self.__loaded.append(abs_path)
+
+        return abs_path
 
     def run(self) -> None:
         self._program.run()
@@ -123,7 +134,7 @@ class Program:
         return self._relations
 
     def __repr__(self):
-        return f"Souffle program {self.name}"
+        return f"Souffle program '{self.name}' at '{self.path}'"
 
     def purge_input_relations(self):
         self._program.purge_input_relations()
