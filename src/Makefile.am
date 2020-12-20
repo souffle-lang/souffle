@@ -388,7 +388,7 @@ libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_py_la_CPPFLAGS =                                     \
         -I$(srcdir)/include                                 \
         -I$(top_srcdir)/extern/pybind11/include             \
-        $(shell python-config --includes)
+        $(shell python3-config --includes)
 
 libsouffle_py_la_LDFLAGS = -lffi
 
