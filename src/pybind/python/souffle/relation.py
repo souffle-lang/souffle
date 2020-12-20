@@ -1,7 +1,7 @@
 import collections
 import typing as ty
 
-import souffle._souffle_py as _py # type: ignore
+import souffle._souffle_py as _py  # type: ignore
 
 
 class Relation:
@@ -40,7 +40,7 @@ class Relation:
     @property
     def named_tuple_type(self) -> ty.Type:
         if self._tt is None:
-            self._tt = collections.namedtuple( # type: ignore
+            self._tt = collections.namedtuple(  # type: ignore
                 f"{self.name}_tuple",
                 self.attr_names)
 

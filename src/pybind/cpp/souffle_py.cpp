@@ -8,8 +8,8 @@
 #include <pybind11/stl.h>
 
 #include <memory>
-#include <string>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 
 namespace py = pybind11;
@@ -26,7 +26,7 @@ auto mkSouffleProgram(std::string const& name) {
     return res;
 }
 
-template<typename RamType>
+template <typename RamType>
 py::object addTupleElem(tuple& tup) {
     RamType val;
     tup >> val;
@@ -34,28 +34,19 @@ py::object addTupleElem(tuple& tup) {
 }
 
 // FIXME: Until we have type_identity in C++20
-template<typename T>
+template <typename T>
 using Type = std::remove_const<T>;
 
-template<typename F>
+template <typename F>
 void forEachType(Relation const& relation, F&& fun) {
     for (std::size_t ii = 0; ii < relation.getArity(); ++ii) {
         auto shortType = *relation.getAttrType(ii);
         switch (shortType) {
-            case 'u':
-                fun(ii, shortType, Type<RamUnsigned>());
-                break;
-            case 'i':
-                fun(ii, shortType, Type<RamSigned>());
-                break;
-            case 's':
-                fun(ii, shortType, Type<std::string>());
-                break;
-            case 'f':
-                fun(ii, shortType, Type<RamFloat>());
-                break;
-            default:
-                assert(false && "Invalid type found in relation");
+            case 'u': fun(ii, shortType, Type<RamUnsigned>()); break;
+            case 'i': fun(ii, shortType, Type<RamSigned>()); break;
+            case 's': fun(ii, shortType, Type<std::string>()); break;
+            case 'f': fun(ii, shortType, Type<RamFloat>()); break;
+            default: assert(false && "Invalid type found in relation");
         }
     }
 }
@@ -74,38 +65,35 @@ py::tuple toPyTuple(tuple& tup, Relation const& relation) {
 }
 
 class pytuple_iterator {
-    public:
-        pytuple_iterator(Relation::iterator base, Relation const& rel)
-                : iter(std::move(base)), relation(rel) {}
+public:
+    pytuple_iterator(Relation::iterator base, Relation const& rel) : iter(std::move(base)), relation(rel) {}
 
-        pytuple_iterator& operator++() {
-            ++iter;
-            return *this;
-        }
+    pytuple_iterator& operator++() {
+        ++iter;
+        return *this;
+    }
 
-        py::tuple operator*() const {
-            return toPyTuple(*iter, relation);
-        }
+    py::tuple operator*() const {
+        return toPyTuple(*iter, relation);
+    }
 
-        bool operator==(pytuple_iterator const& other) {
-            return iter == other.iter;
-        }
+    bool operator==(pytuple_iterator const& other) {
+        return iter == other.iter;
+    }
 
-        bool operator!=(pytuple_iterator const& other) {
-            return iter != other.iter;
-        }
+    bool operator!=(pytuple_iterator const& other) {
+        return iter != other.iter;
+    }
 
-    private:
-        Relation::iterator iter;
-        Relation const& relation;
+private:
+    Relation::iterator iter;
+    Relation const& relation;
 };
 
 auto mkTupleIterator(Relation const* relation) {
     auto begin = relation->begin();
     return py::make_iterator(
-        pytuple_iterator{begin, *relation},
-        pytuple_iterator{relation->end(), *relation}
-    );
+            pytuple_iterator{begin, *relation}, pytuple_iterator{relation->end(), *relation});
 }
 
 py::tuple getAttrs(Relation const& relation, char const* (Relation::*fun)(std::size_t) const) {
@@ -133,8 +121,7 @@ tuple pyTupleToTuple(Relation const& relation, py::tuple const& tup) {
     forEachType(relation, [&tup, &res](std::size_t ii, char, auto tid) {
         try {
             res << tup[ii].cast<typename decltype(tid)::type>();
-        }
-        catch (py::cast_error const& err) {
+        } catch (py::cast_error const& err) {
             std::ostringstream out;
             out << "Type conversion for tuple element " << ii << " failed: " << err.what();
             throw std::runtime_error(out.str());
@@ -150,11 +137,10 @@ bool contains(Relation const* relation, py::tuple const& tup) {
 
 void insert(Relation* relation, py::list const& elems) {
     std::size_t ii = 0;
-    for (auto && elem: elems) {
+    for (auto&& elem : elems) {
         try {
             relation->insert(pyTupleToTuple(*relation, elem.cast<py::tuple>()));
-        }
-        catch (std::exception const& ex) {
+        } catch (std::exception const& ex) {
             std::ostringstream out;
             out << "Insertion of element " << ii << " failed: " << ex.what();
             throw std::runtime_error(out.str());
@@ -185,8 +171,7 @@ PYBIND11_MODULE(_souffle_py, m) {
             // TODO: getPrimaryArity - note sure yet what these are for, need to ask
             // TODO: getSymbolTable.  Can we automatically create UDTs in Python?
             .def("get_signature", &souffle::Relation::getSignature)
-            .def("purge", &souffle::Relation::purge)
-            ;
+            .def("purge", &souffle::Relation::purge);
 
     py::class_<souffle::SouffleProgram>(m, "Program")
             .def(py::init(&souffle::pybind::mkSouffleProgram))
