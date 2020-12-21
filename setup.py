@@ -9,5 +9,5 @@ setup(
     # keywords = "...",
     packages=["souffle"],
     package_dir={"": "src/pybind/python"},
-    package_data={"souffle": ["_souffle_py.*"]},
+    package_data={"souffle": ["libsouffle_py.cpython*"]},
 )

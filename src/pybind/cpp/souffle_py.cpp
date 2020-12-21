@@ -151,7 +151,7 @@ void insert(Relation* relation, py::list const& elems) {
 }
 }  // namespace souffle::pybind
 
-PYBIND11_MODULE(_souffle_py, m) {
+PYBIND11_MODULE(libsouffle_py, m) {
     py::class_<souffle::Relation>(m, "Relation")
             .def("insert", &souffle::pybind::insert)
             .def("contains", &souffle::pybind::contains)

@@ -385,12 +385,14 @@ souffle_profile_CPPFLAGS = $(souffle_CPPFLAGS)
 lib_LTLIBRARIES = libsouffle_py.la
 libsouffle_py_la_SOURCES = pybind/cpp/souffle_py.cpp
 libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
-libsouffle_py_la_CPPFLAGS =                                     \
+libsouffle_py_la_CPPFLAGS =                                 \
         -I$(srcdir)/include                                 \
         -I$(top_srcdir)/extern/pybind11/include             \
         $(shell python3-config --includes)
 
-libsouffle_py_la_LDFLAGS = -lffi
+PYTHON_EXT = $(shell python3-config --extension-suffix)
+libsouffle_py_la_LDFLAGS = -lffi -shared -avoid-version     \
+			   -shrext $(PYTHON_EXT)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
@@ -497,17 +499,12 @@ souffleutility_HEADERS = \
         include/souffle/utility/span.h                     \
         include/souffle/utility/tinyformat.h
 
-PYTHON_EXT = $(shell python3-config --extension-suffix)
-# insert this file so that setup.py can find and install it
-SOUFFLE_PY = pybind/python/souffle/_souffle_py$(PYTHON_EXT)
-
 # files to clean
 CLEANFILES = $(BUILT_SOURCES)                              \
                 parser/parser.cc                           \
                 parser/scanner.cc                          \
                 parser/parser.hh                           \
-                parser/stack.hh                            \
-                $(SOUFFLE_PY)
+                parser/stack.hh
 
 # run Bison
 $(builddir)/parser/parser.hh: $(srcdir)/parser/parser.yy
@@ -523,13 +520,9 @@ $(builddir)/parser/parser.cc $(builddir)/parser/stack.hh $(builddir)/parser/scan
 
 # There may be a cleaner way to do this but setup.py needs the library
 # in the source tree
-all-local: $(SOUFFLE_PY)
+all-local: $(LTLIBRARIES)
+	$(INSTALL) .libs/libsouffle_py$(PYTHON_EXT) $(top_srcdir)/src/pybind/python/souffle
 	cd $(top_srcdir) && python3 setup.py build --build-base=python_build
 
 clean-local:
 	rm -rf $(top_srcdir)/python_build
-
-# FIXME: Windows version
-# Is there a more generic way to refer to the shared object?
-$(SOUFFLE_PY): $(LTLIBRARIES)
-	cp $(top_builddir)/src/.libs/libsouffle_py.so $(SOUFFLE_PY)

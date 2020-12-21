@@ -117,7 +117,8 @@ if [ -n "$SWIGLANG" ]
 then
   if [ "$SWIGLANG" = "pybind" ]
   then
-    $CXX -shared -fPIC -D__EMBEDDED_SOUFFLE__ -DSOUFFLE_PYBIND_PROGRAM $CXXFLAGS $CPPFLAGS -o$dir/$exe.so $dir/$exe.cpp $HEADER_DIRS $LIBS_DIRS $OMP_FLAG $LDFLAGS -lsouffle_py $LIBS
+    PYTHON_EXT=$(python3-config --extension-suffix)
+    $CXX -shared -fPIC -D__EMBEDDED_SOUFFLE__ -DSOUFFLE_PYBIND_PROGRAM $CXXFLAGS $CPPFLAGS -o$dir/$exe.so $dir/$exe.cpp $HEADER_DIRS $LIBS_DIRS $OMP_FLAG $LDFLAGS -l:libsouffle_py$PYTHON_EXT $LIBS
     exit 0
   fi
   # set environment variables

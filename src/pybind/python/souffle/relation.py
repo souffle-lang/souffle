@@ -1,7 +1,7 @@
 import collections
 import typing as ty
 
-import souffle._souffle_py as _py  # type: ignore
+import souffle.libsouffle_py as _py  # type: ignore
 
 
 class Relation:

@@ -4,7 +4,7 @@ import pathlib
 import sys
 import typing as ty
 
-import souffle._souffle_py as _py  # type: ignore
+import souffle.libsouffle_py as _py  # type: ignore
 import souffle.relation as rel
 
 _PATH_TYPE = ty.Union[pathlib.Path, str]
