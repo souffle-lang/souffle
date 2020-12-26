@@ -370,7 +370,7 @@ souffle_sources = \
         $(souffle_profile_sources)
 
 # -- build souffle as a library so it can be reused in testing
-noinst_LTLIBRARIES = libsouffle.la
+noinst_LTLIBRARIES = libsouffle.la libsouffle_py.la
 libsouffle_la_SOURCES  = $(souffle_sources)
 libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_la_LDFLAGS = --static --dlopen --pic -ldl -lffi
@@ -382,26 +382,23 @@ souffle_CPPFLAGS = -I$(srcdir)/include
 souffle_profile_SOURCES = souffle_prof.cpp
 souffle_profile_CPPFLAGS = $(souffle_CPPFLAGS)
 
-lib_LTLIBRARIES = libsouffle_py.la
 PYTHON_EXT = $(shell python3-config --extension-suffix)
 libsouffle_py_la_SOURCES =                                  \
         pybind/cpp/souffle_py.cpp                           \
         $(shell find $(top_srcdir)/src/pybind/python -name "*.py") \
         $(top_srcdir)/setup.py
 
-
 libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_py_la_CPPFLAGS =                                 \
         -I$(srcdir)/include                                 \
         -I$(top_srcdir)/extern/pybind11/include             \
         $(shell python3-config --includes)
+# This is stupid.  Automake/libtool won't build a shared
+# noist_ library unless -rpath is present...
 libsouffle_py_la_LDFLAGS = -lffi -shared -avoid-version     \
-			   -shrext $(PYTHON_EXT)
+			   -shrext $(PYTHON_EXT) -rpath /
 
-#pybinddir = $(top_srcdir)/src/pybind/python
-
-noinst_includedir = $(top_srcdir)/extern
-noinst_include_HEADERS = $(shell find $(top_srcdir)/extern/pybind11/include)
+noinst_HEADERS = $(shell find $(top_srcdir)/extern/pybind11/include)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
