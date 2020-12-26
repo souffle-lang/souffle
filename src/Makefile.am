@@ -533,4 +533,4 @@ all-local: $(LTLIBRARIES)
 	cd $(top_srcdir) && python3 setup.py build --build-base=$(buildreal)/python_build
 
 clean-local:
-	rm -rf $(top_srcdir)/python_build
+	rm -rf $(builddir)/python_build
