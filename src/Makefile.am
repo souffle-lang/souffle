@@ -383,16 +383,25 @@ souffle_profile_SOURCES = souffle_prof.cpp
 souffle_profile_CPPFLAGS = $(souffle_CPPFLAGS)
 
 lib_LTLIBRARIES = libsouffle_py.la
-libsouffle_py_la_SOURCES = pybind/cpp/souffle_py.cpp
+PYTHON_EXT = $(shell python3-config --extension-suffix)
+libsouffle_py_la_SOURCES =                                  \
+        pybind/cpp/souffle_py.cpp                           \
+        $(shell find $(top_srcdir)/src/pybind/python -name "*.py") \
+        $(top_srcdir)/setup.py
+
+
 libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_py_la_CPPFLAGS =                                 \
         -I$(srcdir)/include                                 \
         -I$(top_srcdir)/extern/pybind11/include             \
         $(shell python3-config --includes)
-
-PYTHON_EXT = $(shell python3-config --extension-suffix)
 libsouffle_py_la_LDFLAGS = -lffi -shared -avoid-version     \
 			   -shrext $(PYTHON_EXT)
+
+#pybinddir = $(top_srcdir)/src/pybind/python
+
+noinst_includedir = $(top_srcdir)/extern
+noinst_include_HEADERS = $(shell find $(top_srcdir)/extern/pybind11/include)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
@@ -520,9 +529,11 @@ $(builddir)/parser/parser.cc $(builddir)/parser/stack.hh $(builddir)/parser/scan
 
 # There may be a cleaner way to do this but setup.py needs the library
 # in the source tree
+buildreal = $(shell realpath $(builddir))
 all-local: $(LTLIBRARIES)
-	$(INSTALL) .libs/libsouffle_py$(PYTHON_EXT) $(top_srcdir)/src/pybind/python/souffle
-	cd $(top_srcdir) && python3 setup.py build --build-base=python_build
+	chmod u+w $(top_srcdir)/src/pybind/python/souffle
+	$(INSTALL) $(builddir)/.libs/libsouffle_py$(PYTHON_EXT) $(top_srcdir)/src/pybind/python/souffle
+	cd $(top_srcdir) && python3 setup.py build --build-base=$(buildreal)/python_build
 
 clean-local:
 	rm -rf $(top_srcdir)/python_build
