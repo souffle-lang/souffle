@@ -11,3 +11,4 @@ autoheader
 automake --gnu --add-missing
 autoconf
 git submodule update --init
+# pip3 install --user poetry nox

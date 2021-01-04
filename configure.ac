@@ -89,11 +89,18 @@ AC_ARG_ENABLE(
   [swig],
   [AS_HELP_STRING([--enable-swig], [Enable SWIG])]
 )
+
+AC_PATH_PROG(PYTHON3, python3, python3)
+AS_IF([test -z "$PYTHON3"], [AC_MSG_ERROR([python3 not found])])
+AC_PATH_PROG(POETRY, poetry, poetry)
+AS_IF([test -z "$POETRY"], [AC_MSG_ERROR([poetry package manager not found])])
+AC_MSG_NOTICE("$POETRY")
+AC_PATH_PROG(NOX, nox)
+AS_IF([test -z "$NOX"], [AC_MSG_ERROR([nox not found])])
+
 AS_IF([test "x$enable_swig" = "xyes"], [
   AC_CHECK_PROG(JAVAC, javac, javac)
   AS_IF([test -z "$JAVAC"], [AC_MSG_ERROR([javac not found, required for swig])])
-  AC_CHECK_PROG(PYTHON3, python3, python3)
-  AS_IF([test -z "$PYTHON3"], [AC_MSG_ERROR([python3 not found, required for swig])])
   AC_CHECK_PROG(SWIG, swig, swig)
   AS_IF([test -z "$SWIG"], [AC_MSG_ERROR([swig not found])])
 ])

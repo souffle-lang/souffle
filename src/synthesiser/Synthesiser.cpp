@@ -2354,6 +2354,8 @@ void Synthesiser::generateCode(std::ostream& os, const std::string& id, bool& wi
         os << "#define _SOUFFLE_STATS\n";
     }
     os << "\n#include \"souffle/CompiledSouffle.h\"\n";
+    os << "\n#include <functional>\n";
+    os << "\n#include <vector>\n";
     if (Global::config().has("provenance")) {
         os << "#include <mutex>\n";
         os << "#include \"souffle/provenance/Explain.h\"\n";
@@ -2860,9 +2862,17 @@ void runFunction(std::string  inputDirectoryArg   = "",
     os << "public:\n";
     os << "factory_" << classname << "() : ProgramFactory(\"" << id << "\"){}\n";
     os << "};\n";
+    os << PYBIND_BEGIN_STR;
     os << "extern \"C\" {\n";
     os << "factory_" << classname << " __factory_" << classname << "_instance;\n";
     os << "}\n";
+    os << "#else\n";
+    os << "namespace pybind { extern std::vector<std::function<Own<ProgramFactory>()>> registrar; }\n";
+    os << "struct register_factory_" << classname << "{\n";
+    os << "register_factory_" << classname << "() {\n";
+    os << "souffle::pybind::registrar.push_back([]() { return mk<factory_" << classname << ">(); }); }};\n";
+    os << "register_factory_" << classname << " _factory_" << classname << "_instance;\n";
+    os << PYBIND_END_STR;
     os << "}\n";
     os << "#else\n";
     os << "}\n";

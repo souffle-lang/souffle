@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "souffle"
+version = "0.1.0"
+description = "python bindings for the souffle project"
+authors = []
+homepage = "https://souffle-lang.github.io/"
+repository = "https://github.com/souffle-lang/souffle"
+keywords = ["datalog", "souffle"]
+packages = [
+    { include = "souffle", from = "src/pybind/python" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.1"
+coverage = {extras = ["toml"], version = "^5.3.1"}
+pytest-cov = "^2.10.1"
+xdoctest = "^0.15.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+
+[tool.coverage.paths]
+source = ["src/pybind/python", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["souffle"]
+
+[tool.coverage.report]
+show_missing = true

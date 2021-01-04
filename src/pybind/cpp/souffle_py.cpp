@@ -7,17 +7,30 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace py = pybind11;
 
 namespace souffle::pybind {
 
+std::vector<std::function<Own<ProgramFactory>()>> registrar;
+VecOwn<ProgramFactory> factories;
+
 auto mkSouffleProgram(std::string const& name) {
-    auto res = std::unique_ptr<SouffleProgram>{ProgramFactory::newInstance(name.c_str())};
+    // Register and drop any new factories
+    for (auto beg = registrar.begin(); beg != registrar.end();) {
+        auto reg = std::move(*beg);
+        beg = registrar.erase(beg);
+        // register the factory after removing it from the list
+        factories.push_back(reg());
+    }
+
+    auto res = Own<SouffleProgram>{ProgramFactory::newInstance(name.c_str())};
     if (!res) {
         throw std::runtime_error(
                 "Unable to locate program '" + name + "'. Try loading it using Program.load_program");

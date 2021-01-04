@@ -530,7 +530,6 @@ buildreal = $(shell realpath $(builddir))
 all-local: $(LTLIBRARIES)
 	chmod u+w $(top_srcdir)/src/pybind/python/souffle
 	$(INSTALL) $(builddir)/.libs/libsouffle_py$(PYTHON_EXT) $(top_srcdir)/src/pybind/python/souffle
-	cd $(top_srcdir) && python3 setup.py build --build-base=$(buildreal)/python_build
 
 clean-local:
-	rm -rf $(builddir)/python_build
+	rm -f $(top_srcdir)/src/pybind/python/souffle/libsouffle_py$(PYTHON_EXT)

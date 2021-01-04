@@ -1,7 +1,9 @@
 import ctypes
 import os
 import pathlib
+import subprocess
 import sys
+import tempfile
 import typing as ty
 
 import souffle.libsouffle_py as _py  # type: ignore
@@ -46,6 +48,7 @@ def _make_relations(rels: ty.Iterable[_py.Relation]) -> ty.Dict[str, rel.Relatio
 
 class Program:
     __loaded: ty.List[pathlib.Path] = []
+
     _name: str
     _path: pathlib.Path
     _program: _py.Program
@@ -75,6 +78,42 @@ class Program:
         self._internal_relations = None
         self._relations = None
 
+    @staticmethod
+    def compile_str(program: str, name: str, work_dir: ty.Optional[_PATH_TYPE] = None, flags: ty.Sequence[str] = (), souffle: _PATH_TYPE = "souffle") -> "Program":
+        if not work_dir:
+            # This will get cleaned up later automatically
+            temp_dir = tempfile.TemporaryDirectory()
+            work_dir = temp_dir.name
+
+        work_dir = pathlib.Path(work_dir)
+
+        if not work_dir.is_dir():
+            raise RuntimeError(
+                f"Ouput directory '{work_dir}' is not a directory")
+
+        # Will get cleaned up later
+        temp_file = work_dir / f"{name}.dl"
+        temp_file.write_text(program)
+        return Program.compile(temp_file, output_name=temp_file.with_suffix(""),
+                               name=name, flags=flags, souffle=souffle)
+
+    @staticmethod
+    def compile(dl_file: _PATH_TYPE, name: ty.Optional[str] = None, flags: ty.Sequence[str] = (), output_name: ty.Optional[_PATH_TYPE] = None, souffle: _PATH_TYPE = "souffle") -> "Program":
+        dl_file = pathlib.Path(dl_file)
+
+        name = name or str(dl_file.basename)
+        output_name = output_name or name
+
+        output_flags = ["--dl-program", str(output_name)]
+
+        proc = subprocess.run([str(souffle), "-s", "pybind"] + output_flags + list(flags) + [str(dl_file)],
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        if proc.returncode or len(proc.stderr):
+            raise RuntimeError(f"Compilation failed:\n{proc.stderr.decode()}")
+
+        return Program(name, output_name)
+
     @property
     def name(self) -> str:
         return self._name
@@ -85,7 +124,11 @@ class Program:
 
     def load_program(self, path: _PATH_TYPE) -> pathlib.Path:
         abs_path = pathlib.Path(path).resolve()
-        same = map(lambda pp: os.path.samefile(abs_path, pp), self.__loaded)
+
+        def same_file(path) -> bool:
+            return path.exists() and os.path.samefile(abs_path, path)
+
+        same = map(same_file, self.__loaded)
         if not any(same):
             loader = _get_plat_dll()
             loader.LoadLibrary(abs_path)

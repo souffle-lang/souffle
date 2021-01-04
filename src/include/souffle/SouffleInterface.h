@@ -28,6 +28,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -1038,7 +1039,10 @@ protected:
      */
     static inline void registerFactory(ProgramFactory* factory) {
         auto& entry = getFactoryRegistry()[factory->name];
-        assert(!entry && "double-linked/defined souffle analyis");
+        if (entry != nullptr) {
+            // Use exception insted of an assertion to report nicely back to user program
+            throw std::runtime_error("Souffle analysis '" + factory->name + "' already defined");
+        }
         entry = factory;
     }
 
