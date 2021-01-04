@@ -380,7 +380,7 @@ souffle_sources = \
         $(souffle_profile_sources)
 
 # -- build souffle as a library so it can be reused in testing
-noinst_LTLIBRARIES = libsouffle.la
+noinst_LTLIBRARIES = libsouffle.la libsouffle_py.la
 libsouffle_la_SOURCES  = $(souffle_sources)
 libsouffle_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_la_LDFLAGS = --static --dlopen --pic -ldl -lffi
@@ -391,6 +391,24 @@ souffle_CPPFLAGS = -I$(srcdir)/include
 
 souffle_profile_SOURCES = souffle_prof.cpp
 souffle_profile_CPPFLAGS = $(souffle_CPPFLAGS)
+
+PYTHON_EXT = $(shell python3-config --extension-suffix)
+libsouffle_py_la_SOURCES =                                  \
+        pybind/cpp/souffle_py.cpp                           \
+        $(shell find $(top_srcdir)/src/pybind/python -name "*.py") \
+        $(top_srcdir)/setup.py
+
+libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
+libsouffle_py_la_CPPFLAGS =                                 \
+        -I$(srcdir)/include                                 \
+        -I$(top_srcdir)/extern/pybind11/include             \
+        $(shell python3-config --includes)
+# This is stupid.  Automake/libtool won't build a shared
+# noist_ library unless -rpath is present...
+libsouffle_py_la_LDFLAGS = -lffi -shared -avoid-version     \
+			   -shrext $(PYTHON_EXT) -rpath /
+
+noinst_HEADERS = $(shell find $(top_srcdir)/extern/pybind11/include)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
 
@@ -501,7 +519,11 @@ souffleutility_HEADERS = \
         include/souffle/utility/tinyformat.h
 
 # files to clean
-CLEANFILES = $(BUILT_SOURCES)  parser/parser.cc parser/scanner.cc parser/parser.hh parser/stack.hh
+CLEANFILES = $(BUILT_SOURCES)                              \
+                parser/parser.cc                           \
+                parser/scanner.cc                          \
+                parser/parser.hh                           \
+                parser/stack.hh
 
 # run Bison
 $(builddir)/parser/parser.hh: $(srcdir)/parser/parser.yy
@@ -514,3 +536,13 @@ $(builddir)/parser/scanner.cc: $(srcdir)/parser/scanner.ll
 # driver depends on the generated header
 $(builddir)/parser/parser.cc $(builddir)/parser/stack.hh $(builddir)/parser/scanner.cc \
     $(builddir)/main.cpp $(builddir)/parser/ParserDriver.cpp: $(builddir)/parser/parser.hh
+
+# There may be a cleaner way to do this but setup.py needs the library
+# in the source tree
+buildreal = $(shell realpath $(builddir))
+all-local: $(LTLIBRARIES)
+	chmod u+w $(top_srcdir)/src/pybind/python/souffle
+	$(INSTALL) $(builddir)/.libs/libsouffle_py$(PYTHON_EXT) $(top_srcdir)/src/pybind/python/souffle
+
+clean-local:
+	rm -f $(top_srcdir)/src/pybind/python/souffle/libsouffle_py$(PYTHON_EXT)

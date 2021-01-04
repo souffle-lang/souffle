@@ -28,6 +28,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -811,7 +812,7 @@ public:
     /**
      * Get the number of threads to be used
      */
-    std::size_t getNumThreads() {
+    std::size_t getNumThreads() const {
         return numThreads;
     }
 
@@ -1003,18 +1004,6 @@ public:
 class ProgramFactory {
 protected:
     /**
-     * Singly linked-list to store all program factories
-     * Note that STL data-structures are not possible due
-     * to "static initialization order fiasco (problem)".
-     * (The problem of the order static objects get initialized, causing effect
-     * such as program access static variables before they initialized.)
-     * The static container needs to be a primitive type such as pointer
-     * set to NULL.
-     * Link to next factory.
-     */
-    ProgramFactory* link = nullptr;
-
-    /**
      * The name of factory.
      */
     std::string name;
@@ -1053,7 +1042,10 @@ protected:
      */
     static inline void registerFactory(ProgramFactory* factory) {
         auto& entry = getFactoryRegistry()[factory->name];
-        assert(!entry && "double-linked/defined souffle analyis");
+        if (entry != nullptr) {
+            // Use exception insted of an assertion to report nicely back to user program
+            throw std::runtime_error("Souffle analysis '" + factory->name + "' already defined");
+        }
         entry = factory;
     }
 

@@ -21,10 +21,12 @@ package.m4: $(top_srcdir)/configure.ac
 TESTSUITE = $(srcdir)/testsuite
 
 check-local: atconfig atlocal $(TESTSUITE)
+	$(NOX) -f $(top_srcdir)/noxfile.py --reuse-existing-virtualenvs -s tests -- --souffle-path=$(abs_top_srcdir)/src/souffle
 	test -e $(abs_top_builddir)/include || ln -s $(abs_top_srcdir)/src/include $(abs_top_builddir)/include
 	$(SHELL) '$(TESTSUITE)' $(TESTSUITEFLAGS)
 
 installcheck-local: atconfig atlocal $(TESTSUITE)
+	$(NOX) -f $(top_srcdir)/noxfile.py -s tests -- --souffle-path=$(abs_top_srcdir)/src/souffle
 	$(SHELL) '$(TESTSUITE)' AUTOTEST_PATH='$(bindir)' \
 	$(TESTSUITEFLAGS)
 
