@@ -101,7 +101,7 @@ class Program:
     def compile(dl_file: _PATH_TYPE, name: ty.Optional[str] = None, flags: ty.Sequence[str] = (), output_name: ty.Optional[_PATH_TYPE] = None, souffle: _PATH_TYPE = "souffle") -> "Program":
         dl_file = pathlib.Path(dl_file)
 
-        name = name or str(dl_file.basename)
+        name = name or str(dl_file.with_suffix("").name)
         output_name = output_name or name
 
         output_flags = ["--dl-program", str(output_name)]

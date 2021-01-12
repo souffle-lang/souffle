@@ -188,14 +188,13 @@ PYBIND11_MODULE(libsouffle_py, m) {
 
     py::class_<souffle::SouffleProgram>(m, "Program")
             .def(py::init(&souffle::pybind::mkSouffleProgram))
-            // drop the GIL for potentially long-running processe
             .def("run", &souffle::SouffleProgram::run, py::call_guard<py::gil_scoped_release>())
             .def("run_all", &souffle::SouffleProgram::runAll, py::call_guard<py::gil_scoped_release>())
             .def("load_all", &souffle::SouffleProgram::loadAll, py::call_guard<py::gil_scoped_release>())
             .def("print_all", &souffle::SouffleProgram::printAll, py::call_guard<py::gil_scoped_release>())
             // Note - ignoring dumpInputs/dumpOutputs, not very pythonic
-            // TODO: setNumThreads
             .def("get_num_threads", &souffle::SouffleProgram::getNumThreads)
+            .def("set_num_threads", &souffle::SouffleProgram::setNumThreads)
             .def("get_output_relations", &souffle::SouffleProgram::getOutputRelations,
                     py::return_value_policy::reference_internal)
             .def("get_input_relations", &souffle::SouffleProgram::getInputRelations,
