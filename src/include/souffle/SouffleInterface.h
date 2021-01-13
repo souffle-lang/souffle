@@ -547,7 +547,15 @@ public:
      * Reset the index giving the "current element" of the tuple to zero.
      */
     void rewind() {
-        pos = 0;
+        setPos(0);
+    }
+
+    /**
+     * Reset the index to a specific location
+     */
+    void setPos(std::size_t newPos) {
+        assert(newPos <= relation.getArity());
+        pos = newPos;
     }
 
     /**

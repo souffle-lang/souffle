@@ -51,26 +51,31 @@ template <typename T>
 using Type = std::remove_const<T>;
 
 template <typename F>
-void forEachType(Relation const& relation, F&& fun) {
-    for (std::size_t ii = 0; ii < relation.getArity(); ++ii) {
+void forEachType(Relation const& relation, std::size_t firstElem, std::size_t endElem, F&& fun) {
+    auto const arity = relation.getArity();
+    assert(firstElem <= endElem);
+    assert(endElem <= arity);
+
+    for (std::size_t ii = firstElem; ii < endElem; ++ii) {
         auto shortType = *relation.getAttrType(ii);
         switch (shortType) {
             case 'u': fun(ii, shortType, Type<RamUnsigned>()); break;
             case 'i': fun(ii, shortType, Type<RamSigned>()); break;
             case 's': fun(ii, shortType, Type<std::string>()); break;
             case 'f': fun(ii, shortType, Type<RamFloat>()); break;
+            // FIXME: Need to support 'r' (record) and '+' (ADT)
             default: assert(false && "Invalid type found in relation");
         }
     }
 }
 
-py::tuple toPyTuple(tuple& tup, Relation const& relation) {
-    auto const arity = relation.getArity();
-
+py::tuple toPyTuple(tuple& tup, Relation const& relation, std::size_t firstElem, std::size_t endElem) {
     std::vector<py::object> elems;
-    elems.reserve(arity);
+    assert(firstElem <= endElem);
+    elems.reserve(endElem - firstElem);
 
-    forEachType(relation, [&elems, &tup](std::size_t, char, auto tid) {
+    tup.setPos(firstElem);
+    forEachType(relation, firstElem, endElem, [&elems, &tup](std::size_t, char, auto tid) {
         elems.emplace_back(addTupleElem<typename decltype(tid)::type>(tup));
     });
 
@@ -79,7 +84,8 @@ py::tuple toPyTuple(tuple& tup, Relation const& relation) {
 
 class pytuple_iterator {
 public:
-    pytuple_iterator(Relation::iterator base, Relation const& rel) : iter(std::move(base)), relation(rel) {}
+    pytuple_iterator(Relation::iterator base, Relation const& rel, bool dataOnly, bool split)
+            : iter(std::move(base)), relation(rel), dataOnly(dataOnly), split(split) {}
 
     pytuple_iterator& operator++() {
         ++iter;
@@ -87,7 +93,17 @@ public:
     }
 
     py::tuple operator*() const {
-        return toPyTuple(*iter, relation);
+        if (split) {
+            py::tuple data = toPyTuple(*iter, relation, 0, relation.getPrimaryArity());
+            if (dataOnly) {
+                return data;
+            } else {
+                py::tuple prov = toPyTuple(*iter, relation, relation.getPrimaryArity(), relation.getArity());
+                return py::make_tuple(data, prov);
+            }
+        } else {
+            return toPyTuple(*iter, relation, 0, relation.getArity());
+        }
     }
 
     bool operator==(pytuple_iterator const& other) {
@@ -101,12 +117,13 @@ public:
 private:
     Relation::iterator iter;
     Relation const& relation;
+    bool const dataOnly;
+    bool const split;
 };
 
-auto mkTupleIterator(Relation const* relation) {
-    auto begin = relation->begin();
-    return py::make_iterator(
-            pytuple_iterator{begin, *relation}, pytuple_iterator{relation->end(), *relation});
+auto mkTupleIterator(Relation const* relation, bool dataOnly, bool split) {
+    return py::make_iterator(pytuple_iterator{relation->begin(), *relation, dataOnly, split},
+            pytuple_iterator{relation->end(), *relation, dataOnly, split});
 }
 
 py::tuple getAttrs(Relation const& relation, char const* (Relation::*fun)(std::size_t) const) {
@@ -122,16 +139,18 @@ py::tuple getAttrs(Relation const& relation, char const* (Relation::*fun)(std::s
 }
 
 tuple pyTupleToTuple(Relation const& relation, py::tuple const& tup) {
-    if (tup.size() != relation.getArity()) {
+    auto arity = relation.getArity();
+
+    if (tup.size() != arity) {
         std::ostringstream out;
         out << "Attempted to convert tuple of arity " << tup.size() << " but relation " << relation.getName()
-            << " has arity " << relation.getArity();
+            << " has arity " << arity;
         throw std::runtime_error(out.str());
     }
 
     tuple res(&relation);
 
-    forEachType(relation, [&tup, &res](std::size_t ii, char, auto tid) {
+    forEachType(relation, 0, arity, [&tup, &res](std::size_t ii, char, auto tid) {
         try {
             res << tup[ii].cast<typename decltype(tid)::type>();
         } catch (py::cast_error const& err) {
@@ -168,7 +187,7 @@ PYBIND11_MODULE(libsouffle_py, m) {
     py::class_<souffle::Relation>(m, "Relation")
             .def("insert", &souffle::pybind::insert)
             .def("contains", &souffle::pybind::contains)
-            .def("__iter__", &souffle::pybind::mkTupleIterator, py::keep_alive<0, 1>())
+            .def("iter", &souffle::pybind::mkTupleIterator, py::keep_alive<0, 1>())
             .def("__len__", &souffle::Relation::size)
             .def("get_name", &souffle::Relation::getName)
             .def("get_attr_types",
@@ -180,8 +199,8 @@ PYBIND11_MODULE(libsouffle_py, m) {
                         return souffle::pybind::getAttrs(*rel, &souffle::Relation::getAttrName);
                     })
             .def("get_arity", &souffle::Relation::getArity)
-            // TODO: getAuxiliaryArity - note sure yet what these are for, need to ask
-            // TODO: getPrimaryArity - note sure yet what these are for, need to ask
+            .def("get_primary_arity", &souffle::Relation::getPrimaryArity)
+            .def("get_auxiliary_arity", &souffle::Relation::getAuxiliaryArity)
             // TODO: getSymbolTable.  Can we automatically create UDTs in Python?
             .def("get_signature", &souffle::Relation::getSignature)
             .def("purge", &souffle::Relation::purge);

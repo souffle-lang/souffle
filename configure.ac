@@ -94,7 +94,6 @@ AC_PATH_PROG(PYTHON3, python3, python3)
 AS_IF([test -z "$PYTHON3"], [AC_MSG_ERROR([python3 not found])])
 AC_PATH_PROG(POETRY, poetry, poetry)
 AS_IF([test -z "$POETRY"], [AC_MSG_ERROR([poetry package manager not found])])
-AC_MSG_NOTICE("$POETRY")
 AC_PATH_PROG(NOX, nox)
 AS_IF([test -z "$NOX"], [AC_MSG_ERROR([nox not found])])
 
