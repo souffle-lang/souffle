@@ -301,6 +301,6 @@ AC_SUBST(SOUFFLE_CXXFLAGS)
 CXXFLAGS="-Wall -Wextra $CXXFLAGS $ENV_CXXFLAGS"
 
 AC_OUTPUT(
-  [ src/souffle-compile src/souffle-config debian/changelog ],
+  [ src/souffle-compile src/souffle-config debian/changelog src/python_paths.py ],
   [ chmod +x src/souffle-compile src/souffle-config ]
 )

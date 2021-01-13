@@ -1,0 +1,2 @@
+NOX_PATH = "@NOX@"
+POETRY_PATH = "@POETRY@"

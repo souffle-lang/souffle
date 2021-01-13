@@ -25,10 +25,10 @@ check-local: atconfig atlocal $(TESTSUITE) python-tests
 	$(SHELL) '$(TESTSUITE)' $(TESTSUITEFLAGS)
 
 python-tests:
-	$(NOX) -f $(top_srcdir)/noxfile.py --reuse-existing-virtualenvs -s tests -- --souffle-path=$(abs_top_srcdir)/src/souffle
+	$(NOX) -f $(top_srcdir)/noxfile.py --reuse-existing-virtualenvs -s tests
 
 installcheck-local: atconfig atlocal $(TESTSUITE)
-	$(NOX) -f $(top_srcdir)/noxfile.py -s tests -- --souffle-path=$(abs_top_srcdir)/src/souffle
+	$(NOX) -f $(top_srcdir)/noxfile.py -s tests
 	$(SHELL) '$(TESTSUITE)' AUTOTEST_PATH='$(bindir)' \
 	$(TESTSUITEFLAGS)
 

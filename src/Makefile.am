@@ -401,6 +401,7 @@ libsouffle_py_la_LDFLAGS = -lffi -shared -avoid-version     \
 noinst_HEADERS = $(shell find $(top_srcdir)/extern/pybind11/include)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
+noinst_DATA = python_paths.py
 
 EXTRA_DIST = parser/parser.yy parser/scanner.ll
 
@@ -533,3 +534,4 @@ all-local: $(LTLIBRARIES)
 
 clean-local:
 	rm -f $(top_srcdir)/src/pybind/python/souffle/libsouffle_py$(PYTHON_EXT)
+	rm -f $(top_srcdir)/src/python_paths.py
