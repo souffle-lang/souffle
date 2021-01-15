@@ -95,10 +95,10 @@ m4_define([TEST_EVAL_FUNCTOR],[
     dos2unix --quiet TESTNAME.out TESTNAME.err
   else
     dnl copy libs from where they were built
-    cp ../../interface/functors/.libs/libfunctors* .
+    cp $abs_srcdir/interface/functors/.libs/libfunctors* .
     # hack for System Integrity Protection (on Travis)
     # TODO (darth_tytus): Investigate a better solution.
-    cp ../../interface/functors/.libs/libfunctors.dylib /usr/local/lib/ 2>/dev/null
+    cp $abs_srcdir/interface/functors/.libs/libfunctors.dylib /usr/local/lib/ 2>/dev/null
     # invoke souffle
     AT_CHECK(["$SOUFFLE" FLAGS -D. -F FACTS PROGRAM 1>TESTNAME.out 2>TESTNAME.err], [0])
   fi

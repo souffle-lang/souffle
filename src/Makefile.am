@@ -386,7 +386,10 @@ PYTHON_EXT = $(shell python3-config --extension-suffix)
 libsouffle_py_la_SOURCES =                                  \
         pybind/cpp/souffle_py.cpp                           \
         $(shell find $(top_srcdir)/src/pybind/python -name "*.py") \
-        $(top_srcdir)/setup.py
+	$(top_srcdir)/noxfile.py			    \
+	$(top_srcdir)/pyproject.toml			    \
+	$(top_srcdir)/poetry.lock			    \
+	$(top_srcdir)/src/python_paths.py
 
 libsouffle_py_la_CXXFLAGS = $(souffle_CPPFLAGS) $(FFI_CFLAGS)
 libsouffle_py_la_CPPFLAGS =                                 \
@@ -401,7 +404,6 @@ libsouffle_py_la_LDFLAGS = -lffi -shared -avoid-version     \
 noinst_HEADERS = $(shell find $(top_srcdir)/extern/pybind11/include)
 
 dist_bin_SCRIPTS = souffle-compile souffle-config
-noinst_DATA = python_paths.py
 
 EXTRA_DIST = parser/parser.yy parser/scanner.ll
 
@@ -527,11 +529,9 @@ $(builddir)/parser/parser.cc $(builddir)/parser/stack.hh $(builddir)/parser/scan
 
 # There may be a cleaner way to do this but setup.py needs the library
 # in the source tree
-buildreal = $(shell realpath $(builddir))
 all-local: $(LTLIBRARIES)
 	chmod u+w $(top_srcdir)/src/pybind/python/souffle
 	$(INSTALL) $(builddir)/.libs/libsouffle_py$(PYTHON_EXT) $(top_srcdir)/src/pybind/python/souffle
 
 clean-local:
 	rm -f $(top_srcdir)/src/pybind/python/souffle/libsouffle_py$(PYTHON_EXT)
-	rm -f $(top_srcdir)/src/python_paths.py

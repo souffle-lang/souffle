@@ -51,4 +51,7 @@ debian/changelog
 
 __pycache__
 src/.libs
-python_build
+*.cpython-*
+poetry.lock
+src/python_paths.py
+souffle-2.0.*

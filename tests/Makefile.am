@@ -6,7 +6,7 @@
 
 SUBDIRS = interface/functors
 
-EXTRA_DIST =  $(srcdir)/*.at package.m4 $(TESTSUITE) atlocal.in $(srcdir)/swig $(srcdir)/evaluation $(srcdir)/semantic $(srcdir)/syntactic $(srcdir)/interface $(srcdir)/profile $(srcdir)/provenance
+EXTRA_DIST =  $(srcdir)/*.at package.m4 $(TESTSUITE) atlocal.in $(srcdir)/swig $(srcdir)/evaluation $(srcdir)/semantic $(srcdir)/syntactic $(srcdir)/interface $(srcdir)/profile $(srcdir)/provenance $(srcdir)/python
 
 package.m4: $(top_srcdir)/configure.ac
 	@{                                      \
@@ -20,15 +20,16 @@ package.m4: $(top_srcdir)/configure.ac
 
 TESTSUITE = $(srcdir)/testsuite
 
-check-local: atconfig atlocal $(TESTSUITE) python-tests
-	test -e $(abs_top_builddir)/include || ln -s $(abs_top_srcdir)/src/include $(abs_top_builddir)/include
+check-local-make-include-symlinks:
+	test -e $(abs_top_builddir)/src/include || ln -s $(abs_top_srcdir)/src/include $(abs_top_builddir)/src/include
+
+check-local: atconfig atlocal $(TESTSUITE) check-local-make-include-symlinks python-tests
 	$(SHELL) '$(TESTSUITE)' $(TESTSUITEFLAGS)
 
-python-tests:
-	$(NOX) -f $(top_srcdir)/noxfile.py --reuse-existing-virtualenvs -s tests
+python-tests: check-local-make-include-symlinks
+	$(NOX) -f $(top_srcdir)/noxfile.py --reuse-existing-virtualenvs -s tests --envdir=$(abs_top_builddir)/.nox -- --souffle-path=$(abs_top_builddir)/src/souffle
 
 installcheck-local: atconfig atlocal $(TESTSUITE)
-	$(NOX) -f $(top_srcdir)/noxfile.py -s tests
 	$(SHELL) '$(TESTSUITE)' AUTOTEST_PATH='$(bindir)' \
 	$(TESTSUITEFLAGS)
 

@@ -4,15 +4,16 @@ import sys
 import nox
 
 # This is a hack to extract autoconf paths into python
-sys.path.append("src")
-from python_paths import POETRY_PATH
-
 _THIS_FILE = pathlib.Path(__file__).resolve()
-_SOUFFLE_PATH = _THIS_FILE.parent / "src/souffle"
+_THIS_DIR = _THIS_FILE.parent
+_SRC_DIR = _THIS_DIR / "src"
+
+sys.path.append(str(_SRC_DIR))
+from python_paths import POETRY_PATH
 
 @nox.session()
 def tests(session):
     session.run(POETRY_PATH, "install", external=True)
-    session.run("pytest", "--cov", *session.posargs, f"--souffle-path={_SOUFFLE_PATH}", "tests/python")
+    session.run("pytest", *session.posargs, "tests/python")
 
 # FIXME: Linting, doctest, mypy

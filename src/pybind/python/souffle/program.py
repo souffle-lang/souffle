@@ -47,7 +47,8 @@ def _make_relations(rels: ty.Iterable[_py.Relation]) -> ty.Dict[str, rel.Relatio
 
 
 class Program:
-    __loaded: ty.List[pathlib.Path] = []
+    __loaded: ty.Set = set()
+    __loaded_paths: ty.List[pathlib.Path] = []
 
     _name: str
     _path: pathlib.Path
@@ -61,6 +62,9 @@ class Program:
         if not name:
             raise ValueError("Program name must be non-empty")
 
+        if name in self.__loaded:
+            raise ValueError(f"Program with the name '{name}' is already loaded")
+
         if not path:
             path = pathlib.Path(name)
 
@@ -73,6 +77,7 @@ class Program:
         self._path = self.load_program(path)
         self._name = name
         self._program = _py.Program(name)
+        self.__loaded.add(name)
         self._output_relations = None
         self._input_relations = None
         self._internal_relations = None
@@ -105,73 +110,76 @@ class Program:
         output_name = output_name or name
 
         output_flags = ["--dl-program", str(output_name)]
+        command_line = ([str(souffle), "-s", "pybind"] +
+                        output_flags + list(flags) + [str(dl_file)])
 
-        proc = subprocess.run([str(souffle), "-s", "pybind"] + output_flags + list(flags) + [str(dl_file)],
+        proc = subprocess.run(command_line,
                               stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
         if proc.returncode or len(proc.stderr):
-            raise RuntimeError(f"Compilation failed:\n{proc.stderr.decode()}")
+            raise RuntimeError(
+                f"Compilation failed: Command line '{command_line}' resulted in\n{proc.stderr.decode()}")
 
         return Program(name, output_name)
 
-    @property
+    @ property
     def name(self) -> str:
         return self._name
 
-    @property
+    @ property
     def path(self) -> pathlib.Path:
         return self._path
 
     def load_program(self, path: _PATH_TYPE) -> pathlib.Path:
-        abs_path = pathlib.Path(path).resolve()
+        abs_path=pathlib.Path(path).resolve()
 
         def same_file(path) -> bool:
             return path.exists() and os.path.samefile(abs_path, path)
 
-        same = map(same_file, self.__loaded)
+        same=map(same_file, self.__loaded_paths)
         if not any(same):
-            loader = _get_plat_dll()
+            loader=_get_plat_dll()
             loader.LoadLibrary(abs_path)
-            self.__loaded.append(abs_path)
+            self.__loaded_paths.append(abs_path)
 
         return abs_path
 
     def run(self) -> None:
         self._program.run()
 
-    def run_all(self, input_dir: _PATH_TYPE = "", output_dir: _PATH_TYPE = "") -> None:
-        input_dir = "" if input_dir is None else str(input_dir)
-        output_dir = "" if output_dir is None else str(output_dir)
+    def run_all(self, input_dir: _PATH_TYPE="", output_dir: _PATH_TYPE="") -> None:
+        input_dir="" if input_dir is None else str(input_dir)
+        output_dir="" if output_dir is None else str(output_dir)
         self._program.run_all(input_dir, output_dir)
 
-    @property
+    @ property
     def output_relations(self) -> ty.Dict[str, rel.Relation]:
         if self._output_relations is None:
-            self._output_relations = _make_relations(
+            self._output_relations=_make_relations(
                 self._program.get_output_relations())
 
         return self._output_relations
 
-    @property
+    @ property
     def input_relations(self) -> ty.Dict[str, rel.Relation]:
         if self._input_relations is None:
-            self._input_relations = _make_relations(
+            self._input_relations=_make_relations(
                 self._program.get_input_relations())
 
         return self._input_relations
 
-    @property
+    @ property
     def internal_relations(self) -> ty.Dict[str, rel.Relation]:
         if self._internal_relations is None:
-            self._internal_relations = _make_relations(
+            self._internal_relations=_make_relations(
                 self._program.get_internal_relations())
 
         return self._internal_relations
 
-    @property
+    @ property
     def relations(self) -> ty.Dict[str, rel.Relation]:
         if self._relations is None:
-            self._relations = _make_relations(
+            self._relations=_make_relations(
                 self._program.get_all_relations())
 
         return self._relations
@@ -193,9 +201,9 @@ class Program:
         for rr in self.relations.values():
             rr.purge()
 
-    def print_all(self, output_dir: _PATH_TYPE = None):
+    def print_all(self, output_dir: _PATH_TYPE=None):
         # TODO: Is this still the best name for this?  I would prefer
         # dump_outputs but that means something else in the C++ code.
         # RFC?
-        output_dir = "" if output_dir is None else str(output_dir)
+        output_dir="" if output_dir is None else str(output_dir)
         self._program.print_all(output_dir)

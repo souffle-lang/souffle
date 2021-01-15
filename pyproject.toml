@@ -15,8 +15,6 @@ python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
-coverage = {extras = ["toml"], version = "^5.3.1"}
-pytest-cov = "^2.10.1"
 xdoctest = "^0.15.0"
 
 [build-system]
@@ -25,13 +23,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
-
-[tool.coverage.paths]
-source = ["src/pybind/python", "*/site-packages"]
-
-[tool.coverage.run]
-branch = true
-source = ["souffle"]
-
-[tool.coverage.report]
-show_missing = true

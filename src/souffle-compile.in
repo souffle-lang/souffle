@@ -55,8 +55,8 @@ WARNINGS=""
 SWIGLANG=""
 
 # find header files of souffle
-HEADER_DIRS=" -I$(realpath $(dirname $0)/../include) -I$(realpath $(dirname $0)/include) "
-LIBS_DIRS=" -L$(realpath $(dirname $0)/../src/.libs) -L$(realpath $(dirname $0)/.libs) "
+HEADER_DIRS=" -I$(dirname $0)/include "
+LIBS_DIRS=" -L$(dirname $0)/.libs "
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
 # default getopt is an old BSD getopt, so need this for portability
