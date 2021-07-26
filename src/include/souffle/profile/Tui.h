@@ -756,12 +756,12 @@ public:
             std::cout << "Relation ceased to exist. Odd." << std::endl;
             return;
         }
-        if (rel->getRuleMap().count(srcLocator) == 0) {
+        if (rel->getRuleMap().count(id) == 0) {
             std::cout << "Rule ceased to exist. Odd." << std::endl;
             return;
         }
 
-        auto& rul = rel->getRuleMap().at(srcLocator);
+        auto& rul = rel->getRuleMap().at(id);
         usage(rul->getEndtime(), rul->getStarttime());
     }
 

@@ -118,9 +118,7 @@ public:
             for (const auto& versionKey : versions.getKeys()) {
                 versions.readEntry(versionKey)->accept(visitor);
             }
-            // To match map keys defined in Iteration::addRule()
-            std::string ruleKey = key + rule->getLocator() + key;
-            iteration.addRule(ruleKey, rule);
+            iteration.addRule(rule);
         }
     }
 

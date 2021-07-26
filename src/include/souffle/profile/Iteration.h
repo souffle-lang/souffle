@@ -36,8 +36,8 @@ private:
 public:
     Iteration() : rules() {}
 
-    void addRule(const std::string& ruleKey, std::shared_ptr<Rule>& rule) {
-        rules[ruleKey] = rule;
+    void addRule(std::shared_ptr<Rule>& rule) {
+        rules[rule->getId()] = rule;
     }
 
     const std::unordered_map<std::string, std::shared_ptr<Rule>>& getRules() const {
