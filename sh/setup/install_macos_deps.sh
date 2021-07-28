@@ -16,8 +16,6 @@ brew link gcc@10
 
 echo "/usr/local/opt/bison/bin:$PATH" >> $GITHUB_PATH
 echo 'PKG_CONFIG_PATH="/usr/local/opt/libffi/lib/pkgconfig/"' >> $GITHUB_ENV 
-echo 'CC=gcc-10' >> $GITHUB_ENV
-echo 'CXX=g++-10' >> $GITHUB_ENV
 
 set +e
 set +x
