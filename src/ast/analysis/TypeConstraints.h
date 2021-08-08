@@ -113,9 +113,15 @@ private:
     void visit_(type_identity<UserDefinedFunctor>, const UserDefinedFunctor& fun) override;
     void visit_(type_identity<Counter>, const Counter& counter) override;
     void visit_(type_identity<TypeCast>, const ast::TypeCast& typeCast) override;
-    void visit_(type_identity<RecordInit>, const RecordInit& record) override;
+    [[maybe_unused]] void visit_(type_identity<RecordInit>, const RecordInit& record) override;
     void visit_(type_identity<BranchInit>, const BranchInit& adt) override;
     void visit_(type_identity<Aggregator>, const Aggregator& agg) override;
+
+    /** Recursively check objects of RecordType (which might be a recursive type) */
+    void addConstraintsRecursively(const Argument&, const Type&);
+
+    /** Add constraints related to exposed records used in binary constraints */
+    void exposedRecord(const RecordInit&);
 };
 
 }  // namespace souffle::ast::analysis

@@ -386,10 +386,30 @@ static TypeConstraint isSubtypeOfComponent(
     return std::make_shared<C>(elementVariable, recordVariable, index);
 }
 
+void TypeConstraintsAnalysis::addConstraintsRecursively(const Argument& argument, const Type& attributeType) {
+    
+    addConstraint(isSubtypeOf(getVar(argument), attributeType));
+    
+    if (isA<RecordInit>(argument)) {
+        std::vector<const Type*> recordElementTypes;
+        auto attrs = (asAssert<RecordType>(&attributeType)).getFields();
+        for (std::size_t i = 0; i < attrs.size(); i++) {
+            auto *ptr = attrs[i];
+            // occurrence of recursive type can be detected by checking if ptr == &attributeType
+            recordElementTypes.emplace_back(ptr);
+        }
+        auto field1 = asAssert<RecordInit>(argument).getArguments();
+        // note that field1.size() must be equal to attrs.size()
+        for (std::size_t j = 0; j < std::min(field1.size(), attrs.size()); j++) {
+            addConstraintsRecursively(*field1[j], *recordElementTypes[j]);
+        }
+    }
+}
+
 void TypeConstraintsAnalysis::visitSink(const Atom& atom) {
     iterateOverAtom(atom, [&](const Argument& argument, const Type& attributeType) {
         if (isA<RecordType>(attributeType)) {
-            addConstraint(isSubtypeOf(getVar(argument), getBaseType(&attributeType)));
+            addConstraintsRecursively(argument, getBaseType(&attributeType));
             return;
         }
         for (auto& constantType : typeEnv.getConstantTypes()) {
@@ -407,6 +427,10 @@ void TypeConstraintsAnalysis::visit_(type_identity<Atom>, const Atom& atom) {
     }
 
     iterateOverAtom(atom, [&](const Argument& argument, const Type& attributeType) {
+        if (isA<RecordType>(attributeType)) {
+            addConstraintsRecursively(argument, getBaseType(&attributeType));
+            return;
+        }
         addConstraint(isSubtypeOf(getVar(argument), attributeType));
     });
 }
@@ -479,11 +503,24 @@ void TypeConstraintsAnalysis::visit_(type_identity<NumericConstant>, const Numer
     addConstraint(hasSuperTypeInSet(getVar(constant), possibleTypes));
 }
 
+void TypeConstraintsAnalysis::exposedRecord(const RecordInit& record) {
+    auto arguments = record.getArguments();
+    for (std::size_t i = 0; i < arguments.size(); ++i) {
+        addConstraint(isSubtypeOfComponent(getVar(arguments[i]), getVar(record), i));
+    }
+}
+
 void TypeConstraintsAnalysis::visit_(type_identity<BinaryConstraint>, const BinaryConstraint& rel) {
     auto lhs = getVar(rel.getLHS());
     auto rhs = getVar(rel.getRHS());
     addConstraint(isSubtypeOf(lhs, rhs));
+    if (isA<RecordInit>(*(rel.getLHS()))) {
+        exposedRecord(asAssert<RecordInit>(*(rel.getLHS())));
+    }
     addConstraint(isSubtypeOf(rhs, lhs));
+    if (isA<RecordInit>(*(rel.getRHS()))) {
+        exposedRecord(asAssert<RecordInit>(*(rel.getRHS())));
+    }
 }
 
 void TypeConstraintsAnalysis::visit_(type_identity<IntrinsicFunctor>, const IntrinsicFunctor& fun) {
@@ -576,11 +613,16 @@ void TypeConstraintsAnalysis::visit_(type_identity<TypeCast>, const ast::TypeCas
     }
 }
 
-void TypeConstraintsAnalysis::visit_(type_identity<RecordInit>, const RecordInit& record) {
+void TypeConstraintsAnalysis::visit_(type_identity<RecordInit>, [[maybe_unused]] const RecordInit& record) {
+    // do nothing
+    // isSubtypeOfComponent() is not called anymore
+    // related job is done in visitSink() and addConstraintsRecursively()
+/*
     auto arguments = record.getArguments();
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         addConstraint(isSubtypeOfComponent(getVar(arguments[i]), getVar(record), i));
     }
+*/
 }
 
 void TypeConstraintsAnalysis::visit_(type_identity<BranchInit>, const BranchInit& adt) {
