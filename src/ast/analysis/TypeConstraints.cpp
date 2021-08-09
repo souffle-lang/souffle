@@ -387,14 +387,13 @@ static TypeConstraint isSubtypeOfComponent(
 }
 
 void TypeConstraintsAnalysis::addConstraintsRecursively(const Argument& argument, const Type& attributeType) {
-    
     addConstraint(isSubtypeOf(getVar(argument), attributeType));
-    
+
     if (isA<RecordInit>(argument)) {
         std::vector<const Type*> recordElementTypes;
         auto attrs = (asAssert<RecordType>(&attributeType)).getFields();
         for (std::size_t i = 0; i < attrs.size(); i++) {
-            auto *ptr = attrs[i];
+            auto* ptr = attrs[i];
             // occurrence of recursive type can be detected by checking if ptr == &attributeType
             recordElementTypes.emplace_back(ptr);
         }
@@ -617,12 +616,12 @@ void TypeConstraintsAnalysis::visit_(type_identity<RecordInit>, [[maybe_unused]]
     // do nothing
     // isSubtypeOfComponent() is not called anymore
     // related job is done in visitSink() and addConstraintsRecursively()
-/*
-    auto arguments = record.getArguments();
-    for (std::size_t i = 0; i < arguments.size(); ++i) {
-        addConstraint(isSubtypeOfComponent(getVar(arguments[i]), getVar(record), i));
-    }
-*/
+    /*
+        auto arguments = record.getArguments();
+        for (std::size_t i = 0; i < arguments.size(); ++i) {
+            addConstraint(isSubtypeOfComponent(getVar(arguments[i]), getVar(record), i));
+        }
+    */
 }
 
 void TypeConstraintsAnalysis::visit_(type_identity<BranchInit>, const BranchInit& adt) {
