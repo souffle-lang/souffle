@@ -25,6 +25,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <typeinfo>
 #include <vector>
 
@@ -73,8 +74,8 @@ TEST(Util, printMap) {
 TEST(Util, LambdaTraits) {
     auto lambda = [](int) -> bool { return true; };
 
-    EXPECT_EQ(typeid(bool).name(), typeid(lambda_traits<decltype(lambda)>::result_type).name());
-    EXPECT_EQ(typeid(int).name(), typeid(lambda_traits<decltype(lambda)>::arg0_type).name());
+    static_assert(std::is_same_v<bool, lambda_traits<decltype(lambda)>::result_type>);
+    static_assert(std::is_same_v<int, lambda_traits<decltype(lambda)>::template arg<0>>);
 }
 
 TEST(Util, LRUCache) {
