@@ -338,7 +338,7 @@ public:
     }
 
     auto end() const {
-        return transformIter(std::begin(range), f);
+        return transformIter(std::end(range), f);
     }
 
     auto cend() const {
