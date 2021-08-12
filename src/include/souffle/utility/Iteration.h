@@ -52,11 +52,17 @@ F const& makeFun() {
 template <typename Iter, typename F>
 class TransformIterator {
     using iter_t = std::iterator_traits<Iter>;
-    using difference_type = typename iter_t::difference_type;
-    using reference = decltype(std::declval<F&>()(*std::declval<Iter>()));
-    static_assert(std::is_empty_v<F>, "Function object must be stateless");
 
 public:
+    using difference_type = typename iter_t::difference_type;
+    // TODO: The iterator concept doesn't map correctly to ephemeral views.
+    //       e.g. there is no l-value store for a deref.
+    //       Figure out what these should be set to.
+    using value_type = decltype(std::declval<F>()(*std::declval<Iter>()));
+    using pointer = std::remove_reference_t<value_type>*;
+    using reference = value_type;
+    static_assert(std::is_empty_v<F>, "Function object must be stateless");
+
     // some constructors
     template <typename It>
     TransformIterator(It iter, std::enable_if_t<std::is_empty_v<F>, void*> = nullptr)
@@ -219,6 +225,9 @@ auto derefIter(Iter&& iter) {
  */
 template <typename Iter>
 struct range {
+    using iterator = Iter;
+    using const_iterator = Iter;
+
     // the lower and upper boundary
     Iter a, b;
 
@@ -319,6 +328,10 @@ auto makeDerefRange(Iter&& begin, Iter&& end) {
 template <typename Range, typename F>
 class OwningTransformRange {
 public:
+    using iterator = decltype(transformIter(std::begin(std::declval<Range>()), std::declval<F>()));
+    using const_iterator =
+            decltype(transformIter(std::begin(std::declval<const Range>()), std::declval<const F>()));
+
     OwningTransformRange(Range&& range, F f) : range(std::move(range)), f(std::move(f)) {}
 
     auto begin() {
