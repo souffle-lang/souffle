@@ -166,9 +166,8 @@ struct print_deref : public detail::print<deref<T>> {};
  * For use cases see the test case {util_test.cpp}.
  */
 template <typename Iter, typename Printer>
-detail::joined_sequence<Iter, Printer> join(
-        const Iter& a, const Iter& b, const std::string& sep, const Printer& p) {
-    return souffle::detail::joined_sequence<Iter, Printer>(a, b, sep, p);
+detail::joined_sequence<Iter, Printer> join(const Iter& a, const Iter& b, std::string sep, const Printer& p) {
+    return souffle::detail::joined_sequence<Iter, Printer>(a, b, std::move(sep), p);
 }
 
 /**
@@ -190,8 +189,8 @@ detail::joined_sequence<Iter, detail::print<id<T>>> join(
  * For use cases see the test case {util_test.cpp}.
  */
 template <typename Container, typename Printer, typename Iter = typename Container::const_iterator>
-detail::joined_sequence<Iter, Printer> join(const Container& c, const std::string& sep, const Printer& p) {
-    return join(c.begin(), c.end(), sep, p);
+detail::joined_sequence<Iter, Printer> join(const Container& c, std::string sep, const Printer& p) {
+    return join(c.begin(), c.end(), std::move(sep), p);
 }
 
 // Decide if the sane default is to deref-then-print or just print.
@@ -208,15 +207,25 @@ constexpr bool JoinShouldDeref = IsPtrLike<A>::value && !std::is_same_v<A, char 
 template <typename Container, typename Iter = typename Container::const_iterator,
         typename T = typename std::iterator_traits<Iter>::value_type>
 std::enable_if_t<!JoinShouldDeref<T>, detail::joined_sequence<Iter, detail::print<id<T>>>> join(
-        const Container& c, const std::string& sep = ",") {
-    return join(c.begin(), c.end(), sep, detail::print<id<T>>());
+        const Container& c, std::string sep = ",") {
+    return join(c.begin(), c.end(), std::move(sep), detail::print<id<T>>());
 }
 
 template <typename Container, typename Iter = typename Container::const_iterator,
         typename T = typename std::iterator_traits<Iter>::value_type>
 std::enable_if_t<JoinShouldDeref<T>, detail::joined_sequence<Iter, detail::print<deref<T>>>> join(
-        const Container& c, const std::string& sep = ",") {
-    return join(c.begin(), c.end(), sep, detail::print<deref<T>>());
+        const Container& c, std::string sep = ",") {
+    return join(c.begin(), c.end(), std::move(sep), detail::print<deref<T>>());
+}
+
+template <typename C, typename F>
+auto joinMap(const C& c, F&& map) {
+    return join(c.begin(), c.end(), ",", [&](auto&& os, auto&& x) { return os << map(x); });
+}
+
+template <typename C, typename F>
+auto joinMap(const C& c, std::string sep, F&& map) {
+    return join(c.begin(), c.end(), std::move(sep), [&](auto&& os, auto&& x) { return os << map(x); });
 }
 
 }  // end namespace souffle
