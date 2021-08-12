@@ -65,18 +65,6 @@ public:
         }
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> children;
-        children = main->getChildNodes();
-        for (auto& rel : relations) {
-            children.push_back(rel.get());
-        }
-        for (auto& sub : subroutines) {
-            children.push_back(sub.second.get());
-        }
-        return children;
-    }
-
     /** @brief Get main program */
     Statement& getMain() const {
         return *main;
@@ -148,7 +136,17 @@ protected:
                equal_targets(subroutines, other.subroutines);
     }
 
-protected:
+    NodeVec getChildNodesImpl() const override {
+        auto children = main->getChildNodesImpl();
+        for (auto& rel : relations) {
+            children.push_back(rel.get());
+        }
+        for (auto& sub : subroutines) {
+            children.push_back(sub.second.get());
+        }
+        return children;
+    }
+
     /** Relations of RAM program */
     VecOwn<Relation> relations;
 

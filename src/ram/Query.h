@@ -55,10 +55,6 @@ public:
         return *operation;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {operation.get()};
-    }
-
     Query* cloning() const override {
         return new Query(clone(operation));
     }
@@ -77,6 +73,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Query>(node);
         return equal_ptr(operation, other.operation);
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        return {operation.get()};
     }
 
     /** RAM operation */

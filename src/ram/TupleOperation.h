@@ -46,14 +46,14 @@ public:
         identifier = id;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return NestedOperation::getChildNodes();
-    }
-
 protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<TupleOperation>(node);
         return NestedOperation::equal(other) && identifier == other.identifier;
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        return NestedOperation::getChildNodesImpl();
     }
 
     /**

@@ -17,7 +17,6 @@
 #include "ram/Condition.h"
 #include "ram/Node.h"
 #include "ram/Statement.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
@@ -52,10 +51,6 @@ public:
         return *condition;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {condition.get()};
-    }
-
     Exit* cloning() const override {
         return new Exit(clone(condition));
     }
@@ -72,6 +67,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Exit>(node);
         return equal_ptr(condition, other.condition);
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        return {condition.get()};
     }
 
     /** Exit condition */

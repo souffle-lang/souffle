@@ -64,10 +64,6 @@ public:
         return profileText;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {nestedOperation.get()};
-    }
-
     void apply(const NodeMapper& map) override {
         nestedOperation = map(std::move(nestedOperation));
     }
@@ -80,6 +76,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<NestedOperation>(node);
         return equal_ptr(nestedOperation, other.nestedOperation) && profileText == other.profileText;
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        return {nestedOperation.get()};
     }
 
     /** Nested operation */

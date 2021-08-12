@@ -53,13 +53,6 @@ public:
             : RelationOperation(rel, ident, std::move(nested)),
               AbstractAggregate(fun, std::move(expression), std::move(condition)) {}
 
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = RelationOperation::getChildNodes();
-        auto children = AbstractAggregate::getChildNodes();
-        res.insert(res.end(), children.begin(), children.end());
-        return res;
-    }
-
     Aggregate* cloning() const override {
         return new Aggregate(
                 clone(getOperation()), function, relation, clone(expression), clone(condition), getTupleId());
@@ -87,6 +80,13 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Aggregate>(node);
         return RelationOperation::equal(other) && AbstractAggregate::equal(node);
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        auto res = RelationOperation::getChildNodesImpl();
+        auto children = AbstractAggregate::getChildNodesImpl();
+        res.insert(res.end(), children.begin(), children.end());
+        return res;
     }
 };
 

@@ -48,14 +48,22 @@ public:
         condition = map(std::move(condition));
     }
 
-    std::vector<const Node*> getChildNodes() const {
-        return {condition.get()};
+    Node::ConstChildNodes getChildNodes() const {
+        return Node::ConstChildNodes(getChildNodesImpl(), detail::RefCaster());
+    }
+
+    Node::ChildNodes getChildNodes() {
+        return Node::ChildNodes(getChildNodesImpl(), detail::ConstCaster());
     }
 
 protected:
     bool equal(const Node& node) const {
         const auto& other = asAssert<AbstractIfExists, AllowCrossCast>(node);
         return equal_ptr(condition, other.condition);
+    }
+
+    std::vector<const Node*> getChildNodesImpl() const {
+        return {condition.get()};
     }
 
     /** Condition for which a tuple in the relation may hold */

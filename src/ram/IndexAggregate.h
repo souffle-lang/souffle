@@ -51,13 +51,6 @@ public:
             : IndexOperation(rel, ident, std::move(queryPattern), std::move(nested)),
               AbstractAggregate(fun, std::move(expression), std::move(condition)) {}
 
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = IndexOperation::getChildNodes();
-        auto children = AbstractAggregate::getChildNodes();
-        res.insert(res.end(), children.begin(), children.end());
-        return res;
-    }
-
     IndexAggregate* cloning() const override {
         RamPattern pattern;
         for (const auto& i : queryPattern.first) {
@@ -93,6 +86,13 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IndexAggregate>(node);
         return IndexOperation::equal(other) && AbstractAggregate::equal(other);
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        auto res = IndexOperation::getChildNodesImpl();
+        auto children = AbstractAggregate::getChildNodesImpl();
+        res.insert(res.end(), children.begin(), children.end());
+        return res;
     }
 };
 

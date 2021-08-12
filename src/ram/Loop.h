@@ -52,10 +52,6 @@ public:
         return *body;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {body.get()};
-    }
-
     Loop* cloning() const override {
         return new Loop(clone(body));
     }
@@ -74,6 +70,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Loop>(node);
         return equal_ptr(body, other.body);
+    }
+
+    NodeVec getChildNodesImpl() const override {
+        return {body.get()};
     }
 
     /** Loop body */
