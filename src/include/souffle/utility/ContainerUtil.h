@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "souffle/utility/DynamicCasting.h"
 #include "souffle/utility/Iteration.h"
 #include "souffle/utility/MiscUtil.h"
 

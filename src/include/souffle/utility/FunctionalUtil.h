@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "souffle/utility/DynamicCasting.h"
 #include <algorithm>
 #include <functional>
 #include <set>

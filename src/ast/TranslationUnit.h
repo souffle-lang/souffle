@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/DynamicCasting.h"
 #include "souffle/utility/Types.h"
 #include <map>
 #include <utility>
