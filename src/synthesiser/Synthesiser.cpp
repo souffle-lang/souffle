@@ -420,8 +420,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "{\n";
 
             // check whether loop nest can be parallelized
-            bool isParallel = false;
-            visit(*next, [&](const AbstractParallel&) { isParallel = true; });
+            bool isParallel = visitExists(
+                    *next, [&](const Node& n) { return as<AbstractParallel, AllowCrossCast>(n); });
 
             // reset preamble
             preamble.str("");

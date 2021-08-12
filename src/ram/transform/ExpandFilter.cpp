@@ -17,6 +17,7 @@
 #include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Utils.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
@@ -32,28 +33,26 @@ namespace ram::transform {
 
 bool ExpandFilterTransformer::expandFilters(Program& program) {
     bool changed = false;
-    visit(program, [&](const Query& query) {
-        std::function<Own<Node>(Own<Node>)> filterRewriter = [&](Own<Node> node) -> Own<Node> {
-            if (const Filter* filter = as<Filter>(node)) {
-                const Condition* condition = &filter->getCondition();
-                VecOwn<Condition> conditionList = toConjunctionList(condition);
-                if (conditionList.size() > 1) {
-                    changed = true;
-                    VecOwn<Filter> filters;
-                    for (auto& cond : conditionList) {
-                        if (filters.empty()) {
-                            filters.emplace_back(mk<Filter>(clone(cond), clone(filter->getOperation())));
-                        } else {
-                            filters.emplace_back(mk<Filter>(clone(cond), std::move(filters.back())));
-                        }
+    forEachQueryMap(program, [&](auto&& go, Own<Node> node) -> Own<Node> {
+        if (const Filter* filter = as<Filter>(node)) {
+            const Condition* condition = &filter->getCondition();
+            VecOwn<Condition> conditionList = toConjunctionList(condition);
+            if (conditionList.size() > 1) {
+                changed = true;
+                VecOwn<Filter> filters;
+                for (auto& cond : conditionList) {
+                    if (filters.empty()) {
+                        filters.emplace_back(mk<Filter>(clone(cond), clone(filter->getOperation())));
+                    } else {
+                        filters.emplace_back(mk<Filter>(clone(cond), std::move(filters.back())));
                     }
-                    node = std::move(filters.back());
                 }
+                node = std::move(filters.back());
             }
-            node->apply(makeLambdaRamMapper(filterRewriter));
-            return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(filterRewriter));
+        }
+
+        node->apply(go);
+        return node;
     });
     return changed;
 }

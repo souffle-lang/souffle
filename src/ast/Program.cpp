@@ -7,7 +7,7 @@
  */
 
 #include "ast/Program.h"
-#include "ast/utility/NodeMapper.h"
+
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <cassert>

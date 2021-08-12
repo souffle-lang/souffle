@@ -64,10 +64,11 @@ namespace souffle::ast {
  * @see souffle::Visitor
  */
 template <typename R = void, typename NodeType = Node const, typename... Params>
-struct Visitor : public souffle::Visitor<R, NodeType, Params...> {
-    using souffle::Visitor<R, NodeType, Params...>::visit_;
+struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
+    using Base = souffle::detail::VisitorBase<R, NodeType, Params...>;
+    using Base::visit_;
 
-    virtual R dispatch(NodeType& node, Params const&... args) override {
+    R dispatch(NodeType& node, Params const&... args) override {
         // dispatch node processing based on dynamic type
 
         // types
@@ -169,3 +170,5 @@ struct Visitor : public souffle::Visitor<R, NodeType, Params...> {
     SOUFFLE_VISITOR_LINK(FunctorDeclaration, Node);
 };
 }  // namespace souffle::ast
+
+SOUFFLE_VISITOR_DEFINE_PARTIAL_SPECIALISATION(souffle::ast::Node, souffle::ast::Visitor);

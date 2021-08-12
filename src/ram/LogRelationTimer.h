@@ -19,7 +19,6 @@
 #include "ram/Relation.h"
 #include "ram/RelationStatement.h"
 #include "ram/Statement.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"

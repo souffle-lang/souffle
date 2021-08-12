@@ -8,6 +8,7 @@
 
 #include "ast/FunctorDeclaration.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/tinyformat.h"

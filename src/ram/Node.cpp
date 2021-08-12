@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "ram/Node.h"
+#include "souffle/utility/NodeMapper.h"
 #include <cassert>
 #include <functional>
 #include <memory>
@@ -27,8 +28,15 @@ namespace souffle::ram {
 void Node::rewrite(const Node* oldNode, Own<Node> newNode) {
     assert(oldNode != nullptr && "old node is a null-pointer");
     assert(newNode != nullptr && "new node is a null-pointer");
-    std::function<Own<Node>(Own<Node>)> rewriter = [&](Own<Node> node) -> Own<Node> {
+    mapChildFrontier(*this, [=, newNode = std::move(newNode)](Own<Node> node) mutable {
+        // clear `oldNode` to mark that we're done, and to avoid touching an invalidated ptr (UB)
         if (oldNode == node.get()) {
+            oldNode = nullptr;
+            node = std::move(newNode);
+        }
+
+        return std::pair{std::move(node), !oldNode};
+    });
 }
 
 Node::ConstChildNodes Node::getChildNodes() const {

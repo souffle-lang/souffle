@@ -23,7 +23,6 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Functor.h"
-#include "ast/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 
 namespace souffle::ast::transform {

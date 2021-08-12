@@ -19,8 +19,6 @@
 #include "ram/Node.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
-#include "ram/utility/LambdaNodeMapper.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>

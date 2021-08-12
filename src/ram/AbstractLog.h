@@ -16,7 +16,6 @@
 
 #include "ram/Node.h"
 #include "ram/Statement.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>

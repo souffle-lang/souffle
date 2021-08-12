@@ -19,7 +19,6 @@
 #include "ram/Operation.h"
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
-#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Utils.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"

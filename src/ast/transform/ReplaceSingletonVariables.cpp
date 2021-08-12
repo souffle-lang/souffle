@@ -23,7 +23,6 @@
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include <memory>
@@ -71,20 +70,14 @@ bool ReplaceSingletonVariablesTransformer::transform(TranslationUnit& translatio
 
             std::set<std::string> ignoredVars;
 
-            // Don't unname singleton variables occurring in records.
-            visit(*clause, [&](const RecordInit& rec) {
-                visit(rec, [&](const ast::Variable& var) { ignoredVars.insert(var.getName()); });
-            });
+            // Don't unname singleton variables occurring in records, ADTs, or constraints.
+            visitFrontier(*clause, [&](const Node& n) {
+                if (as<RecordInit>(n) || as<BranchInit>(n) || as<Constraint>(n)) {
+                    visit(n, [&](const Variable& var) { ignoredVars.insert(var.getName()); });
+                    return true;
+                }
 
-            // Don't unname singleton variables occurring in ADTs
-            visit(*clause, [&](const BranchInit& adt) {
-                visit(adt, [&](const ast::Variable& var) { ignoredVars.insert(var.getName()); });
-            });
-
-            // Don't unname singleton variables occuring in constraints.
-            std::set<std::string> constraintVars;
-            visit(*clause, [&](const Constraint& cons) {
-                visit(cons, [&](const ast::Variable& var) { ignoredVars.insert(var.getName()); });
+                return false;
             });
 
             std::set<std::string> singletons;

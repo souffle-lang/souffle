@@ -42,10 +42,10 @@ void PrecedenceGraphAnalysis::run(const TranslationUnit& translationUnit) {
     for (const auto* r : program.getRelations()) {
         backingGraph.insert(r);
         for (const auto& c : relationDetail.getClauses(r)) {
-            visit(c->getBodyLiterals(), [&](const Atom& atom) {
+            souffle::visit(c->getBodyLiterals(), [&](const Atom& atom) {
                 backingGraph.insert(relationDetail.getRelation(atom.getQualifiedName()), r);
             });
-            visit(c->getHead()->getArguments(), [&](const Atom& atom) {
+            souffle::visit(c->getHead()->getArguments(), [&](const Atom& atom) {
                 backingGraph.insert(relationDetail.getRelation(atom.getQualifiedName()), r);
             });
         }

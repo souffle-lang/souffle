@@ -18,6 +18,7 @@
 #include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
 #include <functional>
@@ -41,9 +42,9 @@ bool HoistConditionsTransformer::hoistConditions(Program& program) {
 
     // hoist conditions to the most outer scope if they
     // don't depend on TupleOperations
-    visit(program, [&](const Query& query) {
+    forEachQuery(program, [&](Query& query) {
         Own<Condition> newCondition;
-        std::function<Own<Node>(Own<Node>)> filterRewriter = [&](Own<Node> node) -> Own<Node> {
+        query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (auto* filter = as<Filter>(node)) {
                 const Condition& condition = filter->getCondition();
                 // if filter condition is independent of any TupleOperation,
@@ -51,27 +52,27 @@ bool HoistConditionsTransformer::hoistConditions(Program& program) {
                 if (rla->getLevel(&condition) == -1) {
                     changed = true;
                     newCondition = addCondition(std::move(newCondition), clone(condition));
-                    node->apply(makeLambdaRamMapper(filterRewriter));
+                    node->apply(go);
                     return clone(filter->getOperation());
                 }
             }
-            node->apply(makeLambdaRamMapper(filterRewriter));
+
+            node->apply(go);
             return node;
-        };
-        auto* mQuery = const_cast<Query*>(&query);
-        mQuery->apply(makeLambdaRamMapper(filterRewriter));
+        }));
+
         if (newCondition != nullptr) {
             // insert new filter operation at outer-most level of the query
             changed = true;
-            auto* nestedOp = const_cast<Operation*>(&mQuery->getOperation());
-            mQuery->rewrite(nestedOp, mk<Filter>(std::move(newCondition), clone(nestedOp)));
+            auto* nestedOp = &query.getOperation();
+            query.rewrite(nestedOp, mk<Filter>(std::move(newCondition), clone(nestedOp)));
         }
     });
 
     // hoist conditions for each TupleOperation operation
-    visit(program, [&](const TupleOperation& search) {
+    visit(program, [&](TupleOperation& search) {
         Own<Condition> newCondition;
-        std::function<Own<Node>(Own<Node>)> filterRewriter = [&](Own<Node> node) -> Own<Node> {
+        search.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (auto* filter = as<Filter>(node)) {
                 const Condition& condition = filter->getCondition();
                 // if filter condition matches level of TupleOperation,
@@ -79,20 +80,20 @@ bool HoistConditionsTransformer::hoistConditions(Program& program) {
                 if (rla->getLevel(&condition) == search.getTupleId()) {
                     changed = true;
                     newCondition = addCondition(std::move(newCondition), clone(condition));
-                    node->apply(makeLambdaRamMapper(filterRewriter));
+                    node->apply(go);
                     return clone(filter->getOperation());
                 }
             }
-            node->apply(makeLambdaRamMapper(filterRewriter));
+
+            node->apply(go);
             return node;
-        };
-        auto* tupleOp = const_cast<TupleOperation*>(&search);
-        tupleOp->apply(makeLambdaRamMapper(filterRewriter));
+        }));
+
         if (newCondition != nullptr) {
             // insert new filter operation after the search operation
             changed = true;
-            tupleOp->rewrite(&tupleOp->getOperation(),
-                    mk<Filter>(std::move(newCondition), clone(tupleOp->getOperation())));
+            search.rewrite(&search.getOperation(),
+                    mk<Filter>(std::move(newCondition), clone(search.getOperation())));
         }
     });
     return changed;

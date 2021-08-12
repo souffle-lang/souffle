@@ -16,41 +16,27 @@
 
 #pragma once
 
-#include "souffle/utility/ContainerUtil.h"
-#include "souffle/utility/MiscUtil.h"
-#include <cassert>
-#include <memory>
+#include "ram/Node.h"
+#include "ram/Query.h"
+#include "souffle/utility/NodeMapper.h"
 
 namespace souffle::ram {
 
-class Node;
+class Program;
 
-/**
- * @class NodeMapper
- * @brief An abstract class for manipulating RAM Nodes by substitution
- */
-class NodeMapper {
-public:
-    virtual ~NodeMapper() = default;
+namespace detail {
+std::vector<Query*> queries(Program&);
+}
 
-    /**
-     * @brief Abstract replacement method for a node.
-     *
-     * If the given nodes is to be replaced, the handed in node
-     * will be destroyed by the mapper and the returned node
-     * will become owned by the caller.
-     */
-    virtual Own<Node> operator()(Own<Node> node) const = 0;
+template <typename F>
+void forEachQuery(Program& program, F&& f) {
+    for (auto&& query : detail::queries(program))
+        f(*query);
+}
 
-    /**
-     * @brief Wrapper for any subclass of the RAM node hierarchy performing type casts.
-     */
-    template <typename T>
-    Own<T> operator()(Own<T> node) const {
-        Own<Node> resPtr = (*this)(Own<Node>(static_cast<Node*>(node.release())));
-        assert(isA<T>(resPtr) && "Invalid target node!");
-        return Own<T>(as<T>(resPtr.release()));
-    }
-};
+template <typename F>
+void forEachQueryMap(Program& program, F&& f) {
+    forEachQuery(program, [&](Query& query) { query.apply(nodeMapper<Node>(f)); });
+}
 
 }  // namespace souffle::ram

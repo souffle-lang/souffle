@@ -16,7 +16,6 @@
 
 #include "ram/Node.h"
 #include "ram/Operation.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <iosfwd>

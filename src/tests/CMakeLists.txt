@@ -19,4 +19,4 @@ souffle_add_binary_test(record_table_test src)
 souffle_add_binary_test(symbol_table_test src)
 souffle_add_binary_test(table_test src)
 souffle_add_binary_test(util_test src)
-
+souffle_add_binary_test(visitor_test souffle)

@@ -18,6 +18,7 @@
 #include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Visitor.h"
 #include <functional>
 #include <map>
@@ -28,31 +29,31 @@ namespace souffle::ram::transform {
 
 bool TupleIdTransformer::reorderOperations(Program& program) {
     bool changed = false;
-    visit(program, [&](const Query& query) {
+    forEachQuery(program, [&](Query& query) {
         // Maps old tupleIds to new tupleIds
         std::map<int, int> reorder;
         int ctr = 0;
 
-        visit(query, [&](const TupleOperation& search) {
+        visit(query, [&](TupleOperation& search) {
             if (ctr != search.getTupleId()) {
                 changed = true;
             }
             reorder[search.getTupleId()] = ctr;
-            const_cast<TupleOperation*>(&search)->setTupleId(ctr);
+            search.setTupleId(ctr);
             ctr++;
         });
 
-        std::function<Own<Node>(Own<Node>)> elementRewriter = [&](Own<Node> node) -> Own<Node> {
+        query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (auto* element = as<TupleElement>(node)) {
                 if (reorder[element->getTupleId()] != element->getTupleId()) {
                     changed = true;
                     node = mk<TupleElement>(reorder[element->getTupleId()], element->getElement());
                 }
             }
-            node->apply(makeLambdaRamMapper(elementRewriter));
+
+            node->apply(go);
             return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(elementRewriter));
+        }));
     });
 
     return changed;

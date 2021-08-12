@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "ram/utility/LambdaNodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/NodeMapperFwd.h"
 #include "souffle/utility/Types.h"
+#include "souffle/utility/VisitorFwd.h"
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -30,6 +31,8 @@
 namespace souffle::ram {
 
 class Node;
+using NodeMapper = souffle::detail::NodeMapper<Node>;
+
 namespace detail {
 // Seems the gcc in Jenkins is not happy with the inline lambdas
 struct RefCaster {
@@ -134,3 +137,5 @@ protected:
 };
 
 }  // namespace souffle::ram
+
+SOUFFLE_DECLARE_VISITABLE_ROOT_TYPE(::souffle::ram::Node)

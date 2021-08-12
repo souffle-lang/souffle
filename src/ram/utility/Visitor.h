@@ -103,10 +103,11 @@ namespace souffle::ram {
  * @see souffle::Visitor
  */
 template <typename R = void, typename NodeType = Node const, typename... Params>
-struct Visitor : public souffle::Visitor<R, NodeType, Params...> {
-    using souffle::Visitor<R, NodeType, Params...>::visit_;
+struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
+    using Base = souffle::detail::VisitorBase<R, NodeType, Params...>;
+    using Base::visit_;
 
-    virtual R dispatch(const Node& node, Params... args) override {
+    R dispatch(NodeType& node, Params... args) override {
         // dispatch node processing based on dynamic type
 
         // Relation
@@ -273,3 +274,5 @@ protected:
     SOUFFLE_VISITOR_LINK(Relation, Node);
 };
 }  // namespace souffle::ram
+
+SOUFFLE_VISITOR_DEFINE_PARTIAL_SPECIALISATION(souffle::ram::Node, souffle::ram::Visitor);

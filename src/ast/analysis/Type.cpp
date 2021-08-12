@@ -38,7 +38,6 @@
 #include "ast/analysis/TypeConstraints.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"

@@ -20,6 +20,7 @@
 #include "ram/Program.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
@@ -126,24 +127,21 @@ Own<Operation> IfExistsConversionTransformer::rewriteIndexScan(const IndexScan* 
 
 bool IfExistsConversionTransformer::convertScans(Program& program) {
     bool changed = false;
-    visit(program, [&](const Query& query) {
-        std::function<Own<Node>(Own<Node>)> scanRewriter = [&](Own<Node> node) -> Own<Node> {
-            if (const Scan* scan = as<Scan>(node)) {
-                if (Own<Operation> op = rewriteScan(scan)) {
-                    changed = true;
-                    node = std::move(op);
-                }
-            } else if (const IndexScan* indexScan = as<IndexScan>(node)) {
-                if (Own<Operation> op = rewriteIndexScan(indexScan)) {
-                    changed = true;
-                    node = std::move(op);
-                }
+    forEachQueryMap(program, [&](auto&& go, Own<Node> node) -> Own<Node> {
+        if (const Scan* scan = as<Scan>(node)) {
+            if (auto op = rewriteScan(scan)) {
+                changed = true;
+                node = std::move(op);
             }
-            node->apply(makeLambdaRamMapper(scanRewriter));
+        } else if (const IndexScan* indexScan = as<IndexScan>(node)) {
+            if (auto op = rewriteIndexScan(indexScan)) {
+                changed = true;
+                node = std::move(op);
+            }
+        }
 
-            return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
+        node->apply(go);
+        return node;
     });
 
     return changed;

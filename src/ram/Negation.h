@@ -19,7 +19,6 @@
 
 #include "ram/Condition.h"
 #include "ram/Node.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>

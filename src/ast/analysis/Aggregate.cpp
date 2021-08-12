@@ -22,7 +22,6 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/analysis/Ground.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/StringUtil.h"

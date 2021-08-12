@@ -23,6 +23,7 @@
 #include "ram/Program.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Utils.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
@@ -476,31 +477,29 @@ Own<Operation> MakeIndexTransformer::rewriteIndexScan(const IndexScan* iscan) {
 
 bool MakeIndexTransformer::makeIndex(Program& program) {
     bool changed = false;
-    visit(program, [&](const Query& query) {
-        std::function<Own<Node>(Own<Node>)> scanRewriter = [&](Own<Node> node) -> Own<Node> {
-            if (const Scan* scan = as<Scan>(node)) {
-                const Relation& rel = relAnalysis->lookup(scan->getRelation());
-                if (rel.getRepresentation() != RelationRepresentation::INFO) {
-                    if (Own<Operation> op = rewriteScan(scan)) {
-                        changed = true;
-                        node = std::move(op);
-                    }
-                }
-            } else if (const IndexScan* iscan = as<IndexScan>(node)) {
-                if (Own<Operation> op = rewriteIndexScan(iscan)) {
-                    changed = true;
-                    node = std::move(op);
-                }
-            } else if (const Aggregate* agg = as<Aggregate>(node)) {
-                if (Own<Operation> op = rewriteAggregate(agg)) {
+    forEachQueryMap(program, [&](auto&& go, Own<Node> node) -> Own<Node> {
+        if (const Scan* scan = as<Scan>(node)) {
+            const Relation& rel = relAnalysis->lookup(scan->getRelation());
+            if (rel.getRepresentation() != RelationRepresentation::INFO) {
+                if (auto op = rewriteScan(scan)) {
                     changed = true;
                     node = std::move(op);
                 }
             }
-            node->apply(makeLambdaRamMapper(scanRewriter));
-            return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
+        } else if (const IndexScan* iscan = as<IndexScan>(node)) {
+            if (auto op = rewriteIndexScan(iscan)) {
+                changed = true;
+                node = std::move(op);
+            }
+        } else if (const Aggregate* agg = as<Aggregate>(node)) {
+            if (auto op = rewriteAggregate(agg)) {
+                changed = true;
+                node = std::move(op);
+            }
+        }
+
+        node->apply(go);
+        return node;
     });
     return changed;
 }

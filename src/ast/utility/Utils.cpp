@@ -36,7 +36,7 @@
 #include "ast/analysis/RelationDetailCache.h"
 #include "ast/analysis/Type.h"
 #include "ast/analysis/TypeSystem.h"
-#include "ast/utility/NodeMapper.h"
+
 #include "ast/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/TypeAttribute.h"

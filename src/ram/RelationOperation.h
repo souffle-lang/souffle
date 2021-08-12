@@ -18,7 +18,6 @@
 #include "ram/Operation.h"
 #include "ram/Relation.h"
 #include "ram/TupleOperation.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>

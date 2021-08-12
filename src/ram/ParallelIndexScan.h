@@ -23,7 +23,6 @@
 #include "ram/NestedOperation.h"
 #include "ram/Node.h"
 #include "ram/Relation.h"
-#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Utils.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"

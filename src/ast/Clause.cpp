@@ -7,9 +7,9 @@
  */
 
 #include "ast/Clause.h"
-#include "ast/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/NodeMapperFwd.h"
 #include "souffle/utility/StreamUtil.h"
 #include <cassert>
 #include <ostream>

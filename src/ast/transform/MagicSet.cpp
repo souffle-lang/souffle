@@ -37,7 +37,6 @@
 #include "ast/analysis/RelationDetailCache.h"
 #include "ast/analysis/SCCGraph.h"
 #include "ast/utility/BindingStore.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "parser/SrcLocation.h"

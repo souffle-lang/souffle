@@ -17,6 +17,7 @@
 #include "ram/Operation.h"
 #include "ram/Program.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>
@@ -37,10 +38,10 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
     // We assume all Operations are renumbered for this transformation.
 
     // Hoist a single aggregate to an outer scope that is data-independent.
-    visit(program, [&](const Query& query) {
+    forEachQuery(program, [&](Query& query) {
         Own<NestedOperation> newAgg;
         bool priorTupleOp = false;
-        std::function<Own<Node>(Own<Node>)> aggRewriter = [&](Own<Node> node) -> Own<Node> {
+        query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (isA<Aggregate>(node)) {
                 auto* tupleOp = as<TupleOperation>(node);
                 assert(tupleOp != nullptr && "aggregate conversion to tuple operation failed");
@@ -54,24 +55,25 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
                 // tuple operation that is a non-aggregate
                 priorTupleOp = true;
             }
-            node->apply(makeLambdaRamMapper(aggRewriter));
+
+            node->apply(go);
             return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(aggRewriter));
+        }));
+
         if (newAgg != nullptr) {
             newAgg->rewrite(&newAgg->getOperation(), clone(query.getOperation()));
-            const_cast<Query*>(&query)->rewrite(&query.getOperation(), std::move(newAgg));
+            query.rewrite(&query.getOperation(), std::move(newAgg));
         }
     });
 
     // hoist a single aggregate to an outer scope that is data-dependent on a prior operation.
-    visit(program, [&](const Query& query) {
+    forEachQuery(program, [&](Query& query) {
         int newLevel = -1;
         Own<NestedOperation> newAgg;
         int priorOpLevel = -1;
 
-        std::function<Own<Node>(Own<Node>)> aggRewriter = [&](Own<Node> node) -> Own<Node> {
-            if (isA<AbstractAggregate>(node)) {
+        query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
+            if (as<AbstractAggregate, AllowCrossCast>(node)) {
                 auto* tupleOp = as<TupleOperation>(node);
                 assert(tupleOp != nullptr && "aggregate conversion to nested operation failed");
                 int dataDepLevel = rla->getLevel(tupleOp);
@@ -83,23 +85,24 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
                         changed = true;
                         newLevel = dataDepLevel;
                         newAgg = clone(tupleOp);
-                        assert(newAgg != nullptr && "failed to make a cloning");
                         return clone(tupleOp->getOperation());
                     }
                 }
             } else if (const TupleOperation* tupleOp = as<TupleOperation>(node)) {
                 priorOpLevel = tupleOp->getTupleId();
             }
-            node->apply(makeLambdaRamMapper(aggRewriter));
+
+            node->apply(go);
+
             if (auto* search = as<TupleOperation>(node)) {
                 if (newAgg != nullptr && search->getTupleId() == newLevel) {
                     newAgg->rewrite(&newAgg->getOperation(), clone(search->getOperation()));
                     search->rewrite(&search->getOperation(), std::move(newAgg));
                 }
             }
+
             return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(aggRewriter));
+        }));
     });
     return changed;
 }  // namespace souffle

@@ -20,6 +20,7 @@
 #include "ram/Program.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
@@ -32,15 +33,11 @@ namespace souffle::ram::transform {
 
 Own<Operation> IfConversionTransformer::rewriteIndexScan(const IndexScan* indexScan) {
     // check whether tuple is used in subsequent operations
-    bool tupleNotUsed = true;
-    visit(*indexScan, [&](const TupleElement& element) {
-        if (element.getTupleId() == indexScan->getTupleId()) {
-            tupleNotUsed = false;
-        }
-    });
+    bool tupleUsed = visitExists(*indexScan,
+            [&](const TupleElement& element) { return element.getTupleId() == indexScan->getTupleId(); });
 
     // if not used, transform the IndexScan operation to an existence check
-    if (tupleNotUsed) {
+    if (!tupleUsed) {
         // existence check is only supported for equality predicates on each attribute
         std::size_t arity = indexScan->getRangePattern().first.size();
         for (std::size_t i = 0; i < arity; ++i) {
@@ -52,33 +49,31 @@ Own<Operation> IfConversionTransformer::rewriteIndexScan(const IndexScan* indexS
         RamBound newValues = clone(indexScan->getRangePattern().first);
 
         // check if there is a break statement nested in the Scan - if so, remove it
-        Operation* newOp;
-        if (const auto* breakOp = as<Break>(indexScan->getOperation())) {
-            newOp = breakOp->getOperation().cloning();
+        Own<Operation> newOp;
+        if (auto* breakOp = as<Break>(indexScan->getOperation())) {
+            newOp = clone(breakOp->getOperation());
         } else {
-            newOp = indexScan->getOperation().cloning();
+            newOp = clone(indexScan->getOperation());
         }
 
         return mk<Filter>(mk<ExistenceCheck>(indexScan->getRelation(), std::move(newValues)),
-                Own<Operation>(newOp), indexScan->getProfileText());
+                std::move(newOp), indexScan->getProfileText());
     }
+
     return nullptr;
 }
 
 bool IfConversionTransformer::convertIndexScans(Program& program) {
     bool changed = false;
-    visit(program, [&](const Query& query) {
-        std::function<Own<Node>(Own<Node>)> scanRewriter = [&](Own<Node> node) -> Own<Node> {
-            if (const IndexScan* scan = as<IndexScan>(node)) {
-                if (Own<Operation> op = rewriteIndexScan(scan)) {
-                    changed = true;
-                    node = std::move(op);
-                }
+    forEachQueryMap(program, [&](auto&& go, Own<Node> node) -> Own<Node> {
+        if (const IndexScan* scan = as<IndexScan>(node)) {
+            if (Own<Operation> op = rewriteIndexScan(scan)) {
+                changed = true;
+                node = std::move(op);
             }
-            node->apply(makeLambdaRamMapper(scanRewriter));
-            return node;
-        };
-        const_cast<Query*>(&query)->apply(makeLambdaRamMapper(scanRewriter));
+        }
+        node->apply(go);
+        return node;
     });
     return changed;
 }

@@ -68,7 +68,6 @@
 #include "ast/analysis/TypeSystem.h"
 #include "ast/transform/GroundedTermsChecker.h"
 #include "ast/transform/TypeChecker.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "parser/SrcLocation.h"
@@ -325,24 +324,20 @@ void SemanticCheckerImpl::checkLiteral(const Literal& literal) {
 bool SemanticCheckerImpl::isDependent(const Clause& agg1, const Clause& agg2) {
     auto groundedInAgg1 = getGroundedTerms(tu, agg1);
     auto groundedInAgg2 = getGroundedTerms(tu, agg2);
-    bool dependent = false;
     // For each variable X in the first aggregate
-    visit(agg1, [&](const ast::Variable& searchVar) {
+    bool dependent = visitExists(agg1, [&](const ast::Variable& searchVar) {
         // Try to find the corresponding variable X in the second aggregate
         // by string comparison
         const ast::Variable* matchingVarPtr = nullptr;
-        visit(agg2, [&](const ast::Variable& var) {
-            if (var == searchVar) {
-                matchingVarPtr = &var;
-                return;
-            }
+        visitExists(agg2, [&](const ast::Variable& var) {
+            if (var != searchVar) return false;
+
+            matchingVarPtr = &var;
+            return true;
         });
+
         // If the variable occurs in both clauses (a match was found)
-        if (matchingVarPtr != nullptr) {
-            if (!groundedInAgg1[&searchVar] && groundedInAgg2[matchingVarPtr]) {
-                dependent = true;
-            }
-        }
+        return matchingVarPtr && !groundedInAgg1[&searchVar] && groundedInAgg2[matchingVarPtr];
     });
     return dependent;
 }

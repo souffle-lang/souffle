@@ -23,7 +23,6 @@
 #include "ast/Program.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"

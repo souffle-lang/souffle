@@ -7,7 +7,6 @@
  */
 
 #include "ast/Negation.h"
-#include "ast/utility/NodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>
 #include <ostream>

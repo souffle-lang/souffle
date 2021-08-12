@@ -7,7 +7,7 @@
  */
 
 #include "ast/TypeCast.h"
-#include "ast/utility/NodeMapper.h"
+
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/tinyformat.h"
 #include <cassert>

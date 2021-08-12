@@ -20,6 +20,7 @@
 #include "ram/Program.h"
 #include "ram/Relation.h"
 #include "ram/Statement.h"
+#include "ram/utility/NodeMapper.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -36,8 +37,11 @@ bool ParallelTransformer::parallelizeOperations(Program& program) {
 
     // parallelize the most outer loop only
     // most outer loops can be scan/if-exists/indexScan/indexIfExists
-    visit(program, [&](const Query& query) {
-        std::function<Own<Node>(Own<Node>)> parallelRewriter = [&](Own<Node> node) -> Own<Node> {
+    forEachQuery(program, [&](Query& query) {
+        // guardedInsert cannot be parallelized
+        if (visitExists(query, [&](const GuardedInsert&) { return true; })) return;
+
+        query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (const Scan* scan = as<Scan>(node)) {
                 const Relation& rel = relAnalysis->lookup(scan->getRelation());
                 if (scan->getTupleId() == 0 && rel.getArity() > 0) {
@@ -75,33 +79,25 @@ bool ParallelTransformer::parallelizeOperations(Program& program) {
                 const Relation& rel = relAnalysis->lookup(aggregate->getRelation());
                 if (aggregate->getTupleId() == 0 && !rel.isNullary()) {
                     changed = true;
-                    return mk<ParallelAggregate>(Own<Operation>(aggregate->getOperation().cloning()),
-                            aggregate->getFunction(), aggregate->getRelation(),
-                            Own<Expression>(aggregate->getExpression().cloning()),
-                            Own<Condition>(aggregate->getCondition().cloning()), aggregate->getTupleId());
+                    return mk<ParallelAggregate>(clone(aggregate->getOperation()), aggregate->getFunction(),
+                            aggregate->getRelation(), clone(aggregate->getExpression()),
+                            clone(aggregate->getCondition()), aggregate->getTupleId());
                 }
             } else if (const IndexAggregate* indexAggregate = as<IndexAggregate>(node)) {
                 const Relation& rel = relAnalysis->lookup(indexAggregate->getRelation());
                 if (indexAggregate->getTupleId() == 0 && !rel.isNullary()) {
                     changed = true;
                     RamPattern queryPattern = clone(indexAggregate->getRangePattern());
-                    return mk<ParallelIndexAggregate>(
-                            Own<Operation>(indexAggregate->getOperation().cloning()),
+                    return mk<ParallelIndexAggregate>(clone(indexAggregate->getOperation()),
                             indexAggregate->getFunction(), indexAggregate->getRelation(),
-                            Own<Expression>(indexAggregate->getExpression().cloning()),
-                            Own<Condition>(indexAggregate->getCondition().cloning()), std::move(queryPattern),
-                            indexAggregate->getTupleId());
+                            clone(indexAggregate->getExpression()), clone(indexAggregate->getCondition()),
+                            std::move(queryPattern), indexAggregate->getTupleId());
                 }
             }
-            node->apply(makeLambdaRamMapper(parallelRewriter));
+
+            node->apply(go);
             return node;
-        };
-        // guardedInsert cannot be parallelized
-        bool isGuardedInsert = false;
-        visit(query, [&](const GuardedInsert&) { isGuardedInsert = true; });
-        if (isGuardedInsert == false) {
-            const_cast<Query*>(&query)->apply(makeLambdaRamMapper(parallelRewriter));
-        }
+        }));
     });
     return changed;
 }

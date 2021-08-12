@@ -22,7 +22,6 @@
 #include "ram/Operation.h"
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <cassert>

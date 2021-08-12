@@ -17,7 +17,6 @@
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/Aggregate.h"
 #include "ast/transform/GroundWitnesses.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Visitor.h"
 
 namespace souffle::ast::transform {

@@ -25,7 +25,6 @@
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/ClauseNormalisation.h"
 #include "ast/analysis/IOType.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"

@@ -18,7 +18,9 @@
 
 #include "parser/SrcLocation.h"
 #include "souffle/utility/Iteration.h"
+#include "souffle/utility/NodeMapperFwd.h"
 #include "souffle/utility/Types.h"
+#include "souffle/utility/VisitorFwd.h"
 #include <functional>
 #include <iosfwd>
 #include <string>
@@ -26,8 +28,8 @@
 
 namespace souffle::ast {
 
-class NodeMapper;
 class Node;
+using NodeMapper = souffle::detail::NodeMapper<Node>;
 
 namespace detail {
 // Seems the gcc in Jenkins is not happy with the inline lambdas
@@ -117,3 +119,5 @@ private:
 };
 
 }  // namespace souffle::ast
+
+SOUFFLE_DECLARE_VISITABLE_ROOT_TYPE(::souffle::ast::Node)

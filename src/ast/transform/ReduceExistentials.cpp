@@ -28,7 +28,6 @@
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/analysis/IOType.h"
-#include "ast/utility/NodeMapper.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"
