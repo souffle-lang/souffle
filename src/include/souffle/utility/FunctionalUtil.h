@@ -17,8 +17,12 @@
 #pragma once
 
 #include "souffle/utility/DynamicCasting.h"
+#include "souffle/utility/Iteration.h"
+#include "souffle/utility/MiscUtil.h"
 #include <algorithm>
+#include <cassert>
 #include <functional>
+#include <map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -45,53 +49,71 @@ struct deref_less {
 //                               Lambda Utils
 // -------------------------------------------------------------------------------
 
-namespace detail {
-
-template <typename T>
-struct lambda_traits_helper;
-
-template <typename R>
-struct lambda_traits_helper<R()> {
-    using result_type = R;
-};
-
-template <typename R, typename A0>
-struct lambda_traits_helper<R(A0)> {
-    using result_type = R;
-    using arg0_type = A0;
-};
-
-template <typename R, typename A0, typename A1>
-struct lambda_traits_helper<R(A0, A1)> {
-    using result_type = R;
-    using arg0_type = A0;
-    using arg1_type = A1;
-};
-
-template <typename R, typename... Args>
-struct lambda_traits_helper<R(Args...)> {
-    using result_type = R;
-};
-
-template <typename R, typename C, typename... Args>
-struct lambda_traits_helper<R (C::*)(Args...)> : public lambda_traits_helper<R(Args...)> {};
-
-template <typename R, typename C, typename... Args>
-struct lambda_traits_helper<R (C::*)(Args...) const> : public lambda_traits_helper<R (C::*)(Args...)> {};
-}  // namespace detail
-
 /**
  * A type trait enabling the deduction of type properties of lambdas.
- * Those include so far:
- *      - the result type (result_type)
- *      - the first argument type (arg0_type)
+ *
+ * source:
+ * https://stackoverflow.com/questions/7943525/is-it-possible-to-figure-out-the-parameter-type-and-return-type-of-a-lambda
  */
-template <typename Lambda>
-struct lambda_traits : public detail::lambda_traits_helper<decltype(&Lambda::operator())> {};
+template <typename A>
+struct lambda_traits : lambda_traits<decltype(&std::decay_t<A>::operator())> {};
+
+#define LAMBDA_TYPE_INFO_REM_CTOR(...) __VA_ARGS__
+#define LAMBDA_TYPE_INFO_SPEC(cv, var, is_var)                                       \
+    template <typename C, typename R, typename... Args>                              \
+    struct lambda_traits<R (C::*)(Args... LAMBDA_TYPE_INFO_REM_CTOR var) cv> {       \
+        using arity = std::integral_constant<std::size_t, sizeof...(Args)>;          \
+        using is_variadic = std::integral_constant<bool, is_var>;                    \
+        using is_const = std::is_const<int cv>;                                      \
+                                                                                     \
+        using result_type = R;                                                       \
+                                                                                     \
+        template <std::size_t i>                                                     \
+        using arg = typename std::tuple_element<i, std::tuple<Args..., void>>::type; \
+    };
+
+LAMBDA_TYPE_INFO_SPEC(const, (, ...), 1)
+LAMBDA_TYPE_INFO_SPEC(const, (), 0)
+LAMBDA_TYPE_INFO_SPEC(, (, ...), 1)
+LAMBDA_TYPE_INFO_SPEC(, (), 0)
+#undef LAMBDA_TYPE_INFO_REM_CTOR
+#undef LAMBDA_TYPE_INFO_SPEC
+
+namespace detail {
+
+template <typename F>
+struct LambdaFix {
+    F f;
+    template <typename... Args>
+    auto operator()(Args&&... args) -> decltype(f(*this, std::forward<Args>(args)...)) {
+        return f(*this, std::forward<Args>(args)...);
+    }
+};
+
+}  // namespace detail
+
+template <typename F /* f -> ... */>
+detail::LambdaFix<F> fix(F f) {
+    return {std::move(f)};
+}
 
 // -------------------------------------------------------------------------------
 //                              General Algorithms
 // -------------------------------------------------------------------------------
+
+namespace detail {
+constexpr auto coerceToBool = [](auto&& x) { return (bool)x; };
+
+template <typename C, typename F /* : A -> B */>
+auto mapVector(C& xs, F&& f) {
+    std::vector<decltype(f(xs[0]))> ys;
+    ys.reserve(xs.size());
+    for (auto&& x : xs) {
+        ys.push_back(f(x));
+    }
+    return ys;
+}
+}  // namespace detail
 
 /**
  * A generic test checking whether all elements within a container satisfy a
@@ -152,9 +174,214 @@ std::vector<A> filter(std::vector<A> xs, F&& f) {
     return filterNot(std::move(xs), [&](auto&& x) { return !f(x); });
 }
 
+template <typename B, typename CrossCast = void, typename C>
+auto filterAs(C&& xs) {
+    return filterMap(std::forward<C>(xs), [](auto&& x) { return as<B, CrossCast>(x); });
+}
+
+/**
+ * Fold left a sequence
+ */
+template <typename A, typename B, typename F /* : B -> A -> B */>
+B foldl(std::vector<A> xs, B zero, F&& f) {
+    B accum = std::move(zero);
+    for (auto&& x : xs)
+        accum = f(std::move(accum), std::move(x));
+    return accum;
+}
+
+/**
+ * Fold left a non-empty sequence
+ */
+template <typename A, typename F /* : A -> A -> A */>
+auto foldl(std::vector<A> xs, F&& f) {
+    assert(!xs.empty() && "cannot foldl an empty sequence");
+    auto it = xs.begin();
+    A y = std::move(*it++);
+    for (; it != xs.end(); it++) {
+        y = f(std::move(y), std::move(*it));
+    }
+    return y;
+}
+
+template <typename A, typename B, typename F /* : A -> B -> B */>
+B foldr(std::vector<A> xs, B zero, F&& f) {
+    B accum = std::move(zero);
+    for (auto&& x : reverse(xs))
+        accum = f(std::move(x), std::move(accum));
+    return accum;
+}
+
+template <typename A, typename F /* : A -> A -> A */>
+auto foldr(std::vector<A> xs, F&& f) {
+    assert(!xs.empty() && "cannot foldr an empty sequence");
+    auto it = xs.rbegin();
+    A y = std::move(*it++);
+    for (; it != xs.rend(); it++) {
+        y = f(std::move(*it), std::move(y));
+    }
+    return y;
+}
+
+/**
+ * Applies a function to each element of a vector and returns the results.
+ *
+ * Unlike `makeTransformRange`, this creates a transformed collection instead of a transformed view.
+ */
+template <typename A, typename F /* : A -> B */>
+auto map(std::vector<A>& xs, F&& f) {
+    return detail::mapVector(xs, std::forward<F>(f));
+}
+
+template <typename A, typename F /* : A -> B */>
+auto map(const std::vector<A>& xs, F&& f) {
+    return detail::mapVector(xs, std::forward<F>(f));
+}
+
+template <typename A, typename F /* : A -> B */>
+auto map(std::vector<A>&& xs, F&& f) {
+    return detail::mapVector(xs, std::forward<F>(f));
+}
+
+template <typename A, typename F /* : A -> pointer_like<B> */>
+auto filterMap(const std::vector<A>& xs, F&& f) {
+    using R = decltype(f(xs[0]));
+    // not a pointer -> assume it's `std::optional`
+    using B = std::conditional_t<std::is_pointer_v<R>, R, std::decay_t<decltype(*std::declval<R>())>>;
+    std::vector<B> ys;
+    ys.reserve(xs.size());
+    for (auto&& x : xs) {
+        auto y = f(std::move(x));
+        if (y) {
+            if constexpr (std::is_pointer_v<R>)
+                ys.push_back(std::move(y));
+            else  // assume it's `std::optional`
+                ys.push_back(std::move(*y));
+        }
+    }
+    return ys;
+}
+
+namespace detail {
+
+template <typename It>
+constexpr bool IsLegacyIteratorOutput_v = std::is_reference_v<decltype(*std::declval<It>())>&&
+        std::is_move_assignable_v<std::remove_reference_t<decltype(*std::declval<It>())>>;
+
+// Workaround r-ref collapsing w/ templates.
+// This bloody sucks. Why are the template ref rules such a shitshow?
+template <typename C>
+struct filter {
+    static_assert(!std::is_reference_v<C>);
+    static constexpr bool has_output_iter = IsLegacyIteratorOutput_v<typename C::iterator>;
+
+    template <typename F>
+    C operator()(C&& xs, F&& f) {
+        // TODO: replace w/ C++20 `std::erase_if`
+        if constexpr (has_output_iter) {
+            xs.erase(std::remove_if(xs.begin(), xs.end(), [&](auto&& x) { return !f(x); }), xs.end());
+        } else {
+            auto end = xs.end();
+            for (auto it = xs.begin(); it != end;)
+                it = f(*it) ? ++it : xs.erase(it);
+        }
+        return std::move(xs);
+    }
+
+    template <typename F, bool enable = std::is_copy_constructible_v<typename C::value_type>>
+    std::enable_if_t<enable, C> operator()(const C& xs, F&& f) {
+        C ys;
+        for (auto&& x : xs)
+            if (f(x)) {
+                if constexpr (has_output_iter)
+                    ys.insert(ys.end(), x);
+                else
+                    ys.insert(x);
+            }
+        return ys;
+    }
+};
+}  // namespace detail
+
+template <typename C, typename F /* : C::element_type -> bool */>
+auto filter(C&& xs, F&& f) {
+    return detail::filter<std::decay_t<C>>{}(std::forward<C>(xs), std::forward<F>(f));
+}
+
+template <typename C, typename F /* : C::element_type -> bool */>
+auto filterNot(C&& xs, F&& f) {
+    return filter(std::forward<C>(xs), [&](auto&& x) { return !f(x); });
+}
+
+template <typename A, typename F /* : A -> B */>
+auto groupBy(std::vector<A> xs, F&& key) {
+    std::map<decltype(key(xs.front())), std::vector<A>> m;
+    for (auto&& x : xs)
+        m[key(x)].push_back(std::move(x));
+    return m;
+}
+
+template <typename A, typename B, typename F /* : const A& -> const B& -> () */>
+void zipForEach(const std::vector<A>& xs, const std::vector<B>& ys, F&& f) {
+    for (size_t i = 0; i < std::min(xs.size(), ys.size()); i++)
+        f(xs[i], ys[i]);
+}
+
+template <typename A, typename B, typename F /* : const A& -> const B& -> () */>
+auto zipMap(const std::vector<A>& xs, const std::vector<B>& ys, F&& f) {
+    size_t n = std::min(xs.size(), ys.size());
+    std::vector<decltype(f(xs.front(), ys.front()))> zs;
+    zs.reserve(n);
+    for (size_t i = 0; i < n; i++)
+        zs.push_back(f(xs[i], ys[i]));
+    return zs;
+}
+
+template <typename A, typename B>
+std::vector<A> concat(std::vector<A> xs, std::vector<B> ys) {
+    for (auto&& y : ys)
+        xs.push_back(std::move(y));
+
+    return xs;
+}
+
+template <typename A, typename B>
+std::vector<A> concat(std::vector<A> xs, const range<B>& ys) {
+    for (A y : ys)
+        xs.push_back(std::move(y));
+
+    return xs;
+}
+
+template <typename A, typename B>
+std::vector<A> concat(std::vector<A> xs, B x) {
+    xs.push_back(std::move(x));
+    return xs;
+}
+
+template <typename A, typename B>
+void append(std::vector<A>& xs, B&& y) {
+    xs = concat(std::move(xs), std::forward<B>(y));
+}
+
 // -------------------------------------------------------------------------------
 //                               Set Utilities
 // -------------------------------------------------------------------------------
+
+template <typename A>
+std::set<A> operator&(const std::set<A>& lhs, const std::set<A>& rhs) {
+    std::set<A> result;
+    std::set_intersection(
+            lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::inserter(result, result.begin()));
+    return result;
+}
+
+template <typename A>
+std::set<A> operator|(const std::set<A>& lhs, const std::set<A>& rhs) {
+    std::set<A> result;
+    std::set_union(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::inserter(result, result.begin()));
+    return result;
+}
 
 template <typename A>
 std::set<A> operator-(const std::set<A>& lhs, const std::set<A>& rhs) {

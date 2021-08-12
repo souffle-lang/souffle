@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "souffle/utility/General.h"
 #include "souffle/utility/Iteration.h"
 #include "souffle/utility/Types.h"
 #include "tinyformat.h"
@@ -23,6 +24,8 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <optional>
+#include <type_traits>
 #include <utility>
 
 #ifdef _WIN32
@@ -200,4 +203,18 @@ template <typename... Args>
 
 // HACK:  Workaround to suppress spurious reachability warnings.
 #define UNREACHABLE_BAD_CASE_ANALYSIS fatal("unhandled switch branch");
+
+// -------------------------------------------------------------------------------
+//                               Other Utilities
+// -------------------------------------------------------------------------------
+
+template <typename F>
+auto lazy(F f) {
+    using A = decltype(f());
+    return [cache = std::optional<A>{}, f = std::move(f)]() mutable -> A& {
+        if (!cache) cache = f();
+        return *cache;
+    };
+}
+
 }  // namespace souffle
