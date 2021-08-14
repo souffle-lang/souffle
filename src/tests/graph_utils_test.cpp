@@ -108,7 +108,7 @@ TEST(Graph, Basic) {
     EXPECT_TRUE(g.reaches(3, 2));
     EXPECT_TRUE(g.reaches(3, 3));
 
-    EXPECT_EQ("{1->2,2->3,3->1}", toString(g));
+    EXPECT_EQ("{1->2\n,2->3\n,3->1}", toString(g));
 }
 
 }  // end namespace test
