@@ -18,12 +18,12 @@ function(SOUFFLE_RUN_PROF_TEST)
 
 
     SET(CMD_LIST "rel;rel R2;rul;rul C2.1;rul id N2.1;graph R2 copy_t;graph C2.1 tot_t;graph ver C2.1 tuples;top;help")
-    foreach(CMD IN LISTS CMD_LIST) 
+    foreach(CMD IN LISTS CMD_LIST)
        SET(CMD_NAME "${PARAM_QUALIFIED_TEST_NAME}_run_prof_${CMD}")
 
        string(REPLACE " " "_" CMD_NAME ${CMD_NAME})
 
-       SET(CMD_EXEC "set -e$<SEMICOLON> $<TARGET_FILE:souffleprof> ${OUTPUT_DIR}/${TEST_NAME}.prof -c '${CMD}' >'${CMD}.out'")
+       SET(CMD_EXEC "set -e$<SEMICOLON> '$<TARGET_FILE:souffleprof>' '${OUTPUT_DIR}/${TEST_NAME}.prof' -c '${CMD}' >'${CMD}.out'")
 
        add_test(NAME "${CMD_NAME}" COMMAND sh -c "${CMD_EXEC}")
 
@@ -87,8 +87,8 @@ function(SOUFFLE_RUN_PROF_TEST_HELPER)
                                  OUTPUT_DIR ${OUTPUT_DIR}
                                  FIXTURE_NAME ${FIXTURE_NAME}
                                  TEST_LABELS "${TEST_LABELS}"
-                                 SOUFFLE_PARAMS "-p ${OUTPUT_DIR}/${TEST_NAME}.prof")
-        
+                                 SOUFFLE_PARAMS "-p '${OUTPUT_DIR}/${TEST_NAME}.prof'")
+
     souffle_run_prof_test(TEST_NAME ${PARAM_TEST_NAME}
                          QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
                          INPUT_DIR ${INPUT_DIR}

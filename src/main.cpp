@@ -161,29 +161,31 @@ void executeBinary(const std::string& binaryFilename) {
 /**
  * Compiles the given source file to a binary file.
  */
-void compileToBinary(std::string compileCmd, const std::string& sourceFilename) {
+void compileToBinary(std::string_view compileCmd, std::string_view sourceFilename) {
     // add source code
-    compileCmd += ' ';
+    std::vector<std::string> parts{std::string(compileCmd)};
     for (const std::string& path : splitString(Global::config().get("library-dir"), ' ')) {
         // The first entry may be blank
         if (path.empty()) {
             continue;
         }
-        compileCmd += "-L" + path + ' ';
+        parts.push_back(tfm::format("-L%s", path));
     }
     for (const std::string& library : splitString(Global::config().get("libraries"), ' ')) {
         // The first entry may be blank
         if (library.empty()) {
             continue;
         }
-        compileCmd += "-l" + library + ' ';
+        parts.push_back(tfm::format("-l%s", library));
     }
 
-    compileCmd += sourceFilename;
+    parts.push_back(std::string(sourceFilename));
+
+    auto cmd = toString(join(parts, " ", [&](auto&& os, auto&& part) { os << "'" << part << "'"; }));
 
     // run executable
-    if (system(compileCmd.c_str()) != 0) {
-        throw std::invalid_argument("failed to compile C++ source <" + sourceFilename + ">");
+    if (system(cmd.c_str()) != 0) {
+        throw std::invalid_argument(tfm::format("failed to compile C++ source <%s>", sourceFilename));
     }
 }
 

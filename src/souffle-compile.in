@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Souffle - A Datalog Compiler
 # Copyright (c) 2013-14, Oracle and/or its affiliates. All rights reserved.
@@ -10,7 +10,7 @@
 # script that compiles a generated C++ program and executes it
 #
 
-set -e 
+set -e
 
 # Show usage
 usage() {
@@ -57,15 +57,20 @@ WARNINGS=""
 SWIGLANG=""
 
 # find header files of souffle
-P="$(dirname $0)"
-HEADER_DIRS=" -I$P/../include -I$P/include -I$P/../include/souffle/swig -I$P/include/souffle/swig "
+P="$(dirname "$0")"
+HEADER_DIRS=(
+  "-I$P/../include"
+  "-I$P/include"
+  "-I$P/../include/souffle/swig"
+  "-I$P/include/souffle/swig"
+)
 
 # This is ugly.  Once we switch to cmake, we need to figure out a cleaner
 # way to handle things like these.  The headers, and souffle's dependence
 # on this shell script are just a bit strange
 CMAKE_HEADER_DIRS="@CMAKE_HEADER_DIRS@"
-if [ ! -z "$CMAKE_HEADER_DIRS" ]; then
-  HEADER_DIRS="$HEADER_DIRS -I$CMAKE_HEADER_DIRS"
+if [ -n "$CMAKE_HEADER_DIRS" ]; then
+  HEADER_DIRS+=("-I$CMAKE_HEADER_DIRS")
 fi
 
 # Options processing via getopts builtin, it is very limiting but on OSX the
@@ -76,7 +81,7 @@ while getopts "hwtl:L:vgs:" opt; do
       usage;
     ;;
     g) # enable debug mode
-      CXXFLAGS="$(echo $CXXFLAGS|sed 's/-O[0-9s]//g') -g -O0";
+      CXXFLAGS="$(echo "$CXXFLAGS"|sed 's/-O[0-9s]//g') -g -O0";
     ;;
     L) # enable shared library
       LDFLAGS="$LDFLAGS -L${OPTARG}";
@@ -85,11 +90,11 @@ while getopts "hwtl:L:vgs:" opt; do
       LIBS="$LIBS -l${OPTARG}";
     ;;
     t) # enable testing mode (debug + warnings + `-Werror`)
-      CXXFLAGS="$(echo $CXXFLAGS|sed 's/-O[0-9s]//g') -g -O0 -Wall -Wextra -Werror";
+      CXXFLAGS="$(echo "$CXXFLAGS"|sed 's/-O[0-9s]//g') -g -O0 -Wall -Wextra -Werror";
       WARNINGS="1"
     ;;
     w) # enable warnings
-      CXXFLAGS="$(echo $CXXFLAGS) -Wall -Wextra"
+      CXXFLAGS="$CXXFLAGS -Wall -Wextra"
       WARNINGS="1"
     ;;
     v) # Verbose output
@@ -102,7 +107,7 @@ while getopts "hwtl:L:vgs:" opt; do
 done
 
 # Shift positional arguments
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 # Show usage if no input is given
 test -n "$1"
@@ -113,12 +118,12 @@ test -f "$1"
 error "cannot open source file: '$1'" $?
 
 # Check if the input file has a valid extension
-exe=`basename $1 .cpp`
+exe=$(basename "$1" .cpp)
 test "$1" != "$exe"
 error "source file is not a .cpp file: '$1'" $?
 
 # Ensure binary is compiled to same directory as cpp file
-cd "$(dirname $1)"
+cd "$(dirname "$1")"
 dir="$PWD"
 cd "$OLDPWD"
 
@@ -131,9 +136,9 @@ then
   # set environment variables
   # directory where swig interface files are in souffle
   TMP_DIR="$(mktemp -d)"
-  BASE_DIR="$(dirname $0)"
+  BASE_DIR="$(dirname "$0")"
 
-  if [ ! -z "$CMAKE_HEADER_DIRS" ]; then
+  if [ -n "$CMAKE_HEADER_DIRS" ]; then
     cp "$CMAKE_HEADER_DIRS/souffle/swig/SwigInterface.h" "$TMP_DIR"
     cp "$CMAKE_HEADER_DIRS/souffle/swig/SwigInterface.i" "$TMP_DIR"
   elif [ -d "$BASE_DIR/include/souffle/swig" ]; then
@@ -152,8 +157,8 @@ then
   then
     # Python adds -Wall -Wextra
     PYTHON_FLAGS=$(python3-config --cflags | sed 's/-Wall\|-Wextra//g')
-    $CXX -fPIC -c -D__EMBEDDED_SOUFFLE__ $CXXFLAGS $CPPFLAGS SwigInterface_wrap.cxx $dir/$exe.cpp -Wformat $PYTHON_FLAGS $HEADER_DIRS 2>&1
-    $CXX -shared $CXXFLAGS $CPPFLAGS SwigInterface_wrap.o $exe.o $(python3-config --ldflags) -o _SwigInterface.so $LDFLAGS $LIBS -lstdc++
+    $CXX -fPIC -c -D__EMBEDDED_SOUFFLE__ $CXXFLAGS $CPPFLAGS SwigInterface_wrap.cxx "$dir/$exe.cpp" -Wformat $PYTHON_FLAGS "${HEADER_DIRS[@]}" 2>&1
+    $CXX -shared $CXXFLAGS $CPPFLAGS SwigInterface_wrap.o "$exe.o" $(python3-config --ldflags) -o _SwigInterface.so $LDFLAGS $LIBS -lstdc++
   elif [ "$SWIGLANG" = "java" ]
   then
     CMAKE_JAVA_JNI="@SOUFFLE_JAVA_INCLUDE_PATH@"
@@ -166,18 +171,18 @@ then
         error "JAVA_HOME environment variable has not been set"
       fi
 
-      JNI_INCLUDES=-I$JAVADIR -I$JAVADIR/include -I$JAVADIR/include/linux  -I$JAVADIR/include/darwin
+      JNI_INCLUDES="-I$JAVADIR" "-I$JAVADIR/include" "-I$JAVADIR/include/linux"  "-I$JAVADIR/include/darwin"
 
     else
       JNI_INCLUDES=$(echo "$CMAKE_JAVA_JNI" | sed 's/^\|;/ -I/g')
     fi
 
-    $CXX -fPIC -c -D__EMBEDDED_SOUFFLE__ $CXXFLAGS $CPPFLAGS SwigInterface_wrap.cxx $dir/$exe.cpp $JNI_INCLUDES -I/usr/lib/x86_64-linux-gnu/ $HEADER_DIRS 2>&1
-    $CXX -shared $CXXFLAGS $CPPFLAGS SwigInterface_wrap.o $exe.o -o libSwigInterface.so $LDFLAGS $LIBS -lstdc++
+    $CXX -fPIC -c -D__EMBEDDED_SOUFFLE__ $CXXFLAGS $CPPFLAGS SwigInterface_wrap.cxx "$dir/$exe.cpp" $JNI_INCLUDES -I/usr/lib/x86_64-linux-gnu/ "${HEADER_DIRS[@]}" 2>&1
+    $CXX -shared $CXXFLAGS $CPPFLAGS SwigInterface_wrap.o "$exe.o" -o libSwigInterface.so $LDFLAGS $LIBS -lstdc++
   fi
 
   # move generated files to same directory as cpp file
-  for file in `ls | grep -v "SwigInterface.i" | grep -v "SwigInterface.h"`
+  for file in $(ls | grep -v "SwigInterface.i" | grep -v "SwigInterface.h")
   do
     mv "$file" "$dir"
   done
@@ -187,24 +192,24 @@ then
 fi
 
 # Compile
-rm -f $dir/$exe
+rm -f "$dir/$exe"
 CCERR=$(mktemp)
 # HACK: don't exit if the compile fails, we need to report the error
-( $CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 $HEADER_DIRS $OMP_FLAG $LDFLAGS $LIBS 2> $CCERR ) || true
+( "$CXX" $CXXFLAGS $CPPFLAGS "-o$dir/$exe" $1 "${HEADER_DIRS[@]}" $OMP_FLAG $LDFLAGS $LIBS 2> "$CCERR" ) || true
 
-if test -f $dir/$exe
+if test -f "$dir/$exe"
 then
   if [ "$WARNINGS" = 1 ]
   then
-     echo "$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 $LIBS $HEADER_DIRS"
-     cat $CCERR 1>&2
+     echo "\"$CXX\" $CXXFLAGS $CPPFLAGS \"-o$dir/$exe\" $1 $LIBS ${HEADER_DIRS[*]}"
+     cat "$CCERR" 1>&2
   fi
-  rm $CCERR
+  rm "$CCERR"
 else
   echo "compiler error: cannot compile source file $1" 1>&2
-  echo "$CXX $CXXFLAGS $CPPFLAGS -o$dir/$exe $1 $LIBS $HEADER_DIRS"
-  cat $CCERR 1>&2
-  rm -f $CCERR
+  echo "\"$CXX\" $CXXFLAGS $CPPFLAGS \"-o$dir/$exe\" $1 $LIBS ${HEADER_DIRS[*]}"
+  cat "$CCERR" 1>&2
+  rm -f "$CCERR"
   exit 1
 fi
 exit 0

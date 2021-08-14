@@ -37,8 +37,7 @@ function(SOUFFLE_RUN_INTEGRATION_TEST)
     )
 
     # Run souffle (through the shell, so we can easily redirect)
-    set(SOUFFLE_CMD "set -e$<SEMICOLON> $<TARGET_FILE:souffle> ${PARAM_SOUFFLE_PARAMS}\\
-                    '${PARAM_INPUT_DIR}/${PARAM_TEST_NAME}.dl'\\
+    set(SOUFFLE_CMD "set -e$<SEMICOLON> '$<TARGET_FILE:souffle>' ${PARAM_SOUFFLE_PARAMS} '${PARAM_INPUT_DIR}/${PARAM_TEST_NAME}.dl'\\
                     1> '${PARAM_TEST_NAME}.out'\\
                     2> '${PARAM_TEST_NAME}.err'")
 
@@ -46,7 +45,7 @@ function(SOUFFLE_RUN_INTEGRATION_TEST)
         set (SOUFFLE_CMD "${SOUFFLE_CMD} < '${PARAM_TEST_NAME}.in'")
     endif()
 
-    add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_run_souffle 
+    add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_run_souffle
         COMMAND sh -c "${SOUFFLE_CMD}")
 
     set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_souffle PROPERTIES
@@ -119,7 +118,7 @@ function(SOUFFLE_RUN_TEST_HELPER)
     # PARAM_CATEGORY - e.g. syntactic, example etc.
     # PARAM_TEST_NAME - the name of the test, the short directory name under tests/<category>/<test_name>
     # PARAM_COMPILED - with or without -c
-    # PARAM_FUNCTORS - with -L for finding functor library in the testsuite  
+    # PARAM_FUNCTORS - with -L for finding functor library in the testsuite
     # PARAM_NEGATIVE - should it fail or not
     # PARAM_MULTI_TEST - used to distinguish "multi-tests", sort of left over from automake
     #                           Basically, the same test dir has multiple sets of facts/outputs
@@ -146,7 +145,7 @@ function(SOUFFLE_RUN_TEST_HELPER)
     endif()
 
     if (PARAM_FUNCTORS)
-        set(EXTRA_FLAGS "${EXTRA_FLAGS} -L${CMAKE_CURRENT_BINARY_DIR}/${PARAM_TEST_NAME}")
+        set(EXTRA_FLAGS "${EXTRA_FLAGS} '-L${CMAKE_CURRENT_BINARY_DIR}/${PARAM_TEST_NAME}'")
     endif()
 
     if (NOT PARAM_FACTS_DIR_NAME)
@@ -281,6 +280,3 @@ function(SOUFFLE_POSITIVE_MULTI_TEST)
                          FACTS_DIR_NAME ${FACTS_DIR_NAME})
     endforeach()
 endfunction()
-
-
-

@@ -4,7 +4,7 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-# Make sure that the functor library is built 
+# Make sure that the functor library is built
 add_subdirectory(functors)
 add_subdirectory(graph_coloring)
 
@@ -25,7 +25,7 @@ function(SOUFFLE_RUN_CPP_TEST)
 
 
     add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_compile_cpp
-             COMMAND sh -c "set -e; ${CMAKE_CXX_COMPILER} --std=c++17 -D__EMBEDDED_SOUFFLE__  -I${CMAKE_SOURCE_DIR}/src/include ${TEST_NAME}.cpp ${PARAM_INPUT_DIR}/driver.cpp -o ${TEST_NAME}")
+             COMMAND sh -c "set -e; '${CMAKE_CXX_COMPILER}' --std=c++17 -D__EMBEDDED_SOUFFLE__  '-I${CMAKE_SOURCE_DIR}/src/include' '${TEST_NAME}.cpp' '${PARAM_INPUT_DIR}/driver.cpp' -o '${TEST_NAME}'")
     set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_compile_cpp PROPERTIES
                          WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
                          LABELS "${PARAM_TEST_LABELS}"
@@ -34,7 +34,7 @@ function(SOUFFLE_RUN_CPP_TEST)
                         )
 
     add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_run_cpp
-            COMMAND sh -c "set -e; ./${TEST_NAME} ${FACTS_DIR} >${TEST_NAME}.out 2>${TEST_NAME}.err")
+            COMMAND sh -c "set -e; './${TEST_NAME}' '${FACTS_DIR}' > '${TEST_NAME}.out' 2> '${TEST_NAME}.err'")
     set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_cpp PROPERTIES
                          WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
                          LABELS "${PARAM_TEST_LABELS}"
@@ -76,8 +76,8 @@ function(SOUFFLE_RUN_CPP_TEST_HELPER)
                                  OUTPUT_DIR ${OUTPUT_DIR}
                                  FIXTURE_NAME ${FIXTURE_NAME}
                                  TEST_LABELS "${TEST_LABELS}"
-                                 SOUFFLE_PARAMS "-g ${OUTPUT_DIR}/${TEST_NAME}.cpp")
-        
+                                 SOUFFLE_PARAMS "-g '${OUTPUT_DIR}/${TEST_NAME}.cpp'")
+
     souffle_run_cpp_test(TEST_NAME ${PARAM_TEST_NAME}
                          QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
                          INPUT_DIR ${INPUT_DIR}
@@ -118,6 +118,6 @@ souffle_positive_cpp_test(signal_error)
 souffle_positive_cpp_test(tuple_insertion_diff_element_type)
 souffle_positive_cpp_test(tuple_insertion_diff_relation)
 
-# The following test fails because we use -g (instead -o) 
-# TODO: (This neeads to be investigated) 
+# The following test fails because we use -g (instead -o)
+# TODO: (This neeads to be investigated)
 # souffle_positive_cpp_test(repeat_analysis)
