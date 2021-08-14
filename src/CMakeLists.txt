@@ -185,9 +185,8 @@ target_compile_features(libsouffle
                         PUBLIC cxx_std_17)
 set_target_properties(libsouffle PROPERTIES CXX_EXTENSIONS OFF)
 
-# FIXME: Re-evaluated the use of -fwrapv.  See my issue #1836
 target_compile_options(libsouffle
-                       PUBLIC "-Wall;-Wextra;-fwrapv")
+                       PUBLIC "-Wall;-Wextra;-Werror;-fwrapv")
 
 target_link_libraries(libsouffle PRIVATE Threads::Threads)
 
@@ -288,8 +287,14 @@ function(AUTOMAKE_COMPATIBLE_SUBST F_IN F_OUT)
 
     # Compile flags
     string(TOUPPER ${CMAKE_BUILD_TYPE} BT_UPPER)
-    # Remove -Wall/-Wextra since the code is not warning-free
-    string(REGEX REPLACE "-Wall|-Wextra" ""  SOUFFLE_CXXFLAGS "${CMAKE_CXX_FLAGS}")
+    # Remove -Wall/-Wextra/-Werror from the default flag set for compilation using `souffle-compile`.
+    # *) `-d` option in `souffle-compile` adds these flags back
+    # *) The compiler used by `souffle-compile` isn't neccesarily the same as the one used by `cmake`.
+    #    Code that's free of warnings w/ the cmake compiler might not be w/ `souffle-compile`'s compiler.
+    #    e.g. we might use clang-10, user might use gcc or some newer version of clang.
+    # *) Synth'd code isn't warning free for now anyways.
+    #    TODO: Require/verify that test case synthesised code is warning free as part of test suite.
+    string(REGEX REPLACE "-Wall|-Wextra|-Werror" ""  SOUFFLE_CXXFLAGS "${CMAKE_CXX_FLAGS}")
     set(SOUFFLE_CXXFLAGS "${SOUFFLE_CXXFLAGS} ${CMAKE_CXX_FLAGS_${BT_UPPER}} ${SUBST_DEFS}")
     if (OPENMP_FOUND)
        set(SOUFFLE_CXXFLAGS "${SOUFFLE_CXXFLAGS} -fopenmp")
