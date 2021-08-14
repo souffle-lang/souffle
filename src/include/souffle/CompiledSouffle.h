@@ -358,7 +358,6 @@ struct t_eqrel {
         t_tuple value;
 
     public:
-        iterator_0() = default;
         iterator_0(const nested_iterator& iter) : nested(iter), value(*iter) {}
         iterator_0(const iterator_0& other) = default;
         iterator_0& operator=(const iterator_0& other) = default;
@@ -386,7 +385,6 @@ struct t_eqrel {
         t_tuple value;
 
     public:
-        iterator_1() = default;
         iterator_1(const nested_iterator& iter) : nested(iter), value(reorder(*iter)) {}
         iterator_1(const iterator_1& other) = default;
         iterator_1& operator=(const iterator_1& other) = default;
