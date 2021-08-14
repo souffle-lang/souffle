@@ -226,6 +226,15 @@ endfunction()
 # few binaries in the src tree.  It does a little bit of renaming/
 # name normalization and links in libsouffle
 function(SOUFFLE_ADD_BINARY_TEST TEST_NAME CATEGORY)
+    # PARAM_SOUFFLE_HEADERS_ONLY - don't depend on compiling `libsouffle`; saves time and allows independent tests
+    cmake_parse_arguments(
+        PARSE_ARGV 2
+        PARAM
+        "SOUFFLE_HEADERS_ONLY" # Options
+        "" #Single valued options
+        "" #Multi-value options
+    )
+
     # The naming of the test targets is inconsistent in souffle
     # Keep the file name the same (for now) but rename the rest
     string(REGEX REPLACE "^test_" "" SHORT_TEST_NAME ${TEST_NAME})
@@ -233,7 +242,22 @@ function(SOUFFLE_ADD_BINARY_TEST TEST_NAME CATEGORY)
     set(TARGET_NAME "test_${SHORT_TEST_NAME}")
 
     add_executable(${TARGET_NAME} ${TEST_NAME}.cpp)
-    target_link_libraries(${TARGET_NAME} libsouffle)
+
+    if (PARAM_SOUFFLE_HEADERS_ONLY)
+        get_target_property(SOUFFLE_COMPILE_EXTS libsouffle CXX_EXTENSIONS)
+        get_target_property(SOUFFLE_COMPILE_DEFS libsouffle INTERFACE_COMPILE_DEFINITIONS)
+        get_target_property(SOUFFLE_COMPILE_FEAT libsouffle INTERFACE_COMPILE_FEATURES)
+        get_target_property(SOUFFLE_COMPILE_OPTS libsouffle INTERFACE_COMPILE_OPTIONS)
+        get_target_property(SOUFFLE_INCLUDE_DIRS libsouffle INTERFACE_INCLUDE_DIRECTORIES)
+
+        set_target_properties(${TARGET_NAME} PROPERTIES CXX_EXTENSIONS SOUFFLE_COMPILE_EXTS)
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${SOUFFLE_COMPILE_DEFS})
+        target_compile_features(${TARGET_NAME} PRIVATE ${SOUFFLE_COMPILE_FEAT})
+        target_compile_options(${TARGET_NAME} PRIVATE ${SOUFFLE_COMPILE_OPTS})
+        target_include_directories(${TARGET_NAME} PRIVATE ${SOUFFLE_INCLUDE_DIRS})
+    else()
+        target_link_libraries(${TARGET_NAME} libsouffle)
+    endif()
 
     set(QUALIFIED_TEST_NAME ${SHORT_TEST_NAME})
     add_test(NAME ${QUALIFIED_TEST_NAME} COMMAND ${TARGET_NAME})
