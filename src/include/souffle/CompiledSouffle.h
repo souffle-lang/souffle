@@ -194,7 +194,7 @@ public:
         bool value;
 
     public:
-        typedef std::forward_iterator_tag iterator_category;
+        using iterator_category = std::forward_iterator_tag;
         using value_type = RamDomain*;
         using difference_type = ptrdiff_t;
         using pointer = value_type*;
@@ -422,7 +422,7 @@ struct t_eqrel {
     bool insert(const RamDomain* ramDomain) {
         RamDomain data[2];
         std::copy(ramDomain, ramDomain + 2, data);
-        const t_tuple& tuple = reinterpret_cast<const t_tuple&>(data);
+        auto& tuple = reinterpret_cast<const t_tuple&>(data);
         context h;
         return insert(tuple, h);
     }
@@ -436,7 +436,7 @@ struct t_eqrel {
     bool contains(const t_tuple& t) const {
         return ind.contains(t[0], t[1]);
     }
-    bool contains(const t_tuple& t, context& h) const {
+    bool contains(const t_tuple& t, context&) const {
         return ind.contains(t[0], t[1]);
     }
     std::size_t size() const {
@@ -445,10 +445,10 @@ struct t_eqrel {
     iterator find(const t_tuple& t) const {
         return ind.find(t);
     }
-    iterator find(const t_tuple& t, context& h) const {
+    iterator find(const t_tuple& t, context&) const {
         return ind.find(t);
     }
-    range<iterator> lowerUpperRange_10(const t_tuple& lower, const t_tuple& upper, context& h) const {
+    range<iterator> lowerUpperRange_10(const t_tuple& lower, const t_tuple& /*upper*/, context& h) const {
         auto r = ind.template getBoundaries<1>((lower), h.hints);
         return make_range(iterator(r.begin()), iterator(r.end()));
     }
@@ -456,7 +456,7 @@ struct t_eqrel {
         context h;
         return lowerUpperRange_10(lower, upper, h);
     }
-    range<iterator_1> lowerUpperRange_01(const t_tuple& lower, const t_tuple& upper, context& h) const {
+    range<iterator_1> lowerUpperRange_01(const t_tuple& lower, const t_tuple& /*upper*/, context& h) const {
         auto r = ind.template getBoundaries<1>(reorder(lower), h.hints);
         return make_range(iterator_1(r.begin()), iterator_1(r.end()));
     }
@@ -464,7 +464,7 @@ struct t_eqrel {
         context h;
         return lowerUpperRange_01(lower, upper, h);
     }
-    range<iterator> lowerUpperRange_11(const t_tuple& lower, const t_tuple& upper, context& h) const {
+    range<iterator> lowerUpperRange_11(const t_tuple& lower, const t_tuple& /*upper*/, context& h) const {
         auto r = ind.template getBoundaries<2>((lower), h.hints);
         return make_range(iterator(r.begin()), iterator(r.end()));
     }
