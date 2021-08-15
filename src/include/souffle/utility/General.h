@@ -20,5 +20,8 @@
 #define SOUFFLE_ALWAYS_INLINE /* TODO: MSVC equiv */
 #else
 // clang / gcc recognize this attribute
-#define SOUFFLE_ALWAYS_INLINE [[gnu::always_inline]]
+// NB: GCC will only inline when optimisation is on, and will warn about it.
+//     Adding `inline` (even though the KW nominally has nothing to do with
+//     inlining) will force it to inline in all cases. Lovely.
+#define SOUFFLE_ALWAYS_INLINE [[gnu::always_inline]] inline
 #endif
