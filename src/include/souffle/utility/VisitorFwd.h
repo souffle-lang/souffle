@@ -38,6 +38,6 @@ using visit_root_type = std::enable_if_t<is_visitable_node<A>, visit_root_type_o
 
 #define SOUFFLE_DECLARE_VISITABLE_ROOT_TYPE(ty)                                    \
     template <typename A>                                                          \
-    struct ::souffle::detail::VisitRootType_t<A,                                   \
+    struct souffle::detail::VisitRootType_t<A,                                     \
             std::enable_if_t<std::is_base_of_v<ty, ::souffle::remove_cvref_t<A>>>> \
-            : ::souffle::detail::VisitRootType_t<A, ty> {};
+            : souffle::detail::VisitRootType_t<A, ty> {};

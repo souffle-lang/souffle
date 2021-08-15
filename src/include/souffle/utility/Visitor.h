@@ -138,11 +138,11 @@ struct Visitor {
             "\t* `SOUFFLE_VISITOR_DEFINE_PARTIAL_SPECIALISATION` wasn't applied for `NodeType`");
 };
 
-#define SOUFFLE_VISITOR_DEFINE_PARTIAL_SPECIALISATION(node, inner_visitor)                \
-    template <typename R, typename... Params>                                             \
-    struct ::souffle::Visitor<R, node, Params...> : inner_visitor<R, node, Params...> {}; \
-    template <typename R, typename... Params>                                             \
-    struct ::souffle::Visitor<R, node const, Params...> : inner_visitor<R, node const, Params...> {};
+#define SOUFFLE_VISITOR_DEFINE_PARTIAL_SPECIALISATION(node, inner_visitor)              \
+    template <typename R, typename... Params>                                           \
+    struct souffle::Visitor<R, node, Params...> : inner_visitor<R, node, Params...> {}; \
+    template <typename R, typename... Params>                                           \
+    struct souffle::Visitor<R, node const, Params...> : inner_visitor<R, node const, Params...> {};
 
 #define SOUFFLE_VISITOR_FORWARD(Kind) \
     if (auto* n = as<Kind>(node)) return visit_(type_identity<Kind>(), *n, args...);
