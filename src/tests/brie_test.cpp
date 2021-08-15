@@ -1704,7 +1704,9 @@ TEST(Trie, Parallel) {
 
         // now insert all those values into a new set - in parallel
         Trie<2> res;
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
         for (auto it = full.begin(); it < full.end(); ++it) {
             res.insert(*it);
         }

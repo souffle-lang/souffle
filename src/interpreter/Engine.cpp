@@ -923,7 +923,9 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
             auto& currentFrequencies = frequencies[cur.getProfileText()];
             while (currentFrequencies.size() <= getIterationNumber()) {
+#ifdef _OPENMP
 #pragma omp critical(frequencies)
+#endif
                 currentFrequencies.emplace_back(0);
             }
             frequencies[cur.getProfileText()][getIterationNumber()]++;

@@ -763,7 +763,9 @@ TEST(BTreeSet, Parallel) {
 
         // now insert all those values into a new set - in parallel
         btree_set<entry_t> res;
+#ifdef _OPENMP
 #pragma omp parallel for  //  schedule(static,1)
+#endif
         for (auto it = full.begin(); it < full.end(); ++it) {
             res.insert(*it);
         }
