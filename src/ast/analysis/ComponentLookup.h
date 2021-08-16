@@ -17,7 +17,6 @@
 #include "ast/Component.h"
 #include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
-#include "ast/analysis/Analysis.h"
 #include <map>
 #include <set>
 #include <string>

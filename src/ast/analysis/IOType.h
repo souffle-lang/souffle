@@ -17,7 +17,7 @@
 #pragma once
 
 #include "ast/Relation.h"
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include <iosfwd>
 #include <map>
 #include <set>

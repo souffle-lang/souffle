@@ -16,23 +16,11 @@
 
 #pragma once
 
-#include "souffle/utility/DynamicCasting.h"
-#include "souffle/utility/Types.h"
-#include <map>
-#include <utility>
-
-namespace souffle {
-class ErrorReport;
-class DebugReport;
-}  // namespace souffle
+#include "TranslationUnitBase.h"
 
 namespace souffle::ast {
 
 class Program;
-
-namespace analysis {
-class Analysis;
-}
 
 /**
  * @class TranslationUnit
@@ -43,58 +31,18 @@ class Analysis;
  * cached analysis results.
  */
 
-class TranslationUnit {
+class TranslationUnit final : public souffle::detail::TranslationUnitBase<TranslationUnit, Program> {
+    using Base = souffle::detail::TranslationUnitBase<TranslationUnit, Program>;
+
 public:
-    TranslationUnit(Own<Program> program, ErrorReport& e, DebugReport& d);
-    virtual ~TranslationUnit();
+    using Base::Base;
 
-    /** get analysis: analysis is generated on the fly if not present */
-    template <class Analysis>
-    Analysis* getAnalysis() const {
-        auto it = analyses.find(Analysis::name);
-        analysis::Analysis* ana = nullptr;
-        if (it == analyses.end()) {
-            ana = addAnalysis(Analysis::name, mk<Analysis>());
-        } else {
-            ana = it->second.get();
-        }
-
-        return as<Analysis>(ana);
-    }
-
-    /** Return the program */
-    Program& getProgram() const {
-        return *program.get();
-    }
-
-    /** Return error report */
-    ErrorReport& getErrorReport() {
-        return errorReport;
-    }
-
-    /** Destroy all cached analyses of translation unit */
-    void invalidateAnalyses() const;
-
-    /** Return debug report */
-    DebugReport& getDebugReport() {
-        return debugReport;
-    }
-
-private:
-    analysis::Analysis* addAnalysis(char const* name, Own<analysis::Analysis> analysis) const;
-
-private:
-    /** Cached analyses */
-    mutable std::map<std::string, Own<analysis::Analysis>> analyses;
-
-    /** AST program */
-    Own<Program> program;
-
-    /** Error report capturing errors while compiling */
-    ErrorReport& errorReport;
-
-    /** HTML debug report */
-    DebugReport& debugReport;
+protected:
+    void logAnalysis(Analysis&) const override;
 };
+
+namespace analysis {
+using Analysis = souffle::ast::TranslationUnit::Analysis;
+}
 
 }  // namespace souffle::ast

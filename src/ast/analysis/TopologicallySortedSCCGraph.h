@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

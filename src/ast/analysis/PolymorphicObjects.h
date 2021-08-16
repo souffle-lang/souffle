@@ -15,7 +15,7 @@
 #pragma once
 
 #include "ast/NumericConstant.h"
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include <map>
 #include <set>
 

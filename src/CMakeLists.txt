@@ -127,6 +127,7 @@ set(SOUFFLE_SOURCES
     parser/ParserUtils.cpp
     parser/SrcLocation.cpp
     ram/Node.cpp
+    ram/TranslationUnit.cpp
     ram/analysis/Complexity.cpp
     ram/analysis/Index.cpp
     ram/analysis/Level.cpp

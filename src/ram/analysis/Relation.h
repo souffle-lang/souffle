@@ -18,9 +18,12 @@
 
 #include "ram/Node.h"
 #include "ram/TranslationUnit.h"
-#include "ram/analysis/Analysis.h"
 
-namespace souffle::ram::analysis {
+namespace souffle::ram {
+
+class Relation;
+
+namespace analysis {
 
 /**
  * @class RelationAnalysis
@@ -29,7 +32,7 @@ namespace souffle::ram::analysis {
  */
 class RelationAnalysis : public Analysis {
 public:
-    RelationAnalysis(const char* id) : Analysis(id) {}
+    RelationAnalysis() : Analysis(name) {}
 
     static constexpr const char* name = "relation-analysis";
 
@@ -41,4 +44,5 @@ protected:
     std::map<std::string, const ram::Relation*> relationMap;
 };
 
-}  // namespace souffle::ram::analysis
+}  // namespace analysis
+}  // namespace souffle::ram

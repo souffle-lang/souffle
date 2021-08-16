@@ -14,6 +14,7 @@
 
 #include "ram/transform/MakeIndex.h"
 #include "FunctorOps.h"
+#include "Global.h"
 #include "RelationTag.h"
 #include "ram/Condition.h"
 #include "ram/Constraint.h"

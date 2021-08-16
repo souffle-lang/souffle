@@ -22,7 +22,6 @@
 #include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/TranslationUnit.h"
-#include "ram/analysis/Analysis.h"
 #include "ram/analysis/Relation.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
@@ -485,8 +484,7 @@ private:
  */
 class IndexAnalysis : public Analysis {
 public:
-    IndexAnalysis(const char* id)
-            : Analysis(id), relAnalysis(nullptr), solver(mk<MinIndexSelectionStrategy>()) {}
+    IndexAnalysis() : Analysis(name), relAnalysis(nullptr), solver(mk<MinIndexSelectionStrategy>()) {}
 
     static constexpr const char* name = "index-analysis";
 

@@ -20,7 +20,6 @@
 
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
-#include "ast/analysis/Analysis.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
 #include <ostream>

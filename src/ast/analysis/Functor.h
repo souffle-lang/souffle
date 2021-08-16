@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include "souffle/TypeAttribute.h"
 #include <iosfwd>
 #include <vector>
