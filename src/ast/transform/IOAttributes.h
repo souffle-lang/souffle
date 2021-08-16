@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "Global.h"
 #include "ast/AlgebraicDataType.h"
 #include "ast/Attribute.h"
 #include "ast/Directive.h"
