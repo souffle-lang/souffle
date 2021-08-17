@@ -24,6 +24,7 @@
 class SWIGSouffleTuple {
     souffle::tuple* t;
     souffle::Relation* relation;
+
 public:
     SWIGSouffleTuple(souffle::tuple* t, souffle::Relation* r) : t(t), relation(r) {}
 
@@ -51,7 +52,7 @@ public:
     }
 
     void putInteger(long long i) {
-            (*t) << (souffle::RamSigned)i;
+        (*t) << (souffle::RamSigned)i;
     }
 
     unsigned long long getUnsigned(unsigned int i) {
@@ -64,7 +65,7 @@ public:
     }
 
     void putUnsigned(unsigned long long i) {
-            (*t) << (souffle::RamUnsigned)i;
+        (*t) << (souffle::RamUnsigned)i;
     }
 
     double getFloat(unsigned int i) {
@@ -77,7 +78,7 @@ public:
     }
 
     void putFloat(double i) {
-            (*t) << (souffle::RamFloat)i;
+        (*t) << (souffle::RamFloat)i;
     }
 
 #else
@@ -91,7 +92,7 @@ public:
     }
 
     void putInteger(long i) {
-            (*t) << (souffle::RamSigned)i;
+        (*t) << (souffle::RamSigned)i;
     }
 
     unsigned long getUnsigned(unsigned int i) {
@@ -104,7 +105,7 @@ public:
     }
 
     void putUnsigned(unsigned long i) {
-            (*t) << (souffle::RamUnsigned)i;
+        (*t) << (souffle::RamUnsigned)i;
     }
 
     float getFloat(unsigned int i) {
@@ -117,7 +118,7 @@ public:
     }
 
     void putFloat(float i) {
-            (*t) << (souffle::RamFloat)i;
+        (*t) << (souffle::RamFloat)i;
     }
 
 #endif
@@ -125,7 +126,6 @@ public:
     void insert() {
         relation->insert(*t);
     }
-
 };
 
 class SWIGSouffleRelation {
@@ -167,7 +167,6 @@ public:
     unsigned int getArity() {
         return relation->getArity();
     }
-
 };
 
 /**
@@ -232,7 +231,6 @@ public:
         auto* rel = program->getRelation(relationName);
         return new SWIGSouffleRelation(rel);
     }
-
 };
 
 /**
