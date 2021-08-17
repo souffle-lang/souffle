@@ -260,10 +260,17 @@ int main(int argc, char** argv) {
                         "Enable provenance instrumentation and interaction."},
                 {"verbose", 'v', "", "", false, "Verbose output."},
                 {"version", '\3', "", "", false, "Version."},
-                {"show", '\4',
-                        "[ parse-errors | precedence-graph | scc-graph | transformed-datalog | "
-                        "transformed-ram | type-analysis ]",
-                        "", false, "Print selected program information."},
+                {"show", '\4', "[ <see-list> ]", "", true,
+                        "Print selected program information.\n"
+                        "Modes:\n"
+                        "\tinitial-ast\n"
+                        "\tinitial-ram\n"
+                        "\tparse-errors\n"
+                        "\tprecedence-graph\n"
+                        "\tscc-graph\n"
+                        "\ttransformed-ast\n"
+                        "\ttransformed-ram\n"
+                        "\ttype-analysis"},
                 {"parse-errors", '\5', "", "", false, "Show parsing errors, if any, then exit."},
                 {"help", 'h', "", "", false, "Display this help message."},
                 {"legacy", '\6', "", "", false, "Enable legacy support."}};
@@ -437,7 +444,15 @@ int main(int argc, char** argv) {
                   << "sec\n";
     }
 
-    if (Global::config().get("show") == "parse-errors") {
+    auto hasShowOpt = [&](auto&&... kind) { return (Global::config().has("show", kind) || ...); };
+
+    // `--show parse-errors` is special in that it (ab?)used the return code to specify the # of errors.
+    //  Other `--show` modes can be used in conjunction with each other.
+    if (hasShowOpt("parse-errors")) {
+        if (1 < Global::config().getMany("show").size()) {
+            std::cerr << "WARNING: `--show parse-errors` inhibits other `--show` actions.\n";
+        }
+
         std::cout << astTranslationUnit->getErrorReport();
         return astTranslationUnit->getErrorReport().getNumErrors();
     }
@@ -449,6 +464,12 @@ int main(int argc, char** argv) {
 
     /* set up additional global options based on pragma declaratives */
     (mk<ast::transform::PragmaChecker>())->apply(*astTranslationUnit);
+
+    if (hasShowOpt("initial-ast", "initial-datalog")) {
+        std::cout << astTranslationUnit->getProgram() << std::endl;
+        // no other show options specified -> bail, we're done.
+        if (Global::config().getMany("show").size() == 1) return 0;
+    }
 
     /* construct the transformation pipeline */
 
@@ -557,34 +578,31 @@ int main(int argc, char** argv) {
     // Apply all the transformations
     pipeline->apply(*astTranslationUnit);
 
-    if (Global::config().has("show")) {
-        // Output the transformed datalog and return
-        if (Global::config().get("show") == "transformed-datalog") {
-            std::cout << astTranslationUnit->getProgram() << std::endl;
-            return 0;
-        }
-
-        // Output the precedence graph in graphviz dot format and return
-        if (Global::config().get("show") == "precedence-graph") {
-            astTranslationUnit->getAnalysis<ast::analysis::PrecedenceGraphAnalysis>()->print(std::cout);
-            std::cout << std::endl;
-            return 0;
-        }
-
-        // Output the scc graph in graphviz dot format and return
-        if (Global::config().get("show") == "scc-graph") {
-            astTranslationUnit->getAnalysis<ast::analysis::SCCGraphAnalysis>()->print(std::cout);
-            std::cout << std::endl;
-            return 0;
-        }
-
-        // Output the type analysis
-        if (Global::config().get("show") == "type-analysis") {
-            astTranslationUnit->getAnalysis<ast::analysis::TypeAnalysis>()->print(std::cout);
-            std::cout << std::endl;
-            return 0;
-        }
+    // Output the transformed datalog (support alias opt name of 'datalog')
+    if (hasShowOpt("transformed-ast", "transformed-datalog")) {
+        std::cout << astTranslationUnit->getProgram() << std::endl;
     }
+
+    // Output the precedence graph in graphviz dot format
+    if (hasShowOpt("precedence-graph")) {
+        astTranslationUnit->getAnalysis<ast::analysis::PrecedenceGraphAnalysis>()->print(std::cout);
+        std::cout << std::endl;
+    }
+
+    // Output the scc graph in graphviz dot format
+    if (hasShowOpt("scc-graph")) {
+        astTranslationUnit->getAnalysis<ast::analysis::SCCGraphAnalysis>()->print(std::cout);
+        std::cout << std::endl;
+    }
+
+    // Output the type analysis
+    if (hasShowOpt("type-analysis")) {
+        astTranslationUnit->getAnalysis<ast::analysis::TypeAnalysis>()->print(std::cout);
+        std::cout << std::endl;
+    }
+
+    // bail if we've nothing else left to show
+    if (Global::config().has("show") && !hasShowOpt("initial-ram", "transformed-ram")) return 0;
 
     // ------- execution -------------
     /* translate AST to RAM */
@@ -596,6 +614,12 @@ int main(int argc, char** argv) {
     auto unitTranslator = Own<ast2ram::UnitTranslator>(translationStrategy->createUnitTranslator());
     auto ramTranslationUnit = unitTranslator->translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");
+
+    if (hasShowOpt("initial-ram")) {
+        std::cout << ramTranslationUnit->getProgram();
+        // bail if we've nothing else left to show
+        if (!hasShowOpt("transformed-ram")) return 0;
+    }
 
     // Apply RAM transforms
     {
@@ -624,7 +648,7 @@ int main(int argc, char** argv) {
     }
 
     // Output the transformed RAM program and return
-    if (Global::config().get("show") == "transformed-ram") {
+    if (hasShowOpt("transformed-ram")) {
         std::cout << ramTranslationUnit->getProgram();
         return 0;
     }
