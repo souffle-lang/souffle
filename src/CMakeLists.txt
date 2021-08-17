@@ -160,6 +160,10 @@ bison_target(parser parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser/parser.c
              COMPILE_FLAGS "-Wall -Werror -Wno-error=deprecated -Wno-error=other -v -d")
 add_flex_bison_dependency(scanner parser)
 
+# OSX compiler doesn't recognise `(void)var;` ideom
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/parser/scanner.cc PROPERTIES
+             COMPILE_FLAGS "-Wno-error=unused-parameter")
+
 # --------------------------------------------------
 # Souffle library
 # --------------------------------------------------
