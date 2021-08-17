@@ -72,6 +72,19 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
             maxLineLengthWithoutDescription += maxLongOptionPlusArgumentLength;
         }
 
+        auto indentDescription = [&](auto&& os, size_t curr_len) {
+            for (auto n = curr_len; n < maxLineLengthWithoutDescription; ++n)
+                os << ONE_SPACE;
+        };
+
+        // #NormaliseStatementExpressions #NoLambdaNeeded
+        auto multi_line_descr_sep = [&]() {
+            std::stringstream ss;
+            ss << "\n";
+            indentDescription(ss, 0);
+            return ss.str();
+        }();
+
         // iterate over the options and pretty print them, using the computed maximum line length without the
         // description
         for (const MainOption& opt : mainOptions) {
@@ -99,16 +112,11 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
                 line << "=<" << opt.argument << ">";
             }
 
-            // again, pad with empty space for prettiness
-            for (std::size_t lineLength = line.str().size(); lineLength < maxLineLengthWithoutDescription;
-                    ++lineLength) {
-                line << ONE_SPACE;
-            }
+            auto&& line_str = line.str();
+            ss << line_str;
+            indentDescription(ss, line_str.size());
 
-            // print the description
-            line << opt.description << std::endl;
-
-            ss << line.str();
+            ss << join(splitView(opt.description, "\n"), multi_line_descr_sep) << "\n";
         }
 
         // print the footer
