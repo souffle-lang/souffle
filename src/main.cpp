@@ -131,7 +131,7 @@ void executeBinary(const std::string& binaryFilename) {
     std::string ldPath;
     // run the executable
     if (Global::config().has("library-dir")) {
-        for (const std::string& library : splitString(Global::config().get("library-dir"), ' ')) {
+        for (auto&& library : Global::config().getMany("library-dir")) {
             ldPath += library + ':';
         }
         ldPath.pop_back();
@@ -164,14 +164,14 @@ void executeBinary(const std::string& binaryFilename) {
 void compileToBinary(std::string_view compileCmd, std::string_view sourceFilename) {
     // add source code
     std::vector<std::string> parts{std::string(compileCmd)};
-    for (const std::string& path : splitString(Global::config().get("library-dir"), ' ')) {
+    for (auto&& path : Global::config().getMany("library-dir")) {
         // The first entry may be blank
         if (path.empty()) {
             continue;
         }
         parts.push_back(tfm::format("-L%s", path));
     }
-    for (const std::string& library : splitString(Global::config().get("libraries"), ' ')) {
+    for (auto&& library : Global::config().getMany("libraries")) {
         // The first entry may be blank
         if (library.empty()) {
             continue;
@@ -339,25 +339,9 @@ int main(int argc, char** argv) {
                     "output directory " + Global::config().get("output-dir") + " does not exists");
         }
 
-        /* collect all input directories for the c pre-processor */
-        if (Global::config().has("include-dir")) {
-            std::string currentInclude = "";
-            std::string allIncludes = "";
-            for (const char& ch : Global::config().get("include-dir")) {
-                if (ch == ' ') {
-                    if (!existDir(currentInclude)) {
-                        throw std::runtime_error("include directory " + currentInclude + " does not exists");
-                    } else {
-                        allIncludes += " -I";
-                        allIncludes += currentInclude;
-                        currentInclude = "";
-                    }
-                } else {
-                    currentInclude += ch;
-                }
-            }
-            allIncludes += " -I" + currentInclude;
-            Global::config().set("include-dir", allIncludes);
+        /* verify all input directories exist (racey, but gives nicer error messages for common mistakes) */
+        for (auto&& dir : Global::config().getMany("include-dir")) {
+            if (!existDir(dir)) throw std::runtime_error("include directory `" + dir + "` does not exist");
         }
 
         /* collect all macro definitions for the pre-processor */
@@ -412,7 +396,9 @@ int main(int argc, char** argv) {
         throw std::runtime_error("failed to locate mcpp pre-processor");
     }
 
-    cmd += " -e utf8 -W0 " + Global::config().get("include-dir");
+    cmd += " -e utf8 -W0 ";
+    cmd += toString(join(Global::config().getMany("include-dir"), " ",
+            [&](auto&& os, auto&& dir) { tfm::format(os, "'-I%s'", dir); }));
     if (Global::config().has("macro")) {
         cmd += " " + Global::config().get("macro");
     }

@@ -231,12 +231,12 @@ const std::vector<void*>& Engine::loadDLL() {
         Global::config().set("library-dir", ".");
     }
 
-    for (const std::string& library : splitString(Global::config().get("libraries"), ' ')) {
+    for (auto&& library : Global::config().getMany("libraries")) {
         // The library may be blank
         if (library.empty()) {
             continue;
         }
-        auto paths = splitString(Global::config().get("library-dir"), ' ');
+        auto paths = Global::config().getMany("library-dir");
         // Set up our paths to have a library appended
         for (std::string& path : paths) {
             if (path.back() != '/') {
@@ -302,9 +302,10 @@ void Engine::executeMain() {
         ProfileEventSingleton::instance().startTimer();
         ProfileEventSingleton::instance().makeTimeEvent("@time;starttime");
         // Store configuration
-        for (const auto& cur : Global::config().data()) {
-            ProfileEventSingleton::instance().makeConfigRecord(cur.first, cur.second);
-        }
+        for (auto&& [k, vs] : Global::config().data())
+            for (auto&& v : vs)
+                ProfileEventSingleton::instance().makeConfigRecord(k, v);
+
         // Store count of relations
         std::size_t relationCount = 0;
         for (auto rel : tUnit.getProgram().getRelations()) {
