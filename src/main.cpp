@@ -300,8 +300,13 @@ int main(int argc, char** argv) {
         Global::config().set("version", PACKAGE_VERSION);
 
         /* for the help option, if given simply print the help text then exit */
-        if (!Global::config().has("") || Global::config().has("help")) {
+        if (Global::config().has("help")) {
             std::cout << Global::config().help();
+            return 0;
+        }
+
+        if (!Global::config().has("")) {
+            std::cerr << "No datalog file specified.\n";
             return 0;
         }
 
