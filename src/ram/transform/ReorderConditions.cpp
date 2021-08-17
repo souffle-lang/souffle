@@ -30,9 +30,11 @@
 
 namespace souffle::ram::transform {
 
-bool ReorderConditionsTransformer::reorderConditions(Program& program) {
+bool ReorderConditionsTransformer::reorderConditions(TranslationUnit& tu) {
+    auto* rca = tu.getAnalysis<analysis::ComplexityAnalysis>();
+
     bool changed = false;
-    forEachQueryMap(program, [&](auto&& go, Own<Node> node) -> Own<Node> {
+    forEachQueryMap(tu.getProgram(), [&](auto&& go, Own<Node> node) -> Own<Node> {
         if (const Condition* condition = as<Condition>(node)) {
             VecOwn<Condition> sortedConds;
             VecOwn<Condition> condList = toConjunctionList(condition);

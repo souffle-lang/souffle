@@ -63,14 +63,11 @@ public:
      * @return Flag showing whether the program has been changed
      *         by the transformation
      */
-    bool reorderConditions(Program& program);
+    bool reorderConditions(TranslationUnit& tu);
 
 protected:
-    analysis::ComplexityAnalysis* rca{nullptr};
-
     bool transform(TranslationUnit& translationUnit) override {
-        rca = translationUnit.getAnalysis<analysis::ComplexityAnalysis>();
-        return reorderConditions(translationUnit.getProgram());
+        return reorderConditions(translationUnit);
     }
 };
 
