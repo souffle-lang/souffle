@@ -21,6 +21,16 @@
 #include <iostream>
 #include <string>
 
+#if RAM_DOMAIN_SIZE == 64
+using S_int = long long;
+using S_uint = unsigned long long;
+using S_float = double;
+#else
+using S_int = long;
+using S_uint = unsigned long;
+using S_float = float;
+#endif
+
 class SWIGSouffleTuple {
     souffle::tuple* t;
     souffle::Relation* relation;
@@ -41,34 +51,33 @@ public:
         (*t) << s;
     }
 
-#if RAM_DOMAIN_SIZE == 64
-    long long getInteger(unsigned int i) {
+    S_int getInteger(unsigned int i) {
         (*t).rewind();
         souffle::RamDomain result;
         for (unsigned int j = 0; j <= i; j++) {
             (*t) >> result;
         }
-        return (long long)result;
+        return (S_int)result;
     }
 
-    void putInteger(long long i) {
+    void putInteger(S_int i) {
         (*t) << (souffle::RamSigned)i;
     }
 
-    unsigned long long getUnsigned(unsigned int i) {
+    S_uint getUnsigned(unsigned int i) {
         (*t).rewind();
         souffle::RamUnsigned result;
         for (unsigned int j = 0; j <= i; j++) {
             (*t) >> result;
         }
-        return (unsigned long long)result;
+        return (S_uint)result;
     }
 
-    void putUnsigned(unsigned long long i) {
+    void putUnsigned(S_uint i) {
         (*t) << (souffle::RamUnsigned)i;
     }
 
-    double getFloat(unsigned int i) {
+    S_float getFloat(unsigned int i) {
         (*t).rewind();
         souffle::RamFloat result;
         for (unsigned int j = 0; j <= i; j++) {
@@ -77,51 +86,9 @@ public:
         return (double)result;
     }
 
-    void putFloat(double i) {
+    void putFloat(S_float i) {
         (*t) << (souffle::RamFloat)i;
     }
-
-#else
-    long getInteger(unsigned int i) {
-        (*t).rewind();
-        souffle::RamDomain result;
-        for (unsigned int j = 0; j <= i; j++) {
-            (*t) >> result;
-        }
-        return (long)result;
-    }
-
-    void putInteger(long i) {
-        (*t) << (souffle::RamSigned)i;
-    }
-
-    unsigned long getUnsigned(unsigned int i) {
-        (*t).rewind();
-        souffle::RamUnsigned result;
-        for (unsigned int j = 0; j <= i; j++) {
-            (*t) >> result;
-        }
-        return (unsigned long)result;
-    }
-
-    void putUnsigned(unsigned long i) {
-        (*t) << (souffle::RamUnsigned)i;
-    }
-
-    float getFloat(unsigned int i) {
-        (*t).rewind();
-        souffle::RamFloat result;
-        for (unsigned int j = 0; j <= i; j++) {
-            (*t) >> result;
-        }
-        return (float)result;
-    }
-
-    void putFloat(float i) {
-        (*t) << (souffle::RamFloat)i;
-    }
-
-#endif
 
     void insert() {
         relation->insert(*t);
