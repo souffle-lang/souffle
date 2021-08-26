@@ -42,9 +42,7 @@ class AbstractExistenceCheck : public Condition {
 public:
     AbstractExistenceCheck(std::string rel, VecOwn<Expression> vals)
             : relation(std::move(rel)), values(std::move(vals)) {
-        for (const auto& v : values) {
-            assert(v != nullptr && "NULL value");
-        }
+        assert(allValidPtrs(values));
     }
 
     /** @brief Get relation */
@@ -61,14 +59,6 @@ public:
         return toPtrVector(values);
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res;
-        for (const auto& cur : values) {
-            res.push_back(cur.get());
-        }
-        return res;
-    }
-
     void apply(const NodeMapper& map) override {
         for (auto& val : values) {
             val = map(std::move(val));
@@ -83,6 +73,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<AbstractExistenceCheck>(node);
         return relation == other.relation && equal_targets(values, other.values);
+    }
+
+    NodeVec getChildren() const override {
+        return toPtrVector<Node const>(values);
     }
 
     /** Relation */

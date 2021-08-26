@@ -5,16 +5,19 @@ The Soufflé language is similar to Datalog (but has terms known as records), an
 domain-specific language for analysis problems.
 
 [![License: UPL](https://img.shields.io/badge/License-UPL--1.0-blue.svg)](https://github.com/souffle-lang/souffle/blob/master/LICENSE)
-[![Zulip chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://souffle.zulipchat.com)
-[![Build Status](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml/badge.svg)
+[![CI-Tests](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml/badge.svg)](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml)
 [![codecov](https://codecov.io/gh/souffle-lang/souffle/branch/master/graph/badge.svg)](https://codecov.io/gh/souffle-lang/souffle)
 
 ## Features of Soufflé
 
 *   Efficient translation to parallel C++ of Datalog programs
+
 *   Efficient interpretation
+
 *   Extended semantics of Datalog, e.g., permitting unbounded recursions with numbers and terms
+
 *   Simple component model for Datalog specifications
+
 *   Recursively defined record types (aka. constructors) for tuples
 
 ## How to get Soufflé
@@ -29,9 +32,30 @@ Build instructions can be found [here](https://souffle-lang.github.io/build).
 
 If you have written code for an older version of Souffle, please use the command line flag `--legacy`.
 Alternatively, please add the following line to the start of your source-code:
+
 ```
 .pragma "legacy"
 ```
+
+## Issues and Discussions 
+
+Use either the [issue list](https://github.com/souffle-lang/souffle/issues) for
+
+- bug reporting
+
+- enhancements
+
+- documentation
+
+- proposals
+
+- releases
+
+- compatibility issues
+
+- refactoring.
+
+or use the [discussions](https://github.com/souffle-lang/souffle/discussions) bulletin board to engage with other community members and for asking questions you’re wondering about.
 
 ## How to contribute
 
@@ -42,16 +66,18 @@ To contribute in this repo, please open a pull request from your fork of this re
 The general workflow is as follows.
 
 1. Find an issue in the issue list.
+
 2. Fork the [souffle-lang/souffle](http://github.com/souffle-lang/souffle.git) repo.
+
 3. Push your changes to a branch in your forked repo.
+
 4. Submit a pull request to souffle-lang/souffle from your forked repo.
+
 Our continuous integration framework enforces coding guidelines with the help of clang-format and clang-tidy.
 
 For more information on building and developing Souffle, please read the [developer tutorial](https://souffle-lang.github.io/development).
 
 ## [Home Page](https://souffle-lang.github.io)
-
-## [Zulip Chat](https://souffle.zulipchat.com)
 
 ## [Documentation](https://souffle-lang.github.io/docs.html)
 

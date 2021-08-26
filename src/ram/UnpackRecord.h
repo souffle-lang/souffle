@@ -62,12 +62,6 @@ public:
         return arity;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = TupleOperation::getChildNodes();
-        res.push_back(expression.get());
-        return res;
-    }
-
     UnpackRecord* cloning() const override {
         return new UnpackRecord(clone(getOperation()), getTupleId(), clone(getExpression()), arity);
     }
@@ -88,6 +82,12 @@ protected:
         const auto& other = asAssert<UnpackRecord>(node);
         return TupleOperation::equal(other) && equal_ptr(expression, other.expression) &&
                arity == other.arity;
+    }
+
+    NodeVec getChildren() const override {
+        auto res = TupleOperation::getChildren();
+        res.push_back(expression.get());
+        return res;
     }
 
     /** Expression for record reference */

@@ -7,7 +7,7 @@
  */
 
 #include "ast/BooleanConstraint.h"
-#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/DynamicCasting.h"
 #include <cassert>
 #include <ostream>
 #include <utility>

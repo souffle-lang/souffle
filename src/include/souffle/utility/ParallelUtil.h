@@ -23,8 +23,8 @@
 #include <memory>
 #include <new>
 
-#if defined(__cpp_lib_hardware_interference_size) && \
-        (!defined(__APPLE__))  // https://bugs.llvm.org/show_bug.cgi?id=41423
+// https://bugs.llvm.org/show_bug.cgi?id=41423
+#if defined(__cpp_lib_hardware_interference_size) && (__cpp_lib_hardware_interference_size != 201703L)
 using std::hardware_constructive_interference_size;
 using std::hardware_destructive_interference_size;
 #else

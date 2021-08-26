@@ -63,15 +63,7 @@ public:
      * @return Flag showing whether the program has been changed
      *         by the transformation
      */
-    bool reorderConditions(Program& program);
-
-protected:
-    analysis::ComplexityAnalysis* rca{nullptr};
-
-    bool transform(TranslationUnit& translationUnit) override {
-        rca = translationUnit.getAnalysis<analysis::ComplexityAnalysis>();
-        return reorderConditions(translationUnit.getProgram());
-    }
+    bool transform(TranslationUnit&) override;
 };
 
 }  // namespace souffle::ram::transform

@@ -9,11 +9,11 @@ target_include_directories(gcfunctors PRIVATE "${CMAKE_SOURCE_DIR}/src/include")
 
 target_compile_features(gcfunctors
                         PUBLIC cxx_std_17)
-set_target_properties(gcfunctors PROPERTIES CXX_EXTENSIONS OFF) 
-set_target_properties(gcfunctors PROPERTIES OUTPUT_NAME "functors") 
+set_target_properties(gcfunctors PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(gcfunctors PROPERTIES OUTPUT_NAME "functors")
 
 target_compile_options(gcfunctors
-                       PUBLIC "-Wall;-Wextra;-fwrapv")
+                       PUBLIC "-Wall;-Wextra;-Werror;-fwrapv")
 
 if (SOUFFLE_DOMAIN_64BIT)
     target_compile_definitions(functors

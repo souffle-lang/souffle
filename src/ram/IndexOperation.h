@@ -47,13 +47,9 @@ public:
             std::string profileText = "")
             : RelationOperation(rel, ident, std::move(nested), std::move(profileText)),
               queryPattern(std::move(queryPattern)) {
-        assert(getRangePattern().first.size() == getRangePattern().second.size() && "Arity mismatch");
-        for (const auto& pattern : queryPattern.first) {
-            assert(pattern != nullptr && "pattern is a null-pointer");
-        }
-        for (const auto& pattern : queryPattern.second) {
-            assert(pattern != nullptr && "pattern is a null-pointer");
-        }
+        assert(queryPattern.first.size() == queryPattern.second.size() && "Arity mismatch");
+        assert(allValidPtrs(queryPattern.first));
+        assert(allValidPtrs(queryPattern.second));
     }
 
     /**
@@ -65,17 +61,6 @@ public:
      * */
     std::pair<std::vector<Expression*>, std::vector<Expression*>> getRangePattern() const {
         return std::make_pair(toPtrVector(queryPattern.first), toPtrVector(queryPattern.second));
-    }
-
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = RelationOperation::getChildNodes();
-        for (auto& pattern : queryPattern.first) {
-            res.push_back(pattern.get());
-        }
-        for (auto& pattern : queryPattern.second) {
-            res.push_back(pattern.get());
-        }
-        return res;
     }
 
     void apply(const NodeMapper& map) override {
@@ -151,6 +136,17 @@ protected:
         return RelationOperation::equal(other) &&
                equal_targets(queryPattern.first, other.queryPattern.first) &&
                equal_targets(queryPattern.second, other.queryPattern.second);
+    }
+
+    NodeVec getChildren() const override {
+        auto res = RelationOperation::getChildren();
+        for (auto& pattern : queryPattern.first) {
+            res.push_back(pattern.get());
+        }
+        for (auto& pattern : queryPattern.second) {
+            res.push_back(pattern.get());
+        }
+        return res;
     }
 
     /** Values of index per column of table (if indexable) */

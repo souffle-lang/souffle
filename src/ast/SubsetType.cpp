@@ -7,7 +7,7 @@
  */
 
 #include "ast/SubsetType.h"
-#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/DynamicCasting.h"
 #include <ostream>
 #include <utility>
 

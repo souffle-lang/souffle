@@ -29,7 +29,8 @@ namespace detail {
 
 // This is a helper in the cases when the lambda is stateless
 template <typename F>
-F const& makeFun() {
+F makeFun() {
+    static_assert(std::is_empty_v<F>);
     // Even thought the lambda is stateless, it has no default ctor
     // Is this gross?  Yes, yes it is.
     // FIXME: Remove after C++20
@@ -52,35 +53,21 @@ F const& makeFun() {
 template <typename Iter, typename F>
 class TransformIterator {
     using iter_t = std::iterator_traits<Iter>;
-    using difference_type = typename iter_t::difference_type;
-    using reference = decltype(std::declval<F&>()(*std::declval<Iter>()));
-    static_assert(std::is_empty_v<F>, "Function object must be stateless");
 
 public:
+    using difference_type = typename iter_t::difference_type;
+    // TODO: The iterator concept doesn't map correctly to ephemeral views.
+    //       e.g. there is no l-value store for a deref.
+    //       Figure out what these should be set to.
+    using value_type = decltype(std::declval<F>()(*std::declval<Iter>()));
+    using pointer = std::remove_reference_t<value_type>*;
+    using reference = value_type;
+    static_assert(std::is_empty_v<F>, "Function object must be stateless");
+
     // some constructors
-    template <typename It>
-    TransformIterator(It iter, std::enable_if_t<std::is_empty_v<F>, void*> = nullptr)
-            : iter(std::move(iter)), fun(detail::makeFun<F>()) {}
+    template <typename = std::enable_if_t<std::is_empty_v<F>>>
+    TransformIterator(Iter iter) : TransformIterator(std::move(iter), detail::makeFun<F>()) {}
     TransformIterator(Iter iter, F f) : iter(std::move(iter)), fun(std::move(f)) {}
-
-    // defaulted copy and move constructors
-    TransformIterator(const TransformIterator& other) : iter(other.iter), fun(other.fun) {}
-    TransformIterator(TransformIterator&& other) : iter(std::move(other.iter)), fun(std::move(other.fun)) {}
-
-    // default assignment operators
-    TransformIterator& operator=(const TransformIterator& other) {
-        if (this != &other) {
-            iter = other.iter;
-        }
-        return *this;
-    }
-
-    TransformIterator& operator=(TransformIterator&& other) {
-        if (this != &other) {
-            iter = std::move(other.iter);
-        }
-        return *this;
-    }
 
     /* The equality operator as required by the iterator concept. */
     bool operator==(const TransformIterator& other) const {
@@ -114,7 +101,7 @@ public:
     }
 
     /* Support for the pointer operator. */
-    auto operator->() const {
+    auto operator-> () const {
         return &**this;
     }
 
@@ -194,11 +181,26 @@ auto transformIter(Iter&& iter, F&& f) {
  * dereferencing values before forwarding them to the consumer.
  */
 namespace detail {
-inline auto iterDeref = [](auto& p) -> decltype(*p) { return *p; };
-}
+// HACK: Use explicit structure w/ `operator()` b/c pre-C++20 lambdas do not have copy-assign operators
+struct IterTransformDeref {
+    template <typename A>
+    auto operator()(A&& x) const -> decltype(*x) {
+        return *x;
+    }
+};
+
+// HACK: Use explicit structure w/ `operator()` b/c pre-C++20 lambdas do not have copy-assign operators
+struct IterTransformToPtr {
+    template <typename A>
+    A* operator()(Own<A> const& x) const {
+        return x.get();
+    }
+};
+
+}  // namespace detail
 
 template <typename Iter>
-using IterDerefWrapper = TransformIterator<Iter, decltype(detail::iterDeref)>;
+using IterDerefWrapper = TransformIterator<Iter, detail::IterTransformDeref>;
 
 /**
  * A factory function enabling the construction of a dereferencing
@@ -206,7 +208,15 @@ using IterDerefWrapper = TransformIterator<Iter, decltype(detail::iterDeref)>;
  */
 template <typename Iter>
 auto derefIter(Iter&& iter) {
-    return transformIter(std::forward<Iter>(iter), detail::iterDeref);
+    return transformIter(std::forward<Iter>(iter), detail::IterTransformDeref{});
+}
+
+/**
+ * A factory function that transforms an smart-ptr iter to dumb-ptr iter.
+ */
+template <typename Iter>
+auto ptrIter(Iter&& iter) {
+    return transformIter(std::forward<Iter>(iter), detail::IterTransformToPtr{});
 }
 
 // -------------------------------------------------------------
@@ -219,6 +229,9 @@ auto derefIter(Iter&& iter) {
  */
 template <typename Iter>
 struct range {
+    using iterator = Iter;
+    using const_iterator = Iter;
+
     // the lower and upper boundary
     Iter a, b;
 
@@ -313,12 +326,21 @@ auto makeDerefRange(Iter&& begin, Iter&& end) {
     return make_range(derefIter(std::forward<Iter>(begin)), derefIter(std::forward<Iter>(end)));
 }
 
+template <typename R>
+auto makePtrRange(R const& xs) {
+    return make_range(ptrIter(std::begin(xs)), ptrIter(std::end(xs)));
+}
+
 /**
  * This wraps the Range container, and const_casts in place.
  */
 template <typename Range, typename F>
 class OwningTransformRange {
 public:
+    using iterator = decltype(transformIter(std::begin(std::declval<Range>()), std::declval<F>()));
+    using const_iterator =
+            decltype(transformIter(std::begin(std::declval<const Range>()), std::declval<const F>()));
+
     OwningTransformRange(Range&& range, F f) : range(std::move(range)), f(std::move(f)) {}
 
     auto begin() {
@@ -338,7 +360,7 @@ public:
     }
 
     auto end() const {
-        return transformIter(std::begin(range), f);
+        return transformIter(std::end(range), f);
     }
 
     auto cend() const {
@@ -361,14 +383,5 @@ private:
     Range range;
     F f;
 };
-
-/**
- * Convert a range of any ptr-like to a range
- * of pointers
- */
-template <typename R>
-auto makePtrRange(R const& range) {
-    return makeTransformRange(range, [](auto const& ptrLike) { return &*ptrLike; });
-}
 
 }  // namespace souffle

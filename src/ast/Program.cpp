@@ -42,7 +42,7 @@ void Program::addDirective(Own<Directive> directive) {
 
 void Program::addRelation(Own<Relation> relation) {
     assert(relation != nullptr);
-    auto* existingRelation = getIf(getRelations(), [&](const Relation* current) {
+    [[maybe_unused]] auto* existingRelation = getIf(getRelations(), [&](const Relation* current) {
         return current->getQualifiedName() == relation->getQualifiedName();
     });
     assert(existingRelation == nullptr && "Redefinition of relation!");
@@ -100,7 +100,7 @@ std::vector<Component*> Program::getComponents() const {
 
 void Program::addType(Own<Type> type) {
     assert(type != nullptr);
-    auto* existingType = getIf(getTypes(),
+    [[maybe_unused]] auto* existingType = getIf(getTypes(),
             [&](const Type* current) { return current->getQualifiedName() == type->getQualifiedName(); });
     assert(existingType == nullptr && "Redefinition of type!");
     types.push_back(std::move(type));
@@ -113,7 +113,7 @@ void Program::addPragma(Own<Pragma> pragma) {
 
 void Program::addFunctorDeclaration(Own<FunctorDeclaration> f) {
     assert(f != nullptr);
-    auto* existingFunctorDecl = getIf(getFunctorDeclarations(),
+    [[maybe_unused]] auto* existingFunctorDecl = getIf(getFunctorDeclarations(),
             [&](const FunctorDeclaration* current) { return current->getName() == f->getName(); });
     assert(existingFunctorDecl == nullptr && "Redefinition of functor!");
     functors.push_back(std::move(f));

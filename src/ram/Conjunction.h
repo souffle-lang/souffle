@@ -19,7 +19,6 @@
 
 #include "ram/Condition.h"
 #include "ram/Node.h"
-#include "ram/utility/NodeMapper.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include <cassert>
@@ -61,10 +60,6 @@ public:
         return *rhs;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {lhs.get(), rhs.get()};
-    }
-
     Conjunction* cloning() const override {
         return new Conjunction(clone(lhs), clone(rhs));
     }
@@ -82,6 +77,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Conjunction>(node);
         return equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);
+    }
+
+    NodeVec getChildren() const override {
+        return {lhs.get(), rhs.get()};
     }
 
     /** Left-hand side of conjunction */

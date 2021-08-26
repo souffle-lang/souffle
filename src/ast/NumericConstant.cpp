@@ -7,7 +7,7 @@
  */
 
 #include "ast/NumericConstant.h"
-#include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/DynamicCasting.h"
 #include <cassert>
 #include <utility>
 

@@ -342,7 +342,7 @@ public:
         toDense(val);
     };
 
-    /* whether we the supplied node exists */
+    /* whether the supplied node exists */
     inline bool nodeExists(const SparseDomain val) const {
         return sparseToDenseMap.contains({val, -1});
     };

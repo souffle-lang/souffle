@@ -66,13 +66,13 @@ public:
     }
 
     /** Add qualifier to this relation */
-    void addQualifier(RelationQualifier q) {
-        qualifiers.insert(q);
+    bool addQualifier(RelationQualifier q) {
+        return qualifiers.insert(q).second;
     }
 
     /** Remove qualifier from this relation */
-    void removeQualifier(RelationQualifier q) {
-        qualifiers.erase(q);
+    bool removeQualifier(RelationQualifier q) {
+        return qualifiers.erase(q) != 0;
     }
 
     /** Get relation representation */

@@ -17,6 +17,7 @@
 #pragma once
 
 #include "FunctorOps.h"
+#include "souffle/utility/DynamicCasting.h"
 #include "souffle/utility/Types.h"
 #include <cstddef>
 #include <map>

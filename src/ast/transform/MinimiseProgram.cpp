@@ -347,8 +347,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(TranslationUnit& trans
     // Remove redundant relation definitions
     for (const auto* clause : redundantClauses) {
         auto relName = clause->getHead()->getQualifiedName();
-        Relation* rel = getRelation(program, relName);
-        assert(rel != nullptr && "relation does not exist in program");
+        assert(getRelation(program, relName) && "relation does not exist in program");
         removeRelation(translationUnit, relName);
     }
 

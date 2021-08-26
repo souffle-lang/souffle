@@ -16,6 +16,7 @@
 
 #include "ast/transform/InlineRelations.h"
 #include "AggregateOp.h"
+#include "Global.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
@@ -46,6 +47,7 @@
 #include "ast/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -58,6 +60,8 @@
 #include <vector>
 
 namespace souffle::ast::transform {
+
+using ExcludedRelations = InlineRelationsTransformer::ExcludedRelations;
 
 template <class T>
 class NullableVector {
@@ -1015,6 +1019,18 @@ std::vector<Clause*> getInlinedClause(Program& program, const Clause& clause) {
     }
 }
 
+ExcludedRelations InlineRelationsTransformer::excluded() {
+    ExcludedRelations xs;
+    auto addAll = [&](const std::string& name) {
+        for (auto&& r : splitString(Global::config().get(name), ','))
+            xs.insert(QualifiedName(r));
+    };
+
+    addAll("inline-exclude");
+    addAll("magic-transform-exclude");
+    return xs;
+}
+
 bool InlineRelationsTransformer::transform(TranslationUnit& translationUnit) {
     bool changed = false;
     Program& program = translationUnit.getProgram();
@@ -1036,8 +1052,10 @@ bool InlineRelationsTransformer::transform(TranslationUnit& translationUnit) {
 
         // Go through each relation in the program and check if we need to inline any of its clauses
         for (Relation* rel : program.getRelations()) {
-            // Skip if the relation is going to be inlined
-            if (rel->hasQualifier(RelationQualifier::INLINE)) {
+            // Skip if the relation is going to be inlined or if no_inline or no_magic is present
+            if (rel->hasQualifier(RelationQualifier::INLINE) ||
+                    rel->hasQualifier(RelationQualifier::NO_INLINE) ||
+                    rel->hasQualifier(RelationQualifier::NO_MAGIC)) {
                 continue;
             }
 
@@ -1064,6 +1082,26 @@ bool InlineRelationsTransformer::transform(TranslationUnit& translationUnit) {
         for (const Clause* clause : clausesToDelete) {
             program.removeClause(clause);
             changed = true;
+        }
+    }
+
+    return changed;
+}
+
+bool InlineUnmarkExcludedTransform::transform(TranslationUnit& translationUnit) {
+    bool changed = false;
+    Program& program = translationUnit.getProgram();
+
+    auto&& excluded = InlineRelationsTransformer::excluded();
+
+    for (Relation* rel : program.getRelations()) {
+        // no-magic implies no inlining
+        auto exclude = contains(excluded, rel->getQualifiedName()) ||
+                       rel->hasQualifier(RelationQualifier::NO_INLINE) ||
+                       rel->hasQualifier(RelationQualifier::NO_MAGIC);
+        if (exclude) {
+            changed |= rel->removeQualifier(RelationQualifier::INLINE);
+            changed |= rel->addQualifier(RelationQualifier::NO_INLINE);
         }
     }
 

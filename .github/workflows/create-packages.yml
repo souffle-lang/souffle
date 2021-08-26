@@ -1,5 +1,7 @@
 name: Create Packages
-on: [release]
+on:
+  release:
+    types: [published]
 
 jobs:
   Package-Ubuntu-2104-64bit:

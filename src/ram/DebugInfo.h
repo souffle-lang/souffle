@@ -44,10 +44,6 @@ class DebugInfo : public Statement, public AbstractLog {
 public:
     DebugInfo(Own<Statement> stmt, std::string msg) : AbstractLog(std::move(stmt), std::move(msg)) {}
 
-    std::vector<const Node*> getChildNodes() const override {
-        return AbstractLog::getChildNodes();
-    }
-
     DebugInfo* cloning() const override {
         return new DebugInfo(clone(statement), message);
     }
@@ -61,6 +57,10 @@ protected:
         os << times(" ", tabpos) << "DEBUG \"" << stringify(message) << "\"" << std::endl;
         Statement::print(statement.get(), os, tabpos + 1);
         os << times(" ", tabpos) << "END DEBUG" << std::endl;
+    }
+
+    NodeVec getChildren() const override {
+        return AbstractLog::getChildren();
     }
 };
 

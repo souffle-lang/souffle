@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -312,14 +313,31 @@ inline bool endsWith(const std::string& value, const std::string& ending) {
 /**
  * Splits a string given a delimiter
  */
-inline std::vector<std::string> splitString(const std::string& str, char delimiter) {
-    std::vector<std::string> parts;
-    std::stringstream strstr(str);
-    std::string token;
-    while (std::getline(strstr, token, delimiter)) {
-        parts.push_back(token);
+inline std::vector<std::string_view> splitView(std::string_view toSplit, std::string_view delimiter) {
+    if (toSplit.empty()) return {toSplit};
+
+    auto delimLen = std::max<size_t>(1, delimiter.size());  // ensure we advance even w/ an empty needle
+
+    std::vector<std::string_view> parts;
+    for (auto tail = toSplit;;) {
+        auto pos = tail.find(delimiter);
+        parts.push_back(tail.substr(0, pos));
+        if (pos == tail.npos) break;
+
+        tail = tail.substr(pos + delimLen);
     }
+
     return parts;
+}
+
+/**
+ * Splits a string given a delimiter
+ */
+inline std::vector<std::string> splitString(std::string_view str, char delimiter) {
+    std::vector<std::string> xs;
+    for (auto&& x : splitView(str, std::string_view{&delimiter, 1}))
+        xs.push_back(std::string(x));
+    return xs;
 }
 
 /**
@@ -432,6 +450,22 @@ inline std::string escape(const std::string& inputString) {
     escaped = escape(escaped, "\r", "\\r");
     escaped = escape(escaped, "\n", "\\n");
     return escaped;
+}
+
+template <typename C>
+auto escape(C&& os, std::string_view str, std::set<char> const& needs_escape, std::string_view esc) {
+    for (auto&& x : str) {
+        if (needs_escape.find(x) != needs_escape.end()) {
+            os << esc;
+        }
+        os << x;
+    }
+
+    return std::forward<C>(os);
+}
+
+inline std::string escape(std::string_view str, std::set<char> const& needs_escape, std::string_view esc) {
+    return escape(std::stringstream{}, str, needs_escape, esc).str();
 }
 
 }  // end namespace souffle

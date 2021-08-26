@@ -17,6 +17,7 @@
 #include "ast/analysis/Constraint.h"
 #include "ast/analysis/ConstraintSystem.h"
 #include "ast/analysis/SumTypeBranches.h"
+#include "ast/analysis/Type.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
 #include "ast/utility/Utils.h"

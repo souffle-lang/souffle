@@ -19,7 +19,6 @@
 
 #include "ram/Node.h"
 #include "ram/TranslationUnit.h"
-#include "ram/analysis/Analysis.h"
 #include "ram/analysis/Relation.h"
 
 namespace souffle::ram::analysis {
@@ -33,7 +32,7 @@ namespace souffle::ram::analysis {
  */
 class ComplexityAnalysis : public Analysis {
 public:
-    ComplexityAnalysis(const char* id) : Analysis(id) {}
+    ComplexityAnalysis() : Analysis(name) {}
 
     static constexpr const char* name = "complexity-analysis";
 

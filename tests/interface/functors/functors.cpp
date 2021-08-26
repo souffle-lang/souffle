@@ -15,6 +15,7 @@
  ***********************************************************************/
 #include "souffle/RecordTable.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/utility/MiscUtil.h"
 #include <charconv>
 #include <cmath>
 #include <cstdint>
@@ -78,8 +79,9 @@ FF_float incr(FF_float x) {
 }
 
 // Stateful Functors
-souffle::RamDomain mycat(souffle::SymbolTable* symbolTable, souffle::RecordTable* recordTable,
-        souffle::RamDomain arg1, souffle::RamDomain arg2) {
+souffle::RamDomain mycat(souffle::SymbolTable* symbolTable,
+        [[maybe_unused]] souffle::RecordTable* recordTable, souffle::RamDomain arg1,
+        souffle::RamDomain arg2) {
     assert(symbolTable && "NULL symbol table");
     assert(recordTable && "NULL record table");
     const std::string& sarg1 = symbolTable->decode(arg1);
@@ -88,8 +90,8 @@ souffle::RamDomain mycat(souffle::SymbolTable* symbolTable, souffle::RecordTable
     return symbolTable->encode(result);
 }
 
-souffle::RamDomain myappend(
-        souffle::SymbolTable* symbolTable, souffle::RecordTable* recordTable, souffle::RamDomain arg) {
+souffle::RamDomain myappend([[maybe_unused]] souffle::SymbolTable* symbolTable,
+        souffle::RecordTable* recordTable, souffle::RamDomain arg) {
     assert(symbolTable && "NULL symbol table");
     assert(recordTable && "NULL record table");
 
@@ -126,7 +128,7 @@ souffle::RamDomain my_to_number_fun(
             std::from_chars(strVal.c_str(), strVal.c_str() + strVal.size(), result);
             return result;
         }
-        default: assert(false && "Invalid ADT case");
+        default: souffle::fatal("Invalid ADT case");
     }
 }
 

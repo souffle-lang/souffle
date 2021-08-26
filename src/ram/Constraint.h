@@ -68,10 +68,6 @@ public:
         return op;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {lhs.get(), rhs.get()};
-    }
-
     Constraint* cloning() const override {
         return new Constraint(op, clone(lhs), clone(rhs));
     }
@@ -91,6 +87,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Constraint>(node);
         return op == other.op && equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);
+    }
+
+    NodeVec getChildren() const override {
+        return {lhs.get(), rhs.get()};
     }
 
     /** Operator */

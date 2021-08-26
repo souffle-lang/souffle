@@ -97,6 +97,7 @@
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
+#include "souffle/utility/SubProcess.h"
 #include "synthesiser/Synthesiser.h"
 #include <cassert>
 #include <chrono>
@@ -120,71 +121,57 @@ namespace souffle {
 /**
  * Executes a binary file.
  */
-void executeBinary(const std::string& binaryFilename) {
+[[noreturn]] void executeBinaryAndExit(const std::string& binaryFilename) {
     assert(!binaryFilename.empty() && "binary filename cannot be blank");
 
-    // check whether the executable exists
-    if (!isExecutable(binaryFilename)) {
-        throw std::invalid_argument("Generated executable <" + binaryFilename + "> could not be found");
-    }
-
-    std::string ldPath;
-    // run the executable
+    std::map<char const*, std::string> env;
     if (Global::config().has("library-dir")) {
-        for (const std::string& library : splitString(Global::config().get("library-dir"), ' ')) {
-            ldPath += library + ':';
-        }
-        ldPath.pop_back();
-        setenv("LD_LIBRARY_PATH", ldPath.c_str(), 1);
+        auto escapeLdPath = [](auto&& xs) { return escape(xs, {':', ' '}, "\\"); };
+        auto ld_path = toString(join(map(Global::config().getMany("library-dir"), escapeLdPath), ":"));
+
+        env["LD_LIBRARY_PATH"] = ld_path;
+#ifdef __APPLE__
+        env["DYLD_LIBRARY_PATH"] = ld_path;
+#endif
     }
 
-    std::string exePath;
-#ifdef __APPLE__
-    // OSX does not pass on the environment from setenv so add it to the command line
-    exePath = "DYLD_LIBRARY_PATH=\"" + ldPath + "\" ";
-#endif
-    exePath += binaryFilename;
+    auto exit = execute(binaryFilename, {}, env);
+    if (!exit) throw std::invalid_argument("failed to execute `" + binaryFilename + "`");
 
-    int exitCode = system(exePath.c_str());
-
-    if (Global::config().get("dl-program").empty()) {
+    if (!Global::config().has("dl-program")) {
         remove(binaryFilename.c_str());
         remove((binaryFilename + ".cpp").c_str());
     }
 
-    // exit with same code as executable
-    if (exitCode != EXIT_SUCCESS) {
-        exit(exitCode);
-    }
+    std::exit(exit ? *exit : EXIT_FAILURE);
 }
 
 /**
  * Compiles the given source file to a binary file.
  */
-void compileToBinary(std::string compileCmd, const std::string& sourceFilename) {
-    // add source code
-    compileCmd += ' ';
-    for (const std::string& path : splitString(Global::config().get("library-dir"), ' ')) {
+void compileToBinary(
+        const std::string& command, std::string_view sourceFilename, std::vector<std::string> argv) {
+    for (auto&& path : Global::config().getMany("library-dir")) {
         // The first entry may be blank
         if (path.empty()) {
             continue;
         }
-        compileCmd += "-L" + path + ' ';
+        argv.push_back(tfm::format("-L%s", path));
     }
-    for (const std::string& library : splitString(Global::config().get("libraries"), ' ')) {
+    for (auto&& library : Global::config().getMany("libraries")) {
         // The first entry may be blank
         if (library.empty()) {
             continue;
         }
-        compileCmd += "-l" + library + ' ';
+        argv.push_back(tfm::format("-l%s", library));
     }
 
-    compileCmd += sourceFilename;
+    argv.push_back(std::string(sourceFilename));
 
-    // run executable
-    if (system(compileCmd.c_str()) != 0) {
-        throw std::invalid_argument("failed to compile C++ source <" + sourceFilename + ">");
-    }
+    auto exit = execute(command, argv);
+    if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <%s>", command));
+    if (exit != 0)
+        throw std::invalid_argument(tfm::format("failed to compile C++ source <%s>", sourceFilename));
 }
 
 int main(int argc, char** argv) {
@@ -227,6 +214,8 @@ int main(int argc, char** argv) {
                 {"generate", 'g', "FILE", "", false,
                         "Generate C++ source code for the given Datalog program and write it to "
                         "<FILE>. If <FILE> is `-` then stdout is used."},
+                {"inline-exclude", '\x7', "RELATIONS", "", false,
+                        "Prevent the given relations from being inlined. Overrides any `inline` qualifiers."},
                 {"swig", 's', "LANG", "", false,
                         "Generate SWIG interface for given language. The values <LANG> accepts is java and "
                         "python. "},
@@ -236,6 +225,9 @@ int main(int argc, char** argv) {
                 {"magic-transform", 'm', "RELATIONS", "", false,
                         "Enable magic set transformation changes on the given relations, use '*' "
                         "for all."},
+                {"magic-transform-exclude", '\x8', "RELATIONS", "", false,
+                        "Disable magic set transformation changes on the given relations. Overrides "
+                        "`magic-transform`. Implies `inline-exclude` for the given relations."},
                 {"macro", 'M', "MACROS", "", false, "Set macro definitions for the pre-processor"},
                 {"disable-transformers", 'z', "TRANSFORMERS", "", false,
                         "Disable the given AST transformers."},
@@ -248,7 +240,7 @@ int main(int argc, char** argv) {
                         "Use profile log-file <FILE> for profile-guided optimization."},
                 {"profile-frequency", '\2', "", "", false, "Enable the frequency counter in the profiler."},
                 {"debug-report", 'r', "FILE", "", false, "Write HTML debug report to <FILE>."},
-                {"pragma", 'P', "OPTIONS", "", false, "Set pragma options."},
+                {"pragma", 'P', "OPTIONS", "", true, "Set pragma options."},
                 {"provenance", 't', "[ none | explain | explore ]", "", false,
                         "Enable provenance instrumentation and interaction."},
                 {"verbose", 'v', "", "", false, "Verbose output."},
@@ -266,8 +258,10 @@ int main(int argc, char** argv) {
 
         // Take in pragma options from the command line
         if (Global::config().has("pragma")) {
-            std::vector<std::string> configOptions = splitString(Global::config().get("pragma"), ';');
-            for (const std::string& option : configOptions) {
+            ast::transform::PragmaChecker::Merger merger;
+
+            for (auto&& option : Global::config().getMany("pragma")) {
+                // TODO: escape sequences for `:` to allow `:` in a pragma key?
                 std::size_t splitPoint = option.find(':');
 
                 std::string optionName = option.substr(0, splitPoint);
@@ -275,9 +269,7 @@ int main(int argc, char** argv) {
                                                   ? ""
                                                   : option.substr(splitPoint + 1, option.length());
 
-                if (!Global::config().has(optionName)) {
-                    Global::config().set(optionName, optionValue);
-                }
+                merger(optionName, optionValue);
             }
         }
 
@@ -293,8 +285,13 @@ int main(int argc, char** argv) {
         Global::config().set("version", PACKAGE_VERSION);
 
         /* for the help option, if given simply print the help text then exit */
-        if (!Global::config().has("") || Global::config().has("help")) {
+        if (Global::config().has("help")) {
             std::cout << Global::config().help();
+            return 0;
+        }
+
+        if (!Global::config().has("")) {
+            std::cerr << "No datalog file specified.\n";
             return 0;
         }
 
@@ -332,25 +329,9 @@ int main(int argc, char** argv) {
                     "output directory " + Global::config().get("output-dir") + " does not exists");
         }
 
-        /* collect all input directories for the c pre-processor */
-        if (Global::config().has("include-dir")) {
-            std::string currentInclude = "";
-            std::string allIncludes = "";
-            for (const char& ch : Global::config().get("include-dir")) {
-                if (ch == ' ') {
-                    if (!existDir(currentInclude)) {
-                        throw std::runtime_error("include directory " + currentInclude + " does not exists");
-                    } else {
-                        allIncludes += " -I";
-                        allIncludes += currentInclude;
-                        currentInclude = "";
-                    }
-                } else {
-                    currentInclude += ch;
-                }
-            }
-            allIncludes += " -I" + currentInclude;
-            Global::config().set("include-dir", allIncludes);
+        /* verify all input directories exist (racey, but gives nicer error messages for common mistakes) */
+        for (auto&& dir : Global::config().getMany("include-dir")) {
+            if (!existDir(dir)) throw std::runtime_error("include directory `" + dir + "` does not exist");
         }
 
         /* collect all macro definitions for the pre-processor */
@@ -405,13 +386,15 @@ int main(int argc, char** argv) {
         throw std::runtime_error("failed to locate mcpp pre-processor");
     }
 
-    cmd += " -e utf8 -W0 " + Global::config().get("include-dir");
+    cmd += " -e utf8 -W0 ";
+    cmd += toString(join(Global::config().getMany("include-dir"), " ",
+            [&](auto&& os, auto&& dir) { tfm::format(os, "'-I%s'", dir); }));
     if (Global::config().has("macro")) {
         cmd += " " + Global::config().get("macro");
     }
     // Add RamDomain size as a macro
     cmd += " -DRAM_DOMAIN_SIZE=" + std::to_string(RAM_DOMAIN_SIZE);
-    cmd += " " + Global::config().get("");
+    cmd += " '" + Global::config().get("") + "'";
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -500,6 +483,7 @@ int main(int argc, char** argv) {
             mk<ast::transform::ResolveAliasesTransformer>(),
             mk<ast::transform::RemoveBooleanConstraintsTransformer>(),
             mk<ast::transform::ResolveAliasesTransformer>(), mk<ast::transform::MinimiseProgramTransformer>(),
+            mk<ast::transform::InlineUnmarkExcludedTransform>(),
             mk<ast::transform::InlineRelationsTransformer>(), mk<ast::transform::GroundedTermsChecker>(),
             mk<ast::transform::ResolveAliasesTransformer>(),
             mk<ast::transform::RemoveRedundantRelationsTransformer>(),
@@ -709,31 +693,27 @@ int main(int argc, char** argv) {
                 }
             }
 
-            auto findCompileCmd = [&] {
-                auto cmd = findTool("souffle-compile", souffleExecutable, ".");
-                /* Fail if a souffle-compile executable is not found */
-                if (!isExecutable(cmd)) {
-                    throw std::runtime_error("failed to locate souffle-compile");
-                }
-                return cmd;
-            };
+            /* Fail if a souffle-compile executable is not found */
+            auto souffle_compile = findTool("souffle-compile", souffleExecutable, ".");
+            if (!isExecutable(souffle_compile)) throw std::runtime_error("failed to locate souffle-compile");
 
-            auto compileStart = std::chrono::high_resolution_clock::now();
+            std::vector<std::string> argv;
             if (Global::config().has("swig")) {
-                auto compileCmd = findCompileCmd() + " -s " + Global::config().get("swig") + " ";
-                compileToBinary(compileCmd, sourceFilename);
-            } else if (Global::config().has("compile")) {
-                compileToBinary(findCompileCmd(), sourceFilename);
-                /* Report overall run-time in verbose mode */
-                // run compiled C++ program if requested.
-                if (!Global::config().has("dl-program") && !Global::config().has("swig")) {
-                    executeBinary(baseFilename);
-                }
+                argv.push_back("-s");
+                argv.push_back(Global::config().get("swig"));
             }
+
+            auto t_bgn = std::chrono::high_resolution_clock::now();
+            compileToBinary(souffle_compile, sourceFilename, argv);
+            auto t_end = std::chrono::high_resolution_clock::now();
             if (Global::config().has("verbose")) {
-                auto compileEnd = std::chrono::high_resolution_clock::now();
-                std::cout << "Compilation time: "
-                          << std::chrono::duration<double>(compileEnd - compileStart).count() << "sec\n";
+                std::cout << "Compilation time: " << std::chrono::duration<double>(t_end - t_bgn).count()
+                          << "sec\n";
+            }
+
+            // run compiled C++ program if requested.
+            if (Global::config().has("compile")) {
+                executeBinaryAndExit(baseFilename);
             }
         }
     } catch (std::exception& e) {

@@ -67,10 +67,6 @@ public:
                 relation, getTupleId(), clone(condition), clone(getOperation()), getProfileText());
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {nestedOperation.get(), AbstractIfExists::getChildNodes().at(0)};
-    }
-
 protected:
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos);
@@ -84,6 +80,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IfExists>(node);
         return RelationOperation::equal(other) && AbstractIfExists::equal(other);
+    }
+
+    NodeVec getChildren() const override {
+        return {nestedOperation.get(), AbstractIfExists::getChildren().at(0)};
     }
 };
 

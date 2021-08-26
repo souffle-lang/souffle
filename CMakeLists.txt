@@ -24,6 +24,8 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+include(CMakeDependentOption)
+
 find_package(Git REQUIRED)
 
 # PACKAGE_VERSION is the full tag with git hash
@@ -38,7 +40,7 @@ execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags --always
 if (NOT GIT_RESULT EQUAL 0)
     # Not building from a git clone
     message(WARNING "Unable to find git repository: version number will be incomplete")
-    set(PACKAGE_VERSION "UNKOWN")
+    set(PACKAGE_VERSION "UNKNOWN")
     set(SOUFFLE_VERSION "")
 else()
     string(REGEX REPLACE "\n$" "" PACKAGE_VERSION "${GIT_PACKAGE_VERSION}")
@@ -110,8 +112,25 @@ option(SOUFFLE_ENABLE_TESTING "Enable/Disable testing" ${SOUFFLE_ENABLE_TESTING_
 option(SOUFFLE_GENERATE_DOXYGEN "Generate Doxygen files (html;htmlhelp;man;rtf;xml;latex)" "")
 option(SOUFFLE_CODE_COVERAGE "Enable coverage reporting" OFF)
 
+cmake_dependent_option(SOUFFLE_USE_LIBCPP "Link to libc++ instead of libstdc++" ON
+    "CMAKE_CXX_COMPILER_ID STREQUAL Clang" OFF)
+
+# Using Clang? Likely want to use `lld` too.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=lld")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
+endif()
+
 # Add aditional modules to CMake
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
+if (SOUFFLE_USE_LIBCPP)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -lc++abi")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lc++abi")
+endif()
 
 # --------------------------------------------------
 # curses libraries for Provenance information
@@ -210,8 +229,13 @@ endif()
 # Memory Sanitiser
 # --------------------------------------------------
 if (SOUFFLE_SANITISE_MEMORY)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak,undefined")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak,undefined")
+    else()
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak")
+    endif()
 endif()
 
 # --------------------------------------------------

@@ -16,22 +16,11 @@
 
 #pragma once
 
-#include "Global.h"
-#include "ram/Program.h"
-#include "ram/analysis/Analysis.h"
-#include "reports/DebugReport.h"
-#include "reports/ErrorReport.h"
-#include <cassert>
-#include <iosfwd>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <utility>
+#include "TranslationUnitBase.h"
 
-namespace souffle {
+namespace souffle::ram {
 
-namespace ram {
+class Program;
 
 /**
  * @class TranslationUnit
@@ -39,85 +28,18 @@ namespace ram {
  *
  * Comprises the program, symbol table, error report, debug report, and analyses
  */
-class TranslationUnit {
+class TranslationUnit final : public souffle::detail::TranslationUnitBase<TranslationUnit, Program> {
+    using Base = souffle::detail::TranslationUnitBase<TranslationUnit, Program>;
+
 public:
-    TranslationUnit(Own<Program> prog, ErrorReport& e, DebugReport& d)
-            : program(std::move(prog)), errorReport(e), debugReport(d) {
-        assert(program != nullptr && "program is a null-pointer");
-    }
-
-    virtual ~TranslationUnit() = default;
-
-    /** @brief Get an analysis */
-    template <class Analysis>
-    Analysis* getAnalysis() const {
-        static const bool debug = Global::config().has("debug-report");
-        std::string name = Analysis::name;
-        auto it = analyses.find(name);
-        if (it == analyses.end()) {
-            // analysis does not exist yet, create instance and run it.
-            auto analysis = mk<Analysis>(Analysis::name);
-            analysis->run(*this);
-            // output analysis in debug report
-            if (debug) {
-                std::stringstream ramAnalysisStr;
-                ramAnalysisStr << *analysis;
-                if (!ramAnalysisStr.str().empty()) {
-                    debugReport.addSection(
-                            analysis->getName(), "RAM Analysis " + analysis->getName(), ramAnalysisStr.str());
-                }
-            }
-            // check it hasn't been created by someone else, and insert if not
-            it = analyses.find(name);
-            if (it == analyses.end()) {
-                analyses[name] = std::move(analysis);
-            }
-        }
-        return as<Analysis>(analyses[name]);
-    }
-
-    /** @brief Get all alive analyses */
-    std::set<const analysis::Analysis*> getAliveAnalyses() const {
-        std::set<const analysis::Analysis*> result;
-        for (auto const& a : analyses) {
-            result.insert(a.second.get());
-        }
-        return result;
-    }
-
-    /** @brief Invalidate all alive analyses of the translation unit */
-    void invalidateAnalyses() {
-        analyses.clear();
-    }
-
-    /** @brief Get the RAM Program of the translation unit  */
-    Program& getProgram() const {
-        return *program;
-    }
-
-    /** @brief Obtain error report */
-    ErrorReport& getErrorReport() {
-        return errorReport;
-    }
-
-    /** @brief Obtain debug report */
-    DebugReport& getDebugReport() {
-        return debugReport;
-    }
+    using Base::Base;
 
 protected:
-    /* Cached analyses */
-    mutable std::map<std::string, Own<analysis::Analysis>> analyses;
-
-    /* RAM program */
-    Own<Program> program;
-
-    /* Error report for raising errors and warnings */
-    ErrorReport& errorReport;
-
-    /* Debug report for logging information */
-    DebugReport& debugReport;
+    void logAnalysis(Analysis&) const override;
 };
 
-}  // namespace ram
-}  // end of namespace souffle
+namespace analysis {
+using Analysis = souffle::ram::TranslationUnit::Analysis;
+}
+
+}  // namespace souffle::ram

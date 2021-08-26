@@ -15,10 +15,14 @@
  ***********************************************************************/
 
 #include "Global.h"
+#include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <cassert>
 #include <cctype>
 #include <cstdio>
+#include <iostream>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -27,7 +31,7 @@
 namespace souffle {
 
 void MainConfig::processArgs(int argc, char** argv, const std::string& header, const std::string& footer,
-        const std::vector<MainOption> mainOptions) {
+        const std::vector<MainOption>& mainOptions) {
     constexpr auto ONE_SPACE = " ";
     constexpr auto TWO_SPACES = "  ";
     constexpr auto THREE_SPACES = "   ";
@@ -68,6 +72,19 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
             maxLineLengthWithoutDescription += maxLongOptionPlusArgumentLength;
         }
 
+        auto indentDescription = [&](auto&& os, size_t curr_len) {
+            for (auto n = curr_len; n < maxLineLengthWithoutDescription; ++n)
+                os << ONE_SPACE;
+        };
+
+        // #NormaliseStatementExpressions #NoLambdaNeeded
+        auto multi_line_descr_sep = [&]() {
+            std::stringstream ss;
+            ss << "\n";
+            indentDescription(ss, 0);
+            return ss.str();
+        }();
+
         // iterate over the options and pretty print them, using the computed maximum line length without the
         // description
         for (const MainOption& opt : mainOptions) {
@@ -95,16 +112,11 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
                 line << "=<" << opt.argument << ">";
             }
 
-            // again, pad with empty space for prettiness
-            for (std::size_t lineLength = line.str().size(); lineLength < maxLineLengthWithoutDescription;
-                    ++lineLength) {
-                line << ONE_SPACE;
-            }
+            auto&& line_str = line.str();
+            ss << line_str;
+            indentDescription(ss, line_str.size());
 
-            // print the description
-            line << opt.description << std::endl;
-
-            ss << line.str();
+            ss << join(splitView(opt.description, "\n"), multi_line_descr_sep) << "\n";
         }
 
         // print the footer
@@ -122,6 +134,8 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
         std::string shortNames = "";
         // table to map the short name to its option
         std::map<const char, const MainOption*> optionTable;
+        std::set<std::string> optionSeen;  // options seen at least once in arg list
+
         // counter to be incremented at each loop
         int i = 0;
         // iterate over the options provided
@@ -131,7 +145,11 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
             optionTable[opt.shortName] = &opt;
             // set the default value for the option, if it exists
             if (!opt.byDefault.empty()) {
-                set(opt.longName, opt.byDefault);
+                // don't use `set` since we don't want to flag it as explicitly set (it's an implicit default)
+                _map[opt.longName] = {opt.byDefault};
+            }
+            if (opt.takesMany) {
+                _allows_multiple.insert(opt.longName);
             }
             // skip the next bit if it is the option for the datalog file
             if (opt.longName.empty()) {
@@ -164,29 +182,23 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
             auto iter = optionTable.find(c);
             // case for the unknown option, again
             assert(iter != optionTable.end() && "unexpected case in getopt");
+            auto&& [_, opt] = *iter;
             // define the value for the option in the global configuration as its argument or an empty string
             //  if no argument exists
             std::string arg = optarg != nullptr ? std::string(optarg) : std::string();
             // if the option allows multiple arguments
-            if (iter->second->takesMany) {
+            if (opt->takesMany) {
                 // set the value of the option in the global config to the concatenation of its previous
                 // value, a space and the current argument
-                auto previous = get(iter->second->longName);
-                if (previous.empty()) {
-                    set(iter->second->longName, arg);
-                } else {
-                    set(iter->second->longName, get(iter->second->longName) + ' ' + arg);
-                }
+                append(opt->longName, std::move(arg));
                 // otherwise, set the value of the option in the global config
             } else {
                 // but only if it isn't set already
-                if (has(iter->second->longName) &&
-                        (iter->second->byDefault.empty() ||
-                                !has(iter->second->longName, iter->second->byDefault))) {
+                if (state(opt->longName) == State::set) {
                     throw std::runtime_error(
-                            "Error: Only one argument allowed for option '" + iter->second->longName + "'");
+                            "Error: Only one argument allowed for option '" + opt->longName + "'");
                 }
-                set(iter->second->longName, arg);
+                set(opt->longName, std::move(arg));
             }
         }
     }
@@ -199,27 +211,99 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
             std::cerr << Global::config().help();
             throw std::runtime_error("Error: Unknown command line option.");
         }
-        // if only one datalog program is allowed
-        if (mainOptions[0].longName.empty() && mainOptions[0].takesMany) {
-            // set the option in the global config for the main datalog file to that specified by the command
-            // line arguments
-            set("", std::string(argv[optind]));
-            // otherwise, if multiple input filenames are allowed
-        } else {
-            std::string filenames = "";
+
+        if (mainOptions[0].longName.empty()) {
             // for each of the command line arguments not associated with an option
-            for (; optind < argc; optind++) {
-                // append this filename to the concatenated string of filenames
-                if (filenames.empty()) {
-                    filenames = argv[optind];
-                } else {
-                    filenames = filenames + " " + std::string(argv[optind]);
-                }
+            Many filenames;
+            for (; optind < argc; optind++)
+                filenames.push_back(argv[optind]);
+
+            if (!mainOptions[0].takesMany && 1 < filenames.size()) {
+                throw std::runtime_error("Error: Only one argument allowed for datalog file");
             }
-            // set the option in the global config for the main datalog file to all those specified by the
-            // command line arguments
-            set("", filenames);
+
+            set(mainOptions[0].longName, std::move(filenames));
         }
     }
 }
+
+const MainConfig::Single& MainConfig::get(std::string_view key) const {
+    return get(key, _default_single);
+}
+
+const MainConfig::Many& MainConfig::getMany(std::string_view key) const {
+    return getMany(key, _default_many);
+}
+
+const MainConfig::Single& MainConfig::get(std::string_view key, const Single& default_) const {
+    auto it = _map.find(key);
+    if (it == _map.end()) return default_;
+
+    auto&& [_, vs] = *it;
+    assert(vs.size() == 1 && "option has multiple values");
+    return vs.front();
+}
+
+const MainConfig::Many& MainConfig::getMany(std::string_view key, const Many& default_) const {
+    auto it = _map.find(key);
+    if (it == _map.end()) return default_;
+
+    auto&& [_, vs] = *it;
+    return vs;
+}
+
+bool MainConfig::has(std::string_view key) const {
+    return _map.find(key) != _map.end();
+}
+
+bool MainConfig::has(std::string_view key, std::string_view value) const {
+    auto it = _map.find(key);
+    if (it != _map.end()) {
+        auto&& [_, vs] = *it;
+        for (auto&& v : vs)
+            if (v == value) return true;
+    }
+
+    return false;
+}
+
+void MainConfig::append(std::string_view key, Single value) {
+    if (!contains(_explicitly_set, key)) {
+        _explicitly_set.insert(std::string(key));
+    }
+
+    auto it = _map.find(key);
+    if (it == _map.end()) {
+        it = _map.insert({std::string(key), Many{}}).first;
+    }
+
+    it->second.push_back(std::move(value));
+}
+
+/* Set the entry in the table for the specified key to the specified value. */
+void MainConfig::set(std::string key, Single value) {
+    set(std::move(key), std::vector{std::move(value)});
+}
+
+void MainConfig::set(std::string key, Many value) {
+    _explicitly_set.insert(key);
+    _map[std::move(key)] = std::move(value);
+}
+
+/* Erase the entry in the table for the specified key. */
+void MainConfig::unset(std::string_view key) {
+    _map.erase(_map.find(key));
+    _explicitly_set.erase(_explicitly_set.find(key));
+}
+
+MainConfig::State MainConfig::state(std::string_view key) const {
+    if (contains(_explicitly_set, key)) return State::set;
+    if (has(key)) return State::default_;
+    return State::unset;
+}
+
+bool MainConfig::allowsMultiple(std::string_view key) const {
+    return contains(_allows_multiple, key);
+}
+
 }  // namespace souffle

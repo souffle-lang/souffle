@@ -44,6 +44,7 @@
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
+#include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
@@ -93,25 +94,31 @@ std::set<QualifiedName> MagicSetTransformer::getWeaklyIgnoredRelations(const Tra
     const auto& polyAnalysis = *tu.getAnalysis<analysis::PolymorphicObjectsAnalysis>();
     std::set<QualifiedName> weaklyIgnoredRelations;
 
-    // - Any relations not specified to magic-set
-    std::vector<QualifiedName> specifiedRelations;
-
-    // Pick up specified relations from config
-    std::vector<std::string> configRels = splitString(Global::config().get("magic-transform"), ',');
-    for (const auto& relStr : configRels) {
+    // Add magic-transform-exclude relations to the weakly ignored set
+    for (const auto& relStr : splitString(Global::config().get("magic-transform-exclude"), ',')) {
         std::vector<std::string> qualifiers = splitString(relStr, '.');
-        specifiedRelations.push_back(QualifiedName(qualifiers));
+        weaklyIgnoredRelations.insert(QualifiedName(qualifiers));
     }
 
-    // Pick up specified relations from relation tags
+    // Pick up specified relations from config
+    std::set<QualifiedName> specifiedRelations;
+    for (const auto& relStr : splitString(Global::config().get("magic-transform"), ',')) {
+        std::vector<std::string> qualifiers = splitString(relStr, '.');
+        specifiedRelations.insert(QualifiedName(qualifiers));
+    }
+
+    // Pick up specified relations and ignored relations from relation tags
     for (const auto* rel : program.getRelations()) {
         if (rel->hasQualifier(RelationQualifier::MAGIC)) {
-            specifiedRelations.push_back(rel->getQualifiedName());
+            specifiedRelations.insert(rel->getQualifiedName());
+        } else if (rel->hasQualifier(RelationQualifier::NO_MAGIC)) {
+            weaklyIgnoredRelations.insert(rel->getQualifiedName());
         }
     }
 
     // Get the complement if not everything is magic'd
-    if (!contains(configRels, "*")) {
+    std::set<QualifiedName> includedRelations = specifiedRelations - weaklyIgnoredRelations;
+    if (!contains(includedRelations, "*")) {
         for (const Relation* rel : program.getRelations()) {
             if (!contains(specifiedRelations, rel->getQualifiedName())) {
                 weaklyIgnoredRelations.insert(rel->getQualifiedName());

@@ -1,8 +1,28 @@
-souffle (@VERSION@-1) UNRELEASED; urgency=low
+souffle (2.1) UNRELEASED; urgency=low
+ 
+  * Choice domain (@XiaowenHu96)
+  * Proper treatment of escape codes in symbol constants (@lyxell)
+  * CSV output has rfc4180 flag for delimiters (@quentin)
+  * Fix UDF syntax (@TomasPuverle)
+  * Add no_magic/no_inline relational qualifiers (@sharon-wang)
+  * Retire $; replace by autoinc() (@b-scholz)
+  * Suppress file errors with -w flag (@b-scholz)
+  * Re-implementation of the ast-to-ram translator (@azreika)
+  * Added Cmake PORT support (@XiaowenHu96, @quentin
+  * GitHub Action (@XiaowenHu96, @quentin, @XiaowenHu96, @b-scholz, @lyxell,@quentin,@OlivierHamel)
+  * Debian Packaging and CodeCov support in GitHub Action/Cmake (@phao5814)
+  * Lock-free record/symbol tables (@quentin)
+  * Interpreter refactoring / fixing (@XiaowenHu96)
+  * Type Analysis Refactoring (@azreika, @tytus-metrycki)
+  * New SIPS strategy (@langston-berrett)
+  * Refactor AST & RAM & Provenance (@TomasPuverle, @b-scholz, @azreika)
+  * RAM Optimisation (@SamArch27)
+  * Multiple library flag (@mclements)
+  * Added “max-bound-delta” SIPS (@langston-barrett)
+  * General Fixes and improvements (@b-scholz, @csabahruska, @julienhenry, @langston-berrett, @mmcgr, @TomasPuverle, @quentin,@XiaowenHu96)
+  * Add fuzzing scripts with AFL and Radamsa (@langston-barrett)
 
-  * Interpreter performance improvement
-
- -- Martin McGrane <mmcgrane@it.usyd.edu.au>  @DEBDATE@
+ -- Bernhard Scholz <Bernhard.Scholz@sydney.edu.au> Tue 17 Aug 2021 12:08:04 +1100
 
 souffle (2.0.2); urgency=low
 

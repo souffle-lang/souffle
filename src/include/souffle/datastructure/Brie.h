@@ -1379,7 +1379,7 @@ private:
      */
     static Node* findFirst(Node* node, int level) {
         while (level > 0) {
-            bool found = false;
+            [[maybe_unused]] bool found = false;
             for (int i = 0; i < NUM_CELLS; i++) {
                 Node* cur = node->cell[i].ptr;
                 if (cur) {
@@ -2795,42 +2795,44 @@ public:
     template <unsigned levels>
     range<iterator> getBoundaries(const_entry_span_type entry, op_context& ctxt) const {
         // if nothing is bound => just use begin and end
-        if constexpr (levels == 0) return make_range(begin(), end());
+        if constexpr (levels == 0) {
+            return make_range(begin(), end());
+        } else {  // HACK: explicit `else` branch b/c OSX compiler doesn't do DCE before `0 < limit` warning
+            // check context
+            if (ctxt.lastBoundaryLevels == levels) {
+                bool fit = true;
+                for (unsigned i = 0; i < levels; ++i) {
+                    fit = fit && (entry[i] == ctxt.lastBoundaryRequest[i]);
+                }
 
-        // check context
-        if (ctxt.lastBoundaryLevels == levels) {
-            bool fit = true;
-            for (unsigned i = 0; i < levels; ++i) {
-                fit = fit && (entry[i] == ctxt.lastBoundaryRequest[i]);
+                // if it fits => take it
+                if (fit) {
+                    base::hint_stats.get_boundaries.addHit();
+                    return ctxt.lastBoundaries;
+                }
             }
 
-            // if it fits => take it
-            if (fit) {
-                base::hint_stats.get_boundaries.addHit();
-                return ctxt.lastBoundaries;
-            }
+            // the hint has not been a hit
+            base::hint_stats.get_boundaries.addMiss();
+
+            // start with two end iterators
+            iterator begin{};
+            iterator end{};
+
+            // adapt them level by level
+            auto found = fix_binding<levels, 0, Dim>()(store, begin, end, entry);
+            if (!found) return make_range(iterator(), iterator());
+
+            // update context
+            static_assert(std::tuple_size_v<decltype(ctxt.lastBoundaryRequest)> == Dim);
+            static_assert(std::tuple_size_v<decltype(entry)> == Dim);
+            ctxt.lastBoundaryLevels = levels;
+            std::copy_n(entry.begin(), Dim, ctxt.lastBoundaryRequest.begin());
+            ctxt.lastBoundaries = make_range(begin, end);
+
+            // use the result
+            return ctxt.lastBoundaries;
         }
-
-        // the hint has not been a hit
-        base::hint_stats.get_boundaries.addMiss();
-
-        // start with two end iterators
-        iterator begin{};
-        iterator end{};
-
-        // adapt them level by level
-        auto found = fix_binding<levels, 0, Dim>()(store, begin, end, entry);
-        if (!found) return make_range(iterator(), iterator());
-
-        // update context
-        static_assert(std::tuple_size_v<decltype(ctxt.lastBoundaryRequest)> == Dim);
-        static_assert(std::tuple_size_v<decltype(entry)> == Dim);
-        ctxt.lastBoundaryLevels = levels;
-        std::copy_n(entry.begin(), Dim, ctxt.lastBoundaryRequest.begin());
-        ctxt.lastBoundaries = make_range(begin, end);
-
-        // use the result
-        return ctxt.lastBoundaries;
     }
 
     /**

@@ -18,6 +18,7 @@
 
 #include "ram/utility/LambdaNodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/Types.h"
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -28,13 +29,30 @@
 
 namespace souffle::ram {
 
-class NodeMapper;
+class Node;
+namespace detail {
+// Seems the gcc in Jenkins is not happy with the inline lambdas
+struct RefCaster {
+    auto operator()(Node const* node) const -> Node const& {
+        return *node;
+    }
+};
+
+struct ConstCaster {
+    auto operator()(Node const* node) const -> Node& {
+        return *const_cast<Node*>(node);
+    }
+};
+}  // namespace detail
 
 /**
  *  @class Node
  *  @brief Node is a superclass for all RAM IR classes.
  */
 class Node {
+protected:
+    using NodeVec = std::vector<Node const*>;  // std::reference_wrapper<Node const>>;
+
 public:
     Node() = default;
     Node(Node const&) = delete;
@@ -73,9 +91,15 @@ public:
     /**
      * @brief Obtain list of all embedded child nodes
      */
-    virtual std::vector<const Node*> getChildNodes() const {
-        return {};
-    }
+    using ConstChildNodes = OwningTransformRange<NodeVec, detail::RefCaster>;
+    ConstChildNodes getChildNodes() const;
+
+    /*
+     * Using the ConstCastRange saves the user from having to write
+     * getChildNodes() and getChildNodes() const
+     */
+    using ChildNodes = OwningTransformRange<NodeVec, detail::ConstCaster>;
+    ChildNodes getChildNodes();
 
     /**
      * Print RAM on a stream
@@ -103,6 +127,10 @@ protected:
      * @brief Create a cloning (i.e. deep copy) of this node
      */
     virtual Node* cloning() const = 0;
+
+    virtual NodeVec getChildren() const {
+        return {};
+    }
 };
 
 }  // namespace souffle::ram

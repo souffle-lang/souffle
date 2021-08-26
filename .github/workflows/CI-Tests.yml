@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        domain: [32bit, 64bit]
+        domain: [32bit, 64bit, 64bit-noomp]
 
     runs-on: ${{ matrix.os }}
 
@@ -43,6 +43,10 @@ jobs:
     - name: setup-64bit-domain
       if: ${{ matrix.domain == '64bit' }}
       run: cmake -S . -B build -DSOUFFLE_DOMAIN_64BIT=ON
+
+    - name: setup-64bit-domain-noomp
+      if: ${{ matrix.domain == '64bit-noomp' }}
+      run: cmake -S . -B build -DSOUFFLE_DOMAIN_64BIT=ON -DSOUFFLE_USE_OPENMP=OFF
 
     - name: make
       run: cmake --build build -j6

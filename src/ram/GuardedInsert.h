@@ -51,12 +51,6 @@ public:
         return condition.get();
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res = Insert::getChildNodes();
-        res.push_back(condition.get());
-        return res;
-    }
-
     GuardedInsert* cloning() const override {
         VecOwn<Expression> newValues;
         for (auto& expr : expressions) {
@@ -88,6 +82,12 @@ protected:
         const auto& other = asAssert<GuardedInsert>(node);
         return relation == other.relation && equal_targets(expressions, other.expressions) &&
                equal_ptr(condition, other.condition);
+    }
+
+    NodeVec getChildren() const override {
+        auto res = Insert::getChildren();
+        res.push_back(condition.get());
+        return res;
     }
 
     /* Guarded condition */

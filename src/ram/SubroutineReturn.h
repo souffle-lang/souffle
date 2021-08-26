@@ -43,22 +43,12 @@ namespace souffle::ram {
 class SubroutineReturn : public Operation {
 public:
     SubroutineReturn(VecOwn<Expression> vals) : expressions(std::move(vals)) {
-        for (const auto& expr : expressions) {
-            assert(expr != nullptr && "Expression is a null-pointer");
-        }
+        assert(allValidPtrs(expressions));
     }
 
     /** @brief Getter for expressions */
     std::vector<Expression*> getValues() const {
         return toPtrVector(expressions);
-    }
-
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res;
-        for (const auto& expr : expressions) {
-            res.push_back(expr.get());
-        }
-        return res;
     }
 
     SubroutineReturn* cloning() const override {
@@ -91,6 +81,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<SubroutineReturn>(node);
         return equal_targets(expressions, other.expressions);
+    }
+
+    NodeVec getChildren() const override {
+        return toPtrVector<Node const>(expressions);
     }
 
     /** Return expressions */

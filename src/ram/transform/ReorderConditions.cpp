@@ -29,9 +29,11 @@
 
 namespace souffle::ram::transform {
 
-bool ReorderConditionsTransformer::reorderConditions(Program& program) {
+bool ReorderConditionsTransformer::transform(TranslationUnit& tu) {
+    auto* rca = tu.getAnalysis<analysis::ComplexityAnalysis>();
+
     bool changed = false;
-    visit(program, [&](const Query& query) {
+    visit(tu.getProgram(), [&](const Query& query) {
         std::function<Own<Node>(Own<Node>)> filterRewriter = [&](Own<Node> node) -> Own<Node> {
             if (const Condition* condition = as<Condition>(node)) {
                 VecOwn<Condition> sortedConds;

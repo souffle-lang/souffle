@@ -20,7 +20,7 @@
 
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <cassert>
 #include <map>

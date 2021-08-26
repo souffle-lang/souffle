@@ -8,45 +8,24 @@
 
 #include "ast/TranslationUnit.h"
 #include "Global.h"
-#include "ast/Program.h"
 #include "ast/analysis/PrecedenceGraph.h"
 #include "ast/analysis/SCCGraph.h"
 #include "reports/DebugReport.h"
-#include <sstream>
-#include <string>
-#include <utility>
+#include "souffle/utility/StringUtil.h"
 
 namespace souffle::ast {
 
-TranslationUnit::TranslationUnit(Own<Program> program, ErrorReport& e, DebugReport& d)
-        : program(std::move(program)), errorReport(e), debugReport(d) {
-    assert(this->program != nullptr);
-}
-
-TranslationUnit::~TranslationUnit() = default;
-
 /** get analysis: analysis is generated on the fly if not present */
-analysis::Analysis* TranslationUnit::addAnalysis(char const* name, Own<analysis::Analysis> analysis) const {
-    static const bool debug = Global::config().has("debug-report");
-    auto* anaPtr = analysis.get();
-    analyses.insert({name, std::move(analysis)});
-    anaPtr->run(*this);
-    if (debug) {
-        std::ostringstream ss;
-        std::string strName = name;
-        anaPtr->print(ss);
-        if (!isA<analysis::PrecedenceGraphAnalysis>(anaPtr) && !isA<analysis::SCCGraphAnalysis>(anaPtr)) {
-            debugReport.addSection(strName, "Ast Analysis [" + strName + "]", ss.str());
-        } else {
-            debugReport.addSection(
-                    DebugReportSection(strName, "Ast Analysis [" + strName + "]", {}, ss.str()));
-        }
-    }
-    return anaPtr;
-}
+void TranslationUnit::logAnalysis(Analysis& analysis) const {
+    if (!Global::config().has("debug-report")) return;
 
-void TranslationUnit::invalidateAnalyses() const {
-    analyses.clear();
+    std::string name = analysis.getName();
+    if (as<analysis::PrecedenceGraphAnalysis>(analysis) || as<analysis::SCCGraphAnalysis>(analysis)) {
+        debugReport.addSection(
+                DebugReportSection(name, "Ast Analysis [" + name + "]", {}, toString(analysis)));
+    } else {
+        debugReport.addSection(name, "Ast Analysis [" + name + "]", toString(analysis));
+    }
 }
 
 }  // namespace souffle::ast

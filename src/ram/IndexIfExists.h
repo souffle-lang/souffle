@@ -72,12 +72,6 @@ public:
         AbstractIfExists::apply(map);
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = IndexOperation::getChildNodes();
-        res.push_back(AbstractIfExists::getChildNodes().at(0));
-        return res;
-    }
-
     IndexIfExists* cloning() const override {
         RamPattern resQueryPattern;
         for (const auto& i : queryPattern.first) {
@@ -104,6 +98,12 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IndexIfExists>(node);
         return IndexOperation::equal(other) && AbstractIfExists::equal(other);
+    }
+
+    NodeVec getChildren() const override {
+        auto res = IndexOperation::getChildren();
+        res.push_back(AbstractIfExists::getChildren().at(0));
+        return res;
     }
 };
 

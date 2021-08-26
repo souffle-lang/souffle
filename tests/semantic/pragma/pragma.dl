@@ -1,8 +1,13 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2021, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-.type Word <: symbol
+.pragma "disable-transformers" "ResolveAliasesTransformer"
 
-.decl words (i:number, w:Word)
-.decl bigram (w:Word, w1:Word)
+.decl words (i:number, w:symbol)
+.decl bigram (w:symbol, w1:symbol)
 
 .input words
 

@@ -16,8 +16,10 @@
 
 #pragma once
 
+#include "souffle/utility/DynamicCasting.h"
 #include "souffle/utility/Iteration.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/Types.h"
 
 #include <algorithm>
 #include <functional>
@@ -56,25 +58,17 @@ struct reverse {
  * A utility to check generically whether a given element is contained in a given
  * container.
  */
-template <typename C>
+template <typename C, typename = std::enable_if_t<!is_associative<C>>>
 bool contains(const C& container, const typename C::value_type& element) {
     return std::find(container.begin(), container.end(), element) != container.end();
 }
 
-// TODO: Detect and generalise to other set types?
-template <typename A>
-bool contains(const std::set<A>& container, const A& element) {
-    return container.find(element) != container.end();
-}
-
 /**
- * Version of contains specialised for maps.
- *
- * This workaround is needed because of set container, for which value_type == key_type,
- * which is ambiguous in this context.
+ * A utility to check generically whether a given key exists within a given
+ * associative container.
  */
-template <typename C>
-bool contains(const C& container, const typename C::value_type::first_type& element) {
+template <typename C, typename A, typename = std::enable_if_t<is_associative<C>>>
+bool contains(const C& container, A&& element) {
     return container.find(element) != container.end();
 }
 
@@ -82,19 +76,18 @@ bool contains(const C& container, const typename C::value_type::first_type& elem
  * Returns the first element in a container that satisfies a given predicate,
  * nullptr otherwise.
  */
-template <typename C>
-typename C::value_type getIf(const C& container, std::function<bool(const typename C::value_type)> pred) {
-    auto res = std::find_if(container.begin(), container.end(),
-            [&](const typename C::value_type item) { return pred(item); });
-    return res == container.end() ? nullptr : *res;
+template <typename C, typename F>
+auto getIf(C&& container, F&& pred) {
+    auto it = std::find_if(container.begin(), container.end(), std::forward<F>(pred));
+    return it == container.end() ? nullptr : *it;
 }
 
 /**
  * Get value for a given key; if not found, return default value.
  */
-template <typename C>
+template <typename C, typename A, typename = std::enable_if_t<is_associative<C>>>
 typename C::mapped_type const& getOr(
-        const C& container, typename C::key_type key, const typename C::mapped_type& defaultValue) {
+        const C& container, A&& key, const typename C::mapped_type& defaultValue) {
     auto it = container.find(key);
 
     if (it != container.end()) {
@@ -102,19 +95,6 @@ typename C::mapped_type const& getOr(
     } else {
         return defaultValue;
     }
-}
-
-namespace detail {
-inline auto allOfBool = [](bool b) { return b; };
-}
-
-/**
- * Return true if all elements (optionally after applying up)
- * are true
- */
-template <typename R, typename UnaryP = decltype(detail::allOfBool) const&>
-bool all(R const& range, UnaryP&& up = detail::allOfBool) {
-    return std::all_of(range.begin(), range.end(), std::forward<UnaryP>(up));
 }
 
 /**
@@ -141,35 +121,29 @@ std::vector<T> toVector() {
  * of arbitrary length.
  */
 template <typename T, typename... R>
-std::vector<T> toVector(const T& first, const R&... rest) {
-    return {first, rest...};
+std::vector<T> toVector(T first, R... rest) {
+    // Init-lists are effectively const-arrays. You can't `move` out of them.
+    // Combine with `vector`s not having variadic constructors, can't do:
+    //   `vector{Own<A>{}, Own<A>{}}`
+    // This is inexcusably awful and defeats the purpose of having init-lists.
+    std::vector<T> xs;
+    T ary[] = {std::move(first), std::move(rest)...};
+    for (auto& x : ary) {
+        xs.push_back(std::move(x));
+    }
+    return xs;
 }
 
 /**
  * A utility function enabling the creation of a vector of pointers.
  */
-template <typename T>
-std::vector<T*> toPtrVector(const VecOwn<T>& v) {
-    std::vector<T*> res;
+template <typename A = void, typename T, typename U = std::conditional_t<std::is_same_v<A, void>, T, A>>
+std::vector<U*> toPtrVector(const VecOwn<T>& v) {
+    std::vector<U*> res;
     for (auto& e : v) {
         res.push_back(e.get());
     }
     return res;
-}
-
-/**
- * Applies a function to each element of a vector and returns the results.
- */
-template <typename A, typename F /* : A -> B */>
-auto map(const std::vector<A>& xs, F&& f) {
-    // FIXME: We can rewrite this using makeTransformRange now,
-    // or remove the usage of this completely
-    std::vector<decltype(f(xs[0]))> ys;
-    ys.reserve(xs.size());
-    for (auto&& x : xs) {
-        ys.emplace_back(f(x));
-    }
-    return ys;
 }
 
 // -------------------------------------------------------------------------------
@@ -261,7 +235,7 @@ bool equal_targets(const std::map<Key, Own<Value>>& a, const std::map<Key, Own<V
 // -------------------------------------------------------------------------------
 template <typename R>
 bool allValidPtrs(R const& range) {
-    return all(makeTransformRange(range, [](auto const& ptr) { return ptr != nullptr; }));
+    return std::all_of(range.begin(), range.end(), [](auto&& p) { return (bool)p; });
 }
 
 }  // namespace souffle

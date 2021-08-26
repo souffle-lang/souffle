@@ -129,7 +129,8 @@ Own<ram::Operation> SubproofGenerator::addBodyLiteralConstraints(
             auto constraint = mk<ram::Constraint>(
                     BinaryConstraintOp::EQ, std::move(lhs), mk<ram::SubroutineArgument>(i));
             op = mk<ram::Filter>(std::move(constraint), std::move(op));
-        } else if (const auto* adt = as<ast::BranchInit>(arg)) {
+        } else if ([[maybe_unused]] const auto* adt = as<ast::BranchInit>(arg)) {
+            (void)adt;  // GCC 9.2.1 isn't honouring `[[maybe_unused]]` in a conditional
             // TODO (azreika): fill this out like record arguments
             assert(false && adt && "unhandled");
         }
@@ -231,7 +232,8 @@ Own<ram::Operation> SubproofGenerator::generateReturnInstantiatedValues(const as
         } else if (const auto* rec = as<ast::RecordInit>(arg)) {
             values.push_back(context.translateValue(*valueIndex, rec));
             values.push_back(mk<ram::SubroutineArgument>(i));
-        } else if (const auto* adt = as<ast::BranchInit>(arg)) {
+        } else if ([[maybe_unused]] const auto* adt = as<ast::BranchInit>(arg)) {
+            (void)adt;  // GCC 9.2.1 isn't honouring `[[maybe_unused]]` in a conditional
             // TODO (azreika): fill this out like record arguments
             assert(false && adt && "unhandled");
         }

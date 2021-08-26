@@ -52,10 +52,6 @@ class LogTimer : public Statement, public AbstractLog {
 public:
     LogTimer(Own<Statement> stmt, std::string msg) : AbstractLog(std::move(stmt), std::move(msg)) {}
 
-    std::vector<const Node*> getChildNodes() const override {
-        return AbstractLog::getChildNodes();
-    }
-
     LogTimer* cloning() const override {
         return new LogTimer(clone(statement), message);
     }
@@ -69,6 +65,10 @@ protected:
         os << times(" ", tabpos) << "TIMER \"" << stringify(message) << "\"" << std::endl;
         Statement::print(statement.get(), os, tabpos + 1);
         os << times(" ", tabpos) << "END TIMER" << std::endl;
+    }
+
+    NodeVec getChildren() const override {
+        return AbstractLog::getChildren();
     }
 };
 

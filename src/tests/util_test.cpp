@@ -74,7 +74,7 @@ TEST(Util, LambdaTraits) {
     auto lambda = [](int) -> bool { return true; };
 
     EXPECT_EQ(typeid(bool).name(), typeid(lambda_traits<decltype(lambda)>::result_type).name());
-    EXPECT_EQ(typeid(int).name(), typeid(lambda_traits<decltype(lambda)>::arg0_type).name());
+    EXPECT_EQ(typeid(int).name(), typeid(lambda_traits<decltype(lambda)>::template arg<0>).name());
 }
 
 TEST(Util, LRUCache) {

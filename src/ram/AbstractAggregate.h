@@ -63,8 +63,12 @@ public:
         return *expression;
     }
 
-    std::vector<const Node*> getChildNodes() const {
-        return {expression.get(), condition.get()};
+    Node::ConstChildNodes getChildNodes() const {
+        return Node::ConstChildNodes(getChildren(), detail::RefCaster());
+    }
+
+    Node::ChildNodes getChildNodes() {
+        return Node::ChildNodes(getChildren(), detail::ConstCaster());
     }
 
 protected:
@@ -87,11 +91,14 @@ protected:
         }
     }
 
-protected:
     bool equal(const Node& node) const {
         const auto& other = asAssert<AbstractAggregate, AllowCrossCast>(node);
         return function == other.function && equal_ptr(expression, other.expression) &&
                equal_ptr(condition, other.condition);
+    }
+
+    std::vector<const Node*> getChildren() const {
+        return {expression.get(), condition.get()};
     }
 
     /** Aggregation function */

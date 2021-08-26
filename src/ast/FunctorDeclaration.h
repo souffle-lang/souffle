@@ -31,7 +31,7 @@ namespace souffle::ast {
  * @brief User-defined functor declaration
  *
  * Example:
- *    .declfun foo(x:number, y:number):number
+ *    .functor foo(x:number, y:number):number
  */
 
 class FunctorDeclaration : public Node {

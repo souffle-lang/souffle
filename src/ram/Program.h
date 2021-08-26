@@ -57,24 +57,8 @@ public:
     Program(VecOwn<Relation> rels, Own<Statement> main, std::map<std::string, Own<Statement>> subs)
             : relations(std::move(rels)), main(std::move(main)), subroutines(std::move(subs)) {
         assert(this->main != nullptr && "Main program is a null-pointer");
-        for (const auto& rel : relations) {
-            assert(rel != nullptr && "Relation is a null-pointer");
-        }
-        for (const auto& sub : subroutines) {
-            assert(sub.second != nullptr && "Subroutine is a null-pointer");
-        }
-    }
-
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> children;
-        children = main->getChildNodes();
-        for (auto& rel : relations) {
-            children.push_back(rel.get());
-        }
-        for (auto& sub : subroutines) {
-            children.push_back(sub.second.get());
-        }
-        return children;
+        assert(allValidPtrs(relations));
+        assert(allValidPtrs(makeTransformRange(subroutines, [](auto&& kv) { return kv.second.get(); })));
     }
 
     /** @brief Get main program */
@@ -148,7 +132,17 @@ protected:
                equal_targets(subroutines, other.subroutines);
     }
 
-protected:
+    NodeVec getChildren() const override {
+        auto children = main->getChildren();
+        for (auto& rel : relations) {
+            children.push_back(rel.get());
+        }
+        for (auto& sub : subroutines) {
+            children.push_back(sub.second.get());
+        }
+        return children;
+    }
+
     /** Relations of RAM program */
     VecOwn<Relation> relations;
 

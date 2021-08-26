@@ -39,8 +39,12 @@ public:
         assert(statement && "log statement is a nullptr");
     }
 
-    std::vector<const Node*> getChildNodes() const {
-        return {statement.get()};
+    Node::ConstChildNodes getChildNodes() const {
+        return Node::ConstChildNodes(getChildren(), detail::RefCaster());
+    }
+
+    Node::ChildNodes getChildNodes() {
+        return Node::ChildNodes(getChildren(), detail::ConstCaster());
     }
 
     /** @brief Get logging message */
@@ -63,7 +67,10 @@ protected:
         return equal_ptr(statement, other.statement) && message == other.message;
     }
 
-protected:
+    std::vector<const Node*> getChildren() const {
+        return {statement.get()};
+    }
+
     /** Logging statement */
     Own<Statement> statement;
 

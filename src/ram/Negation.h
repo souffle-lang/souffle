@@ -50,10 +50,6 @@ public:
         return *operand;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        return {operand.get()};
-    }
-
     Negation* cloning() const override {
         return new Negation(clone(operand));
     }
@@ -70,6 +66,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Negation>(node);
         return equal_ptr(operand, other.operand);
+    }
+
+    NodeVec getChildren() const override {
+        return {operand.get()};
     }
 
     /** Operand */

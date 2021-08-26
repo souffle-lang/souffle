@@ -124,9 +124,7 @@ protected:
         auto&& adtInfo = types["ADTs"][name];
 
         assert(!adtInfo.is_null() && "Missing adt type information");
-
-        const std::size_t numBranches = adtInfo["arity"].long_value();
-        assert(numBranches > 0);
+        assert(adtInfo["arity"].long_value() > 0);
 
         // adt is encoded in one of three possible ways:
         // [branchID, [branch_args]] when |branch_args| != 1

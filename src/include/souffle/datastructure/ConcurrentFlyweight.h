@@ -39,6 +39,35 @@ public:
     using pointer = const value_type*;
     using reference = const value_type&;
 
+private:
+    // Effectively:
+    //  data slot_type = NONE | END | Idx index_type
+    //  The last two values in the domain of `index_type` are used to represent cases `NONE` and `END`
+    // TODO: strong type-def wrap this to prevent implicit conversions
+    using slot_type = index_type;
+    static constexpr slot_type NONE = std::numeric_limits<slot_type>::max();  // special case: `std::nullopt`
+    static constexpr slot_type END = NONE - 1;                                // special case: end iterator
+    static constexpr slot_type SLOT_MAX = END;  // +1 the largest non-special slot value
+
+    static_assert(std::is_same_v<slot_type, index_type>,
+            "conversion helpers assume they're the underlying type, "
+            "with the last two values reserved for special cases");
+    static_assert(std::is_unsigned_v<slot_type>);
+
+    /// Converts from index to slot.
+    static slot_type slot(const index_type I) {
+        // not expected to happen. you'll run out of memory long before.
+        assert(I < SLOT_MAX && "can't represent index in `slot_type` domain");
+        return static_cast<slot_type>(I);
+    }
+
+    /// Converts from slot to index.
+    static index_type index(const slot_type S) {
+        assert(S < SLOT_MAX && "slot is sentinal value; can't convert to index !!");
+        return static_cast<index_type>(S);
+    }
+
+public:
     /// Iterator with concurrent access to the datastructure.
     struct Iterator {
         using iterator_category = std::input_iterator_tag;
@@ -47,8 +76,6 @@ public:
         using reference = ConcurrentFlyweight::reference;
 
     private:
-        using slot_type = int64_t;
-
         const ConcurrentFlyweight* This;
 
         /// Access lane to the datastructure.
@@ -61,41 +88,23 @@ public:
         slot_type NextMaybeUnassignedSlot;
 
         /// Handle that owns the next slot that might be unassigned.
-        int64_t NextMaybeUnassignedHandle;
-
-        static constexpr int64_t End = std::numeric_limits<slot_type>::max();
-        static constexpr int64_t None = -1;
-
-        /// Converts from index to slot.
-        static slot_type slot(const index_type I) {
-            assert(I >= 0 && I <= std::numeric_limits<slot_type>::max());
-            return static_cast<int64_t>(I);
-        }
-
-        /// Converts from slot to index.
-        static index_type index(const slot_type S) {
-            assert(S >= 0 && S <= std::numeric_limits<index_type>::max());
-            return static_cast<index_type>(S);
-        }
+        slot_type NextMaybeUnassignedHandle = NONE;
 
     public:
         // The 'begin' iterator
         Iterator(const ConcurrentFlyweight* This, const lane_id H)
-                : This(This), Lane(H), Slot(None), NextMaybeUnassignedSlot(0),
-                  NextMaybeUnassignedHandle(None) {
+                : This(This), Lane(H), Slot(NONE), NextMaybeUnassignedSlot(0) {
             FindNextMaybeUnassignedSlot();
             MoveToNextAssignedSlot();
         }
 
         // The 'end' iterator
         Iterator(const ConcurrentFlyweight* This)
-                : This(This), Lane(0), Slot(End), NextMaybeUnassignedSlot(End),
-                  NextMaybeUnassignedHandle(None) {}
+                : This(This), Lane(0), Slot(END), NextMaybeUnassignedSlot(END) {}
 
         // The iterator starting at slot I, using access lane H.
         Iterator(const ConcurrentFlyweight* This, const lane_id H, const index_type I)
-                : This(This), Lane(H), Slot(slot(I)), NextMaybeUnassignedSlot(slot(I)),
-                  NextMaybeUnassignedHandle(None) {
+                : This(This), Lane(H), Slot(slot(I)), NextMaybeUnassignedSlot(slot(I)) {
             FindNextMaybeUnassignedSlot();
             MoveToNextAssignedSlot();
         }
@@ -158,7 +167,7 @@ public:
     private:
         /** Find next slot after Slot that is maybe unassigned. */
         void FindNextMaybeUnassignedSlot() {
-            NextMaybeUnassignedSlot = End;
+            NextMaybeUnassignedSlot = END;
             for (lane_id I = 0; I < This->Lanes.lanes(); ++I) {
                 const auto Lane = This->Lanes.guard(I);
                 if (This->Handles[I].NextSlot > Slot && This->Handles[I].NextSlot < NextMaybeUnassignedSlot) {
@@ -166,31 +175,34 @@ public:
                     NextMaybeUnassignedHandle = I;
                 }
             }
-            if (NextMaybeUnassignedSlot == End) {
+            if (NextMaybeUnassignedSlot == END) {
                 NextMaybeUnassignedSlot = This->NextSlot;
-                NextMaybeUnassignedHandle = None;
+                NextMaybeUnassignedHandle = NONE;
             }
         }
 
         /**
          * Move Slot to next assigned slot and return true.
-         * Otherwise the end is reached and Slot is assigned int64_t::max and return false.
+         * Otherwise the end is reached and Slot is assigned `END` and return false.
          */
         bool MoveToNextAssignedSlot() {
-            while (Slot != End) {
+            static_assert(NONE == std::numeric_limits<slot_type>::max(),
+                    "required for wrap around to 0 for begin-iterator-scan");
+            while (Slot != END) {
+                assert(Slot + 1 < SLOT_MAX);
                 if (Slot + 1 < NextMaybeUnassignedSlot) {  // next unassigned slot not reached
                     Slot = Slot + 1;
                     return true;
                 }
 
-                if (NextMaybeUnassignedHandle == None) {  // reaching end
-                    Slot = End;
-                    NextMaybeUnassignedSlot = End;
-                    NextMaybeUnassignedHandle = None;
+                if (NextMaybeUnassignedHandle == NONE) {  // reaching end
+                    Slot = END;
+                    NextMaybeUnassignedSlot = END;
+                    NextMaybeUnassignedHandle = NONE;
                     return false;
                 }
 
-                if (NextMaybeUnassignedHandle != None) {  // maybe reaching the next unassigned slot
+                if (NextMaybeUnassignedHandle != NONE) {  // maybe reaching the next unassigned slot
                     This->Lanes.lock(NextMaybeUnassignedHandle);
                     const bool IsAssigned = (Slot + 1 < This->Handles[NextMaybeUnassignedHandle].NextSlot);
                     This->Lanes.unlock(NextMaybeUnassignedHandle);
@@ -285,10 +297,10 @@ public:
     template <class... Args>
     std::pair<index_type, bool> findOrInsert(const lane_id H, Args&&... Xs) {
         const auto Lane = Lanes.guard(H);
-        int64_t Slot = Handles[H].NextSlot;
+        slot_type Slot = Handles[H].NextSlot;
         node_type Node;
 
-        if (Slot == -1) {
+        if (Slot == NONE) {
             // reserve a slot in the index, be it for now or later usage.
             Slot = NextSlot++;
             Node = Mapping.node(static_cast<index_type>(Slot));
@@ -309,8 +321,7 @@ public:
         auto Res = Mapping.get(H, Node, std::forward<Args>(Xs)...);
         if (Res.second) {
             // inserted by self
-            Handles[H].NextSlot = -1;
-            Handles[H].NextNode = node_type{};
+            Handles[H] = {};
             return std::make_pair(static_cast<index_type>(Slot), true);
         } else {
             // inserted concurrently by another handle,
@@ -324,7 +335,7 @@ private:
 
     struct Handle {
         /// Slot where this handle will store its next value
-        int64_t NextSlot = -1;
+        slot_type NextSlot = NONE;
         node_type NextNode = nullptr;
     };
 
@@ -346,10 +357,10 @@ private:
     map_type Mapping;
 
     // Next available slot.
-    std::atomic<std::int64_t> NextSlot;
+    std::atomic<slot_type> NextSlot;
 
     // Maximum allowed slot index before growing
-    std::int64_t MaxSlotBeforeGrow;
+    slot_type MaxSlotBeforeGrow;
 
     bool tryGrow(const lane_id H) {
         Lanes.beforeLockAllBut(H);
@@ -394,8 +405,6 @@ public:
             const KeyEqual& key_equal = KeyEqual(), const KeyFactory& key_factory = KeyFactory())
             : Base(LaneCount, InitialCapacity, ReserveFirst, hash, key_equal, key_factory) {}
 
-    ~OmpFlyweight() {}
-
     iterator begin() const {
         return Base::begin(Base::Lanes.threadLane());
     }
@@ -438,8 +447,6 @@ public:
             const bool ReserveFirst = false, const Hash& hash = Hash(),
             const KeyEqual& key_equal = KeyEqual(), const KeyFactory& key_factory = KeyFactory())
             : Base(NumLanes, InitialCapacity, ReserveFirst, hash, key_equal, key_factory) {}
-
-    ~SeqFlyweight() {}
 
     iterator begin() const {
         return Base::begin(0);

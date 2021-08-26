@@ -47,9 +47,7 @@ class Insert : public Operation {
 public:
     Insert(std::string rel, VecOwn<Expression> expressions)
             : relation(std::move(rel)), expressions(std::move(expressions)) {
-        for (auto const& expr : expressions) {
-            assert(expr != nullptr && "Expression is a null-pointer");
-        }
+        assert(allValidPtrs(expressions));
     }
 
     /** @brief Get relation */
@@ -60,14 +58,6 @@ public:
     /** @brief Get expressions */
     std::vector<Expression*> getValues() const {
         return toPtrVector(expressions);
-    }
-
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res;
-        for (const auto& expr : expressions) {
-            res.push_back(expr.get());
-        }
-        return res;
     }
 
     Insert* cloning() const override {
@@ -94,6 +84,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Insert>(node);
         return relation == other.relation && equal_targets(expressions, other.expressions);
+    }
+
+    NodeVec getChildren() const override {
+        return toPtrVector<Node const>(expressions);
     }
 
     /** Relation name */

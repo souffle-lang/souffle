@@ -458,7 +458,7 @@ public:
     void setNumLanes(const std::size_t) override {}
 
     /** @brief converts record to a record reference */
-    RamDomain pack(const std::vector<RamDomain>& Vector) override {
+    RamDomain pack([[maybe_unused]] const std::vector<RamDomain>& Vector) override {
         assert(Vector.size() == 0);
         return EmptyRecordIndex;
     };
@@ -469,13 +469,13 @@ public:
     }
 
     /** @brief converts record to a record reference */
-    RamDomain pack(const std::initializer_list<RamDomain>& List) override {
+    RamDomain pack([[maybe_unused]] const std::initializer_list<RamDomain>& List) override {
         assert(List.size() == 0);
         return EmptyRecordIndex;
     }
 
     /** @brief convert record reference to a record pointer */
-    const RamDomain* unpack(RamDomain Index) const override {
+    const RamDomain* unpack([[maybe_unused]] RamDomain Index) const override {
         assert(Index == EmptyRecordIndex);
         return EmptyRecordData;
     }

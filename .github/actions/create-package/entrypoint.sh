@@ -19,4 +19,4 @@ cmake --build ./build --parallel "$(nproc)" --target package
 cd build
 
 # Upload the package to packagecloud.io
-PACKAGECLOUD_TOKEN="$PACKAGE_CLOUD_API_KEY" package_cloud push souffle-lang/souffle-test/$PKG_CLOUD_OS_NAME "$(ls *$PKG_EXTENSION | head -n1)"
+PACKAGECLOUD_TOKEN="$PACKAGE_CLOUD_API_KEY" package_cloud push souffle-lang/souffle/$PKG_CLOUD_OS_NAME "$(ls *$PKG_EXTENSION | head -n1)"

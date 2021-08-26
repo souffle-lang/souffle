@@ -49,14 +49,6 @@ public:
         return toPtrVector(statements);
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res;
-        for (const auto& cur : statements) {
-            res.push_back(cur.get());
-        }
-        return res;
-    }
-
     void apply(const NodeMapper& map) override {
         for (auto& stmt : statements) {
             stmt = map(std::move(stmt));
@@ -69,7 +61,10 @@ protected:
         return equal_targets(statements, other.statements);
     }
 
-protected:
+    NodeVec getChildren() const override {
+        return toPtrVector<Node const>(statements);
+    }
+
     /** Ordered list of RAM statements */
     VecOwn<Statement> statements;
 };

@@ -37,22 +37,12 @@ namespace souffle::ram {
 class PackRecord : public Expression {
 public:
     PackRecord(VecOwn<Expression> args) : arguments(std::move(args)) {
-        for (const auto& arg : arguments) {
-            assert(arg != nullptr && "argument is a null-pointer");
-        }
+        assert(allValidPtrs(arguments));
     }
 
     /** @brief Get record arguments */
     std::vector<Expression*> getArguments() const {
         return toPtrVector(arguments);
-    }
-
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res;
-        for (const auto& cur : arguments) {
-            res.push_back(cur.get());
-        }
-        return res;
     }
 
     PackRecord* cloning() const override {
@@ -78,6 +68,10 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<PackRecord>(node);
         return equal_targets(arguments, other.arguments);
+    }
+
+    NodeVec getChildren() const override {
+        return toPtrVector<Node const>(arguments);
     }
 
     /** Arguments */

@@ -22,7 +22,6 @@
 #include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/TranslationUnit.h"
-#include "ram/analysis/Analysis.h"
 #include "ram/analysis/Relation.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
@@ -382,8 +381,8 @@ public:
 
 protected:
     /** @Brief maps a provided search to its corresponding lexicographical ordering **/
-    std::size_t map(
-            SearchSignature cols, const OrderCollection& orders, const ChainOrderMap& chainToOrder) const {
+    std::size_t map(SearchSignature cols, [[maybe_unused]] const OrderCollection& orders,
+            const ChainOrderMap& chainToOrder) const {
         assert(orders.size() == chainToOrder.size() && "Order and Chain Sizes do not match!!");
 
         // find the chain which contains the search
@@ -485,8 +484,7 @@ private:
  */
 class IndexAnalysis : public Analysis {
 public:
-    IndexAnalysis(const char* id)
-            : Analysis(id), relAnalysis(nullptr), solver(mk<MinIndexSelectionStrategy>()) {}
+    IndexAnalysis() : Analysis(name), relAnalysis(nullptr), solver(mk<MinIndexSelectionStrategy>()) {}
 
     static constexpr const char* name = "index-analysis";
 

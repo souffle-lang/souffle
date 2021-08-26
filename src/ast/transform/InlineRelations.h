@@ -16,8 +16,10 @@
 
 #pragma once
 
+#include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
+#include <set>
 #include <string>
 
 namespace souffle::ast::transform {
@@ -27,6 +29,9 @@ namespace souffle::ast::transform {
  */
 class InlineRelationsTransformer : public Transformer {
 public:
+    using ExcludedRelations = std::set<QualifiedName>;
+    static ExcludedRelations excluded();
+
     std::string getName() const override {
         return "InlineRelationsTransformer";
     }
@@ -39,4 +44,17 @@ private:
     bool transform(TranslationUnit& translationUnit) override;
 };
 
+class InlineUnmarkExcludedTransform : public Transformer {
+public:
+    std::string getName() const override {
+        return "InlineUnmarkExcludedTransform";
+    }
+
+private:
+    InlineUnmarkExcludedTransform* cloning() const override {
+        return new InlineUnmarkExcludedTransform();
+    }
+
+    bool transform(TranslationUnit& translationUnit) override;
+};
 }  // namespace souffle::ast::transform

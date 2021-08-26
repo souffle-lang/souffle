@@ -769,12 +769,11 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             auto relName = synthesiser.getRelationName(rel);
             auto identifier = iscan.getTupleId();
             auto keys = isa->getSearchSignature(&iscan);
-            auto arity = rel->getArity();
 
             const auto& rangePatternLower = iscan.getRangePattern().first;
             const auto& rangePatternUpper = iscan.getRangePattern().second;
 
-            assert(arity > 0 && "AstToRamTranslator failed/no index scans for nullaries");
+            assert(0 < rel->getArity() && "AstToRamTranslator failed/no index scans for nullaries");
 
             PRINT_BEGIN_COMMENT(out);
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(*rel) + ")";
@@ -795,7 +794,6 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 std::ostream& out) override {
             const auto* rel = synthesiser.lookup(piscan.getRelation());
             auto relName = synthesiser.getRelationName(rel);
-            auto arity = rel->getArity();
             auto keys = isa->getSearchSignature(&piscan);
 
             const auto& rangePatternLower = piscan.getRangePattern().first;
@@ -803,7 +801,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             assert(piscan.getTupleId() == 0 && "not outer-most loop");
 
-            assert(arity > 0 && "AstToRamTranslator failed/no parallel index scan for nullaries");
+            assert(0 < rel->getArity() && "AstToRamTranslator failed/no parallel index scan for nullaries");
 
             assert(!preambleIssued && "only first loop can be made parallel");
             preambleIssued = true;
@@ -837,13 +835,12 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             const auto* rel = synthesiser.lookup(iifexists.getRelation());
             auto relName = synthesiser.getRelationName(rel);
             auto identifier = iifexists.getTupleId();
-            auto arity = rel->getArity();
             const auto& rangePatternLower = iifexists.getRangePattern().first;
             const auto& rangePatternUpper = iifexists.getRangePattern().second;
             auto keys = isa->getSearchSignature(&iifexists);
 
             // check list of keys
-            assert(arity > 0 && "AstToRamTranslator failed");
+            assert(0 < rel->getArity() && "AstToRamTranslator failed");
             auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(*rel) + ")";
             auto rangeBounds = getPaddedRangeBounds(*rel, rangePatternLower, rangePatternUpper);
 
@@ -871,15 +868,12 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             PRINT_BEGIN_COMMENT(out);
             const auto* rel = synthesiser.lookup(piifexists.getRelation());
             auto relName = synthesiser.getRelationName(rel);
-            auto arity = rel->getArity();
             const auto& rangePatternLower = piifexists.getRangePattern().first;
             const auto& rangePatternUpper = piifexists.getRangePattern().second;
             auto keys = isa->getSearchSignature(&piifexists);
 
             assert(piifexists.getTupleId() == 0 && "not outer-most loop");
-
-            assert(arity > 0 && "AstToRamTranslator failed");
-
+            assert(0 < rel->getArity() && "AstToRamTranslator failed");
             assert(!preambleIssued && "only first loop can be made parallel");
             preambleIssued = true;
 

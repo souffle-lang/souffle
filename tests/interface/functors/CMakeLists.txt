@@ -12,7 +12,7 @@ target_compile_features(functors
 set_target_properties(functors PROPERTIES CXX_EXTENSIONS OFF)
 
 target_compile_options(functors
-                       PUBLIC "-Wall;-Wextra;-fwrapv")
+                       PUBLIC "-Wall;-Wextra;-Werror;-fwrapv")
 
 if (SOUFFLE_DOMAIN_64BIT)
     target_compile_definitions(functors

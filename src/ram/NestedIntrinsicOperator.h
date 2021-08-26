@@ -68,14 +68,6 @@ public:
         return toPtrVector(args);
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = TupleOperation::getChildNodes();
-        for (auto&& x : args) {
-            res.push_back(x.get());
-        }
-        return res;
-    }
-
     NestedIntrinsicOperator* cloning() const override {
         return new NestedIntrinsicOperator(op, clone(args), clone(getOperation()), getTupleId());
     }
@@ -98,6 +90,14 @@ protected:
     bool equal(const Node& node) const override {
         auto&& other = asAssert<NestedIntrinsicOperator>(node);
         return TupleOperation::equal(node) && op == other.op && equal_targets(args, other.args);
+    }
+
+    NodeVec getChildren() const override {
+        auto res = TupleOperation::getChildren();
+        for (auto&& x : args) {
+            res.push_back(x.get());
+        }
+        return res;
     }
 
     /* Arguments */

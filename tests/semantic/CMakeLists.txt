@@ -6,12 +6,19 @@
 
 include(SouffleTests)
 
+add_subdirectory(pragma2)
+
 function(positive_test NAME)
     souffle_positive_test(${NAME} semantic)
 endfunction()
 
 function(negative_test NAME)
     souffle_negative_test(${NAME} semantic)
+endfunction()
+
+function(SOUFFLE_POSITIVE_FUNCTOR_TEST TEST_NAME)
+        souffle_run_test_helper(TEST_NAME ${TEST_NAME} FUNCTORS ${ARGN})
+        souffle_run_test_helper(TEST_NAME ${TEST_NAME} COMPILED FUNCTORS ${ARGN})
 endfunction()
 
 negative_test(adt_invalid_arity)
@@ -72,6 +79,7 @@ positive_test(identity_functor)
 positive_test(identity_functor_inf_loop)
 negative_test(inline_cycle1)
 positive_test(inline_cycle2)
+negative_test(inline_exclude)
 negative_test(inline_ungrounded)
 negative_test(inline_negation)
 negative_test(inline_output)
@@ -203,5 +211,12 @@ positive_test(choice1)
 # positive_test(comparison) TODO See PR #1932
 negative_test(disjoint_names2)
 positive_test(pragma)
+positive_test(pragma1)
+# Only test `pragma2` w/ interpreter mode.
+# Reason: Linux tooling becomes violently incontinent when confronted with the
+#         idea of an so w/ non alpha-numeric characters in the name.
+#         See `tests/semantic/pragma2/CMakeLists.txt` for details.
+# souffle_positive_functor_test(pragma2 CATEGORY semantic)
+souffle_run_test_helper(TEST_NAME pragma2 FUNCTORS CATEGORY semantic)
 positive_test(rel_redundant)
 positive_test(type_as4)

@@ -160,7 +160,7 @@ NodePtr NodeGenerator::visit_(
         type_identity<ram::ProvenanceExistenceCheck>, const ram::ProvenanceExistenceCheck& provExists) {
     SuperInstruction superOp = getExistenceSuperInstInfo(provExists);
     NodeType type = constructNodeType("ProvenanceExistenceCheck", lookup(provExists.getRelation()));
-    return mk<ProvenanceExistenceCheck>(type, &provExists, dispatch(*provExists.getChildNodes().back()),
+    return mk<ProvenanceExistenceCheck>(type, &provExists, dispatch(*(--provExists.getChildNodes().end())),
             encodeView(&provExists), std::move(superOp));
 }
 

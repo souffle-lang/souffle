@@ -1,0 +1,12 @@
+Warning: overriding previous pragma for key `arbitrary-key` in file pragma2.dl at line 14
+.pragma "arbitrary-key" "never gonna"
+^-------------------------------------
+previous pragma for key `arbitrary-key` in file pragma2.dl at line 13
+.pragma "arbitrary-key" "down"
+^------------------------------
+Warning: overriding previous pragma for key `arbitrary-key` in file pragma2.dl at line 15
+.pragma "arbitrary-key" "run around"
+^------------------------------------
+previous pragma for key `arbitrary-key` in file pragma2.dl at line 14
+.pragma "arbitrary-key" "never gonna"
+^-------------------------------------

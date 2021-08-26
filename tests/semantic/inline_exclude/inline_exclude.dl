@@ -1,0 +1,21 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2021, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// `inline-exclude` takes precedence over other modifiers
+.pragma "inline-exclude" "b"
+.decl a(x: number)
+.decl b(x: number, y: number) inline
+.decl d(x: number, y: number) inline no_inline // no_inline overrides
+.decl c(x: number, y: number)
+
+a(1).
+a(2).
+
+b(x, y) :- x != y.
+d(x, y) :- x != y.
+c(x, y) :- a(x), a(y), b(x, y), d(x, y).
+
+.output c

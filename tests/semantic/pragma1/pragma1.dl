@@ -1,0 +1,14 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2021, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// verify that cmd-ln-args override pragma-args
+
+// should have no effect b/c test suit should specify `-F` on the cmd ln
+.pragma "fact-dir" "//never//gonna//give//you//up//"
+
+.decl a(i:number)
+.input a
+.output a

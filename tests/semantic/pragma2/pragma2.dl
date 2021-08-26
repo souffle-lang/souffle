@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2021, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// verify that multiple-arg options can be used multiple times
+
+// I'm tired and can't be assed to figure out why cmake is not quoting it right.
+// Good enough for the test.
+.pragma "libraries"     "'never gonna'"
+.pragma "libraries"     "'let you'"
+.pragma "arbitrary-key" "down"
+.pragma "arbitrary-key" "never gonna"
+.pragma "arbitrary-key" "run around"
+
+.functor foo():number
+.functor bar():number
+
+.decl a(i:number)
+a(x) :- x = @foo().
+a(x) :- x = @bar().
+.output a

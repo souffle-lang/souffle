@@ -71,7 +71,7 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
         int priorOpLevel = -1;
 
         std::function<Own<Node>(Own<Node>)> aggRewriter = [&](Own<Node> node) -> Own<Node> {
-            if (isA<AbstractAggregate>(node)) {
+            if (as<AbstractAggregate, AllowCrossCast>(node)) {
                 auto* tupleOp = as<TupleOperation>(node);
                 assert(tupleOp != nullptr && "aggregate conversion to nested operation failed");
                 int dataDepLevel = rla->getLevel(tupleOp);

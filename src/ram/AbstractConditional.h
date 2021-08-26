@@ -47,12 +47,6 @@ public:
         return *condition;
     }
 
-    std::vector<const Node*> getChildNodes() const override {
-        auto res = NestedOperation::getChildNodes();
-        res.push_back(condition.get());
-        return res;
-    }
-
     void apply(const NodeMapper& map) override {
         NestedOperation::apply(map);
         condition = map(std::move(condition));
@@ -62,6 +56,12 @@ protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<AbstractConditional>(node);
         return NestedOperation::equal(node) && equal_ptr(condition, other.condition);
+    }
+
+    NodeVec getChildren() const override {
+        auto res = NestedOperation::getChildren();
+        res.push_back(condition.get());
+        return res;
     }
 
     /** Condition */

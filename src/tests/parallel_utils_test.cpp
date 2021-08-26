@@ -30,7 +30,9 @@ TEST(ParallelUtils, SpinLock) {
 
     volatile int c = 0;
 
+#ifdef _OPENMP
 #pragma omp parallel for num_threads(4)
+#endif
     for (int i = 0; i < N; i++) {
         lock.lock();
         c++;
@@ -48,7 +50,9 @@ TEST(ParallelUtils, ReadWriteLock) {
 
     volatile int c = 0;
 
+#ifdef _OPENMP
 #pragma omp parallel for num_threads(4)
+#endif
     for (int i = 0; i < N; i++) {
         if (i % K == 0) {  // 10% write probability
             lock.start_write();
@@ -72,7 +76,9 @@ TEST(ParallelUtils, OptimisticReadWriteLock) {
 
     volatile int c = 0;
 
+#ifdef _OPENMP
 #pragma omp parallel for num_threads(4)
+#endif
     for (int i = 0; i < N; i++) {
         if (i % K == 0) {  // 10% write probability
             lock.start_write();

@@ -16,77 +16,13 @@
 
 #pragma once
 
-#include <iostream>
 #include <map>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace souffle {
-
-/* A simple table class, to be used as a base for others to extend from. */
-template <typename K, typename V>
-class BaseTable {
-public:
-    /* Empty constructor. */
-    BaseTable() : _default(V()), _data(std::map<K, V>()) {}
-    /* Copy constructor. */
-    BaseTable(const BaseTable& other) {
-        data(other.data());
-    }
-    /* Assignment operator. */
-    BaseTable& operator=(const BaseTable& other) {
-        data(other.data());
-        return *this;
-    }
-    /* Set the raw data. */
-    const std::map<K, V>& data() const {
-        return _data;
-    }
-    /* Get the raw data. */
-    void data(const std::map<K, V>& otherData) {
-        _data = otherData;
-    }
-    /* Get a value by its key, if not found return a reference to an object of the value class called with an
-     * empty constructor. */
-    const V& get(const K& key) const {
-        return (has(key)) ? _data.at(key) : _default;
-    }
-    /* Get a value by its key, if not found return the specified value. */
-    const V& get(const K& key, const V& value) const {
-        return (has(key)) ? _data.at(key) : value;
-    }
-    /* Check the table has the specified key. */
-    bool has(const K& key) const {
-        return _data.find(key) != _data.end();
-    }
-    /* Check the table has the specified key and the specified value for that key. */
-    bool has(const K& key, const V& value) const {
-        return has(key) && _data.at(key) == value;
-    }
-    /* Set the entry in the table for the specified key to an object of the value class called with an empty
-     * constructor. */
-    void set(const K& key) {
-        _data[key] = _default;
-    }
-    /* Set the entry in the table for the specified key to the specified value. */
-    void set(const K& key, const V& value) {
-        _data[key] = value;
-    }
-    /* Erase the entry in the table for the specified key. */
-    void unset(const K& key) {
-        _data.erase(key);
-    }
-    /* Print the raw backing data to the specified stream. */
-    void print(std::ostream& os) {
-        os << _data << std::endl;
-    }
-
-private:
-    /* Default object made by empty constructor to return by reference. */
-    const V _default;
-    /* The raw data backing this table. */
-    std::map<K, V> _data;
-};
 
 /* Struct to represent an option given to the main function by command line arguments. */
 struct MainOption {
@@ -104,21 +40,62 @@ struct MainOption {
 };
 
 /* The MainConfig class, used to handle the global configuration and the help text. */
-class MainConfig : public BaseTable<std::string, std::string> {
+class MainConfig {
+    using Single = std::string;
+    using Many = std::vector<Single>;
+
 public:
-    /* Empty constructor, does nothing. */
-    MainConfig() : BaseTable<std::string, std::string>() {}
     /* The argument processing method, this takes the arguments provided to main, a header, a footer, and a
        list of options.
        From these, we construct the help text and the global configuration. See Global.cpp for details. */
     void processArgs(int argc, char** argv, const std::string& header, const std::string& footer,
-            const std::vector<MainOption> mainOptions);
+            const std::vector<MainOption>& mainOptions);
+
     /* Obtain the help text as a string. Note that 'processArgs' must be called before this is used. */
     const std::string& help() const {
         return _help;
     }
 
+    /* Get a single-value key if present, else returns the default single-value (empty string) */
+    const Single& get(std::string_view key) const;
+    /* Get a multi-value key if present, else returns the default multi-value (empty vector) */
+    const Many& getMany(std::string_view key) const;
+    /* Get a single-value key if present, else returns the second argument */
+    const Single& get(std::string_view key, const Single&) const;
+    /* Get a multi-value key if present, else returns the second argument */
+    const Many& getMany(std::string_view key, const Many&) const;
+
+    /* Check the table has the specified key. */
+    bool has(std::string_view key) const;
+    /* Returns true IFF the table contains this key-value pair */
+    bool has(std::string_view key, std::string_view value) const;
+
+    // Appends a value to a multi-value key
+    void append(std::string_view key, Single);
+    /* Set the entry in the table for the specified key to the specified value. */
+    void set(std::string key, Single value = {});
+    /* Set the entry in the table for the specified key to the specified value. */
+    void set(std::string key, Many value);
+    /* Erase the entry in the table for the specified key. */
+    void unset(std::string_view key);
+
+    enum class State { unset, default_, set };
+
+    State state(std::string_view key) const;
+    bool allowsMultiple(std::string_view key) const;
+
+    std::map<std::string, Many, std::less<>> const& data() const {
+        return _map;
+    }
+
 private:
+    Single _default_single;
+    Many _default_many;
+    std::map<std::string, Many, std::less<>> _map;
+    // whether this option was explicitly set (not present -> default value or not set)
+    std::set<std::string, std::less<>> _explicitly_set;
+    // whether this option allows multiple instances
+    std::set<std::string, std::less<>> _allows_multiple;
     /* The help text, printed if there is an error in the command line arguments. */
     std::string _help;
 };

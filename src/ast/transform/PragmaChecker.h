@@ -18,6 +18,8 @@
 
 #include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
+#include <functional>
+#include <set>
 #include <string>
 
 namespace souffle::ast::transform {
@@ -27,6 +29,14 @@ public:
     std::string getName() const override {
         return "PragmaChecker";
     }
+
+    // This helper is used to implement both `--pragma` cmd ln args and `.pragma` statements.
+    struct Merger {
+        Merger();
+        bool operator()(std::string_view key, std::string_view value);
+
+        std::set<std::string, std::less<>> locked_keys;
+    };
 
 private:
     PragmaChecker* cloning() const override {

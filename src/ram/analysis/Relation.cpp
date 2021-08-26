@@ -14,6 +14,7 @@
  *
  ***********************************************************************/
 
+#include "ram/Relation.h"
 #include "ram/analysis/Relation.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/utility/MiscUtil.h"

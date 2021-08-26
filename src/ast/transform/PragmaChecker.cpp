@@ -20,24 +20,61 @@
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/utility/Visitor.h"
+#include "reports/ErrorReport.h"
 #include <utility>
 #include <vector>
 
 namespace souffle::ast::transform {
+
+PragmaChecker::Merger::Merger() {
+    auto& config = Global::config();
+
+    for (auto&& [k, v] : config.data()) {
+        if (config.state(k) == MainConfig::State::set) {
+            locked_keys.insert(k);
+        }
+    }
+}
+
+bool PragmaChecker::Merger::operator()(std::string_view k, std::string_view v) {
+    // Command line options take precedence, even if the param allows multiple
+    if (contains(locked_keys, k)) return false;
+
+    auto& config = Global::config();
+    if (config.allowsMultiple(k))
+        config.append(k, std::string(v));
+    else
+        config.set(std::string(k), std::string(v));
+
+    return true;
+}
+
 bool PragmaChecker::transform(TranslationUnit& translationUnit) {
+    Merger merger;
+
+    auto& program = translationUnit.getProgram();
+    auto& error = translationUnit.getErrorReport();
     bool changed = false;
-    Program& program = translationUnit.getProgram();
+    std::map<std::string, Pragma const*> previous_pragma;
 
     // Take in pragma options from the datalog file
-    visit(program, [&](const Pragma& pragma) {
-        std::pair<std::string, std::string> kvp = pragma.getkvp();
+    for (auto&& pragma : program.getPragmaDirectives()) {
+        auto&& [k, v] = pragma->getkvp();
 
-        // Command line options take precedence
-        if (!Global::config().has(kvp.first)) {
-            changed = true;
-            Global::config().set(kvp.first, kvp.second);
+        // warn if subsequent pragmas override one another
+        if (!Global::config().allowsMultiple(k)) {
+            auto it = previous_pragma.find(k);
+            if (it != previous_pragma.end()) {
+                error.addDiagnostic({Diagnostic::Type::WARNING,
+                        {tfm::format("overriding previous pragma for key `%s`", k), pragma->getSrcLoc()},
+                        {{tfm::format("previous pragma for key `%s`", k), it->second->getSrcLoc()}}});
+            }
+
+            previous_pragma[k] = pragma.get();
         }
-    });
+
+        changed |= merger(k, v);
+    }
 
     return changed;
 }

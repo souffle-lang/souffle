@@ -53,12 +53,6 @@ public:
     LogRelationTimer(Own<Statement> stmt, std::string msg, std::string relRef)
             : RelationStatement(std::move(relRef)), AbstractLog(std::move(stmt), std::move(msg)) {}
 
-    std::vector<const Node*> getChildNodes() const override {
-        std::vector<const Node*> res = RelationStatement::getChildNodes();
-        res.push_back(AbstractLog::getChildNodes().at(0));
-        return res;
-    }
-
     LogRelationTimer* cloning() const override {
         return new LogRelationTimer(clone(statement), message, relation);
     }
@@ -74,6 +68,12 @@ protected:
            << std::endl;
         Statement::print(statement.get(), os, tabpos + 1);
         os << times(" ", tabpos) << "END TIMER" << std::endl;
+    }
+
+    NodeVec getChildren() const override {
+        auto res = RelationStatement::getChildren();
+        res.push_back(AbstractLog::getChildren().at(0));
+        return res;
     }
 };
 

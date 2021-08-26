@@ -1,0 +1,13 @@
+Error: Ungrounded variable x in file inline_exclude.dl at line 17
+b(x, y) :- x != y.
+--^----------------
+Error: Ungrounded variable y in file inline_exclude.dl at line 17
+b(x, y) :- x != y.
+-----^-------------
+Error: Ungrounded variable x in file inline_exclude.dl at line 18
+d(x, y) :- x != y.
+--^----------------
+Error: Ungrounded variable y in file inline_exclude.dl at line 18
+d(x, y) :- x != y.
+-----^-------------
+4 errors generated, evaluation aborted

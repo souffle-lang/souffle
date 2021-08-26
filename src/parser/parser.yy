@@ -134,7 +134,9 @@
 %token EQREL_QUALIFIER           "equivalence relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token INLINE_QUALIFIER          "relation qualifier inline"
+%token NO_INLINE_QUALIFIER       "relation qualifier no_inline"
 %token MAGIC_QUALIFIER           "relation qualifier magic"
+%token NO_MAGIC_QUALIFIER        "relation qualifier no_magic"
 %token TMATCH                    "match predicate"
 %token TCONTAINS                 "checks whether substring is contained in a string"
 %token STATEFUL                  "stateful functor"
@@ -541,9 +543,17 @@ relation_tags
     {
       $$ = driver.addTag(RelationTag::INLINE, @2, $1);
     }
+  | relation_tags NO_INLINE_QUALIFIER
+    {
+      $$ = driver.addTag(RelationTag::NO_INLINE, @2, $1);
+    }
   | relation_tags MAGIC_QUALIFIER
     {
       $$ = driver.addTag(RelationTag::MAGIC, @2, $1);
+    }
+  | relation_tags NO_MAGIC_QUALIFIER
+    {
+      $$ = driver.addTag(RelationTag::NO_MAGIC, @2, $1);
     }
   | relation_tags BRIE_QUALIFIER
     {

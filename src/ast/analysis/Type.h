@@ -20,7 +20,7 @@
 #include "FunctorOps.h"
 #include "ast/Clause.h"
 #include "ast/NumericConstant.h"
-#include "ast/analysis/Analysis.h"
+#include "ast/TranslationUnit.h"
 #include "ast/analysis/TypeSystem.h"
 #include "souffle/BinaryConstraintOps.h"
 #include <cstddef>
