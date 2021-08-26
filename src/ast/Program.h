@@ -98,9 +98,9 @@ public:
 
     void apply(const NodeMapper& map) override;
 
-protected:
     void print(std::ostream& os) const override;
 
+protected:
     NodeVec getChildNodesImpl() const override;
 
     friend class souffle::ParserDriver;
