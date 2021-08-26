@@ -21,8 +21,12 @@
 #include "ast/Clause.h"
 #include "ast/NumericConstant.h"
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "ast/TranslationUnit.h"
 =======
+=======
+#include "ast/TranslationUnit.h"
+>>>>>>> 34c3e7d7f (Correction)
 #include "ast/analysis/Analysis.h"
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
