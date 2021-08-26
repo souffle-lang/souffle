@@ -50,6 +50,13 @@ RuleBody RuleBody::negated() const {
 }
 
 void RuleBody::conjunct(RuleBody other) {
+
+    if (dnf.size() == 0) {
+      dnf = std::move(other.dnf);
+
+      return;
+    }
+
     // avoid making clones if possible
     if (dnf.size() == 1 && other.dnf.size() == 1) {
         for (auto&& rhs : other.dnf[0]) {
