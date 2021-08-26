@@ -139,7 +139,7 @@ void TypeAnalysis::print(std::ostream& os) const {
     os << std::endl << "-- Result (2) --" << std::endl;
     auto& program = translationUnit->getProgram();
     for (auto& cur : program.getClauses()) {
-        printer.printAnnoatedClause(*cur);
+        printer.printAnnotatedClause(*cur);
     }
 }
 
@@ -720,7 +720,7 @@ void TypeAnnotationPrinter::print_(type_identity<Aggregator>, [[maybe_unused]] c
 // do nothing
 // }
 
-void TypeAnnotationPrinter::printAnnoatedClause(const Clause& clause) {
+void TypeAnnotationPrinter::printAnnotatedClause(const Clause& clause) {
     Atom* head = clause.getHead();
     print_(type_identity<Atom>(), *head);
     auto bodyLiterals = clause.getBodyLiterals();

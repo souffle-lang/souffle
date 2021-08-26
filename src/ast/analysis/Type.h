@@ -151,7 +151,7 @@ public:
             std::ostream& os)
             : tu(tu), argumentTypes(argumentTypes), os(os) {}
 
-    void printAnnoatedClause(const Clause& clause);
+    void printAnnotatedClause(const Clause& clause);
 
 private:
     const TranslationUnit* tu;
