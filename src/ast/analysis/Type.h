@@ -22,6 +22,7 @@
 #include "ast/NumericConstant.h"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "ast/TranslationUnit.h"
 <<<<<<< HEAD
 =======
@@ -34,6 +35,11 @@
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
 >>>>>>> b6569c3e6 (Add type annotation printer)
+=======
+#include "ast/TranslationUnit.h"
+#include "ast/analysis/SumTypeBranches.h"
+#include "ast/analysis/TypeEnvironment.h"
+>>>>>>> c45ba4558102aea3c7eed2a37e0d2a0e1a4c39e0
 #include "ast/analysis/TypeSystem.h"
 #include "ast/utility/Utils.h"
 #include "souffle/BinaryConstraintOps.h"
