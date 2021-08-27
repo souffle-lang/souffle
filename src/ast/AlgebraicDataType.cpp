@@ -15,17 +15,17 @@
 
 namespace souffle::ast {
 
-AlgebraicDataType::AlgebraicDataType(QualifiedName name, VecOwn<BranchDeclaration> branches, SrcLocation loc)
+AlgebraicDataType::AlgebraicDataType(QualifiedName name, VecOwn<BranchType> branches, SrcLocation loc)
         : Type(std::move(name), std::move(loc)), branches(std::move(branches)) {
     assert(!this->branches.empty());
     assert(allValidPtrs(this->branches));
 }
 
-std::vector<BranchDeclaration*> AlgebraicDataType::getBranches() const {
+std::vector<BranchType*> AlgebraicDataType::getBranches() const {
     return toPtrVector(branches);
 }
 
-Node::NodeVec AlgebraicDataType::getChildNodesImpl() const {
+Node::NodeVec AlgebraicDataType::getChildren() const {
     auto cn = makePtrRange(branches);
     return {cn.begin(), cn.end()};
 }

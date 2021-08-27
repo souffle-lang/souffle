@@ -142,7 +142,7 @@ void Program::apply(const NodeMapper& map) {
     mapAll(directives, map);
 }
 
-Node::NodeVec Program::getChildNodesImpl() const {
+Node::NodeVec Program::getChildren() const {
     std::vector<const Node*> res;
     append(res, makePtrRange(pragmas));
     append(res, makePtrRange(components));

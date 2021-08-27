@@ -50,7 +50,7 @@ void Relation::apply(const NodeMapper& map) {
     mapAll(attributes, map);
 }
 
-Node::NodeVec Relation::getChildNodesImpl() const {
+Node::NodeVec Relation::getChildren() const {
     auto rn = makePtrRange(attributes);
     return {rn.begin(), rn.end()};
 }

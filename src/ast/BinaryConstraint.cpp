@@ -25,7 +25,7 @@ void BinaryConstraint::apply(const NodeMapper& map) {
     rhs = map(std::move(rhs));
 }
 
-Node::NodeVec BinaryConstraint::getChildNodesImpl() const {
+Node::NodeVec BinaryConstraint::getChildren() const {
     return {lhs.get(), rhs.get()};
 }
 

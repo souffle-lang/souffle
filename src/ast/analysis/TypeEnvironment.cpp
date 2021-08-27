@@ -18,7 +18,7 @@
 #include "GraphUtils.h"
 #include "ast/AlgebraicDataType.h"
 #include "ast/Attribute.h"
-#include "ast/BranchDeclaration.h"
+#include "ast/BranchType.h"
 #include "ast/Program.h"
 #include "ast/RecordType.h"
 #include "ast/SubsetType.h"
@@ -211,7 +211,7 @@ const Type* TypeEnvironmentAnalysis::createType(
                 if (type == nullptr) return nullptr;
                 branchTypes.push_back(type);
             }
-            elements.push_back({branch->getConstructor(), std::move(branchTypes)});
+            elements.push_back({branch->getBranchName(), std::move(branchTypes)});
         }
 
         adt.setBranches(std::move(elements));

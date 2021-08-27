@@ -221,7 +221,7 @@ void collectContent(Program& program, const Component& component, const TypeBind
         });
 
         // instantiate elements of ADT branch types
-        visit(*type, [&](ast::BranchDeclaration& type) {
+        visit(*type, [&](ast::BranchType& type) {
             // TODO(b-scholz): instiantiate branch identifier as well
             //                 (needs to be re-defined as QualifiedName)
             for (auto& field : type.getFields()) {

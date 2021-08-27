@@ -47,7 +47,7 @@ public:
 
     void apply(const NodeMapper& map) override;
 
-    NodeVec getChildNodesImpl() const override;
+    NodeVec getChildren() const override;
 
 protected:
     void print(std::ostream& out) const override;

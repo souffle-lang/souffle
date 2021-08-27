@@ -37,7 +37,7 @@ void ExecutionPlan::apply(const NodeMapper& map) {
     }
 }
 
-Node::NodeVec ExecutionPlan::getChildNodesImpl() const {
+Node::NodeVec ExecutionPlan::getChildren() const {
     auto ran = makeTransformRange(plans, [](auto const& pair) { return pair.second.get(); });
     return {ran.begin(), ran.end()};
 }

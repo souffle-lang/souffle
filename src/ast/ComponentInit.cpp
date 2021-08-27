@@ -32,7 +32,7 @@ void ComponentInit::apply(const NodeMapper& mapper) {
     componentType = mapper(std::move(componentType));
 }
 
-Node::NodeVec ComponentInit::getChildNodesImpl() const {
+Node::NodeVec ComponentInit::getChildren() const {
     return {componentType.get()};
 }
 

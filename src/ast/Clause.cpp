@@ -62,7 +62,7 @@ void Clause::apply(const NodeMapper& map) {
     mapAll(bodyLiterals, map);
 }
 
-Node::NodeVec Clause::getChildNodesImpl() const {
+Node::NodeVec Clause::getChildren() const {
     std::vector<const Node*> res = {head.get()};
     append(res, makePtrRange(bodyLiterals));
     return res;

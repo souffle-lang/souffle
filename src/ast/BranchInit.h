@@ -38,7 +38,7 @@ class BranchInit : public Term {
 public:
     BranchInit(std::string constructor, VecOwn<Argument> args, SrcLocation loc = {});
 
-    const std::string& getConstructor() const {
+    const std::string& getBranchName() const {
         return constructor;
     }
 

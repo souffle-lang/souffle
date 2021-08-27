@@ -28,8 +28,8 @@ void Term::addArgument(Own<Argument> arg) {
     args.push_back(std::move(arg));
 }
 
-Node::NodeVec Term::getChildNodesImpl() const {
-    auto res = Argument::getChildNodesImpl();
+Node::NodeVec Term::getChildren() const {
+    auto res = Argument::getChildren();
     append(res, makePtrRange(args));
     return res;
 }

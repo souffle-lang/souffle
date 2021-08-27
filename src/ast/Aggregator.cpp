@@ -59,8 +59,8 @@ Aggregator* Aggregator::cloning() const {
     return new Aggregator(baseOperator, clone(targetExpression), clone(body), getSrcLoc());
 }
 
-Node::NodeVec Aggregator::getChildNodesImpl() const {
-    auto res = Argument::getChildNodesImpl();
+Node::NodeVec Aggregator::getChildren() const {
+    auto res = Argument::getChildren();
     if (targetExpression) {
         res.push_back(targetExpression.get());
     }

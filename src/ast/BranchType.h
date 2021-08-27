@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file BranchDeclaration.h
+ * @file BranchType.h
  *
  * Defines the wrapper for a single branch in ADT declaration.
  *
@@ -27,7 +27,7 @@
 namespace souffle::ast {
 
 /**
- * @class BranchDeclaration
+ * @class BranchType
  * @brief Wrapper for the single branch declaration (product type) inside ADT declaration.
  *
  * @param constructor An entity used to create a variant type. Can be though of as a name of the branch.
@@ -36,21 +36,20 @@ namespace souffle::ast {
  * A branch declaration corresponds to a product type and forms a part of ADT declaration.
  * Currently it's required for all the branches to have unique names.
  *
- * TODO (b-scholz): Rename to BranchDeclaration to BranchType (to be consistent to other type declarations)
- * TODO (b-scholz): Rename Constructor to BranchName
- * TODO (b-scholz): Make Constructor/BranchName a QualifiedName
+ * TODO (b-scholz): Make BranchName a QualifiedName; otherwise ADTs can only have one
+ *                  component instantiation.
  */
-class BranchDeclaration : public Node {
+class BranchType : public Node {
 public:
-    BranchDeclaration(std::string constructor, VecOwn<Attribute> fields, SrcLocation loc = {});
+    BranchType(std::string constructor, VecOwn<Attribute> fields, SrcLocation loc = {});
 
     /** Get name of branch identifier */
-    const std::string& getConstructor() const {
+    const std::string& getBranchName() const {
         return constructor;
     }
 
     /** Set branch identifier */
-    void setConstructor(const std::string name) {
+    void setBranchName(const std::string name) {
         constructor = name;
     }
 
@@ -61,7 +60,7 @@ protected:
     void print(std::ostream& os) const override;
 
 private:
-    BranchDeclaration* cloning() const override;
+    BranchType* cloning() const override;
 
 private:
     /** Name of branch */

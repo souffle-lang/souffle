@@ -114,7 +114,7 @@ public:
 protected:
     void print(std::ostream& os) const override;
 
-    NodeVec getChildNodesImpl() const override;
+    NodeVec getChildren() const override;
 
     friend class souffle::ParserDriver;
 

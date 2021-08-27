@@ -67,7 +67,7 @@
     #include "ast/StringConstant.h"
     #include "ast/SubsetType.h"
     #include "ast/AlgebraicDataType.h"
-    #include "ast/BranchDeclaration.h"
+    #include "ast/BranchType.h"
     #include "ast/Type.h"
     #include "ast/TypeCast.h"
     #include "ast/UnionType.h"
@@ -274,8 +274,8 @@
 %type <Mov<std::vector<ast::QualifiedName>>>   component_type_params
 %type <Mov<std::vector<ast::QualifiedName>>>   component_param_list
 %type <Mov<std::vector<ast::QualifiedName>>>   union_type_list
-%type <Mov<VecOwn<ast::BranchDeclaration>>>    adt_branch_list
-%type <Mov<Own<ast::BranchDeclaration>>>       adt_branch
+%type <Mov<VecOwn<ast::BranchType>>>    adt_branch_list
+%type <Mov<Own<ast::BranchType>>>       adt_branch
 
 /* -- Operator precedence -- */
 %left L_OR
@@ -444,11 +444,11 @@ adt_branch_list
 adt_branch
   : IDENT[name] LBRACE RBRACE
     {
-      $$ = mk<ast::BranchDeclaration>($name, VecOwn<ast::Attribute>{}, @$);
+      $$ = mk<ast::BranchType>($name, VecOwn<ast::Attribute>{}, @$);
     }
   | IDENT[name] LBRACE non_empty_attributes[attributes] RBRACE
     {
-      $$ = mk<ast::BranchDeclaration>($name, $attributes, @$);
+      $$ = mk<ast::BranchType>($name, $attributes, @$);
     }
   ;
 

@@ -47,7 +47,7 @@ void Atom::apply(const NodeMapper& map) {
     mapAll(arguments, map);
 }
 
-Node::NodeVec Atom::getChildNodesImpl() const {
+Node::NodeVec Atom::getChildren() const {
     auto cn = makePtrRange(arguments);
     return {cn.begin(), cn.end()};
 }

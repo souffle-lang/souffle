@@ -33,11 +33,11 @@ Own<Node> Node::cloneImpl() const {
 void Node::apply(const NodeMapper& /* mapper */) {}
 
 Node::ConstChildNodes Node::getChildNodes() const {
-    return ConstChildNodes(getChildNodesImpl(), detail::RefCaster());
+    return ConstChildNodes(getChildren(), detail::RefCaster());
 }
 
 Node::ChildNodes Node::getChildNodes() {
-    return ChildNodes(getChildNodesImpl(), detail::ConstCaster());
+    return ChildNodes(getChildren(), detail::ConstCaster());
 }
 
 std::ostream& operator<<(std::ostream& out, const Node& node) {
@@ -50,7 +50,7 @@ bool Node::equal(const Node&) const {
     return true;
 }
 
-Node::NodeVec Node::getChildNodesImpl() const {
+Node::NodeVec Node::getChildren() const {
     return {};
 }
 

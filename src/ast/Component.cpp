@@ -99,7 +99,7 @@ void Component::apply(const NodeMapper& mapper) {
     mapAll(directives, mapper);
 }
 
-Node::NodeVec Component::getChildNodesImpl() const {
+Node::NodeVec Component::getChildren() const {
     std::vector<const Node*> res;
     res.push_back(componentType.get());
     append(res, makePtrRange(baseComponents));

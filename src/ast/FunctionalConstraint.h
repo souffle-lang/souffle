@@ -59,7 +59,7 @@ public:
 protected:
     void print(std::ostream& os) const override;
 
-    NodeVec getChildNodesImpl() const override;
+    NodeVec getChildren() const override;
 
 private:
     bool equal(const Node& node) const override;

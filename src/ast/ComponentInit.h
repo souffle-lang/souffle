@@ -61,7 +61,7 @@ protected:
     bool equal(const Node& node) const override;
 
 private:
-    NodeVec getChildNodesImpl() const override;
+    NodeVec getChildren() const override;
 
     ComponentInit* cloning() const override;
 

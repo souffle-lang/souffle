@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "ast/BranchDeclaration.h"
+#include "ast/BranchType.h"
 #include "ast/QualifiedName.h"
 #include "ast/Type.h"
 #include "parser/SrcLocation.h"
@@ -40,14 +40,14 @@ namespace souffle::ast {
  */
 class AlgebraicDataType : public Type {
 public:
-    AlgebraicDataType(QualifiedName name, VecOwn<BranchDeclaration> branches, SrcLocation loc = {});
+    AlgebraicDataType(QualifiedName name, VecOwn<BranchType> branches, SrcLocation loc = {});
 
-    std::vector<BranchDeclaration*> getBranches() const;
+    std::vector<BranchType*> getBranches() const;
 
 protected:
     void print(std::ostream& os) const override;
 
-    NodeVec getChildNodesImpl() const override;
+    NodeVec getChildren() const override;
 
 private:
     bool equal(const Node& node) const override;
@@ -56,7 +56,7 @@ private:
 
 private:
     /** The list of branches for this sum type. */
-    VecOwn<BranchDeclaration> branches;
+    VecOwn<BranchType> branches;
 };
 
 }  // namespace souffle::ast

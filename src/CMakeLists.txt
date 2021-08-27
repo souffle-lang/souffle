@@ -13,7 +13,7 @@ set(SOUFFLE_SOURCES
     ast/Attribute.cpp
     ast/BinaryConstraint.cpp
     ast/BooleanConstraint.cpp
-    ast/BranchDeclaration.cpp
+    ast/BranchType.cpp
     ast/BranchInit.cpp
     ast/Clause.cpp
     ast/Component.cpp

@@ -22,7 +22,7 @@ void Negation::apply(const NodeMapper& map) {
     atom = map(std::move(atom));
 }
 
-Node::NodeVec Negation::getChildNodesImpl() const {
+Node::NodeVec Negation::getChildren() const {
     return {atom.get()};
 }
 

@@ -25,8 +25,8 @@ void TypeCast::setType(QualifiedName type) {
     this->type = std::move(type);
 }
 
-Node::NodeVec TypeCast::getChildNodesImpl() const {
-    auto res = Argument::getChildNodesImpl();
+Node::NodeVec TypeCast::getChildren() const {
+    auto res = Argument::getChildren();
     res.push_back(value.get());
     return res;
 }

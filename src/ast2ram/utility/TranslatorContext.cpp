@@ -194,13 +194,13 @@ FunctorOp TranslatorContext::getOverloadedFunctorOp(const ast::IntrinsicFunctor&
 }
 
 bool TranslatorContext::isADTEnum(const ast::BranchInit* adt) const {
-    return ast::analysis::isADTEnum(sumTypeBranches->unsafeGetType(adt->getConstructor()));
+    return ast::analysis::isADTEnum(sumTypeBranches->unsafeGetType(adt->getBranchName()));
 }
 
 int TranslatorContext::getADTBranchId(const ast::BranchInit* adt) const {
-    const auto& type = sumTypeBranches->unsafeGetType(adt->getConstructor());
+    const auto& type = sumTypeBranches->unsafeGetType(adt->getBranchName());
     const auto& branches = type.getBranches();
-    ast::analysis::AlgebraicDataType::Branch searchDummy{adt->getConstructor(), {}};
+    ast::analysis::AlgebraicDataType::Branch searchDummy{adt->getBranchName(), {}};
     auto iterToBranch = std::lower_bound(branches.begin(), branches.end(), searchDummy,
             [](const ast::analysis::AlgebraicDataType::Branch& left,
                     const ast::analysis::AlgebraicDataType::Branch& right) {

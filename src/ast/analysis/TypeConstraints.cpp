@@ -584,7 +584,7 @@ void TypeConstraintsAnalysis::visit_(type_identity<RecordInit>, const RecordInit
 }
 
 void TypeConstraintsAnalysis::visit_(type_identity<BranchInit>, const BranchInit& adt) {
-    auto* correspondingType = sumTypesBranches.getType(adt.getConstructor());
+    auto* correspondingType = sumTypesBranches.getType(adt.getBranchName());
 
     if (correspondingType == nullptr) {
         return;  // malformed program.
@@ -601,7 +601,7 @@ void TypeConstraintsAnalysis::visit_(type_identity<BranchInit>, const BranchInit
     // This can happen when the branch was declared over the invalid type.
     try {
         // Constraints on arguments
-        auto branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
+        auto branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getBranchName());
         auto branchArgs = adt.getArguments();
 
         if (branchTypes.size() != branchArgs.size()) {

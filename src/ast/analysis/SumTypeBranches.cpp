@@ -16,7 +16,7 @@
 
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/AlgebraicDataType.h"
-#include "ast/BranchDeclaration.h"
+#include "ast/BranchType.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Type.h"
@@ -36,7 +36,7 @@ void SumTypeBranchesAnalysis::run(const TranslationUnit& tu) {
         if (!env.isType(typeName)) return;
 
         for (auto& branch : adt.getBranches()) {
-            branchToType[branch->getConstructor()] = &env.getType(typeName);
+            branchToType[branch->getBranchName()] = &env.getType(typeName);
         }
     });
 }

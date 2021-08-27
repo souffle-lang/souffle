@@ -52,7 +52,7 @@ public:
     bool equal(const Node& node) const override;
 
 private:
-    NodeVec getChildNodesImpl() const override;
+    NodeVec getChildren() const override;
 
     template <typename... Operands>
     static VecOwn<Argument> asVec(Operands... ops) {

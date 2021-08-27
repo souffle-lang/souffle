@@ -105,7 +105,7 @@ protected:
     /** Output to a given output stream */
     virtual void print(std::ostream& os) const = 0;
 
-    virtual NodeVec getChildNodesImpl() const;
+    virtual NodeVec getChildren() const;
 
 private:
     /** Abstract equality check for two AST nodes */

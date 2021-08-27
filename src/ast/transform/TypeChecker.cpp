@@ -22,8 +22,8 @@
 #include "ast/Atom.h"
 #include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
-#include "ast/BranchDeclaration.h"
 #include "ast/BranchInit.h"
+#include "ast/BranchType.h"
 #include "ast/Clause.h"
 #include "ast/Constant.h"
 #include "ast/Counter.h"
@@ -225,7 +225,7 @@ void TypeDeclarationChecker::checkADT(const ast::AlgebraicDataType& type) {
         for (auto* field : branch->getFields()) {
             if (!typeEnv.isType(field->getTypeName())) {
                 report.addError(tfm::format("Undefined type %s in definition of branch %s",
-                                        field->getTypeName(), branch->getConstructor()),
+                                        field->getTypeName(), branch->getBranchName()),
                         field->getSrcLoc());
             }
         }
@@ -287,7 +287,7 @@ void TypeDeclarationChecker::run() {
     std::map<std::string, std::vector<SrcLocation>> branchToLocation;
     visit(program.getTypes(), [&](const ast::AlgebraicDataType& type) {
         for (auto* branch : type.getBranches()) {
-            branchToLocation[branch->getConstructor()].push_back(branch->getSrcLoc());
+            branchToLocation[branch->getBranchName()].push_back(branch->getSrcLoc());
         }
     });
 
@@ -453,7 +453,7 @@ void TypeCheckerImpl::visit_(type_identity<RecordInit>, const RecordInit& rec) {
 void TypeCheckerImpl::visit_(type_identity<BranchInit>, const BranchInit& adt) {
     TypeSet types = typeAnalysis.getTypes(&adt);
 
-    if (sumTypesBranches.getType(adt.getConstructor()) == nullptr) {
+    if (sumTypesBranches.getType(adt.getBranchName()) == nullptr) {
         report.addError("Undeclared branch", adt.getSrcLoc());
         return;
     }
@@ -466,12 +466,12 @@ void TypeCheckerImpl::visit_(type_identity<BranchInit>, const BranchInit& adt) {
     // We know now that the set "types" is a singleton
     auto& sumType = *as<analysis::AlgebraicDataType>(*types.begin());
 
-    auto& argsDeclaredTypes = sumType.getBranchTypes(adt.getConstructor());
+    auto& argsDeclaredTypes = sumType.getBranchTypes(adt.getBranchName());
 
     auto args = adt.getArguments();
 
     if (argsDeclaredTypes.size() != args.size()) {
-        report.addError(tfm::format("Invalid arity, the declared arity of %s is %s", adt.getConstructor(),
+        report.addError(tfm::format("Invalid arity, the declared arity of %s is %s", adt.getBranchName(),
                                 argsDeclaredTypes.size()),
                 adt.getSrcLoc());
         return;

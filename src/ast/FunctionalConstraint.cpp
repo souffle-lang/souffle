@@ -31,7 +31,7 @@ std::vector<Variable*> FunctionalConstraint::getKeys() const {
     return toPtrVector(keys);
 }
 
-Node::NodeVec FunctionalConstraint::getChildNodesImpl() const {
+Node::NodeVec FunctionalConstraint::getChildren() const {
     auto rn = makePtrRange(keys);
     return {rn.begin(), rn.end()};
 }
