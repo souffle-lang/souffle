@@ -687,17 +687,17 @@ void TypeAnnotationPrinter::print_(
 }
 
 void TypeAnnotationPrinter::print_(type_identity<BranchInit>, const BranchInit& adt) {
-    auto* correspondingType = sumTypesBranches.getType(adt.getConstructor());
+    auto* correspondingType = sumTypesBranches.getType(adt.getBranchName());
 
     assert(correspondingType != nullptr);
     assert(isA<AlgebraicDataType>(correspondingType));
 
-    auto branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getConstructor());
+    auto branchTypes = as<AlgebraicDataType>(correspondingType)->getBranchTypes(adt.getBranchName());
     auto branchArgs = adt.getArguments();
 
     assert(branchTypes.size() == branchArgs.size());
 
-    os << adt.getConstructor() << "{";
+    os << adt.getBranchName() << "{";
     for (std::size_t i = 0; i < branchArgs.size(); i++) {
         auto arg = branchArgs[i];
         auto argTy = branchTypes[i];

@@ -20,28 +20,10 @@
 #include "FunctorOps.h"
 #include "ast/Clause.h"
 #include "ast/NumericConstant.h"
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#include "ast/TranslationUnit.h"
-<<<<<<< HEAD
-=======
-=======
-#include "ast/TranslationUnit.h"
->>>>>>> 34c3e7d7f (Correction)
-#include "ast/analysis/Analysis.h"
-=======
->>>>>>> c45ba4558 (Adapt for removal of Analysis.h)
-#include "ast/analysis/SumTypeBranches.h"
-#include "ast/analysis/TypeEnvironment.h"
->>>>>>> b6569c3e6 (Add type annotation printer)
-=======
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
->>>>>>> c45ba4558102aea3c7eed2a37e0d2a0e1a4c39e0
 #include "ast/analysis/TypeSystem.h"
-#include "ast/utility/Utils.h"
 #include "souffle/BinaryConstraintOps.h"
 #include <cstddef>
 #include <memory>
@@ -67,6 +49,7 @@ class NilConstant;
 class Counter;
 class TypeCast;
 class BranchInit;
+class RecordInit;
 }  // namespace souffle::ast
 
 namespace souffle::ast::analysis {
