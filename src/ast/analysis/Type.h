@@ -23,11 +23,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 #include "ast/TranslationUnit.h"
+<<<<<<< HEAD
 =======
 =======
 #include "ast/TranslationUnit.h"
 >>>>>>> 34c3e7d7f (Correction)
 #include "ast/analysis/Analysis.h"
+=======
+>>>>>>> c45ba4558 (Adapt for removal of Analysis.h)
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
 >>>>>>> b6569c3e6 (Add type annotation printer)
