@@ -21,7 +21,6 @@
 #include "ast/Clause.h"
 #include "ast/NumericConstant.h"
 #include "ast/TranslationUnit.h"
-#include "ast/analysis/Analysis.h"
 #include "ast/analysis/SumTypeBranches.h"
 #include "ast/analysis/TypeEnvironment.h"
 #include "ast/analysis/TypeSystem.h"
