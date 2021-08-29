@@ -149,8 +149,13 @@ namespace souffle {
 /**
  * Compiles the given source file to a binary file.
  */
-void compileToBinary(
-        const std::string& command, std::string_view sourceFilename, std::vector<std::string> argv) {
+void compileToBinary(const std::string& command, std::string_view sourceFilename) {
+    std::vector<std::string> argv;
+    if (Global::config().has("swig")) {
+        argv.push_back("-s");
+        argv.push_back(Global::config().get("swig"));
+    }
+
     for (auto&& path : Global::config().getMany("library-dir")) {
         // The first entry may be blank
         if (path.empty()) {
@@ -356,11 +361,6 @@ int main(int argc, char** argv) {
             }
             allMacros += " -D" + currentMacro;
             Global::config().set("macro", allMacros);
-        }
-
-        /* turn on compilation of executables */
-        if (Global::config().has("dl-program")) {
-            Global::config().set("compile");
         }
 
         if (Global::config().has("live-profile") && !Global::config().has("profile")) {
@@ -638,14 +638,22 @@ int main(int argc, char** argv) {
         return 0;
     }
 
+    const bool execute_mode = Global::config().has("compile");
+    const bool compile_mode = Global::config().has("dl-program");
+    const bool generate_mode = Global::config().has("generate");
+
+    const bool must_interpret =
+            !execute_mode && !compile_mode && !generate_mode && !Global::config().has("swig");
+    const bool must_execute = execute_mode;
+    const bool must_compile = must_execute || compile_mode;
+
     try {
-        if (!Global::config().has("compile") && !Global::config().has("dl-program") &&
-                !Global::config().has("generate") && !Global::config().has("swig")) {
+        if (must_interpret) {
             // ------- interpreter -------------
 
             std::thread profiler;
             // Start up profiler if needed
-            if (Global::config().has("live-profile") && !Global::config().has("compile")) {
+            if (Global::config().has("live-profile")) {
                 profiler = std::thread([]() { profile::Tui().runProf(); });
             }
 
@@ -674,9 +682,9 @@ int main(int argc, char** argv) {
 
             // Find the base filename for code generation and execution
             std::string baseFilename;
-            if (Global::config().has("dl-program")) {
+            if (compile_mode) {
                 baseFilename = Global::config().get("dl-program");
-            } else if (Global::config().has("generate")) {
+            } else if (generate_mode) {
                 baseFilename = Global::config().get("generate");
 
                 // trim .cpp extension if it exists
@@ -686,6 +694,7 @@ int main(int argc, char** argv) {
             } else {
                 baseFilename = tempFile();
             }
+
             if (baseName(baseFilename) == "/" || baseName(baseFilename) == ".") {
                 baseFilename = tempFile();
             }
@@ -717,26 +726,24 @@ int main(int argc, char** argv) {
                 }
             }
 
-            /* Fail if a souffle-compile executable is not found */
-            auto souffle_compile = findTool("souffle-compile", souffleExecutable, ".");
-            if (!isExecutable(souffle_compile)) throw std::runtime_error("failed to locate souffle-compile");
+            if (must_compile) {
+                /* Fail if a souffle-compile executable is not found */
+                auto souffle_compile = findTool("souffle-compile", souffleExecutable, ".");
+                if (!isExecutable(souffle_compile))
+                    throw std::runtime_error("failed to locate souffle-compile");
 
-            std::vector<std::string> argv;
-            if (Global::config().has("swig")) {
-                argv.push_back("-s");
-                argv.push_back(Global::config().get("swig"));
-            }
+                auto t_bgn = std::chrono::high_resolution_clock::now();
+                compileToBinary(souffle_compile, sourceFilename);
+                auto t_end = std::chrono::high_resolution_clock::now();
 
-            auto t_bgn = std::chrono::high_resolution_clock::now();
-            compileToBinary(souffle_compile, sourceFilename, argv);
-            auto t_end = std::chrono::high_resolution_clock::now();
-            if (Global::config().has("verbose")) {
-                std::cout << "Compilation time: " << std::chrono::duration<double>(t_end - t_bgn).count()
-                          << "sec\n";
+                if (Global::config().has("verbose")) {
+                    std::cout << "Compilation time: " << std::chrono::duration<double>(t_end - t_bgn).count()
+                              << "sec\n";
+                }
             }
 
             // run compiled C++ program if requested.
-            if (Global::config().has("compile")) {
+            if (must_execute) {
                 executeBinaryAndExit(baseFilename);
             }
         }
