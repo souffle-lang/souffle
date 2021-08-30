@@ -33,6 +33,9 @@ namespace souffle::ram {
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * EXTEND B WITH A
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * The source relation represents new knowledge, whereas the target relation is
+ * old knowledge.
  */
 class Extend : public BinRelationStatement {
 public:

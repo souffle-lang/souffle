@@ -200,9 +200,6 @@ Own<ram::Statement> UnitTranslator::generateMergeRelations(
     }
     auto insertion = mk<ram::Insert>(destRelation, std::move(values));
     auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(insertion)));
-    if (rel->getRepresentation() == RelationRepresentation::EQREL) {
-        return mk<ram::Sequence>(mk<ram::Extend>(destRelation, srcRelation), std::move(stmt));
-    }
     return stmt;
 }
 
@@ -286,6 +283,11 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(
         Own<ram::Statement> updateRelTable =
                 mk<ram::Sequence>(generateMergeRelations(rel, mainRelation, newRelation),
                         mk<ram::Swap>(deltaRelation, newRelation), mk<ram::Clear>(newRelation));
+
+        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
+            updateRelTable = mk<ram::Sequence>(
+                    std::move(updateRelTable), mk<ram::Extend>(deltaRelation, mainRelation));
+        }
 
         // Measure update time
         if (Global::config().has("profile")) {
