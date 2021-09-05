@@ -16,7 +16,7 @@
   .decl R(x:T)
 }
 .init myB = B<number>
-myB.R($branch(1)).
+myB.R($myB.branch(1)).
 .printsize myB.R
 
 //////////
@@ -56,4 +56,33 @@ myD.R(1).
 .init myE = E<myT2>
 myE.R(1).
 .printsize myE.R
+
+//////////
+// Test 5
+//////////
+
+.comp A {
+  .type T = b {a:number}
+  .decl R(x:T)
+}
+.init myA1 = A
+.init myA2 = A
+myA1.R($myA1.b(1)).
+myA2.R($myA2.b(1)).
+.printsize myA1.R
+.printsize myA2.R
+
+/////////////
+// Test 6
+/////////////
+
+.comp F {
+   .type T = b {x:number}
+   .decl R(x:T)
+   R($b(1)).
+   .printsize R
+}
+
+.init myF1 = F
+.init myF2 = F
 

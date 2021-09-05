@@ -15,6 +15,6 @@
 
 
 .decl NumToNat(u : unsigned, n: Nat)
-NumToNat(0, $Zero).
+NumToNat(0, $Zero()).
 NumToNat(x + 1, $S(n)) :- NumToNat(x, n), x < 10.
 .output NumToNat

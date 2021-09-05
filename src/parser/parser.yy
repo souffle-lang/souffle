@@ -360,7 +360,7 @@ qualified_name
     {
       $$ = $IDENT;
     }
-  | qualified_name DOT  IDENT
+  | qualified_name DOT IDENT
     {
       $$ = $1; $$->append($IDENT);
     }
@@ -503,7 +503,8 @@ relation_names
  */
 attributes_list
   : LPAREN RPAREN
-    { }
+    { 
+    }
   | LPAREN non_empty_attributes RPAREN
     {
       $$ = $2;
@@ -823,7 +824,8 @@ constraint
  */
 arg_list
   : %empty
-    { }
+    { 
+    }
   | non_empty_arg_list
     {
       $$ = $1;
@@ -839,6 +841,7 @@ non_empty_arg_list
       $$ = $1; $$.push_back($arg);
     }
   ;
+
 
 /**
  * Atom argument
@@ -885,13 +888,9 @@ arg
     {
       $$ = mk<ast::RecordInit>($arg_list, @$);
     }
-  | DOLLAR IDENT[branch] LPAREN arg_list RPAREN
+  | DOLLAR qualified_name[branch] LPAREN arg_list RPAREN
     {
       $$ = mk<ast::BranchInit>($branch, $arg_list, @$);
-    }
-  | DOLLAR IDENT[branch]
-    {
-      $$ = mk<ast::BranchInit>($branch, VecOwn<ast::Argument>{}, @$);
     }
   | LPAREN arg RPAREN
     {

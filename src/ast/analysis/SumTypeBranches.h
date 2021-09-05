@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/TypeSystem.h"
 #include "souffle/utility/ContainerUtil.h"
@@ -37,7 +38,7 @@ public:
     /**
      * A type can be nullptr in case of a malformed program.
      */
-    const Type* getType(const std::string& branch) const {
+    const Type* getType(const QualifiedName& branch) const {
         if (contains(branchToType, branch)) {
             return branchToType.at(branch);
         } else {
@@ -45,12 +46,12 @@ public:
         }
     }
 
-    const AlgebraicDataType& unsafeGetType(const std::string& branch) const {
+    const AlgebraicDataType& unsafeGetType(const QualifiedName& branch) const {
         return *as<AlgebraicDataType>(branchToType.at(branch));
     }
 
 private:
-    std::map<std::string, const Type*> branchToType;
+    std::map<QualifiedName, const Type*> branchToType;
 };
 
 }  // namespace analysis

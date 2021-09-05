@@ -9,27 +9,21 @@
 // Large writing test for ADTs.
 //
 
-
-
 .type Expression = Number { x : number }
                  | Add {e_1 : Expression, e_2 :Expression}
                  | Minus {e_1 : Expression, e_2 : Expression}
                  | Mult {e_1 : Expression, e_2 : Expression}
                  | Divide {e_1 : Expression, e_2 : Expression}
 
-
 .decl R(e : Expression)
 R($Number(0)).
 R($Divide($Mult($Add($Number(5), $Number(5)), $Number(2)), $Minus($Number(4), $Number(1)))).
 .output R
 
-
-
 .type Tree = Empty {}
            | Node {t1: Tree, val: unsigned, t2: Tree}
 
-
 .decl TreeHeight(t : Tree, height: unsigned)
-TreeHeight($Empty, 0).
+TreeHeight($Empty(), 0).
 TreeHeight($Node(left, h + 1, right), h + 1) :- TreeHeight(left, h), TreeHeight(right, h), h < 10.
 .output TreeHeight

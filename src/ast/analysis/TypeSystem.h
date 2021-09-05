@@ -256,7 +256,7 @@ private:
 class AlgebraicDataType : public Type {
 public:
     struct Branch {
-        std::string name;                // < the name of the branch
+        QualifiedName name;              // < the name of the branch
         std::vector<const Type*> types;  // < Product type associated with this branch.
 
         void print(std::ostream& out) const {
@@ -276,9 +276,9 @@ public:
                 [](const Branch& left, const Branch& right) { return left.name < right.name; });
     }
 
-    const std::vector<const Type*>& getBranchTypes(const std::string& constructor) const {
+    const std::vector<const Type*>& getBranchTypes(const QualifiedName& name) const {
         for (auto& branch : branches) {
-            if (branch.name == constructor) return branch.types;
+            if (branch.name == name) return branch.types;
         }
         // Branch doesn't exist.
         throw std::out_of_range("Trying to access non-existing branch.");

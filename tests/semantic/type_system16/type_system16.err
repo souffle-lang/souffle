@@ -1,10 +1,4 @@
-Error: Ambiguous branch in file type_system16.dl at line 22
+Error: syntax error, unexpected /, expecting ( or . in file type_system16.dl at line 22
 R($Divide($Mult($Add($Number(5), $Number(5)), $Number(2)), $Minus($Number(4), $Number / (1)))).
-------------------------------------------------------------------------------^-----------------
-Error: no valid overloads in file type_system16.dl at line 22
-R($Divide($Mult($Add($Number(5), $Number(5)), $Number(2)), $Minus($Number(4), $Number / (1)))).
-------------------------------------------------------------------------------^-----------------
-Error: Ambiguous constant (unable to deduce type) in file type_system16.dl at line 22
-R($Divide($Mult($Add($Number(5), $Number(5)), $Number(2)), $Minus($Number(4), $Number / (1)))).
------------------------------------------------------------------------------------------^------
-3 errors generated, evaluation aborted
+--------------------------------------------------------------------------------------^---------
+1 errors generated, evaluation aborted

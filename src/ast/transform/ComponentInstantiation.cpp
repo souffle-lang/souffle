@@ -180,6 +180,7 @@ void collectContent(Program& program, const Component& component, const TypeBind
     }
 
     // and continue with the local types
+    // (replacing formal parameters with actual parameters)
     for (const auto& cur : component.getTypes()) {
         // create a clone
         Own<ast::Type> type(clone(cur));
@@ -222,8 +223,10 @@ void collectContent(Program& program, const Component& component, const TypeBind
 
         // instantiate elements of ADT branch types
         visit(*type, [&](ast::BranchType& type) {
-            // TODO(b-scholz): instiantiate branch identifier as well
-            //                 (needs to be re-defined as QualifiedName)
+            auto&& newBaseName = binding.find(type.getBranchName());
+            if (!newBaseName.empty()) {
+                type.setBranchName(newBaseName);
+            }
             for (auto& field : type.getFields()) {
                 auto&& newName = binding.find(field->getTypeName());
                 if (!newName.empty()) {
@@ -237,6 +240,7 @@ void collectContent(Program& program, const Component& component, const TypeBind
     }
 
     // and the local relations
+    // (replacing formal parameters with actual parameters)
     for (const auto& cur : component.getRelations()) {
         // create a clone
         Own<Relation> rel(clone(cur));
@@ -352,12 +356,18 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
     collectContent(program, *component, activeBinding, enclosingComponent, componentLookup, res, orphans,
             overridden, report, maxDepth);
 
-    // update type names
+    // update user-defined type names
     std::map<QualifiedName, QualifiedName> typeNameMapping;
     for (const auto& cur : res.types) {
         auto newName = componentInit.getInstanceName() + cur->getQualifiedName();
         typeNameMapping[cur->getQualifiedName()] = newName;
         cur->setQualifiedName(newName);
+        // update branch names
+        visit(*cur, [&](ast::BranchType& branchType) {
+            auto newName = componentInit.getInstanceName() + branchType.getBranchName();
+            typeNameMapping[branchType.getBranchName()] = newName;
+            branchType.setBranchName(newName);
+        });
     }
 
     // update relation names
@@ -403,6 +413,30 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
                 if (pos != typeNameMapping.end()) {
                     recordType.setFieldType(i, pos->second);
                 }
+            }
+        });
+
+        // rename branch name and field types in an ADT Branch
+        visit(node, [&](ast::BranchType& branchType) {
+            auto pos = typeNameMapping.find(branchType.getBranchName());
+            if (pos != typeNameMapping.end()) {
+                branchType.setBranchName(pos->second);
+            }
+            auto&& fields = branchType.getFields();
+            for (std::size_t i = 0; i < fields.size(); i++) {
+                auto& field = fields[i];
+                auto pos = typeNameMapping.find(field->getTypeName());
+                if (pos != typeNameMapping.end()) {
+                    branchType.setFieldType(i, pos->second);
+                }
+            }
+        });
+
+        // rename branch name in an ADT Branch Constructor
+        visit(node, [&](ast::BranchInit& branchInit) {
+            auto pos = typeNameMapping.find(branchInit.getBranchName());
+            if (pos != typeNameMapping.end()) {
+                branchInit.setBranchName(pos->second);
             }
         });
 

@@ -29,6 +29,7 @@
 #include "ast/Counter.h"
 #include "ast/Functor.h"
 #include "ast/IntrinsicFunctor.h"
+#include "ast/QualifiedName.h"
 #include "ast/analysis/Functor.h"
 #include "ast/analysis/PolymorphicObjects.h"
 #include "ast/analysis/SumTypeBranches.h"
@@ -284,7 +285,7 @@ void TypeDeclarationChecker::run() {
     }
 
     // Check if all the branch names are unique in sum types.
-    std::map<std::string, std::vector<SrcLocation>> branchToLocation;
+    std::map<QualifiedName, std::vector<SrcLocation>> branchToLocation;
     visit(program.getTypes(), [&](const ast::AlgebraicDataType& type) {
         for (auto* branch : type.getBranches()) {
             branchToLocation[branch->getBranchName()].push_back(branch->getSrcLoc());

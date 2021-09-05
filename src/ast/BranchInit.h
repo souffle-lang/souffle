@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ast/Argument.h"
+#include "ast/QualifiedName.h"
 #include "ast/Term.h"
 #include "parser/SrcLocation.h"
 #include <iosfwd>
@@ -28,7 +29,7 @@ namespace souffle::ast {
  * @class BranchInit
  * @brief Initialization of ADT instance.
  *
- * @param constructor An entity used to create a variant type. Can be though of as a name of the branch.
+ * @param name An entity used to create a variant type. Can be though of as a name of the branch.
  *
  * Initializes one of the branches of ADT. The syntax for branches initialization is
  * $Constructor(args...)
@@ -36,10 +37,16 @@ namespace souffle::ast {
  */
 class BranchInit : public Term {
 public:
-    BranchInit(std::string constructor, VecOwn<Argument> args, SrcLocation loc = {});
+    BranchInit(QualifiedName name, VecOwn<Argument> args, SrcLocation loc = {});
 
-    const std::string& getBranchName() const {
-        return constructor;
+    /** get ADT branch name */
+    const QualifiedName& getBranchName() const {
+        return name;
+    }
+
+    /** set ADT branch name */
+    void setBranchName(QualifiedName name) {
+        this->name = name;
     }
 
 protected:
@@ -52,8 +59,8 @@ private:
     BranchInit* cloning() const override;
 
 private:
-    /** The adt branch constructor */
-    std::string constructor;
+    /** Name of ADT Branch */
+    QualifiedName name;
 };
 
 }  // namespace souffle::ast

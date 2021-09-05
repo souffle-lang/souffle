@@ -7,6 +7,7 @@
  */
 
 #include "ast/BranchInit.h"
+#include "ast/QualifiedName.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
@@ -16,20 +17,20 @@
 
 namespace souffle::ast {
 
-BranchInit::BranchInit(std::string constructor, VecOwn<Argument> args, SrcLocation loc)
-        : Term(std::move(args), std::move(loc)), constructor(std::move(constructor)) {}
+BranchInit::BranchInit(QualifiedName name, VecOwn<Argument> args, SrcLocation loc)
+        : Term(std::move(args), std::move(loc)), name(std::move(name)) {}
 
 void BranchInit::print(std::ostream& os) const {
-    os << tfm::format("$%s(%s)", constructor, join(args, ", "));
+    os << tfm::format("$%s(%s)", name, join(args, ", "));
 }
 
 bool BranchInit::equal(const Node& node) const {
     const auto& other = asAssert<BranchInit>(node);
-    return (constructor == other.constructor) && equal_targets(args, other.args);
+    return (name == other.name) && equal_targets(args, other.args);
 }
 
 BranchInit* BranchInit::cloning() const {
-    return new BranchInit(constructor, clone(args), getSrcLoc());
+    return new BranchInit(name, clone(args), getSrcLoc());
 }
 
 }  // namespace souffle::ast

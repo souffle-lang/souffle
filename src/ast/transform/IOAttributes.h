@@ -197,8 +197,8 @@ private:
                     branchTypes.push_back(getTypeQualifier(*type));
                 }
 
-                auto branchInfo =
-                        json11::Json::object{{{"types", std::move(branchTypes)}, {"name", branch.name}}};
+                auto branchInfo = json11::Json::object{
+                        {{"types", std::move(branchTypes)}, {"name", branch.name.toString()}}};
                 branchesInfo.push_back(std::move(branchInfo));
             }
 

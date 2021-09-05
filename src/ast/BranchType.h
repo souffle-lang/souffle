@@ -18,6 +18,7 @@
 
 #include "ast/Attribute.h"
 #include "ast/Node.h"
+#include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
 #include "souffle/utility/Types.h"
 #include <iosfwd>
@@ -36,25 +37,26 @@ namespace souffle::ast {
  * A branch declaration corresponds to a product type and forms a part of ADT declaration.
  * Currently it's required for all the branches to have unique names.
  *
- * TODO (b-scholz): Make BranchName a QualifiedName; otherwise ADTs can only have one
- *                  component instantiation.
  */
 class BranchType : public Node {
 public:
-    BranchType(std::string constructor, VecOwn<Attribute> fields, SrcLocation loc = {});
+    BranchType(QualifiedName name, VecOwn<Attribute> fields, SrcLocation loc = {});
 
     /** Get name of branch identifier */
-    const std::string& getBranchName() const {
-        return constructor;
+    const QualifiedName& getBranchName() const {
+        return name;
     }
 
     /** Set branch identifier */
-    void setBranchName(const std::string name) {
-        constructor = name;
+    void setBranchName(const QualifiedName& name) {
+        this->name = name;
     }
 
     /** Get fields of branch */
     std::vector<Attribute*> getFields();
+
+    /** Set field type */
+    void setFieldType(std::size_t idx, QualifiedName type);
 
 protected:
     void print(std::ostream& os) const override;
@@ -64,7 +66,7 @@ private:
 
 private:
     /** Name of branch */
-    std::string constructor;
+    QualifiedName name;
 
     /** Fields of branch */
     VecOwn<Attribute> fields;
