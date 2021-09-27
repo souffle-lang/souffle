@@ -1388,7 +1388,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 default: fatal("Unhandled aggregate operation");
             }
 
-            char const* type;
+            char const* type = "";
             switch (getTypeAttributeAggregate(aggregate.getFunction())) {
                 case TypeAttribute::Signed: type = "RamSigned"; break;
                 case TypeAttribute::Unsigned: type = "RamUnsigned"; break;
@@ -2645,7 +2645,7 @@ void runFunction(std::string  inputDirectoryArg,
     this->inputDirectory  = std::move(inputDirectoryArg);
     this->outputDirectory = std::move(outputDirectoryArg);
     this->performIO       = performIOArg;
-    this->pruneImdtRels   = pruneImdtRelsArg; 
+    this->pruneImdtRels   = pruneImdtRelsArg;
 
     // set default threads (in embedded mode)
     // if this is not set, and omp is used, the default omp setting of number of cores is used.
