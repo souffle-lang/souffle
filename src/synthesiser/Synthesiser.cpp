@@ -1388,7 +1388,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 default: fatal("Unhandled aggregate operation");
             }
 
-            char const* type = "";
+
+            char const* type = NULL;
             switch (getTypeAttributeAggregate(aggregate.getFunction())) {
                 case TypeAttribute::Signed: type = "RamSigned"; break;
                 case TypeAttribute::Unsigned: type = "RamUnsigned"; break;

@@ -1,0 +1,12 @@
+name: Package for CentOS 8 64bit
+description: Package for CentOS 8 64bit
+inputs:
+  package_cloud_api_key:
+    description: 'Package Cloud API Key'
+    required: true
+    default: ''
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.package_cloud_api_key }}

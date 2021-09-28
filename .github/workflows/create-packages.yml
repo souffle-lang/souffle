@@ -56,6 +56,23 @@ jobs:
           package_cloud_api_key: ${{ secrets.PACKAGECLOUD_TOKEN }}
 
 
+#  Package-CentOS-8-64bit:
+#    strategy:
+#      fail-fast: false
+#
+#    runs-on: ubuntu-latest
+#    steps:
+#      # To use this repository's private action, check out the repository
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - name: Package souffle
+#        # Private action is stored in the following directory
+#        uses: ./.github/actions/create-package/centos/8/64bit/
+#        with:
+#          package_cloud_api_key: ${{ secrets.PACKAGECLOUD_TOKEN }}
+
 #  Package-Fedora-34-64bit:
 #    strategy:
 #      fail-fast: false
