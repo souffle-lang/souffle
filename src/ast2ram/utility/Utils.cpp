@@ -47,6 +47,14 @@ std::string getNewRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@new_");
 }
 
+std::string getLeqRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@leq_");
+}
+
+std::string getToEraseRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@delete_");
+}
+
 std::string getRelationName(const ast::QualifiedName& name) {
     return toString(join(name.getQualifiers(), "."));
 }

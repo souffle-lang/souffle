@@ -49,11 +49,13 @@ Own<Relation> Relation::getSynthesiserRelation(
 
     // Handle the qualifier in souffle code
     if (isProvenance) {
-        rel = new DirectRelation(ramRel, indexSelection, isProvenance);
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false);
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, isProvenance);
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false);
+    } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, true);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -65,7 +67,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection, isProvenance);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, isProvenance);
+            rel = new DirectRelation(ramRel, indexSelection, isProvenance, false);
         }
     }
 
@@ -172,7 +174,12 @@ std::string DirectRelation::getTypeName() {
     }
 
     std::stringstream res;
-    res << "t_btree_" << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
+    if (hasErase) {
+        res << "t_btree_delete_";
+    } else {
+        res << "t_btree_";
+    }
+    res << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
 
     for (auto& ind : getIndices()) {
         res << "__" << join(ind, "_");
@@ -307,11 +314,16 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                    "souffle::detail::default_strategy<t_tuple>::type,"
                 << comparator_aux << ",updater_" << getTypeName() << ">;\n";
         } else {
+            std::string btree_name = "btree";
+            if (hasErase) {
+                btree_name = "btree_delete";
+            }
             if (ind.size() == arity) {
-                out << "using t_ind_" << i << " = btree_set<t_tuple," << comparator << ">;\n";
+                out << "using t_ind_" << i << " = " << btree_name << "_set<t_tuple," << comparator << ">;\n";
             } else {
                 // without provenance, some indices may be not full, so we use btree_multiset for those
-                out << "using t_ind_" << i << " = btree_multiset<t_tuple," << comparator << ">;\n";
+                out << "using t_ind_" << i << " = " << btree_name << "_multiset<t_tuple," << comparator
+                    << ">;\n";
             }
         }
         out << "t_ind_" << i << " ind_" << i << ";\n";
@@ -330,6 +342,22 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
     }
     out << "};\n";
     out << "context createContext() { return context(); }\n";
+
+    // erase method
+    if (hasErase) {
+        // TODO: erase operation is not thread safe yet
+        out << "bool erase(const t_tuple& t) {\n";
+
+        out << "if (ind_" << masterIndex << ".erase(t) > 0) {\n";
+        for (std::size_t i = 0; i < numIndexes; i++) {
+            if (i != masterIndex && provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
+                out << "ind_" << i << ".erase(t);\n";
+            }
+        }
+        out << "return true;\n";
+        out << "} else return false;\n";
+        out << "}\n";  // end of erase(t_tuple&)
+    }
 
     // insert methods
     out << "bool insert(const t_tuple& t) {\n";

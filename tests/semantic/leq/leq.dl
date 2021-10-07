@@ -1,0 +1,74 @@
+.type Node <: symbol
+.type Variable <: symbol
+
+/* Encoding the program:
+v = 0;
+while(v <= 100) {
+    v = v + 2;
+}
+*/
+
+.decl Edge(n:Node,succ: Node)
+.decl Set_Value(n:Node,v:Variable, value:number)
+.decl Increment_Value(n:Node,v:Variable,inc:number)
+.decl Restrict_Value_Lb(n:Node, v:Variable, lb:number)
+.decl Restrict_Value_Ub(n:Node, v:Variable, ub:number)
+
+Edge("start","head").
+Edge("head","cond").
+Edge("cond","incr").
+Edge("incr","head").
+Edge("head","not cond").
+Edge("not cond","end").
+
+Set_Value("start","v", 0).
+Restrict_Value_Ub("cond","v", 100).
+Restrict_Value_Lb("not cond","v", 101).
+Increment_Value("incr", "v", 2).
+
+.type Interval = [lb:number, ub:number]
+
+// Possible values for v after statement n, expressed with an interval
+// for instance: Values("head", "v", [0, 50])
+.decl Values(n:Node, v:Variable, i:Interval) btree_delete
+.output Values
+
+.leq Values(n, v, [lb1, ub1]) <= Values(n, v, [lb2, ub2]) :-
+    lb1 >= lb2,
+    ub1 <= ub2.
+
+Values(n, v, [x, x]) :-
+    Set_Value(n, v, x).
+
+Values(n, v, i) :-
+    Values(pred, v, i),
+    Edge(pred, n),
+    !Set_Value(n, v, _),
+    !Increment_Value(n, v, _),
+    !Restrict_Value_Lb(n, v, _),
+    !Restrict_Value_Ub(n, v, _).
+
+Values(n, v, [lb+x, ub+x]) :-
+    Values(pred, v, [lb, ub]),
+    Edge(pred, n),
+    Increment_Value(n, v, x).
+
+Values(n, v, [max_lb, ub]) :-
+    Values(pred, v, [lb, ub]),
+    Edge(pred, n),
+    Restrict_Value_Lb(n, v, x),
+    max_lb = max(x, lb),
+    max_lb <= ub.
+
+Values(n, v, [lb, min_ub]) :-
+    Values(pred, v, [lb, ub]),
+    Edge(pred, n),
+    Restrict_Value_Ub(n, v, x),
+    min_ub = min(x, ub),
+    min_ub >= lb.
+
+Values(n, v, [lb, ub]) :-
+    Values(n, v, [lb1, ub1]),
+    Values(n, v, [lb2, ub2]),
+    lb = min(lb1, lb2),
+    ub = max(ub1, ub2).

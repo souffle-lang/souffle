@@ -50,6 +50,9 @@ bool ExecutionPlanChecker::transform(TranslationUnit& translationUnit) {
                 if (clause->getExecutionPlan() == nullptr) {
                     continue;
                 }
+                if (clause->isLeq()) {
+                    continue;
+                }
                 int version = 0;
                 for (const auto* atom : getBodyLiterals<Atom>(*clause)) {
                     if (scc.count(getAtomRelation(atom, &program)) != 0u) {

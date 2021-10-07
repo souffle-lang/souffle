@@ -31,6 +31,7 @@
 #include "ram/Constraint.h"
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
+#include "ram/Erase.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/Exit.h"
 #include "ram/Expression.h"
@@ -143,6 +144,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(Break);
         SOUFFLE_VISITOR_FORWARD(GuardedInsert);
         SOUFFLE_VISITOR_FORWARD(Insert);
+        SOUFFLE_VISITOR_FORWARD(Erase);
         SOUFFLE_VISITOR_FORWARD(SubroutineReturn);
         SOUFFLE_VISITOR_FORWARD(UnpackRecord);
         SOUFFLE_VISITOR_FORWARD(NestedIntrinsicOperator);
@@ -211,6 +213,7 @@ protected:
     // -- operations --
     SOUFFLE_VISITOR_LINK(GuardedInsert, Insert);
     SOUFFLE_VISITOR_LINK(Insert, Operation);
+    SOUFFLE_VISITOR_LINK(Erase, Operation);
     SOUFFLE_VISITOR_LINK(SubroutineReturn, Operation);
     SOUFFLE_VISITOR_LINK(UnpackRecord, TupleOperation);
     SOUFFLE_VISITOR_LINK(NestedIntrinsicOperator, TupleOperation)

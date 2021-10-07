@@ -131,6 +131,7 @@
 %token PRINTSIZE_QUALIFIER       "relation qualifier printsize"
 %token BRIE_QUALIFIER            "BRIE datastructure qualifier"
 %token BTREE_QUALIFIER           "BTREE datastructure qualifier"
+%token BTREE_DELETE_QUALIFIER    "BTREE_DELETE datastructure qualifier"
 %token EQREL_QUALIFIER           "equivalence relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
 %token INLINE_QUALIFIER          "relation qualifier inline"
@@ -155,6 +156,7 @@
 %token PLAN                      "plan keyword"
 %token CHOICEDOMAIN              "choice-domain"
 %token IF                        ":-"
+%token LEQ                       "leq keyword"
 %token DECL                      "relation declaration"
 %token FUNCTOR                   "functor declaration"
 %token INPUT_DECL                "input directives declaration"
@@ -268,6 +270,7 @@
 %type <Mov<VecOwn<ast::Relation>>>             relation_decl
 %type <std::set<RelationTag>>                  relation_tags
 %type <Mov<VecOwn<ast::Clause>>>               rule
+%type <Mov<VecOwn<ast::Clause>>>               leq_rule
 %type <Mov<VecOwn<ast::Clause>>>               rule_def
 %type <Mov<RuleBody>>                          term
 %type <Mov<Own<ast::Type>>>                    type_decl
@@ -316,6 +319,11 @@ unit
   | unit rule
     {
       for (auto&& cur : $rule   )
+        driver.addClause(std::move(cur));
+    }
+  | unit leq_rule
+    {
+      for (auto&& cur : $leq_rule   )
         driver.addClause(std::move(cur));
     }
   | unit fact
@@ -565,6 +573,10 @@ relation_tags
     {
       $$ = driver.addReprTag(RelationTag::BTREE, @2, $1);
     }
+  | relation_tags BTREE_DELETE_QUALIFIER
+    {
+      $$ = driver.addReprTag(RelationTag::BTREE_DELETE, @2, $1);
+    }
   | relation_tags EQREL_QUALIFIER
     {
       $$ = driver.addReprTag(RelationTag::EQREL, @2, $1);
@@ -649,7 +661,7 @@ dependency_list
 fact
   : atom DOT
     {
-      $$ = mk<ast::Clause>($atom, Mov<VecOwn<ast::Literal>> {}, nullptr, @$);
+      $$ = mk<ast::Clause>($atom, Mov<VecOwn<ast::Literal>> {}, false, nullptr, @$);
     }
   ;
 
@@ -688,6 +700,35 @@ rule_def
       }
     }
   ;
+
+/**
+ * LEQ Rule Definition
+ */
+leq_rule
+  : LEQ atom[less] LE atom[greater] IF body DOT {
+        auto bodies = $body->toClauseBodies();
+        Own<ast::Atom> gt = std::move($greater);
+        Own<ast::Atom> lt = std::move($less);
+        for (auto&& body : bodies) {
+            auto cur = clone(body);
+            auto literals = cur->getBodyLiterals();
+            cur->setHead(clone(lt));
+            cur->addToBodyFront(clone(gt));
+            cur->addToBodyFront(clone(lt));
+            cur->setIsLeq(true);
+            cur->setSrcLoc(@$);
+            std::vector<unsigned int> o;
+            o.push_back(2);
+            o.push_back(1);
+            auto order = mk<ast::ExecutionOrder>(o);
+            auto plan = mk<ast::ExecutionPlan>();
+            plan->setOrderFor(2, std::move(order));
+            cur->setExecutionPlan(std::move(plan));
+
+            $$.push_back(std::move(cur));
+        }
+    }
+
 
 /**
  * Rule Head
@@ -1245,6 +1286,13 @@ component_body
       }
     }
   | component_body rule
+    {
+      $$ = $1;
+      for (auto&& x : $2) {
+        $$->addClause(std::move(x));
+      }
+    }
+  | component_body leq_rule
     {
       $$ = $1;
       for (auto&& x : $2) {

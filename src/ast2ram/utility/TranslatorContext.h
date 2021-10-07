@@ -86,6 +86,7 @@ public:
 
     /** Clause methods */
     std::vector<ast::Clause*> getClauses(const ast::QualifiedName& name) const;
+    bool hasLeq(const ast::QualifiedName& name) const;
     bool isRecursiveClause(const ast::Clause* clause) const;
     std::size_t getClauseNum(const ast::Clause* clause) const;
 

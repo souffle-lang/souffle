@@ -30,6 +30,7 @@
 #include "ram/Constraint.h"
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
+#include "ram/Erase.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/Exit.h"
 #include "ram/Expression.h"
@@ -1397,6 +1398,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case TypeAttribute::Symbol:
                 case TypeAttribute::ADT:
                 case TypeAttribute::Record: type = "RamDomain"; break;
+                default: assert(0);
             }
             out << type << " res0 = " << init << ";\n";
 
@@ -1674,6 +1676,19 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << relName << "->"
                 << "insert(tuple," << ctxName << ");\n";
 
+            PRINT_END_COMMENT(out);
+        }
+
+        void visit_(type_identity<Erase>, const Erase& erase, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            const auto* rel = synthesiser.lookup(erase.getRelation());
+            auto arity = rel->getArity();
+            auto relName = synthesiser.getRelationName(rel);
+            // create inserted tuple
+            out << "Tuple<RamDomain," << arity << "> tuple{{" << join(erase.getValues(), ",", rec) << "}};\n";
+
+            // insert tuple
+            out << relName << "->erase(tuple);\n";
             PRINT_END_COMMENT(out);
         }
 

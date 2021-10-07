@@ -21,6 +21,7 @@
 #include "souffle/SignalHandler.h"
 #include "souffle/SouffleInterface.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/datastructure/BTreeDelete.h"
 #include "souffle/datastructure/Brie.h"
 #include "souffle/datastructure/EquivalenceRelation.h"
 #include "souffle/datastructure/Table.h"

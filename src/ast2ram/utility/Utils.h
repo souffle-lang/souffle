@@ -49,8 +49,13 @@ std::string getDeltaRelationName(const ast::QualifiedName& name);
 /** Get the corresponding RAM 'new' relation name for the relation */
 std::string getNewRelationName(const ast::QualifiedName& name);
 
+/** Get the corresponding RAM 'leq' relation name for the relation */
+std::string getLeqRelationName(const ast::QualifiedName& name);
+
 /** Get base relation name, strip off any possible prefix */
 std::string getBaseRelationName(const ast::QualifiedName& name);
+
+std::string getToEraseRelationName(const ast::QualifiedName& name);
 
 /** Append statement to a list of statements */
 void appendStmt(VecOwn<ram::Statement>& stmtList, Own<ram::Statement> stmt);

@@ -40,6 +40,8 @@ bool ParallelTransformer::parallelizeOperations(Program& program) {
     forEachQuery(program, [&](Query& query) {
         // guardedInsert cannot be parallelized
         if (visitExists(query, [&](const GuardedInsert&) { return true; })) return;
+        // erase cannot be parallelized
+        if (visitExists(query, [&](const Erase&) { return true; })) return;
 
         query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (const Scan* scan = as<Scan>(node)) {

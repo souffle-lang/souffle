@@ -158,7 +158,7 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
             auto newRelation = mk<Relation>(newRelationName);
             program.addRelation(std::move(newRelation));
 
-            auto disconnectedClause = mk<Clause>(newRelationName, clause.getSrcLoc());
+            auto disconnectedClause = mk<Clause>(newRelationName, clause.isLeq(), clause.getSrcLoc());
 
             // Find the body literals for this connected component
             std::vector<Literal*> associatedLiterals;
@@ -185,7 +185,7 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
         // Create the replacement clause
         // a(x) <- b(x), c(y), d(z). --> a(x) <- newrel0(), newrel1(), b(x).
         auto replacementClause = mk<Clause>(clone(clause.getHead()),
-                VecOwn<Literal>(replacementAtoms.begin(), replacementAtoms.end()), nullptr,
+                VecOwn<Literal>(replacementAtoms.begin(), replacementAtoms.end()), clause.isLeq(), nullptr,
                 clause.getSrcLoc());
 
         // Add the remaining body literals to the clause

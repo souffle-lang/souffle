@@ -383,6 +383,9 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(TranslationUnit& trans
 bool MinimiseProgramTransformer::removeRedundantClauses(TranslationUnit& translationUnit) {
     Program& program = translationUnit.getProgram();
     auto isRedundant = [&](const Clause* clause) {
+        if (clause->isLeq()) {
+            return false;
+        }
         const auto* head = clause->getHead();
         for (const auto* lit : clause->getBodyLiterals()) {
             if (*head == *lit) {
@@ -423,7 +426,7 @@ bool MinimiseProgramTransformer::reduceClauseBodies(TranslationUnit& translation
         }
 
         if (!redundantPositions.empty()) {
-            auto minimisedClause = mk<Clause>(clone(clause->getHead()));
+            auto minimisedClause = mk<Clause>(clone(clause->getHead()), clause->isLeq());
             for (std::size_t i = 0; i < bodyLiterals.size(); i++) {
                 if (!contains(redundantPositions, i)) {
                     minimisedClause->addToBody(clone(bodyLiterals[i]));

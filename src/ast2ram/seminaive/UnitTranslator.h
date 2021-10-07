@@ -72,6 +72,7 @@ protected:
     Own<ram::Statement> generateStratumPreamble(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateStratumPostamble(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateStratumLoopBody(const std::set<const ast::Relation*>& scc) const;
+    Own<ram::Statement> generateStratumTableDeletes(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateStratumExitSequence(const std::set<const ast::Relation*>& scc) const;
 
@@ -80,6 +81,11 @@ protected:
             const std::set<const ast::Relation*>& expiredRelations) const;
     Own<ram::Statement> generateClearRelation(const ast::Relation* relation) const;
     virtual Own<ram::Statement> generateMergeRelations(
+            const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const;
+    virtual Own<ram::Statement> generateMergeRelationsWithFilter(const ast::Relation* rel,
+            const std::string& destRelation, const std::string& srcRelation,
+            const std::string& filterRelation) const;
+    virtual Own<ram::Statement> generateEraseRelations(
             const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const;
 
 private:

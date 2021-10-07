@@ -23,18 +23,19 @@ namespace souffle {
 
 /** Space of user-chosen tags that a relation can have */
 enum class RelationTag {
-    INPUT,        // relation read from csv
-    OUTPUT,       // relation written to csv
-    PRINTSIZE,    // number of tuples written to stdout
-    OVERRIDABLE,  // rules defined in component can be overwritten by sub-component
-    INLINE,       // inlined
-    NO_INLINE,    // never inline
-    MAGIC,        // enable magic-set on this relation
-    NO_MAGIC,     // never magic-set on this relation
-    SUPPRESSED,   // warnings suppressed
-    BRIE,         // use brie data-structure
-    BTREE,        // use btree data-structure
-    EQREL,        // use union data-structure
+    INPUT,         // relation read from csv
+    OUTPUT,        // relation written to csv
+    PRINTSIZE,     // number of tuples written to stdout
+    OVERRIDABLE,   // rules defined in component can be overwritten by sub-component
+    INLINE,        // inlined
+    NO_INLINE,     // never inline
+    MAGIC,         // enable magic-set on this relation
+    NO_MAGIC,      // never magic-set on this relation
+    SUPPRESSED,    // warnings suppressed
+    BRIE,          // use brie data-structure
+    BTREE,         // use btree data-structure
+    BTREE_DELETE,  // use btree_delete data-structure
+    EQREL,         // use union data-structure
 };
 
 /** Space of qualifiers that a relation can have */
@@ -52,11 +53,12 @@ enum class RelationQualifier {
 
 /** Space of internal representations that a relation can have */
 enum class RelationRepresentation {
-    DEFAULT,  // use default data-structure
-    BRIE,     // use brie data-structure
-    BTREE,    // use btree data-structure
-    EQREL,    // use union data-structure
-    INFO,     // info relation for provenance
+    DEFAULT,       // use default data-structure
+    BRIE,          // use brie data-structure
+    BTREE,         // use btree data-structure
+    BTREE_DELETE,  // use btree_delete data-structure
+    EQREL,         // use union data-structure
+    INFO,          // info relation for provenance
 };
 
 /**
@@ -66,6 +68,7 @@ inline bool isRelationRepresentationTag(const RelationTag& tag) {
     switch (tag) {
         case RelationTag::BRIE:
         case RelationTag::BTREE:
+        case RelationTag::BTREE_DELETE:
         case RelationTag::EQREL: return true;
         default: return false;
     }
@@ -114,6 +117,7 @@ inline RelationRepresentation getRelationRepresentationFromTag(const RelationTag
     switch (tag) {
         case RelationTag::BRIE: return RelationRepresentation::BRIE;
         case RelationTag::BTREE: return RelationRepresentation::BTREE;
+        case RelationTag::BTREE_DELETE: return RelationRepresentation::BTREE_DELETE;
         case RelationTag::EQREL: return RelationRepresentation::EQREL;
         default: fatal("invalid relation tag");
     }
@@ -134,6 +138,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationTag qualifier) {
         case RelationTag::SUPPRESSED: return os << "suppressed";
         case RelationTag::BRIE: return os << "brie";
         case RelationTag::BTREE: return os << "btree";
+        case RelationTag::BTREE_DELETE: return os << "btree_delete";
         case RelationTag::EQREL: return os << "eqrel";
     }
 
@@ -159,6 +164,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationQualifier qualifier) {
 inline std::ostream& operator<<(std::ostream& os, RelationRepresentation representation) {
     switch (representation) {
         case RelationRepresentation::BTREE: return os << "btree";
+        case RelationRepresentation::BTREE_DELETE: return os << "btree_delete";
         case RelationRepresentation::BRIE: return os << "brie";
         case RelationRepresentation::EQREL: return os << "eqrel";
         case RelationRepresentation::INFO: return os << "info";

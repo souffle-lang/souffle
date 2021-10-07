@@ -112,7 +112,7 @@ Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
         const std::string logSizeStatement =
                 LogStatement::nRecursiveRule(relationName, version, srcLocation, clauseText);
         rule = mk<ram::LogRelationTimer>(
-                std::move(rule), logTimerStatement, getNewRelationName(clause.getHead()->getQualifiedName()));
+                std::move(rule), logTimerStatement, getClauseAtomName(clause, clause.getHead()));
     }
 
     // Add debug info
@@ -136,6 +136,26 @@ Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Cla
 std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom) const {
     if (!isRecursive()) {
         return getConcreteRelationName(atom->getQualifiedName());
+    }
+    if (clause.isLeq()) {
+        if (clause.getHead() == atom) {
+            if (version == 2) {
+                return getToEraseRelationName(atom->getQualifiedName());
+            }
+            return getLeqRelationName(atom->getQualifiedName());
+        }
+        if (sccAtoms.at(0) == atom) {
+            if (version == 2) {
+                return getConcreteRelationName(atom->getQualifiedName());
+            }
+            return getNewRelationName(atom->getQualifiedName());
+        }
+        if (sccAtoms.at(1) == atom) {
+            if (version == 0) {
+                return getConcreteRelationName(atom->getQualifiedName());
+            }
+            return getNewRelationName(atom->getQualifiedName());
+        }
     }
     if (clause.getHead() == atom) {
         return getNewRelationName(atom->getQualifiedName());
@@ -163,8 +183,8 @@ Own<ram::Statement> ClauseTranslator::createRamRuleQuery(const ast::Clause& clau
 
     // Set up the RAM statement bottom-up
     auto op = createInsertion(clause);
-    op = addVariableBindingConstraints(std::move(op));
     op = addBodyLiteralConstraints(clause, std::move(op));
+    op = addVariableBindingConstraints(std::move(op));
     op = addGeneratorLevels(std::move(op), clause);
     op = addVariableIntroductions(clause, std::move(op));
     op = addEntryPoint(clause, std::move(op));
@@ -427,6 +447,23 @@ Own<ram::Operation> ClauseTranslator::addGeneratorLevels(
     return op;
 }
 
+Own<ram::Operation> ClauseTranslator::addDistinct(
+        Own<ram::Operation> op, const ast::Atom* atom1, const ast::Atom* atom2) const {
+    std::size_t arity = atom1->getArity();
+
+    VecOwn<ram::Condition> conditions;
+    auto args1 = atom1->getArguments();
+    auto args2 = atom2->getArguments();
+    for (std::size_t i = 0; i < arity; i++) {
+        Own<ram::Expression> a1 = context.translateValue(*valueIndex, args1[i]);
+        Own<ram::Expression> a2 = context.translateValue(*valueIndex, args2[i]);
+        if (*a1 != *a2) {
+            conditions.push_back(mk<ram::Constraint>(BinaryConstraintOp::EQ, std::move(a1), std::move(a2)));
+        }
+    }
+    return mk<ram::Filter>(mk<ram::Negation>(toCondition(conditions)), std::move(op));
+}
+
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
         Own<ram::Operation> op, const ast::Atom* atom) const {
     std::size_t arity = atom->getArity();
@@ -444,6 +481,28 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
         values.push_back(context.translateValue(*valueIndex, args[i]));
     }
 
+    return mk<ram::Filter>(
+            mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+}
+
+Own<ram::Operation> ClauseTranslator::addNegatedLeqAtom(Own<ram::Operation> op, const ast::Atom* atom) const {
+    std::size_t arity = atom->getArity();
+    std::string name = getLeqRelationName(atom->getQualifiedName());
+    if (version == 2) {
+        name = getToEraseRelationName(atom->getQualifiedName());
+    }
+
+    if (arity == 0) {
+        // for a nullary, negation is a simple emptiness check
+        return mk<ram::Filter>(mk<ram::EmptinessCheck>(name), std::move(op));
+    }
+
+    // else, we construct the atom and create a negation
+    VecOwn<ram::Expression> values;
+    auto args = atom->getArguments();
+    for (std::size_t i = 0; i < arity; i++) {
+        values.push_back(context.translateValue(*valueIndex, args[i]));
+    }
     return mk<ram::Filter>(
             mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
 }
@@ -475,6 +534,14 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         if (auto condition = context.translateConstraint(*valueIndex, lit)) {
             op = mk<ram::Filter>(std::move(condition), std::move(op));
         }
+    }
+
+    if (clause.isLeq()) {
+        if (version == 1) {
+            op = addDistinct(std::move(op), sccAtoms.at(0), sccAtoms.at(1));
+        }
+        op = addNegatedLeqAtom(std::move(op), clause.getHead());
+        return op;
     }
 
     if (isRecursive()) {
