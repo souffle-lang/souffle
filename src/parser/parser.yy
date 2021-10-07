@@ -156,7 +156,6 @@
 %token PLAN                      "plan keyword"
 %token CHOICEDOMAIN              "choice-domain"
 %token IF                        ":-"
-%token LEQ                       "leq keyword"
 %token DECL                      "relation declaration"
 %token FUNCTOR                   "functor declaration"
 %token INPUT_DECL                "input directives declaration"
@@ -270,7 +269,6 @@
 %type <Mov<VecOwn<ast::Relation>>>             relation_decl
 %type <std::set<RelationTag>>                  relation_tags
 %type <Mov<VecOwn<ast::Clause>>>               rule
-%type <Mov<VecOwn<ast::Clause>>>               leq_rule
 %type <Mov<VecOwn<ast::Clause>>>               rule_def
 %type <Mov<RuleBody>>                          term
 %type <Mov<Own<ast::Type>>>                    type_decl
@@ -319,11 +317,6 @@ unit
   | unit rule
     {
       for (auto&& cur : $rule   )
-        driver.addClause(std::move(cur));
-    }
-  | unit leq_rule
-    {
-      for (auto&& cur : $leq_rule   )
         driver.addClause(std::move(cur));
     }
   | unit fact
@@ -681,31 +674,7 @@ rule
         rule->setExecutionPlan(clone(query_plan));
       }
     }
-  ;
-
-/**
- * Rule Definition
- */
-rule_def
-  : head[heads] IF body DOT
-    {
-      auto bodies = $body->toClauseBodies();
-      for (auto&& head : $heads) {
-        for (auto&& body : bodies) {
-          auto cur = clone(body);
-          cur->setHead(clone(head));
-          cur->setSrcLoc(@$);
-          $$.push_back(std::move(cur));
-        }
-      }
-    }
-  ;
-
-/**
- * LEQ Rule Definition
- */
-leq_rule
-  : LEQ atom[less] LE atom[greater] IF body DOT {
+   | atom[less] LE atom[greater] IF body DOT {
         auto bodies = $body->toClauseBodies();
         Own<ast::Atom> gt = std::move($greater);
         Own<ast::Atom> lt = std::move($less);
@@ -728,7 +697,25 @@ leq_rule
             $$.push_back(std::move(cur));
         }
     }
+  ;
 
+/**
+ * Rule Definition
+ */
+rule_def
+  : head[heads] IF body DOT
+    {
+      auto bodies = $body->toClauseBodies();
+      for (auto&& head : $heads) {
+        for (auto&& body : bodies) {
+          auto cur = clone(body);
+          cur->setHead(clone(head));
+          cur->setSrcLoc(@$);
+          $$.push_back(std::move(cur));
+        }
+      }
+    }
+  ;
 
 /**
  * Rule Head
@@ -1286,13 +1273,6 @@ component_body
       }
     }
   | component_body rule
-    {
-      $$ = $1;
-      for (auto&& x : $2) {
-        $$->addClause(std::move(x));
-      }
-    }
-  | component_body leq_rule
     {
       $$ = $1;
       for (auto&& x : $2) {
