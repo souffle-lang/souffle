@@ -33,7 +33,7 @@ Increment_Value("incr", "v", 2).
 .decl Values(n:Node, v:Variable, i:Interval) btree_delete
 .output Values
 
-.leq Values(n, v, [lb1, ub1]) <= Values(n, v, [lb2, ub2]) :-
+Values(n, v, [lb1, ub1]) <= Values(n, v, [lb2, ub2]) :-
     lb1 >= lb2,
     ub1 <= ub2.
 
