@@ -82,12 +82,9 @@ protected:
 
     NodeVec getChildren() const override;
 
-private:
     bool equal(const Node& node) const override;
-
     Clause* cloning() const override;
 
-private:
     /** Head of the clause */
     Own<Atom> head;
 

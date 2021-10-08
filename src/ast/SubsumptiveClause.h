@@ -40,16 +40,20 @@ namespace souffle::ast {
  */
 class SubsumptiveClause : public Clause {
 public:
-    SubsumptiveClause(Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan = {}, SrcLocation loc = {});
+    SubsumptiveClause(Own<Atom> head, Own<Atom> subsumptiveHead, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan =
+    {}, SrcLocation loc = {}) : Clause(std::move(head), std::move(bodyLiterals), std::move(plan), std::move(loc)),
+    subsumptiveHead(std::move(subsumptiveHead)) { 
+        assert(subsumptiveHead != nullptr && "subsumptive head is a nullptr"); 
+    }
 
     /** Set subsumptive head */
     void setSubsumptiveHead(Own<Atom> h) {
-        subsumptiveHead = h; 
+        subsumptiveHead = std::move(h); 
     } 
 
     /** Obtain subsumptive head */
-    Atom* getHead() const {
-        return head.get();
+    Atom* getSubsumptiveHead() const {
+        return subsumptiveHead.get();
     }
 
     void apply(const NodeMapper& map) override;
@@ -59,13 +63,11 @@ protected:
 
     NodeVec getChildren() const override;
 
-private:
     bool equal(const Node& node) const override;
 
-    Clause* cloning() const override;
+    SubsumptiveClause* cloning() const override;
 
-private:
-    /** Subsumptive kead */
+    /** Subsumptive head */
     Own<Atom> subsumptiveHead;
 };
 
