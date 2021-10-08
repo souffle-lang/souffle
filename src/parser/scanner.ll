@@ -95,7 +95,6 @@ WS [ \t\r\v\f]
 ".pragma"/{WS}                        { return yy::parser::make_PRAGMA(yylloc); }
 ".plan"/{WS}                          { return yy::parser::make_PLAN(yylloc); }
 "autoinc"                             { return yy::parser::make_AUTOINC(yylloc); }
-".leq"/{WS}                           { return yy::parser::make_LEQ(yylloc); }
 "band"                                { return yy::parser::make_BW_AND(yylloc); }
 "bor"                                 { return yy::parser::make_BW_OR(yylloc); }
 "bxor"                                { return yy::parser::make_BW_XOR(yylloc); }

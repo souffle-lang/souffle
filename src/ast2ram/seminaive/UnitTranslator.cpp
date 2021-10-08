@@ -263,6 +263,7 @@ Own<ram::Statement> UnitTranslator::translateRecursiveClauses(
         if (!context->isRecursiveClause(clause)) {
             continue;
         }
+#if 0
         if (clause->isLeq()) {
             appendStmt(leq_result, context->translateRecursiveClause(*clause, scc, 0));
             appendStmt(leq_result, context->translateRecursiveClause(*clause, scc, 1));
@@ -271,6 +272,7 @@ Own<ram::Statement> UnitTranslator::translateRecursiveClauses(
             }
             continue;
         }
+#endif 
         auto clauseVersions = generateClauseVersions(clause, scc);
         for (auto& clauseVersion : clauseVersions) {
             appendStmt(result, std::move(clauseVersion));

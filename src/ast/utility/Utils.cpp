@@ -236,7 +236,7 @@ bool isDeltaRelation(const QualifiedName& name) {
 }
 
 Own<Clause> cloneHead(const Clause& clause) {
-    auto myClone = mk<Clause>(clone(clause.getHead()), clause.isLeq(), clause.getSrcLoc());
+    auto myClone = mk<Clause>(clone(clause.getHead()), clause.getSrcLoc());
     if (clause.getExecutionPlan() != nullptr) {
         myClone->setExecutionPlan(clone(clause.getExecutionPlan()));
     }

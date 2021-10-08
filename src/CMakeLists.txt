@@ -17,6 +17,7 @@ set(SOUFFLE_SOURCES
     ast/BranchType.cpp
     ast/BranchInit.cpp
     ast/Clause.cpp
+    ast/SubsumptiveClause.cpp
     ast/Component.cpp
     ast/ComponentInit.cpp
     ast/ComponentType.cpp

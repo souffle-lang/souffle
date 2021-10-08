@@ -137,6 +137,7 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
     if (!isRecursive()) {
         return getConcreteRelationName(atom->getQualifiedName());
     }
+#if 0
     if (clause.isLeq()) {
         if (clause.getHead() == atom) {
             if (version == 2) {
@@ -157,6 +158,7 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
             return getNewRelationName(atom->getQualifiedName());
         }
     }
+#endif 
     if (clause.getHead() == atom) {
         return getNewRelationName(atom->getQualifiedName());
     }
@@ -536,6 +538,7 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         }
     }
 
+#if 0
     if (clause.isLeq()) {
         if (version == 1) {
             op = addDistinct(std::move(op), sccAtoms.at(0), sccAtoms.at(1));
@@ -543,6 +546,7 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         op = addNegatedLeqAtom(std::move(op), clause.getHead());
         return op;
     }
+#endif 
 
     if (isRecursive()) {
         if (clause.getHead()->getArity() > 0) {

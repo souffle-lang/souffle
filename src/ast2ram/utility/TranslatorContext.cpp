@@ -155,12 +155,14 @@ std::vector<ast::Clause*> TranslatorContext::getClauses(const ast::QualifiedName
     return relationDetail->getClauses(name);
 }
 
-bool TranslatorContext::hasLeq(const ast::QualifiedName& name) const {
+bool TranslatorContext::hasLeq(const ast::QualifiedName& /* name */) const {
+#if 0
     for (const auto* clause : getClauses(name)) {
         if (clause->isLeq()) {
             return true;
         }
     }
+#endif 
     return false;
 }
 

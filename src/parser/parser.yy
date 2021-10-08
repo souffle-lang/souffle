@@ -654,7 +654,7 @@ dependency_list
 fact
   : atom DOT
     {
-      $$ = mk<ast::Clause>($atom, Mov<VecOwn<ast::Literal>> {}, false, nullptr, @$);
+      $$ = mk<ast::Clause>($atom, Mov<VecOwn<ast::Literal>> {}, nullptr, @$);
     }
   ;
 
@@ -674,28 +674,17 @@ rule
         rule->setExecutionPlan(clone(query_plan));
       }
     }
-   | atom[less] LE atom[greater] IF body DOT {
-        auto bodies = $body->toClauseBodies();
-        Own<ast::Atom> gt = std::move($greater);
-        Own<ast::Atom> lt = std::move($less);
-        for (auto&& body : bodies) {
-            auto cur = clone(body);
-            auto literals = cur->getBodyLiterals();
-            cur->setHead(clone(lt));
-            cur->addToBodyFront(clone(gt));
-            cur->addToBodyFront(clone(lt));
-            cur->setIsLeq(true);
-            cur->setSrcLoc(@$);
-            std::vector<unsigned int> o;
-            o.push_back(2);
-            o.push_back(1);
-            auto order = mk<ast::ExecutionOrder>(o);
-            auto plan = mk<ast::ExecutionPlan>();
-            plan->setOrderFor(2, std::move(order));
-            cur->setExecutionPlan(std::move(plan));
-
-            $$.push_back(std::move(cur));
-        }
+   | atom[head] LE atom[subsumptiveHead] IF body DOT 
+    { // TODO: query plan!
+      auto bodies = $body->toClauseBodies();
+      for (auto&& body : bodies) {
+          auto cur = clone(body);
+          // cur->setHead(clone(head));
+          // create subsumptive clause here
+          // cur->setSubsumptiveHead(clone(subsumptiveHead));
+          cur->setSrcLoc(@$);
+          $$.push_back(std::move(cur));
+      }
     }
   ;
 
