@@ -44,6 +44,7 @@
     #include "ast/BooleanConstraint.h"
     #include "ast/BranchInit.h"
     #include "ast/Clause.h"
+    #include "ast/SubsumptiveClause.h"
     #include "ast/Component.h"
     #include "ast/ComponentInit.h"
     #include "ast/ComponentType.h"
@@ -304,7 +305,7 @@ program
   ;
 
 /**
- * Top-level Program Elements 
+ * Top-level Program Elements
  */
 unit
   : %empty
@@ -377,12 +378,12 @@ type_decl
     }
   | TYPE IDENT EQUALS union_type_list
     {
-      if ($union_type_list.size() > 1) { 
+      if ($union_type_list.size() > 1) {
          $$ = mk<ast::UnionType>($IDENT, $union_type_list, @$);
-      } else { 
+      } else {
          assert($union_type_list.size() == 1 && "qualified name missing for alias type");
          $$ = mk<ast::AliasType>($IDENT, $union_type_list[0], @$);
-      } 
+      }
     }
   | TYPE IDENT EQUALS record_type_list
     {
@@ -505,7 +506,7 @@ relation_names
  */
 attributes_list
   : LPAREN RPAREN
-    { 
+    {
     }
   | LPAREN non_empty_attributes RPAREN
     {
@@ -674,15 +675,22 @@ rule
         rule->setExecutionPlan(clone(query_plan));
       }
     }
-   | atom[head] LE atom[subsumptiveHead] IF body DOT 
-    { // TODO: query plan!
+   | atom[head] LE atom[subsumptiveHead] IF body DOT
+    {
       auto bodies = $body->toClauseBodies();
       for (auto&& body : bodies) {
-          auto cur = clone(body);
-          // cur->setHead(clone(head));
-          // create subsumptive clause here
-          // cur->setSubsumptiveHead(clone(subsumptiveHead));
-          cur->setSrcLoc(@$);
+          auto cur = mk<ast::SubsumptiveClause>(clone($head), clone($subsumptiveHead),  Mov<VecOwn<ast::Literal>> {}, nullptr, @$);
+          cur->setBodyLiterals(clone(body->getBodyLiterals()));
+          $$.push_back(std::move(cur));
+      }
+    }
+   | atom[head] LE atom[subsumptiveHead] IF body DOT query_plan
+    {
+      auto bodies = $body->toClauseBodies();
+      for (auto&& body : bodies) {
+          auto cur = mk<ast::SubsumptiveClause>(clone($head), clone($subsumptiveHead),  Mov<VecOwn<ast::Literal>> {}, nullptr, @$);
+          cur->setBodyLiterals(clone(body->getBodyLiterals()));
+          cur->setExecutionPlan(clone($query_plan));
           $$.push_back(std::move(cur));
       }
     }
@@ -842,7 +850,7 @@ constraint
  */
 arg_list
   : %empty
-    { 
+    {
     }
   | non_empty_arg_list
     {
@@ -1247,7 +1255,7 @@ component_param_list
   ;
 
 /**
- * Component body 
+ * Component body
  */
 component_body
   : %empty
