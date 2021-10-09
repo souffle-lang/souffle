@@ -27,6 +27,7 @@
 #include "ast/BranchInit.h"
 #include "ast/BranchType.h"
 #include "ast/Clause.h"
+#include "ast/SubsumptiveClause.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
@@ -110,6 +111,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         // rest
         SOUFFLE_VISITOR_FORWARD(Attribute);
         SOUFFLE_VISITOR_FORWARD(Clause);
+        SOUFFLE_VISITOR_FORWARD(SubsumptiveClause);
         SOUFFLE_VISITOR_FORWARD(Relation);
         SOUFFLE_VISITOR_FORWARD(Program);
         SOUFFLE_VISITOR_FORWARD(Pragma);
@@ -168,6 +170,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     SOUFFLE_VISITOR_LINK(Component, Node);
 
     // -- others --
+    SOUFFLE_VISITOR_LINK(SubsumptiveClause, Clause);
     SOUFFLE_VISITOR_LINK(Program, Node);
     SOUFFLE_VISITOR_LINK(Attribute, Node);
     SOUFFLE_VISITOR_LINK(Clause, Node);

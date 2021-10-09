@@ -185,7 +185,7 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
         // Create the replacement clause
         // a(x) <- b(x), c(y), d(z). --> a(x) <- newrel0(), newrel1(), b(x).
         auto replacementClause = mk<Clause>(clone(clause.getHead()),
-                VecOwn<Literal>(replacementAtoms.begin(), replacementAtoms.end()),  nullptr,
+                VecOwn<Literal>(replacementAtoms.begin(), replacementAtoms.end()), nullptr,
                 clause.getSrcLoc());
 
         // Add the remaining body literals to the clause
