@@ -40,10 +40,10 @@ namespace souffle::ast {
  */
 class SubsumptiveClause : public Clause {
 public:
-    SubsumptiveClause(Own<Atom> head, Own<Atom> subsumptiveHead, VecOwn<Literal> bodyLiterals,
+    SubsumptiveClause(Own<Atom> head, Own<Atom> sHead, VecOwn<Literal> bodyLiterals,
             Own<ExecutionPlan> plan = {}, SrcLocation loc = {})
             : Clause(std::move(head), std::move(bodyLiterals), std::move(plan), std::move(loc)),
-              subsumptiveHead(std::move(subsumptiveHead)) {
+              subsumptiveHead(std::move(sHead)) {
         assert(subsumptiveHead != nullptr && "subsumptive head is a nullptr");
     }
 
