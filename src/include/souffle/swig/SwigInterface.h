@@ -153,45 +153,65 @@ public:
     }
 
     /**
-     * Calls the corresponding method souffle::SouffleProgram::run in SouffleInterface.h
+     * Calls the corresponding method souffle::SouffleProgram::run in
+     * SouffleInterface.h
      */
     void run() {
         program->run();
     }
 
     /**
-     * Calls the corresponding method souffle::SouffleProgram::runAll in SouffleInterface.h
+     * Calls the corresponding method souffle::SouffleProgram::runAll in
+     * SouffleInterface.h
      */
     void runAll(const std::string& inputDirectory, const std::string& outputDirectory) {
         program->runAll(inputDirectory, outputDirectory);
     }
 
     /**
-     * Calls the corresponding method souffle::SouffleProgram::loadAll in SouffleInterface.h
+     * Calls the corresponding method souffle::SouffleProgram::loadAll in
+     * SouffleInterface.h
      */
     void loadAll(const std::string& inputDirectory) {
         program->loadAll(inputDirectory);
     }
 
     /**
-     * Calls the corresponding method souffle::SouffleProgram::printAll in SouffleInterface.h
+     * Calls the corresponding method souffle::SouffleProgram::printAll in
+     * SouffleInterface.h
      */
     void printAll(const std::string& outputDirectory) {
         program->printAll(outputDirectory);
     }
 
     /**
-     * Calls the corresponding method souffle::SouffleProgram::dumpInputs in SouffleInterface.h
+     * Calls the corresponding method souffle::SouffleProgram::dumpInputs in
+     * SouffleInterface.h
      */
     void dumpInputs() {
         program->dumpInputs();
     }
 
     /**
-     * Calls the corresponding method souffle::SouffleProgram::dumpOutputs in SouffleInterface.h
+     * Calls the corresponding method souffle::SouffleProgram::dumpOutputs in
+     * SouffleInterface.h
      */
     void dumpOutputs() {
         program->dumpOutputs();
+    }
+
+    /**
+     * Set the number of threads to be used
+     */
+    void setNumThreads(std::size_t numThreadsValue) {
+        program->setNumThreads(numThreadsValue);
+    }
+
+    /**
+     * Get the number of threads to be used
+     */
+    std::size_t getNumThreads() {
+        return program->getNumThreads();
     }
 
     SWIGSouffleRelation* getRelation(const std::string& relationName) {
@@ -201,9 +221,10 @@ public:
 };
 
 /**
- * Creates an instance of a SWIG souffle::SouffleProgram that can be called within a program of a supported
- * language for the SWIG option specified in main.cpp. This enables the program to use this instance and call
- * the supported souffle::SouffleProgram methods.
+ * Creates an instance of a SWIG souffle::SouffleProgram that can be called
+ * within a program of a supported language for the SWIG option specified in
+ * main.cpp. This enables the program to use this instance and call the
+ * supported souffle::SouffleProgram methods.
  * @param name Name of the datalog file/ instance to be created
  */
 SWIGSouffleProgram* newInstance(const std::string& name) {
