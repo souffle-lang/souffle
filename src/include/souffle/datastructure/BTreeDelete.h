@@ -655,6 +655,8 @@ protected:
         }
 
     public:
+        virtual ~node() = default;
+
         /**
          * Prints a textual representation of this tree to the given output stream.
          * This feature is mainly intended for debugging and tuning purposes.
