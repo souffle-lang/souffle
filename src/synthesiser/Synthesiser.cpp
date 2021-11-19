@@ -2840,6 +2840,9 @@ void runFunction(std::string  inputDirectoryArg,
     os << "}\n";  // end of getRecordTable() method
 
     os << "void setNumThreads(std::size_t numThreadsValue) override {\n";
+    if (Global::config().get("jobs") == "1") {
+        os << "throw std::runtime_error(\"Program not generated with threading enabled\");\n";
+    }
     os << "SouffleProgram::setNumThreads(numThreadsValue);\n";
     os << "symTable.setNumLanes(getNumThreads());\n";
     os << "recordTable.setNumLanes(getNumThreads());\n";
