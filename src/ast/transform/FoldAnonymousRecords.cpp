@@ -105,76 +105,73 @@ VecOwn<Literal> expandRecordBinaryConstraint(const BinaryConstraint& constraint)
 
     return replacedContraint;
 }
-
-void transformClause(const Clause& clause, VecOwn<Clause>& newClauses) {
-    // If we have an inequality constraint, we need to create new clauses
-    // At most one inequality constraint will be expanded in a single pass.
-    BinaryConstraint* neqConstraint = nullptr;
-
-    VecOwn<Literal> newBody;
-    for (auto* literal : clause.getBodyLiterals()) {
-        if (isValidRecordConstraint(*literal)) {
-            auto& constraint = asAssert<BinaryConstraint>(literal);
-
-            // Simple case, [a_0, ..., a_n] = [b_0, ..., b_n]
-            if (isEqConstraint(constraint.getBaseOperator())) {
-                append(newBody, expandRecordBinaryConstraint(constraint));
-
-                // else if: Case [a_0, ..., a_n] != [b_0, ..., b_n].
-                // track single such case, it will be expanded in the end.
-            } else if (neqConstraint == nullptr) {
-                neqConstraint = as<BinaryConstraint>(literal);
-
-                // Else: repeated inequality.
-            } else {
-                newBody.push_back(clone(literal));
-            }
-
-            // else, we simply copy the literal.
-        } else {
-            newBody.push_back(clone(literal));
-        }
-    }
-
-    // If no inequality: create a single modified clause.
-    if (neqConstraint == nullptr) {
-        auto newClause = clone(clause);
-        newClause->setBodyLiterals(std::move(newBody));
-        newClauses.emplace_back(std::move(newClause));
-
-        // Else: For each pair in negation, we need an extra clause.
-    } else {
-        auto transformedLiterals = expandRecordBinaryConstraint(*neqConstraint);
-
-        for (auto it = begin(transformedLiterals); it != end(transformedLiterals); ++it) {
-            auto newClause = clone(clause);
-            auto copyBody = clone(newBody);
-            copyBody.push_back(std::move(*it));
-
-            newClause->setBodyLiterals(std::move(copyBody));
-
-            newClauses.push_back(std::move(newClause));
-        }
-    }
-}
 }  // namespace
 
 bool FoldAnonymousRecords::transform(TranslationUnit& translationUnit) {
     Program& program = translationUnit.getProgram();
+    bool changed = false;
+    visit(program, [&](const Literal& literal) {
+        if (isValidRecordConstraint(literal)) changed = true;
+    });
 
-    VecOwn<Clause> newClauses;
-
-    for (const auto* clause : program.getClauses()) {
-        if (visitExists(clause, isValidRecordConstraint)) {
-            transformClause(*clause, newClauses);
-            program.removeClause(*clause);
+    // Remove foldable records
+    struct foldRecords : public NodeMapper {
+        Own<Node> operator()(Own<Node> node) const override {
+            node->apply(*this);
+            if (auto* aggr = as<Aggregator>(node)) {
+                bool containsFoldableRecord = false;
+                for (Literal* lit : aggr->getBodyLiterals()) {
+                    if (isValidRecordConstraint(*lit)) {
+                        containsFoldableRecord = true;
+                    }
+                }
+                if (containsFoldableRecord) {
+                    auto replacementAggregator = clone(aggr);
+                    VecOwn<Literal> newBody;
+                    for (Literal* lit : aggr->getBodyLiterals()) {
+                        if (!isValidRecordConstraint(*lit)) {
+                            newBody.push_back(clone(lit));
+                        } else {
+                            const BinaryConstraint* bc = as<BinaryConstraint>(lit);
+                            for (auto& c : expandRecordBinaryConstraint(*bc)) {
+                                newBody.push_back(std::move(c));
+                            }
+                        }
+                    }
+                    replacementAggregator->setBody(std::move(newBody));
+                    return replacementAggregator;
+                }
+            } else if (auto* clause = as<Clause>(node)) {
+                bool containsFoldableRecord = false;
+                for (Literal* lit : clause->getBodyLiterals()) {
+                    if (isValidRecordConstraint(*lit)) {
+                        containsFoldableRecord = true;
+                    }
+                }
+                if (containsFoldableRecord) {
+                    auto replacementClause = clone(clause);
+                    VecOwn<Literal> newBody;
+                    for (Literal* lit : clause->getBodyLiterals()) {
+                        if (!isValidRecordConstraint(*lit)) {
+                            newBody.push_back(clone(lit));
+                        } else {
+                            const BinaryConstraint* bc = as<BinaryConstraint>(lit);
+                            for (auto& c : expandRecordBinaryConstraint(*bc)) {
+                                newBody.push_back(std::move(c));
+                            }
+                        }
+                    }
+                    replacementClause->setBodyLiterals(std::move(newBody));
+                    return replacementClause;
+                }
+            }
+            return node;
         }
-    }
+    };
+    foldRecords update;
+    program.apply(update);
 
-    for (auto&& cl : newClauses)
-        program.addClause(std::move(cl));
-
-    return !newClauses.empty();
+    return changed;
 }
 
 }  // namespace souffle::ast::transform
