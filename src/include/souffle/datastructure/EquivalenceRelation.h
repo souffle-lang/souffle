@@ -103,7 +103,7 @@ public:
         this->statesMapStale.store(true, std::memory_order_relaxed);
         bool retval = contains(x, y);
         sds.unionNodes(x, y);
-        return retval;
+        return !retval;
     }
 
     /**
