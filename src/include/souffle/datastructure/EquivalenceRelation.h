@@ -568,7 +568,6 @@ public:
 
         if (entry[0] != MIN_RAM_SIGNED && entry[1] == MIN_RAM_SIGNED) {
             // Return an iterator over all (entry[0], _)
-
             if (!sds.nodeExists(entry[0])) {
                 return end();
             }

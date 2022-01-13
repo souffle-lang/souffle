@@ -1,0 +1,17 @@
+// Make sure indexes for eqrel are correct
+
+// Both interpreter and engine should ignore the analysis 
+// and use a full order for eqrel
+
+.decl E(a:number, b:number) eqrel
+E(1,2).
+E(1,3).
+ 
+.decl A()
+A() :-
+     E(1,_).
+ 
+.decl B()
+B() :-
+  E(_,1).
+.output  A,B
