@@ -574,6 +574,13 @@ public:
             }
             return anteriorIt(entry[0]);
         }
+        if (entry[0] == MIN_RAM_SIGNED && entry[1] != MIN_RAM_SIGNED) {
+            // form of (_, x), equivalent to search (x, _)
+            if (!sds.nodeExists(entry[1])) {
+                return end();
+            }
+            return anteriorIt(entry[1]);
+        }
 
         if (entry[0] != MIN_RAM_SIGNED && entry[1] != MIN_RAM_SIGNED) {
             // Return an iterator point to the exact same node.

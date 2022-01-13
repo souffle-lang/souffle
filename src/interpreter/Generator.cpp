@@ -522,6 +522,11 @@ std::size_t NodeGenerator::getNextViewId() {
 template <class RamNode>
 std::size_t NodeGenerator::encodeIndexPos(RamNode& node) {
     const std::string& name = node.getRelation();
+    // Ignore analysis, enforce eqrel to use the main index
+    if (lookup(name).getRepresentation() == RelationRepresentation::EQREL) {
+        indexTable[&node] = 0;
+        return 0;
+    }
     ram::analysis::SearchSignature signature = engine.isa.getSearchSignature(&node);
     // A zero signature is equivalent as a full order signature.
     if (signature.empty()) {
