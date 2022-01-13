@@ -101,9 +101,9 @@ public:
     bool insert(value_type x, value_type y, operation_hints) {
         // indicate that iterators will have to generate on request
         this->statesMapStale.store(true, std::memory_order_relaxed);
-        bool retval = contains(x, y);
+        bool retval = !contains(x, y);
         sds.unionNodes(x, y);
-        return !retval;
+        return retval;
     }
 
     /**

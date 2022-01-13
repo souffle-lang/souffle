@@ -1,6 +1,6 @@
 // Make sure indexes for eqrel are correct
 
-// Both interpreter and engine should ignore the analysis 
+// Both interpreter and engine should ignore the analysis
 // and use a full order for eqrel
 
 .decl E(a:number, b:number) eqrel
