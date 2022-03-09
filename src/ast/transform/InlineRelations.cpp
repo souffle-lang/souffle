@@ -567,7 +567,7 @@ NullableVector<Argument*> getInlinedArgument(Program& program, const Argument* a
                     for (Literal* lit : aggr->getBodyLiterals()) {
                         newBody.push_back(clone(lit));
                     }
-                    newAggr->setBody(std::move(newBody));
+                    newAggr->setBodyLiterals(std::move(newBody));
                     versions.push_back(newAggr);
                 }
             }
@@ -610,7 +610,7 @@ NullableVector<Argument*> getInlinedArgument(Program& program, const Argument* a
                             newBody.push_back(Own<Literal>(addedLit));
                         }
 
-                        newAggr->setBody(std::move(newBody));
+                        newAggr->setBodyLiterals(std::move(newBody));
                         aggrVersions.push_back(newAggr);
                     }
 

@@ -219,7 +219,7 @@ std::set<TypeAttribute> TypeAnalysis::getTypeAttributes(const Argument* arg) con
                 TypeAttribute::Record};
     }
     for (const auto& type : types) {
-        typeAttributes.insert(getTypeAttribute(type));
+        typeAttributes.insert(getTypeAttribute(skipAliasesType(type)));
     }
     return typeAttributes;
 }
@@ -530,7 +530,7 @@ void TypeAnnotationPrinter::branchOnArgument(const Argument* cur, const Type& ty
     } else if (isA<NilConstant>(*cur)) {
         print_(type_identity<NilConstant>(), *as<NilConstant>(cur));
     } else if (isA<RecordInit>(*cur)) {
-        print_(type_identity<RecordInit>(), *as<RecordInit>(cur), *as<RecordType>(type));
+        print_(type_identity<RecordInit>(), *as<RecordInit>(cur), *as<RecordType>(getBaseType(&type)));
     } else if (isA<BranchInit>(*cur)) {
         print_(type_identity<BranchInit>(), *as<BranchInit>(cur));
     } else if (isA<IntrinsicFunctor>(*cur)) {

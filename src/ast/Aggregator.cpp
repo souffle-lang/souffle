@@ -28,7 +28,7 @@ std::vector<Literal*> Aggregator::getBodyLiterals() const {
     return toPtrVector(body);
 }
 
-void Aggregator::setBody(VecOwn<Literal> bodyLiterals) {
+void Aggregator::setBodyLiterals(VecOwn<Literal> bodyLiterals) {
     assert(allValidPtrs(body));
     body = std::move(bodyLiterals);
 }

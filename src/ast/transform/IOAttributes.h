@@ -183,28 +183,33 @@ private:
 
         std::map<std::string, json11::Json> sumTypes;
 
-        visit(program.getTypes(), [&](const AlgebraicDataType& astAlgebraicDataType) {
-            auto& sumType = asAssert<analysis::AlgebraicDataType>(typeEnv.getType(astAlgebraicDataType));
-            auto& branches = sumType.getBranches();
+        for (auto* astType : program.getTypes()) {
+            const auto& type = typeEnv.getType(*astType);
 
-            std::vector<json11::Json> branchesInfo;
+            if (isA<analysis::AlgebraicDataType>(skipAliasesType(type))) {
+                // resolve alias-type to adt
+                auto& sumType = asAssert<analysis::AlgebraicDataType>(skipAliasesType(type));
+                auto& branches = sumType.getBranches();
 
-            for (const auto& branch : branches) {
-                std::vector<json11::Json> branchTypes;
-                for (auto* type : branch.types) {
-                    branchTypes.push_back(getTypeQualifier(*type));
+                std::vector<json11::Json> branchesInfo;
+
+                for (const auto& branch : branches) {
+                    std::vector<json11::Json> branchTypes;
+                    for (auto* type : branch.types) {
+                        branchTypes.push_back(getTypeQualifier(*type));
+                    }
+
+                    auto branchInfo = json11::Json::object{
+                            {{"types", std::move(branchTypes)}, {"name", branch.name.toString()}}};
+                    branchesInfo.push_back(std::move(branchInfo));
                 }
 
-                auto branchInfo = json11::Json::object{
-                        {{"types", std::move(branchTypes)}, {"name", branch.name.toString()}}};
-                branchesInfo.push_back(std::move(branchInfo));
+                auto typeQualifier = analysis::getTypeQualifier(type);
+                auto&& sumInfo = json11::Json::object{{{"branches", std::move(branchesInfo)},
+                        {"arity", static_cast<long long>(branches.size())}, {"enum", isADTEnum(sumType)}}};
+                sumTypes.emplace(std::move(typeQualifier), std::move(sumInfo));
             }
-
-            auto typeQualifier = analysis::getTypeQualifier(sumType);
-            auto&& sumInfo = json11::Json::object{{{"branches", std::move(branchesInfo)},
-                    {"arity", static_cast<long long>(branches.size())}, {"enum", isADTEnum(sumType)}}};
-            sumTypes.emplace(std::move(typeQualifier), std::move(sumInfo));
-        });
+        }
 
         sumTypesInfo = json11::Json(sumTypes);
         return sumTypesInfo;
@@ -225,10 +230,11 @@ private:
         // Iterate over all record types in the program populating the records map.
         for (auto* astType : program.getTypes()) {
             const auto& type = typeEnv.getType(*astType);
-            if (isA<analysis::RecordType>(type)) {
+            if (isA<analysis::RecordType>(skipAliasesType(type))) {
                 elementTypes.clear();
 
-                for (const analysis::Type* field : as<analysis::RecordType>(type)->getFields()) {
+                for (const analysis::Type* field :
+                        as<analysis::RecordType>(skipAliasesType(type))->getFields()) {
                     elementTypes.push_back(getTypeQualifier(*field));
                 }
                 const std::size_t recordArity = elementTypes.size();
@@ -250,15 +256,25 @@ private:
         }
 
         Program& program = translationUnit.getProgram();
+        auto& typeEnv = translationUnit.getAnalysis<analysis::TypeEnvironmentAnalysis>().getTypeEnvironment();
         std::vector<std::string> elementParams;
         std::map<std::string, json11::Json> records;
 
         // Iterate over all record types in the program populating the records map.
-        for (auto* astType : program.getTypes()) {
-            if (isA<ast::RecordType>(astType)) {
+        const auto programTypes = program.getTypes();
+        for (auto* astType : programTypes) {
+            // if the ast type is an alias, we have to traverse it:
+            const auto& unaliasedType = skipAliasesType(typeEnv.getType(*astType));
+
+            if (isA<analysis::RecordType>(unaliasedType)) {
                 elementParams.clear();
 
-                for (const auto field : as<ast::RecordType>(astType)->getFields()) {
+                // find the ast type associated with the unaliased type
+                const auto unaliasedAstType = std::find_if(programTypes.begin(), programTypes.end(),
+                        [&](Type* x) { return x->getQualifiedName() == unaliasedType.getName(); });
+
+                // list the fields from the unaliased type
+                for (const auto field : as<ast::RecordType>(*unaliasedAstType)->getFields()) {
                     elementParams.push_back(field->getName());
                 }
                 const std::size_t recordArity = elementParams.size();

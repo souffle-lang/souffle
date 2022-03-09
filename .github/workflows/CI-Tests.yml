@@ -17,14 +17,35 @@ jobs:
     - name: clang-format
       run: sh/run_test_format.sh
 
+  Test-Setup:
+    name: Test-Setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        n-chunks: [5]
+    outputs:
+      n-chunks: ${{ matrix.n-chunks }}
+      chunks: ${{ steps.set-test-ids.outputs.chunks }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - id: set-test-ids
+        uses: ./.github/actions/set-test-ids
+        with:
+          n-chunks: ${{ matrix.n-chunks }}
+
   Ubuntu-CMake:
+    needs: Test-Setup
     timeout-minutes: 150
+
+    name: Ubuntu-CMake-${{ matrix.domain }} (chunk ${{ matrix.chunk }})
 
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         domain: [32bit, 64bit, 64bit-noomp]
+        chunk: ${{ fromJSON(needs.Test-Setup.outputs.chunks) }}
 
     runs-on: ${{ matrix.os }}
 
@@ -32,38 +53,62 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
-    - name: setup-env
-      run: |
-        JOBS=$(nproc || sysctl -n hw.ncpu || echo 2)
-        echo "JOBS=${JOBS}" >> $GITHUB_ENV
-        echo "Test runner will use ${JOBS} jobs."
+    - name: install-lcov
+      if: ${{ matrix.domain == '32bit' }}
+      run: sudo apt-get update && sudo apt-get install lcov
 
     - name: install-deps
       run: sudo sh/setup/install_ubuntu_deps.sh
 
-    - name: setup-32bit-domain
+    - name: cmake-test-32bit
       if: ${{ matrix.domain == '32bit' }}
-      run: cmake -S . -B build
+      uses: ./.github/actions/cmake-test
+      with:
+        cmake-flags: -DSOUFFLE_CODE_COVERAGE=ON
+        n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
+        chunk: ${{ matrix.chunk }}
 
-    - name: setup-64bit-domain
+    - name: cmake-test-64bit
       if: ${{ matrix.domain == '64bit' }}
-      run: cmake -S . -B build -DSOUFFLE_DOMAIN_64BIT=ON
+      uses: ./.github/actions/cmake-test
+      with:
+        cmake-flags: -DSOUFFLE_DOMAIN_64BIT=ON
+        n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
+        chunk: ${{ matrix.chunk }}
 
-    - name: setup-64bit-domain-noomp
+    - name: cmake-test-64bit-noomp
       if: ${{ matrix.domain == '64bit-noomp' }}
-      run: cmake -S . -B build -DSOUFFLE_DOMAIN_64BIT=ON -DSOUFFLE_USE_OPENMP=OFF
+      uses: ./.github/actions/cmake-test
+      with:
+        cmake-flags: -DSOUFFLE_DOMAIN_64BIT=ON -DSOUFFLE_USE_OPENMP=OFF
+        n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
+        chunk: ${{ matrix.chunk }}
 
-    - name: make
-      run: cmake --build build -j${JOBS}
+    - name: create-coverage-report
+      if: ${{ matrix.domain == '32bit' }}
+      run: lcov --capture --directory build --output-file coverage.info
 
-    - name: check-interpreter
-      run: cd build && ctest -L "interpreted" --output-on-failure --progress -j${JOBS}
-      
-    - name: check-others
-      run: cd build && ctest -LE "interpreted" --output-on-failure --progress -j${JOBS}
+    - name: remove-system-files-from-coverage-report
+      if: ${{ matrix.domain == '32bit' }}
+      run: lcov --remove coverage.info '/usr/*' --output-file coverage.info
+
+    - name: upload-coverage-artifact
+      if: ${{ matrix.domain == '32bit' }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-${{ matrix.domain }}-${{ matrix.chunk }}
+        path: coverage.info
 
   OSX-CMake:
+    needs: Test-Setup
     timeout-minutes: 150
+
+    name: OSX-CMake (chunk ${{ matrix.chunk }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJSON(needs.Test-Setup.outputs.chunks) }}
 
     runs-on: macos-latest
 
@@ -71,29 +116,26 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
-    - name: setup-env
-      run: |
-        JOBS=$(nproc || sysctl -n hw.ncpu || echo 2)
-        echo "JOBS=${JOBS}" >> $GITHUB_ENV
-        echo "Test runner will use ${JOBS} jobs."
-
     - name: install-deps
       run: sh/setup/install_macos_deps.sh
 
-    - name: setup-32bit-domain
-      run: cmake -S . -B build
+    - name: cmake-test-32bit
+      uses: ./.github/actions/cmake-test
+      with:
+        cmake-flags: ''
+        n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
+        chunk: ${{ matrix.chunk }}
 
-    - name: make
-      run: cmake --build build -j${JOBS}
-
-    - name: check-interpreter
-      run: cd build && ctest -L "interpreted" --output-on-failure --progress -j${JOBS}
-
-    - name: check-others
-      run: cd build && ctest -LE "interpreted" --output-on-failure --progress -j${JOBS}
-          
   Memory-Check:
+    needs: Test-Setup
     timeout-minutes: 150
+
+    name: Memory-Check (chunk ${{ matrix.chunk }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJSON(needs.Test-Setup.outputs.chunks) }}
 
     runs-on: ubuntu-latest
 
@@ -101,25 +143,18 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
-    - name: setup-env
-      run: |
-        JOBS=$(nproc || sysctl -n hw.ncpu || echo 2)
-        echo "JOBS=${JOBS}" >> $GITHUB_ENV
-        echo "Test runner will use ${JOBS} jobs."
-
     - name: install-deps
       run: sudo sh/setup/install_ubuntu_deps.sh
 
-    - name: setup-with-memory-sanitizer
-      run: cmake -S . -B build -DSOUFFLE_SANITISE_MEMORY=ON -DSOUFFLE_TEST_EVALUATION=OFF
-
-    - name: make
-      run: cmake --build build -j${JOBS}
-
-    - name: check
-      run: cd build && ctest --output-on-failure --progress -j${JOBS}
+    - name: cmake-test-32bit
+      uses: ./.github/actions/cmake-test
+      with:
+        cmake-flags: -DSOUFFLE_SANITISE_MEMORY=ON -DSOUFFLE_TEST_EVALUATION=OFF
+        n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
+        chunk: ${{ matrix.chunk }}
 
   Code-Coverage:
+    needs: Ubuntu-CMake
     timeout-minutes: 150
 
     runs-on: ubuntu-latest
@@ -130,32 +165,14 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: setup-env
-      run: |
-        JOBS=$(nproc || sysctl -n hw.ncpu || echo 2)
-        echo "JOBS=${JOBS}" >> $GITHUB_ENV
-        echo "Test runner will use ${JOBS} jobs."
-
     - name: install-lcov
       run: sudo apt-get update && sudo apt-get install lcov
 
-    - name: install-deps
-      run: sudo sh/setup/install_ubuntu_deps.sh
+    - name: download-coverage-artifacts
+      uses: actions/download-artifact@v2
 
-    - name: setup-with-code-coverage-on
-      run: cmake -DSOUFFLE_CODE_COVERAGE=ON -S . -B ./build
-
-    - name: make
-      run: cmake --build build -j${JOBS}
-
-    - name: check
-      run: cd build && ctest --output-on-failure --progress -j${JOBS}
-
-    - name: create-coverage-report
-      run: lcov --capture --directory . --output-file coverage.info
-
-    - name: remove-system-files-from-coverage-report
-      run: lcov --remove coverage.info '/usr/*' --output-file coverage.info
+    - name: merge-coverage-report
+      run: lcov $(for i in coverage-*-*/coverage.info; do echo -a $i; done) --output-file coverage.info
 
     - name: upload-coverage-report
       uses: codecov/codecov-action@v2

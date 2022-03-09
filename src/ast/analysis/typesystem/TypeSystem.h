@@ -581,9 +581,14 @@ bool isSubtypeOf(const Type& a, const Type& b);
 /** Returns fully qualified name for a given type */
 std::string getTypeQualifier(const Type& type);
 
-/** Check if the type is of a kind corresponding to the TypeAttribute */
+/** Check if the type is of a kind corresponding to the TypeAttribute (does not traverse sub-type and
+ * alias-type if kind is ADT or Record) */
 bool isOfKind(const Type& type, TypeAttribute kind);
 bool isOfKind(const TypeSet& typeSet, TypeAttribute kind);
+
+/** Check if the type is a direct or a sub-type or an alias-type of a kind corresponding to the TypeAttribute
+ */
+bool isBaseOfKind(const Type& type, TypeAttribute kind);
 
 /** Get type attributes */
 TypeAttribute getTypeAttribute(const Type&);
@@ -637,7 +642,14 @@ TypeSet getGreatestCommonSubtypes(const Types&... types) {
  */
 bool haveCommonSupertype(const Type& a, const Type& b);
 
+/** Return the base type of type, skipping aliases and ascending sub-types. */
 const Type& getBaseType(const Type* type);
+
+/** Return the un-aliased type of type. */
+const Type& skipAliasesType(const Type* type);
+
+/** Return the un-aliased type of type. */
+const Type& skipAliasesType(const Type& type);
 
 /**
  * Determine if two types are equivalent.

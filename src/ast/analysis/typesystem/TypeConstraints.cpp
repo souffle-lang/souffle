@@ -40,12 +40,13 @@ TypeConstraint isSubtypeOf(const TypeVar& variable, const Type& type) {
             TypeSet& assignment = assignments[variable];
 
             if (assignment.isAll()) {
-                assignment = TypeSet(type);
+                assignment = TypeSet(skipAliasesType(type));
                 return true;
             }
 
             TypeSet newAssignment;
             for (const Type& t : assignment) {
+                assert(!isA<AliasType>(t));
                 newAssignment.insert(getGreatestCommonSubtypes(t, type));
             }
 
@@ -90,6 +91,7 @@ TypeConstraint hasSuperTypeInSet(const TypeVar& var, TypeSet values) {
 
             TypeSet newAssigments;
             for (const Type& type : assigments) {
+                assert(!isA<AliasType>(type));
                 bool existsSuperTypeInValues =
                         any_of(values, [&type](const Type& value) { return isSubtypeOf(type, value); });
                 if (existsSuperTypeInValues) {
@@ -138,6 +140,7 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
             // Left
             if (!assigmentsLeft.isAll()) {
                 for (const Type& type : assigmentsLeft) {
+                    assert(!isA<AliasType>(type));
                     if (isA<SubsetType>(type) || isA<ConstantType>(type)) {
                         baseTypesLeft.insert(getBaseType(&type));
                     }
@@ -146,6 +149,7 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
             // Right
             if (!assigmentsRight.isAll()) {
                 for (const Type& type : assigmentsRight) {
+                    assert(!isA<AliasType>(type));
                     if (isA<SubsetType>(type) || isA<ConstantType>(type)) {
                         baseTypesRight.insert(getBaseType(&type));
                     }
@@ -174,6 +178,7 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
 
             // Allow types if they are subtypes of any of the common base types.
             for (const Type& type : assigmentsLeft) {
+                assert(!isA<AliasType>(type));
                 bool isSubtypeOfCommonBaseType = any_of(baseTypes.begin(), baseTypes.end(),
                         [&type](const Type& baseType) { return isSubtypeOf(type, baseType); });
                 if (isSubtypeOfCommonBaseType) {
@@ -182,6 +187,7 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
             }
 
             for (const Type& type : assigmentsRight) {
+                assert(!isA<AliasType>(type));
                 bool isSubtypeOfCommonBaseType = any_of(baseTypes.begin(), baseTypes.end(),
                         [&type](const Type& baseType) { return isSubtypeOf(type, baseType); });
                 if (isSubtypeOfCommonBaseType) {
@@ -330,12 +336,13 @@ TypeConstraint isSubtypeOfComponent(
             TypeSet newRecordTypes;
 
             for (const Type& type : recordTypes) {
+                assert(!isA<AliasType>(type));
                 // A type must be either a record type or a subset of a record type
-                if (!isOfKind(type, TypeAttribute::Record)) {
+                if (!isBaseOfKind(type, TypeAttribute::Record)) {
                     continue;
                 }
 
-                const auto& typeAsRecord = *as<RecordType>(type);
+                const auto& typeAsRecord = *as<RecordType>(getBaseType(&type));
 
                 // Wrong size => skip.
                 if (typeAsRecord.getFields().size() <= index) {

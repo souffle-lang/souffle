@@ -12,6 +12,7 @@
 .functor factorial(unsigned):unsigned
 .functor rnd(float):number
 .functor incr(float):float
+.functor concat(float, number, unsigned, symbol):symbol
 
 .decl A(x:number)
 A(@foo(1,"123")) :- true.
@@ -59,6 +60,13 @@ I(@incr(-2)) :- true.
 I(@incr(0)) :- true.
 I(@incr(1)) :- true.
 .output I
+
+.decl CC(f:float, i:number, u:unsigned, s:symbol, res:symbol)
+CC(f,i,u,s,res) :-
+  f = 1.25, i=-4, u=1000u, s="message",
+  res = @concat(1.25, -4, 1000, "message").
+.output CC
+
 
 // Testing stateful functors
 

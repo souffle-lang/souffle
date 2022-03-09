@@ -36,7 +36,6 @@ void FunctorDeclaration::print(std::ostream& out) const {
     if (stateful) {
         out << " stateful";
     }
-    out << std::endl;
 }
 
 bool FunctorDeclaration::equal(const Node& node) const {

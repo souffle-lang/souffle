@@ -112,7 +112,10 @@
 #include <utility>
 #include <vector>
 #include <dlfcn.h>
+
+#ifdef USE_LIBFFI
 #include <ffi.h>
+#endif
 
 namespace souffle::interpreter {
 
@@ -125,16 +128,12 @@ namespace souffle::interpreter {
 
 // Aliases for foreign function interface.
 #if RAM_DOMAIN_SIZE == 64
-#define FFI_RamSigned ffi_type_sint64
-#define FFI_RamUnsigned ffi_type_uint64
-#define FFI_RamFloat ffi_type_double
+#define EXP_RamUnsigned RamUnsigned
+#define EXP_RamSigned RamSigned
 #else
-#define FFI_RamSigned ffi_type_sint32
-#define FFI_RamUnsigned ffi_type_uint32
-#define FFI_RamFloat ffi_type_float
+#define EXP_RamUnsigned int64_t
+#define EXP_RamSigned int64_t
 #endif
-
-#define FFI_Symbol ffi_type_pointer
 
 namespace {
 constexpr RamDomain RAM_BIT_SHIFT_MASK = RAM_DOMAIN_SIZE - 1;
@@ -153,6 +152,132 @@ std::size_t number_of_threads(const std::size_t) {
     return 1;
 }
 #endif
+
+/** Construct an arguments tuple for a stateful functor call. */
+template <std::size_t Arity, std::size_t... Is>
+constexpr auto statefulCallTuple(souffle::SymbolTable* symbolTable, souffle::RecordTable* recordTable,
+        std::array<RamDomain, Arity>& args, std::index_sequence<Is...>) {
+    return std::make_tuple(symbolTable, recordTable, args[Is]...);
+}
+
+/** Call the given function with the arguments from the tuple. */
+template <typename RetT, typename... Ts>
+RetT callWithTuple(void (*userFunctor)(), const std::tuple<Ts...>& args) {
+    using FunType = std::function<RetT(Ts...)>;
+    FunType Fn(reinterpret_cast<RetT (*)(Ts...)>(userFunctor));
+    return std::apply(Fn, args);
+}
+
+/** Call a stateful functor. */
+template <std::size_t Arity, typename ExecuteFn, typename Shadow>
+RamDomain callStateful(ExecuteFn&& execute, Context& ctxt, Shadow& shadow, void (*userFunctor)(),
+        souffle::SymbolTable* symbolTable, souffle::RecordTable* recordTable) {
+    std::array<RamDomain, Arity> args;
+
+    if constexpr (Arity > 0) {
+        for (std::size_t i = 0; i < Arity; ++i) {
+            args[i] = execute(shadow.getChild(i), ctxt);
+        }
+    }
+
+    auto argsTuple = statefulCallTuple(symbolTable, recordTable, args, std::make_index_sequence<Arity>{});
+    return callWithTuple<RamDomain>(userFunctor, argsTuple);
+}
+
+/**
+ * Governs the maximum supported arity for stateless functors.
+ *
+ * Be very careful, increasing this value will increase the number of template generated
+ * function exponentially.
+ *
+ * The returned value and each argument of a stateless functor can take one of four types:
+ * signed, unsigned, float, symbol.
+ *
+ * The number of generated functions G for arity up to A is:
+ *    G(A) = 4^1 + 4^2 + ... + 4^(A+1)
+ *    G(0) = 4
+ *    G(1) = G(0) + 4^2 = 20
+ *    G(2) = G(1) + 4^3 = 84
+ *    G(3) = 340
+ *
+ */
+static constexpr std::size_t StatelessFunctorMaxArity = 2;
+
+/** Construct a native argument value for a stateless functor. */
+template <typename T>
+T nativeArgument(souffle::SymbolTable& symbolTable, const RamDomain value) {
+    if constexpr (std::is_same_v<T, const char*>) {
+        return symbolTable.decode(value).c_str();
+    } else {
+        return ramBitCast<T>(value);
+    }
+}
+
+/** Construct an arguments tuple for a stateless functor call. */
+template <typename... ArgTs, std::size_t... Is>
+std::tuple<ArgTs...> statelessCallTuple(souffle::SymbolTable& symbolTable,
+        std::array<RamDomain, sizeof...(ArgTs)>& args, std::index_sequence<Is...>) {
+    return std::make_tuple(
+            nativeArgument<std::tuple_element_t<Is, std::tuple<ArgTs...>>>(symbolTable, args[Is])...);
+}
+
+/** Call a stateful functor. */
+template <std::size_t I = 0, typename ExecuteFn, typename Shadow, typename... ArgTs>
+RamDomain callStateless(ExecuteFn&& execute, Context& ctxt, Shadow& shadow, souffle::SymbolTable& symbolTable,
+        const TypeAttribute returnType, const std::vector<TypeAttribute>& argTypes, void (*userFunctor)()) {
+    if (I == argTypes.size()) {
+        constexpr std::size_t Arity = sizeof...(ArgTs);
+        std::array<RamDomain, Arity> args;
+
+        if constexpr (Arity > 0) {
+            for (std::size_t i = 0; i < Arity; ++i) {
+                args[i] = execute(shadow.getChild(i), ctxt);
+            }
+        }
+
+        auto argsTuple = statelessCallTuple<ArgTs...>(symbolTable, args, std::make_index_sequence<Arity>{});
+
+        if (returnType == TypeAttribute::Symbol) {
+            const char* ret = callWithTuple<const char*, ArgTs...>(userFunctor, argsTuple);
+            return symbolTable.encode(ret);
+        } else if (returnType == TypeAttribute::Signed) {
+            return ramBitCast(callWithTuple<RamDomain, ArgTs...>(userFunctor, argsTuple));
+        } else if (returnType == TypeAttribute::Unsigned) {
+            return ramBitCast(callWithTuple<RamUnsigned, ArgTs...>(userFunctor, argsTuple));
+        } else if (returnType == TypeAttribute::Float) {
+            return ramBitCast(callWithTuple<RamFloat, ArgTs...>(userFunctor, argsTuple));
+        } else {
+            fatal("unsupported return type");
+        }
+
+    } else {
+        if constexpr (I < StatelessFunctorMaxArity) {
+            // construct argument tuple type
+
+            if (argTypes[I] == TypeAttribute::Signed) {
+                return callStateless<I + 1, ExecuteFn, Shadow, ArgTs..., RamDomain>(
+                        std::forward<ExecuteFn>(execute), ctxt, std::forward<Shadow>(shadow), symbolTable,
+                        returnType, argTypes, userFunctor);
+            } else if (argTypes[I] == TypeAttribute::Unsigned) {
+                return callStateless<I + 1, ExecuteFn, Shadow, ArgTs..., RamUnsigned>(
+                        std::forward<ExecuteFn>(execute), ctxt, std::forward<Shadow>(shadow), symbolTable,
+                        returnType, argTypes, userFunctor);
+            } else if (argTypes[I] == TypeAttribute::Float) {
+                return callStateless<I + 1, ExecuteFn, Shadow, ArgTs..., RamFloat>(
+                        std::forward<ExecuteFn>(execute), ctxt, std::forward<Shadow>(shadow), symbolTable,
+                        returnType, argTypes, userFunctor);
+            } else if (argTypes[I] == TypeAttribute::Symbol) {
+                return callStateless<I + 1, ExecuteFn, Shadow, ArgTs..., const char*>(
+                        std::forward<ExecuteFn>(execute), ctxt, std::forward<Shadow>(shadow), symbolTable,
+                        returnType, argTypes, userFunctor);
+            } else {
+                fatal("unsupported argument type");
+            }
+        } else {
+            fatal("too many arguments to functor for template expension");
+        }
+    }
+}
 
 }  // namespace
 
@@ -280,12 +405,12 @@ void Engine::executeMain() {
         SignalHandler::instance()->enableLogging();
     }
 
-    generateIR();
-    assert(main != nullptr && "Executing an empty program");
-
+    /* Must load functor libraries before generating IR, because the generator
+     * must be able to find actual functions for each user-defined functor. */
     loadDLL();
 
-    Context ctxt;
+    generateIR();
+    assert(main != nullptr && "Executing an empty program");
 
     if (!profileEnabled) {
         Context ctxt;
@@ -551,14 +676,16 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     // clang-format on
 
                 case FunctorOp::EXP: {
-                    return std::pow(execute(shadow.getChild(0), ctxt), execute(shadow.getChild(1), ctxt));
+                    return ramBitCast(static_cast<RamSigned>(static_cast<EXP_RamSigned>(
+                            std::pow(execute(shadow.getChild(0), ctxt), execute(shadow.getChild(1), ctxt)))));
                 }
 
                 case FunctorOp::UEXP: {
                     auto first = ramBitCast<RamUnsigned>(execute(shadow.getChild(0), ctxt));
                     auto second = ramBitCast<RamUnsigned>(execute(shadow.getChild(1), ctxt));
                     // Extra casting required: pow returns a floating point.
-                    return ramBitCast(static_cast<RamUnsigned>(std::pow(first, second)));
+                    return ramBitCast(
+                            static_cast<RamUnsigned>(static_cast<EXP_RamUnsigned>(std::pow(first, second))));
                 }
 
                 case FunctorOp::FEXP: {
@@ -661,47 +788,70 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         CASE(UserDefinedOperator)
             const std::string& name = cur.getName();
 
-            auto userFunctor = reinterpret_cast<void (*)()>(getMethodHandle(name));
+            auto userFunctor = reinterpret_cast<void (*)()>(shadow.getFunctionPointer());
             if (userFunctor == nullptr) fatal("cannot find user-defined operator `%s`", name);
             std::size_t arity = cur.getArguments().size();
 
             if (cur.isStateful()) {
+                auto exec = std::bind(&Engine::execute, this, std::placeholders::_1, std::placeholders::_2);
+#define CALL_STATEFUL(ARITY) \
+    case ARITY:              \
+        return callStateful<ARITY>(exec, ctxt, shadow, userFunctor, &getSymbolTable(), &getRecordTable())
+
+                // inlined call to stateful functor with arity 0 to 16.
+                switch (arity) {
+                    CALL_STATEFUL(0);
+                    CALL_STATEFUL(1);
+                    CALL_STATEFUL(2);
+                    CALL_STATEFUL(3);
+                    CALL_STATEFUL(4);
+                    CALL_STATEFUL(5);
+                    CALL_STATEFUL(6);
+                    CALL_STATEFUL(7);
+                    CALL_STATEFUL(8);
+                    CALL_STATEFUL(9);
+                    CALL_STATEFUL(10);
+                    CALL_STATEFUL(11);
+                    CALL_STATEFUL(12);
+                    CALL_STATEFUL(13);
+                    CALL_STATEFUL(14);
+                    CALL_STATEFUL(15);
+                    CALL_STATEFUL(16);
+                }
+#ifdef USE_LIBFFI
                 // prepare dynamic call environment
-                ffi_cif cif;
-                ffi_type* args[arity + 2];
                 void* values[arity + 2];
                 RamDomain intVal[arity];
-                ffi_arg rc;
+                RamDomain rc;
 
                 /* Initialize arguments for ffi-call */
-                args[0] = args[1] = &ffi_type_pointer;
                 void* symbolTable = (void*)&getSymbolTable();
                 values[0] = &symbolTable;
                 void* recordTable = (void*)&getRecordTable();
                 values[1] = &recordTable;
                 for (std::size_t i = 0; i < arity; i++) {
                     intVal[i] = execute(shadow.getChild(i), ctxt);
-                    args[i + 2] = &FFI_RamSigned;
                     values[i + 2] = &intVal[i];
                 }
 
-                // Set codomain.
-                auto codomain = &FFI_RamSigned;
-
-                // Call the external function.
-                const auto prepStatus = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, arity + 2, codomain, args);
-                if (prepStatus != FFI_OK) {
-                    fatal("Failed to prepare CIF for user-defined operator `%s`; error code = %d", name,
-                            prepStatus);
-                }
-                ffi_call(&cif, userFunctor, &rc, values);
-                return static_cast<RamDomain>(rc);
+                ffi_call(shadow.getFFIcif(), userFunctor, &rc, values);
+                return rc;
+#else
+                fatal("unsupported stateful functor arity without libffi support");
+#endif
             } else {
                 const std::vector<TypeAttribute>& types = cur.getArgsTypes();
+                const auto returnType = cur.getReturnType();
 
+                if (types.size() <= StatelessFunctorMaxArity) {
+                    auto exec =
+                            std::bind(&Engine::execute, this, std::placeholders::_1, std::placeholders::_2);
+                    return callStateless(
+                            exec, ctxt, shadow, getSymbolTable(), returnType, types, userFunctor);
+                }
+
+#ifdef USE_LIBFFI
                 // prepare dynamic call environment
-                ffi_cif cif;
-                ffi_type* args[arity];
                 void* values[arity];
                 RamDomain intVal[arity];
                 RamUnsigned uintVal[arity];
@@ -713,22 +863,18 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     RamDomain arg = execute(shadow.getChild(i), ctxt);
                     switch (types[i]) {
                         case TypeAttribute::Symbol:
-                            args[i] = &FFI_Symbol;
                             strVal[i] = getSymbolTable().decode(arg).c_str();
                             values[i] = &strVal[i];
                             break;
                         case TypeAttribute::Signed:
-                            args[i] = &FFI_RamSigned;
                             intVal[i] = arg;
                             values[i] = &intVal[i];
                             break;
                         case TypeAttribute::Unsigned:
-                            args[i] = &FFI_RamUnsigned;
                             uintVal[i] = ramBitCast<RamUnsigned>(arg);
                             values[i] = &uintVal[i];
                             break;
                         case TypeAttribute::Float:
-                            args[i] = &FFI_RamFloat;
                             floatVal[i] = ramBitCast<RamFloat>(arg);
                             values[i] = &floatVal[i];
                             break;
@@ -737,45 +883,28 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     }
                 }
 
-                // Get codomain.
-                auto codomain = &FFI_RamSigned;
+                union {
+                    RamDomain s;
+                    RamUnsigned u;
+                    RamFloat f;
+                    const char* c;
+                    ffi_arg dummy;  // ensures minium size
+                } rvalue;
+
+                ffi_call(shadow.getFFIcif(), userFunctor, &rvalue, values);
+
                 switch (cur.getReturnType()) {
-                    case TypeAttribute::Symbol: codomain = &FFI_Symbol; break;
-                    case TypeAttribute::Signed: codomain = &FFI_RamSigned; break;
-                    case TypeAttribute::Unsigned: codomain = &FFI_RamUnsigned; break;
-                    case TypeAttribute::Float: codomain = &FFI_RamFloat; break;
+                    case TypeAttribute::Signed: return static_cast<RamDomain>(rvalue.s);
+                    case TypeAttribute::Symbol: return getSymbolTable().encode(rvalue.c);
+                    case TypeAttribute::Unsigned: return ramBitCast(rvalue.u);
+                    case TypeAttribute::Float: return ramBitCast(rvalue.f);
                     case TypeAttribute::ADT: fatal("Not implemented");
                     case TypeAttribute::Record: fatal("Not implemented");
                 }
-
-                // Call the external function.
-                const auto prepStatus = ffi_prep_cif(&cif, FFI_DEFAULT_ABI, arity, codomain, args);
-                if (prepStatus != FFI_OK) {
-                    fatal("Failed to prepare CIF for user-defined operator `%s`; error code = %d", name,
-                            prepStatus);
-                }
-
-                // Call †he functor and return
-                // Float return type needs special treatment, see https://stackoverflow.com/q/61577543
-                if (cur.getReturnType() == TypeAttribute::Float) {
-                    RamFloat rvalue;
-                    ffi_call(&cif, userFunctor, &rvalue, values);
-                    return ramBitCast(rvalue);
-                } else {
-                    ffi_arg rvalue;
-                    ffi_call(&cif, userFunctor, &rvalue, values);
-
-                    switch (cur.getReturnType()) {
-                        case TypeAttribute::Signed: return static_cast<RamDomain>(rvalue);
-                        case TypeAttribute::Symbol:
-                            return getSymbolTable().encode(reinterpret_cast<const char*>(rvalue));
-                        case TypeAttribute::Unsigned: return ramBitCast(static_cast<RamUnsigned>(rvalue));
-                        case TypeAttribute::Float: fatal("Floats must be handled seperately");
-                        case TypeAttribute::ADT: fatal("Not implemented");
-                        case TypeAttribute::Record: fatal("Not implemented");
-                    }
-                    fatal("Unsupported user defined operator");
-                }
+                fatal("Unsupported user defined operator");
+#else
+                fatal("unsupported stateless functor arity without libffi support");
+#endif
             }
 
         ESAC(UserDefinedOperator)

@@ -128,7 +128,7 @@ TEST(AstPrint, AggregatorMin) {
     VecOwn<Literal> body;
     body.push_back(mk<Atom>("B"));
 
-    min->setBody(std::move(body));
+    min->setBodyLiterals(std::move(body));
 
     auto tu1 = makeATU();
     auto& prog1 = tu1->getProgram();
@@ -144,7 +144,7 @@ TEST(AstPrint, AggregatorMax) {
 
     VecOwn<Literal> body;
     body.push_back(std::move(atom));
-    max->setBody(std::move(body));
+    max->setBodyLiterals(std::move(body));
 
     auto tu1 = makeATU();
     auto& prog1 = tu1->getProgram();
@@ -160,7 +160,7 @@ TEST(AstPrint, AggregatorCount) {
 
     VecOwn<Literal> body;
     body.push_back(std::move(atom));
-    count->setBody(std::move(body));
+    count->setBodyLiterals(std::move(body));
 
     auto tu1 = makeATU();
     auto& prog1 = tu1->getProgram();
@@ -176,7 +176,7 @@ TEST(AstPrint, AggregatorSum) {
 
     VecOwn<Literal> body;
     body.push_back(std::move(atom));
-    sum->setBody(std::move(body));
+    sum->setBodyLiterals(std::move(body));
 
     auto tu1 = makeATU();
     auto& prog1 = tu1->getProgram();

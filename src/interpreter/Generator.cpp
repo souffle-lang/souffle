@@ -83,7 +83,78 @@ NodePtr NodeGenerator::visit_(type_identity<ram::UserDefinedOperator>, const ram
     for (const auto& arg : op.getArguments()) {
         children.push_back(dispatch(*arg));
     }
-    return mk<UserDefinedOperator>(I_UserDefinedOperator, &op, std::move(children));
+
+    /* Resolve functor to actual function pointer now */
+    void* functionPointer = engine.getMethodHandle(op.getName());
+
+    auto node = mk<UserDefinedOperator>(I_UserDefinedOperator, &op, std::move(children), functionPointer);
+
+#ifdef USE_LIBFFI
+    /* Prepare FFI dynamic call structure */
+
+#if RAM_DOMAIN_SIZE == 64
+#define FFI_RamSigned ffi_type_sint64
+#define FFI_RamUnsigned ffi_type_uint64
+#define FFI_RamFloat ffi_type_double
+#define FFI_Symbol ffi_type_pointer
+#else
+#define FFI_RamSigned ffi_type_sint32
+#define FFI_RamUnsigned ffi_type_uint32
+#define FFI_RamFloat ffi_type_float
+#define FFI_Symbol ffi_type_pointer
+#endif
+
+    const std::size_t arity = op.getArguments().size();
+    const std::size_t nbArgs = arity + (op.isStateful() ? 2 : 0);
+
+    Own<ffi_cif> cif = mk<ffi_cif>();
+    Own<ffi_type*[]> args = mk<ffi_type*[]>(nbArgs);
+    ffi_type* codomain;
+
+    if (op.isStateful()) {
+        args[0] = args[1] = &ffi_type_pointer;
+        for (std::size_t i = 0; i < arity; i++) {
+            args[i + 2] = &FFI_RamSigned;
+        }
+
+        codomain = &FFI_RamSigned;
+
+    } else {
+        const std::vector<TypeAttribute>& types = op.getArgsTypes();
+        const auto returnType = op.getReturnType();
+
+        for (std::size_t i = 0; i < arity; i++) {
+            switch (types[i]) {
+                case TypeAttribute::Symbol: args[i] = &FFI_Symbol; break;
+                case TypeAttribute::Signed: args[i] = &FFI_RamSigned; break;
+                case TypeAttribute::Unsigned: args[i] = &FFI_RamUnsigned; break;
+                case TypeAttribute::Float: args[i] = &FFI_RamFloat; break;
+                case TypeAttribute::ADT: fatal("ADT support is not implemented");
+                case TypeAttribute::Record: fatal("Record support is not implemented");
+                default: fatal("Not implemented");
+            }
+        }
+
+        switch (returnType) {
+            case TypeAttribute::Symbol: codomain = &FFI_Symbol; break;
+            case TypeAttribute::Signed: codomain = &FFI_RamSigned; break;
+            case TypeAttribute::Unsigned: codomain = &FFI_RamUnsigned; break;
+            case TypeAttribute::Float: codomain = &FFI_RamFloat; break;
+            case TypeAttribute::ADT: fatal("ADT support is not implemented");
+            case TypeAttribute::Record: fatal("Record support is not implemented");
+            default: fatal("Not implemented");
+        }
+    }
+
+    const auto prepStatus = ffi_prep_cif(cif.get(), FFI_DEFAULT_ABI, nbArgs, codomain, args.get());
+    if (prepStatus != FFI_OK) {
+        fatal("Failed to prepare CIF for user-defined operator `%s`; error code = %d", op.getName(),
+                prepStatus);
+    }
+    node->setFFI(std::move(cif), std::move(args));
+#endif
+
+    return node;
 }
 
 NodePtr NodeGenerator::visit_(

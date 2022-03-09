@@ -96,7 +96,7 @@ bool RemoveBooleanConstraintsTransformer::transform(TranslationUnit& translation
                                 BinaryConstraintOp::EQ, mk<NumericConstant>(0), mk<NumericConstant>(1)));
                     }
 
-                    replacementAggregator->setBody(std::move(newBody));
+                    replacementAggregator->setBodyLiterals(std::move(newBody));
                     return replacementAggregator;
                 }
             }

@@ -1,0 +1,10 @@
+.type TPositive = number
+.decl N(a1:number)
+.decl Positive(x:TPositive)
+.decl Divisible(x:number, y:number)
+N(-2).
+N(i+1) :- N(i), i < 5.
+Positive(as(x, TPositive)) :- N(x), x > 0.
+Divisible(x, y) :- N(x), Positive(y), x % y = 0.
+.output Positive
+.output Divisible

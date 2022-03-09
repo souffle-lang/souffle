@@ -19,8 +19,8 @@ namespace souffle::ast::analysis {
 
 void TypeConstraintsAnalysis::visitSink(const Atom& atom) {
     iterateOverAtom(atom, [&](const Argument& argument, const Type& attributeType) {
-        if (isA<RecordType>(attributeType)) {
-            addConstraint(isSubtypeOf(getVar(argument), getBaseType(&attributeType)));
+        if (isA<RecordType>(skipAliasesType(attributeType))) {
+            addConstraint(isSubtypeOf(getVar(argument), attributeType));
             return;
         }
         for (auto& constantType : typeEnv.getConstantTypes()) {

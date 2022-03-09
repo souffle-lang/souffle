@@ -20,6 +20,9 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <deque>
+#include <mutex>
+#include <string>
 
 #if RAM_DOMAIN_SIZE == 64
 using FF_int = int64_t;
@@ -76,6 +79,17 @@ FF_int rnd(FF_float x) {
 
 FF_float incr(FF_float x) {
     return x + 1.0;
+}
+
+const char* concat(FF_float f, FF_int i, FF_uint u, const char* s) {
+    static std::deque<std::string> internStrings;
+    static std::mutex mut;
+
+    std::string str = std::to_string(f) + std::to_string(i) + std::to_string(u) + std::string(s);
+
+    std::lock_guard<std::mutex> guard(mut);
+    const auto it = internStrings.insert(internStrings.end(), str);
+    return it->c_str();
 }
 
 // Stateful Functors

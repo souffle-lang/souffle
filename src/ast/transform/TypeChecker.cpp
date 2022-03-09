@@ -461,7 +461,7 @@ void TypeCheckerImpl::visit_(type_identity<RecordInit>, const RecordInit& rec) {
     }
 
     // At this point we know that there is exactly one type in set, so we can take it.
-    auto& recordType = *as<analysis::RecordType>(*types.begin());
+    auto& recordType = *as<analysis::RecordType>(getBaseType(&*types.begin()));
 
     if (recordType.getFields().size() != rec.getArguments().size()) {
         report.addError("Wrong number of arguments given to record", rec.getSrcLoc());

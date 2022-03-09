@@ -116,12 +116,12 @@ done
 shift $((OPTIND - 1))
 
 # Show usage if no input is given
-test -n "$1" && error "no input file" $? 1 || true
+test -n "$1" || error "no input file" $? 1 || true
 # Check if the input file exists
-test -f "$1" && error "cannot open source file: '$1'" $? 1 || true
+test -f "$1" || error "cannot open source file: '$1'" $? 1 || true
 # Check if the input file has a valid extension
 exe=$(basename "$1" .cpp)
-test "$1" != "$exe" && error "source file is not a .cpp file: '$1'" $? 1 || true
+test "$1" != "$exe" || error "source file is not a .cpp file: '$1'" $? 1 || true
 
 # Ensure binary is compiled to same directory as cpp file
 cd "$(dirname "$1")"

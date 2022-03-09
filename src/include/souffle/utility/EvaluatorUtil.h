@@ -24,7 +24,7 @@
 namespace souffle::evaluator {
 
 template <typename A, typename F /* Tuple<RamDomain,1> -> void */>
-void runRange(A from, A to, A step, F&& go) {
+void runRange(const A from, const A to, const A step, F&& go) {
 #define GO(x) go(Tuple<RamDomain, 1>{ramBitCast(x)})
     if (0 < step) {
         for (auto x = from; x < to; x += step) {
@@ -42,8 +42,26 @@ void runRange(A from, A to, A step, F&& go) {
 }
 
 template <typename A, typename F /* Tuple<RamDomain,1> -> void */>
-void runRange(A from, A to, F&& go) {
-    return runRange(from, to, A(from <= to ? 1 : -1), std::forward<F>(go));
+void runRangeBackward(const A from, const A to, F&& func) {
+    assert(from > to);
+    if (from > to) {
+        for (auto x = from; x > to; --x) {
+            func(Tuple<RamDomain, 1>{ramBitCast(x)});
+        }
+    }
+}
+
+template <typename A, typename F /* Tuple<RamDomain,1> -> void */>
+void runRange(const A from, const A to, F&& go) {
+    if constexpr (std::is_unsigned<A>()) {
+        if (from <= to) {
+            runRange(from, to, static_cast<A>(1U), std::forward<F>(go));
+        } else {
+            runRangeBackward(from, to, std::forward<F>(go));
+        }
+    } else {
+        return runRange(from, to, A(from <= to ? 1 : -1), std::forward<F>(go));
+    }
 }
 
 template <typename A>

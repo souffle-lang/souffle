@@ -28,6 +28,11 @@
 #include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
+
+#ifdef USE_LIBFFI
+#include <ffi.h>
+#endif
+
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -472,7 +477,35 @@ class IntrinsicOperator : public CompoundNode {
  * @class UserDefinedOperator
  */
 class UserDefinedOperator : public CompoundNode {
-    using CompoundNode::CompoundNode;
+public:
+    UserDefinedOperator(NodeType ty, const ram::Node* sdw, VecOwn<Node> children, void* functionPointer)
+            : CompoundNode(ty, sdw, std::move(children)), functionPointer(functionPointer) {
+#ifdef USE_LIBFFI
+        cif = mk<ffi_cif>();
+#endif
+    }
+
+    void* getFunctionPointer() const {
+        return functionPointer;
+    }
+
+#ifdef USE_LIBFFI
+    ffi_cif* getFFIcif() const {
+        return cif.get();
+    }
+
+    void setFFI(Own<ffi_cif> c, Own<ffi_type*[]> a) {
+        cif = std::move(c);
+        args = std::move(a);
+    }
+#endif
+
+private:
+    void* functionPointer;
+#ifdef USE_LIBFFI
+    Own<ffi_cif> cif;
+    Own<ffi_type*[]> args;
+#endif
 };
 
 /**

@@ -73,3 +73,15 @@ E(_, x1) <= E(_, x2) :-
    x1 <= x2.
 
 .output E
+
+// check unset btree_delete qualifier
+
+.decl F(x:number)
+
+F(1).
+F(2).
+
+F(x1) <= F(x2) :-
+   x1 <= x2.
+
+.output F

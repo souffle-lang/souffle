@@ -12,9 +12,6 @@ jobs:
           - release: ubuntu-2004
             extension: ".deb"
             OS-name: "ubuntu/focal"
-          - release: ubuntu-2010
-            extension: ".deb"
-            OS-name: "ubuntu/groovy"
           - release: ubuntu-2104
             extension: ".deb"
             OS-name: "ubuntu/hirsute"
@@ -65,9 +62,7 @@ jobs:
       - name: Packaging
         run: |-
           cd build && 
-          PACKAGECLOUD_TOKEN=${{ secrets.PACKAGECLOUD_TOKEN }} 
-          package_cloud push souffle-lang/souffle/${{ matrix.OS-name }} 
-          ${{ steps.extract_pkg.outputs.pkg_name }}
+          PACKAGECLOUD_TOKEN=${{ secrets.PACKAGECLOUD_TOKEN }} package_cloud push souffle-lang/souffle/${{ matrix.OS-name }} ${{ steps.extract_pkg.outputs.pkg_name }}
       
   Arch-Package-Build:
     runs-on: ubuntu-latest
@@ -93,9 +88,16 @@ jobs:
           -t package_builder
 
       - name: Setup Credentials
-        uses: webfactory/ssh-agent@v0.5.3
+        uses: shimataro/ssh-key-action@v2
         with:
-           ssh-private-key: ${{ secrets.AUR_PRIVATE_KEY }}
+           key: ${{ secrets.AUR_PRIVATE_KEY }}
+           name: aur
+           known_hosts: ${{ secrets.AUR_KNOWN_HOSTS }}
+           config: |
+              Host aur.archlinux.org
+              IdentityFile ~/.ssh/aur
+              User aur
+
 
       - name: Upload
         run: |-
@@ -103,6 +105,8 @@ jobs:
           cd souffle && 
           docker cp container:/home/builduser/PKGBUILD . && 
           docker cp container:/home/builduser/.SRCINFO . && 
+          git config user.email "xihu5895@uni.sydney.edu.au" && 
+          git config user.name "Xiaowen Hu" && 
           git add PKGBUILD .SRCINFO &&
           git commit -m "release version ${{ steps.prepare.outputs.release_tag }}" &&
           git push

@@ -48,7 +48,7 @@ bool RemoveRedundantSumsTransformer::transform(TranslationUnit& translationUnit)
                         for (const auto& lit : agg->getBodyLiterals()) {
                             newBody.push_back(clone(lit));
                         }
-                        count->setBody(std::move(newBody));
+                        count->setBodyLiterals(std::move(newBody));
                         auto number = clone(constant);
                         // Now it's constant * count : { ... }
                         auto result = mk<IntrinsicFunctor>("*", std::move(number), std::move(count));

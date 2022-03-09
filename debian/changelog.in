@@ -1,4 +1,13 @@
-souffle (2.1) UNRELEASED; urgency=low
+souffle (2.2); urgency=low
+  * Subsumption clauses, e.g., A(x1) <= A(x2) :- x1 <= x2 (@julienhenry, @b-scholz)
+  * IR and build improvements (@OlivierHamel, @langston-barrett, @quentin, @b-scholz, @aeflores, @cmuellner, @broffra, @rahlk, @yihozhang, @trofi)
+  * Refactoring of type analysis (@tytus-metrycki)
+  * Improved packaging (@XiaowenHu96, @quentin, @uxhg, @cwarden)
+  * Improved loading of DLLs (@quentin)
+  * Type annotation printer (@hide-kawabata)
+  * Performance improvements for eqrel (@langston-barrett, @kevzhumba)
+
+souffle (2.1); urgency=low
  
   * Choice domain (@XiaowenHu96)
   * Proper treatment of escape codes in symbol constants (@lyxell)

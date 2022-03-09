@@ -58,8 +58,8 @@ public:
     /** Return body literals */
     std::vector<Literal*> getBodyLiterals() const;
 
-    /** Set body */
-    void setBody(VecOwn<Literal> bodyLiterals);
+    /** Set body literals */
+    void setBodyLiterals(VecOwn<Literal> bodyLiterals);
 
     void apply(const NodeMapper& map) override;
 

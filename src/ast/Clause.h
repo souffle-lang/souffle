@@ -52,7 +52,7 @@ public:
     /** Set the head of clause to @p h */
     void setHead(Own<Atom> h);
 
-    /** Set the bodyLiterals of clause to @p body */
+    /** Set the body literals of clause to @p body */
     void setBodyLiterals(VecOwn<Literal> body);
 
     /** Return the atom that represents the head of the clause */

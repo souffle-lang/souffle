@@ -1,0 +1,8 @@
+.type L= next {a:L,  b:number} | end {}
+.type A=L
+
+.decl R(x:A)
+R($end()).
+R($next($end(),1)).
+
+.output R

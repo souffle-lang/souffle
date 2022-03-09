@@ -23,3 +23,12 @@ A(2).
 .decl C(x:float)
 .input C(IO=sqlite,filename="C.sqlite.input")
 .output C(IO=file,filemname="C.csv")
+
+// URI filenames
+.decl D(x:number)
+D(2).
+// URI filenames work for input, but we don't have an easy way of passing the
+// fact dir
+// .input D(IO=sqlite,filename="file:./path/to/existing/D.sqlite.input")
+.input D(IO=sqlite,filename="A.sqlite.input", name="A")
+.output D(IO=sqlite,filename="file:./D.sqlite.output")

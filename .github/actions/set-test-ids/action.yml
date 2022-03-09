@@ -1,0 +1,17 @@
+name: 'set-test-ids'
+inputs:
+  n-chunks:
+    description: 'Total number of test chunks'
+    required: true
+outputs:
+  chunks:
+    description: "Test IDs"
+    value: ${{ steps.set-test-ids.outputs.chunks }}
+runs:
+  using: "composite"
+  steps:
+    - id: set-test-ids
+      run: |
+        CHUNKS=$(python3 -c "print(list(range(${{ inputs.n-chunks }})))")
+        echo "::set-output name=chunks::${CHUNKS}"
+      shell: bash

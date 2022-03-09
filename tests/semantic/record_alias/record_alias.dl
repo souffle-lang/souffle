@@ -1,0 +1,8 @@
+.type L=[a:L,  b:number]
+.type A=L
+
+.decl R(x:A)
+R(nil).
+R([nil,1]).
+
+.output R

@@ -140,8 +140,9 @@ private:
     }
 
     void openDB() {
+        sqlite3_config(SQLITE_CONFIG_URI, 1);
         if (sqlite3_open(dbFilename.c_str(), &db) != SQLITE_OK) {
-            throwError("SQLite error in sqlite3_open");
+            throwError("SQLite error in sqlite3_open: ");
         }
         sqlite3_extended_result_codes(db, 1);
         executeSQL("PRAGMA synchronous = OFF", db);
@@ -269,6 +270,10 @@ private:
         // convert dbname to filename
         auto name = getOr(rwOperation, "dbname", rwOperation.at("name") + ".sqlite");
         name = getOr(rwOperation, "filename", name);
+
+        if (name.rfind("file:", 0) == 0 || name.rfind(":memory:", 0) == 0) {
+            return name;
+        }
 
         if (name.front() != '/') {
             name = getOr(rwOperation, "output-dir", ".") + "/" + name;

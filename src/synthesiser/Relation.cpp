@@ -268,10 +268,10 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
 
                 out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {
-                    out << "|| (" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib
+                    out << "|| ((" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib
                         << "])) && (";
                     genless(i + 1);
-                    out << ")";
+                    out << "))";
                 }
             };
             genless(0);
@@ -648,10 +648,10 @@ void IndirectRelation::generateTypeStruct(std::ostream& out) {
             const auto& typecast = typecasts[attrib];
             out << typecast << " ((*a)[" << attrib << "]) < " << typecast << "((*b)[" << attrib << "])";
             if (i + 1 < ind.size()) {
-                out << "|| (" << typecast << "((*a)[" << attrib << "]) == " << typecast << "((*b)[" << attrib
+                out << "|| ((" << typecast << "((*a)[" << attrib << "]) == " << typecast << "((*b)[" << attrib
                     << "]) && (";
                 genless(i + 1);
-                out << "))";
+                out << ")))";
             }
         };
         genless(0);

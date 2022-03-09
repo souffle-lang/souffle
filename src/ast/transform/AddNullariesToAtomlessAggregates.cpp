@@ -63,7 +63,7 @@ bool AddNullariesToAtomlessAggregatesTransformer::transform(TranslationUnit& tra
             newBody.push_back(clone(lit));
         }
         newBody.push_back(mk<Atom>(relName));
-        agg.setBody(std::move(newBody));
+        agg.setBodyLiterals(std::move(newBody));
     });
     return changed;
 }

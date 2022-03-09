@@ -26,13 +26,10 @@
 // does not strictly dominate any other node that strictly dominates n. Every node,
 // except the entry node, has an immediate dominator.
 //
-// Assume that {d1, ... , dk} are the dominators of node u that are ordered by
-// d1 dom d2 dom d3 ... dk dom u forming an chain. We can equally say that
-// dom(d1) ⊂ dom(d2) ⊂ dom(d3) ⊂ ... ⊂ dom(dk) ⊂ dom(u) or alternatively we can say that
-//
-// |dom(d1)| < |dom(d2)| < |dom(d3)| < ... < |dom(dk)| < |dom(dk)| < |dom(u)|
-
-// which implies that we can build the order of dominators by looking at the size of the dominance set.
+// We use subsumption to find the 'closest' dominator.
+// Base case: immediate_dom(x, y) if y strictly domiantes x.
+// Subsumption: for x's two immediate dominators y1 and y2, discard y1 if y2 is dominated by y1.
+// This means y2 is lower in the path, hence 'closer' to x.
 
 
 
@@ -81,39 +78,17 @@
 .comp ImmediateDominance<N> : Dominance<N>{
 
       //
-      // Counts the size strictly dominating set
-      //
-      .decl s_domsize(n:N,s:number)
-      s_domsize(n,0) :- start(n).
-      s_domsize(n,s) :- s_dom(n,_), s = count : s_dom(n,_).
-
-
-
-      //
-      // Set of sizes of strictly dominating nodes
-      //
-      .decl s_domsizes(n:N,d:N,m:number)
-      s_domsizes(n,d,s) :- s_dom(n,d), s_domsize(d,s).
-
-
-      //
-      // Max size of strictly dominating nodes.
-      //
-      .decl s_max_domsize(n:N,s:number)
-       s_max_domsize(n,0) :- start(n).
-      s_max_domsize(n,y) :- s_domsizes(n,_,_), y = max s : s_domsizes(n,_,s).
-
-      //
       // Immediate Dominator
       //
       .decl imdom(n:N,i:N)
-      imdom(n,x) :- s_dom(n,x), s_domsize(x,s), s_max_domsize(n,s).
+      imdom(n,x) :- s_dom(n,x).
+      imdom(n,x1) <= imdom(n, x2) :- dom(x2, x1).
 
 }
 
 //
-// The graph is taken from example 10.30 in
-// "Compilers Principles, Techniques and Tools"
+// The graph is taken from figure 9.38 in
+// "Compilers Principles, Techniques and Tools" Edition 2
 // by V.Aho et al.
 //
 

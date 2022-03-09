@@ -128,7 +128,7 @@ void MaterializeAggregationQueriesTransformer::groundInjectedParameters(
                         newBody.push_back(mk<Negation>(clone(atom)));
                     }
                 }
-                aggregate->setBody(std::move(newBody));
+                aggregate->setBodyLiterals(std::move(newBody));
             }
             node->apply(*this);
             return node;
@@ -341,7 +341,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
 
             VecOwn<Literal> newBody;
             newBody.push_back(std::move(aggAtom));
-            agg.setBody(std::move(newBody));
+            agg.setBodyLiterals(std::move(newBody));
             // Now we can just add these new things (relation and its single clause) to the program
             program.addClause(std::move(aggClause));
             program.addRelation(std::move(aggRel));

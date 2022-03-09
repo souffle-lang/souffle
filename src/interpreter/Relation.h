@@ -432,8 +432,10 @@ public:
 
     void extendAndInsert(const EqrelRelation& rel) {
         auto src = static_cast<EqrelIndex*>(this->main);
-        auto trg = static_cast<EqrelIndex*>(rel.main);
-        src->extendAndInsert(trg);
+        for (auto& trgIndex : rel.indexes) {
+            auto trg = static_cast<EqrelIndex*>(trgIndex.get());
+            src->extendAndInsert(trg);
+        }
     }
 };
 

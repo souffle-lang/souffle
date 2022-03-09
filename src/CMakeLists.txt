@@ -100,6 +100,7 @@ set(SOUFFLE_SOURCES
     ast/transform/ResolveAliases.cpp
     ast/transform/ResolveAnonymousRecordAliases.cpp
     ast/transform/SemanticChecker.cpp
+    ast/transform/SubsumptionQualifier.cpp
     ast/transform/SimplifyAggregateTargetExpression.cpp
     ast/transform/Transformer.cpp
     ast/transform/TypeChecker.cpp
@@ -210,14 +211,14 @@ if (OPENMP_FOUND)
                              $<$<BOOL:${SOUFFLE_USE_ZLIB}>:ZLIB::ZLIB>
                              $<$<BOOL:${SOUFFLE_USE_SQLITE}>:SQLite::SQLite3>
                              $<$<BOOL:${SOUFFLE_USE_CURSES}>:Curses::NCurses>
-                             LibFFI::LibFFI
+                             $<$<BOOL:${SOUFFLE_USE_LIBFFI}>:LibFFI::LibFFI>
                              "${CMAKE_DL_LIBS}")
 else()
     target_link_libraries(libsouffle
                       PUBLIC $<$<BOOL:${SOUFFLE_USE_ZLIB}>:ZLIB::ZLIB>
                              $<$<BOOL:${SOUFFLE_USE_SQLITE}>:SQLite::SQLite3>
                              $<$<BOOL:${SOUFFLE_USE_CURSES}>:Curses::NCurses>
-                             LibFFI::LibFFI
+                             $<$<BOOL:${SOUFFLE_USE_LIBFFI}>:LibFFI::LibFFI>
                              "${CMAKE_DL_LIBS}")
 endif()
 
@@ -240,6 +241,11 @@ endif()
 if (SOUFFLE_USE_SQLITE)
     target_compile_definitions(libsouffle
                                PUBLIC USE_SQLITE)
+endif()
+
+if (SOUFFLE_USE_LIBFFI)
+    target_compile_definitions(libsouffle
+      PUBLIC USE_LIBFFI)
 endif()
 
 # The target names "souffle" for the library and "souffle" for the binary

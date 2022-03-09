@@ -202,7 +202,7 @@ TEST(Program, RemoveClauseByEquality) {
     auto sum = mk<Aggregator>(AggregateOp::SUM, mk<Variable>("x"));
     VecOwn<Literal> body;
     body.push_back(std::move(atom));
-    sum->setBody(std::move(body));
+    sum->setBodyLiterals(std::move(body));
 
     auto tu1 = makeATU(".decl A,B(x:number) \n A(sum x : B(x)).");
     auto clauses_pre = tu1->getProgram().getClauses();

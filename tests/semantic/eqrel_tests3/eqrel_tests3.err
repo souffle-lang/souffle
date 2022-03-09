@@ -1,0 +1,6 @@
+Warning: Variable a only occurs once in file eqrel_tests3.dl at line 26
+b__(b) :- isEqrel(b, a).
+---------------------^---
+Warning: Variable g only occurs once in file eqrel_tests3.dl at line 28
+c__(a, c) :- a__(e, g), a__(a, e), b__(e), b__(c).
+--------------------^------------------------------

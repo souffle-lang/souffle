@@ -16,6 +16,11 @@ out1(X) :- X = range(1, 10).
 .output out2()
 out2(X) :- X = range(9, 0, -1).
 
+// Range with contradicting step
+.decl out2b(X:number)
+.output out2b()
+out2b(X) :- X = range(9, 0, 1).
+
 // Range appearing twice with the same endpoints
 .decl out3(X:number, Y:number)
 .output out3()
@@ -25,3 +30,29 @@ out3(X,Y) :- X = range(1,3), Y = range(1,3).
 .decl out4(X:number, Y:number)
 .output out4()
 out4(X,Y) :- X = range(0,3), Y = range(0,3), X < Y, X + Y = 3.
+
+// Unsigned range
+.decl out5(X:unsigned)
+.output out5
+out5(X) :- X = range(1, 10).
+
+.decl out6(X:unsigned)
+.output out6
+out6(X) :- X = range(9, 0).
+
+// Float range
+.decl out7(X:float)
+.output out7
+out7(X) :- X = range(1.25, 9.25).
+
+.decl out8(X:float)
+.output out8
+out8(X) :- X = range(1.5, -4.6, -0.5).
+
+.decl out9(X:float)
+.output out9
+out9(X) :- X = range(4.5, -4.6).
+
+.decl out10(X:float)
+.output out10
+out10(X) :- X = range(-1, 0, 0.25).

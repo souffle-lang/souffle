@@ -191,6 +191,26 @@ bool isOfRootType(const Type& type, const Type& root) {
 }
 
 bool isOfKind(const Type& type, TypeAttribute kind) {
+    auto& t = skipAliasesType(type);
+
+    if (kind == TypeAttribute::Record) {
+        return isA<RecordType>(t);
+    } else if (kind == TypeAttribute::ADT) {
+        return isA<AlgebraicDataType>(t);
+    }
+
+    return isOfRootType(t, t.getTypeEnvironment().getConstantType(kind));
+}
+
+bool isBaseOfKind(const Type& type, TypeAttribute kind) {
+    if (auto subset = as<SubsetType>(type)) {
+        return isBaseOfKind(subset->getBaseType(), kind);
+    }
+
+    if (auto alias = as<AliasType>(type)) {
+        return isBaseOfKind(alias->getAliasType(), kind);
+    }
+
     if (kind == TypeAttribute::Record) {
         return isA<RecordType>(type);
     } else if (kind == TypeAttribute::ADT) {
@@ -207,17 +227,17 @@ bool isOfKind(const TypeSet& typeSet, TypeAttribute kind) {
 
 std::string getTypeQualifier(const Type& type) {
     std::string kind = [&]() {
-        if (isOfKind(type, TypeAttribute::Signed)) {
+        if (isBaseOfKind(type, TypeAttribute::Signed)) {
             return "i";
-        } else if (isOfKind(type, TypeAttribute::Unsigned)) {
+        } else if (isBaseOfKind(type, TypeAttribute::Unsigned)) {
             return "u";
-        } else if (isOfKind(type, TypeAttribute::Float)) {
+        } else if (isBaseOfKind(type, TypeAttribute::Float)) {
             return "f";
-        } else if (isOfKind(type, TypeAttribute::Symbol)) {
+        } else if (isBaseOfKind(type, TypeAttribute::Symbol)) {
             return "s";
-        } else if (isOfKind(type, TypeAttribute::Record)) {
+        } else if (isBaseOfKind(type, TypeAttribute::Record)) {
             return "r";
-        } else if (isOfKind(type, TypeAttribute::ADT)) {
+        } else if (isBaseOfKind(type, TypeAttribute::ADT)) {
             return "+";
         } else {
             fatal("Unsupported kind");
@@ -227,9 +247,12 @@ std::string getTypeQualifier(const Type& type) {
     return tfm::format("%s:%s", kind, type.getName());
 }
 
-bool isSubtypeOf(const Type& a, const Type& b) {
-    assert(&a.getTypeEnvironment() == &b.getTypeEnvironment() &&
+bool isSubtypeOf(const Type& ta, const Type& tb) {
+    assert(&ta.getTypeEnvironment() == &tb.getTypeEnvironment() &&
             "Types must be in the same type environment");
+
+    auto& a = skipAliasesType(ta);
+    auto& b = skipAliasesType(tb);
 
     if (isOfRootType(a, b)) {
         return true;
@@ -263,9 +286,12 @@ void TypeEnvironment::print(std::ostream& out) const {
     }
 }
 
-TypeSet getGreatestCommonSubtypes(const Type& a, const Type& b) {
-    assert(&a.getTypeEnvironment() == &b.getTypeEnvironment() &&
+TypeSet getGreatestCommonSubtypes(const Type& ta, const Type& tb) {
+    assert(&ta.getTypeEnvironment() == &tb.getTypeEnvironment() &&
             "Types must be in the same type environment");
+
+    auto& a = skipAliasesType(ta);
+    auto& b = skipAliasesType(tb);
 
     if (isSubtypeOf(a, b)) {
         return TypeSet(a);
@@ -365,7 +391,7 @@ bool haveCommonSupertype(const Type& a, const Type& b) {
 TypeAttribute getTypeAttribute(const Type& type) {
     for (auto typeAttribute : {TypeAttribute::Signed, TypeAttribute::Unsigned, TypeAttribute::Float,
                  TypeAttribute::Record, TypeAttribute::Symbol, TypeAttribute::ADT}) {
-        if (isOfKind(type, typeAttribute)) {
+        if (isOfKind(skipAliasesType(type), typeAttribute)) {
             return typeAttribute;
         }
     }
@@ -391,12 +417,33 @@ bool isADTEnum(const AlgebraicDataType& type) {
 }
 
 const Type& getBaseType(const Type* type) {
-    while (auto subset = as<SubsetType>(type)) {
-        type = &subset->getBaseType();
-    };
+    if (auto subset = as<SubsetType>(type)) {
+        return getBaseType(&subset->getBaseType());
+    }
+
+    if (auto alias = as<AliasType>(type)) {
+        return getBaseType(&alias->getAliasType());
+    }
+
     assert((isA<ConstantType>(type) || isA<RecordType>(type)) &&
             "Root must be a constant type or a record type");
     return *type;
+}
+
+const Type& skipAliasesType(const Type* type) {
+    if (auto alias = as<AliasType>(type)) {
+        return skipAliasesType(&alias->getAliasType());
+    }
+
+    return *type;
+}
+
+const Type& skipAliasesType(const Type& type) {
+    if (auto alias = as<AliasType>(type)) {
+        return skipAliasesType(alias->getAliasType());
+    }
+
+    return type;
 }
 
 }  // namespace souffle::ast::analysis

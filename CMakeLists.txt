@@ -98,6 +98,7 @@ option(SOUFFLE_ENABLE_TESTING "Enable/Disable testing" ${SOUFFLE_ENABLE_TESTING_
 option(SOUFFLE_GENERATE_DOXYGEN "Generate Doxygen files (html;htmlhelp;man;rtf;xml;latex)" "")
 option(SOUFFLE_CODE_COVERAGE "Enable coverage reporting" OFF)
 option(SOUFFLE_BASH_COMPLETION "Enable/Disable bash completion" OFF)
+option(SOUFFLE_USE_LIBFFI "Enable/Disable use of libffi" ON)
 
 cmake_dependent_option(SOUFFLE_USE_LIBCPP "Link to libc++ instead of libstdc++" ON
     "CMAKE_CXX_COMPILER_ID STREQUAL Clang" OFF)
@@ -216,7 +217,9 @@ endif()
 # --------------------------------------------------
 # libffi
 # --------------------------------------------------
-find_package(LibFFI REQUIRED)
+if (SOUFFLE_USE_LIBFFI)
+  find_package(LibFFI REQUIRED)
+endif()
 
 # --------------------------------------------------
 # pthreads

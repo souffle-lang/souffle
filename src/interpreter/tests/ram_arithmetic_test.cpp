@@ -393,7 +393,7 @@ TEST(Binary, SignedExp) {
         auto arg1 = vecArg1[i];
         auto arg2 = vecArg2[i];
         RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, static_cast<RamDomain>(std::pow(arg1, arg2)));
+        EXPECT_EQ(result, static_cast<RamDomain>(static_cast<int64_t>(std::pow(arg1, arg2))));
     }
 }
 
