@@ -67,6 +67,8 @@ std::unique_ptr<SipsMetric> SipsMetric::create(const std::string& heuristic, con
         return mk<NaiveSips>();
     else if (heuristic == "max-bound")
         return mk<MaxBoundSips>();
+    else if (heuristic == "max-bound-delta")
+        return mk<MaxBoundDeltaSips>();
     else if (heuristic == "max-ratio")
         return mk<MaxRatioSips>();
     else if (heuristic == "least-free")
