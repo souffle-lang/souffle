@@ -187,6 +187,11 @@ int LevelAnalysis::getLevel(const Node* node) const {
             return -1;
         }
 
+        // auto increment
+        int visit_(type_identity<IterationNumber>, const IterationNumber&) override {
+            return -1;
+        }
+
         // undef value
         int visit_(type_identity<UndefValue>, const UndefValue&) override {
             return -1;

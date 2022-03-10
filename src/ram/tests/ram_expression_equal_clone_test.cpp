@@ -20,6 +20,7 @@
 #include "ram/AutoIncrement.h"
 #include "ram/Expression.h"
 #include "ram/IntrinsicOperator.h"
+#include "ram/IterationNumber.h"
 #include "ram/PackRecord.h"
 #include "ram/SignedConstant.h"
 #include "ram/SubroutineArgument.h"
@@ -128,6 +129,18 @@ TEST(AutoIncrement, CloneAndEquals) {
     EXPECT_NE(&a, &b);
 
     AutoIncrement* aClone = a.cloning();
+    EXPECT_EQ(a, *aClone);
+    EXPECT_NE(&a, aClone);
+    delete aClone;
+}
+
+TEST(IterationNumber, CloneAndEquals) {
+    IterationNumber a;
+    IterationNumber b;
+    EXPECT_EQ(a, b);
+    EXPECT_NE(&a, &b);
+
+    IterationNumber* aClone = a.cloning();
     EXPECT_EQ(a, *aClone);
     EXPECT_NE(&a, aClone);
     delete aClone;

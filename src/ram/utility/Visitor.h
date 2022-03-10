@@ -47,6 +47,7 @@
 #include "ram/IndexScan.h"
 #include "ram/Insert.h"
 #include "ram/IntrinsicOperator.h"
+#include "ram/IterationNumber.h"
 #include "ram/ListStatement.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogSize.h"
@@ -124,6 +125,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(IntrinsicOperator);
         SOUFFLE_VISITOR_FORWARD(UserDefinedOperator);
         SOUFFLE_VISITOR_FORWARD(AutoIncrement);
+        SOUFFLE_VISITOR_FORWARD(IterationNumber);
         SOUFFLE_VISITOR_FORWARD(PackRecord);
         SOUFFLE_VISITOR_FORWARD(SubroutineArgument);
         SOUFFLE_VISITOR_FORWARD(UndefValue);
@@ -264,6 +266,7 @@ protected:
     SOUFFLE_VISITOR_LINK(UserDefinedOperator, AbstractOperator);
     SOUFFLE_VISITOR_LINK(AbstractOperator, Expression);
     SOUFFLE_VISITOR_LINK(AutoIncrement, Expression);
+    SOUFFLE_VISITOR_LINK(IterationNumber, Expression);
     SOUFFLE_VISITOR_LINK(PackRecord, Expression);
     SOUFFLE_VISITOR_LINK(SubroutineArgument, Expression);
     SOUFFLE_VISITOR_LINK(RelationSize, Expression);
