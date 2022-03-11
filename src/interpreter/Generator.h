@@ -47,6 +47,7 @@
 #include "ram/IndexScan.h"
 #include "ram/Insert.h"
 #include "ram/IntrinsicOperator.h"
+#include "ram/IterationNumber.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogSize.h"
 #include "ram/LogTimer.h"
@@ -132,6 +133,8 @@ public:
     NodePtr visit_(type_identity<ram::TupleElement>, const ram::TupleElement& access) override;
 
     NodePtr visit_(type_identity<ram::AutoIncrement>, const ram::AutoIncrement& inc) override;
+
+    NodePtr visit_(type_identity<ram::IterationNumber>, const ram::IterationNumber& inc) override;
 
     NodePtr visit_(type_identity<ram::IntrinsicOperator>, const ram::IntrinsicOperator& op) override;
 

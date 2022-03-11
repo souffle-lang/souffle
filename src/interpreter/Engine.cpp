@@ -43,6 +43,7 @@
 #include "ram/IndexScan.h"
 #include "ram/Insert.h"
 #include "ram/IntrinsicOperator.h"
+#include "ram/IterationNumber.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogSize.h"
 #include "ram/LogTimer.h"
@@ -557,6 +558,10 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         CASE(AutoIncrement)
             return incCounter();
         ESAC(AutoIncrement)
+
+        CASE(IterationNumber)
+            return getIterationNumber();
+        ESAC(IterationNumber)
 
         CASE(IntrinsicOperator)
 // clang-format off
@@ -1273,6 +1278,9 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
         CASE(Loop)
             resetIterationNumber();
+
+            // For incremental evaluation, it is important that recursive loops start at iteration 1
+            incIterationNumber();
             while (execute(shadow.getChild(), ctxt)) {
                 incIterationNumber();
             }

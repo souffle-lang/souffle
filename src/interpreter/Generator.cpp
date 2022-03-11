@@ -70,6 +70,10 @@ NodePtr NodeGenerator::visit_(type_identity<ram::AutoIncrement>, const ram::Auto
     return mk<AutoIncrement>(I_AutoIncrement, &inc);
 }
 
+NodePtr NodeGenerator::visit_(type_identity<ram::IterationNumber>, const ram::IterationNumber& inc) {
+    return mk<IterationNumber>(I_IterationNumber, &inc);
+}
+
 NodePtr NodeGenerator::visit_(type_identity<ram::IntrinsicOperator>, const ram::IntrinsicOperator& op) {
     NodePtrVec children;
     for (const auto& arg : op.getArguments()) {

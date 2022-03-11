@@ -62,6 +62,7 @@ struct RelationWrapper;
     Forward(StringConstant)\
     Forward(TupleElement)\
     Forward(AutoIncrement)\
+    Forward(IterationNumber)\
     Forward(IntrinsicOperator)\
     Forward(UserDefinedOperator)\
     Forward(NestedIntrinsicOperator)\
@@ -463,6 +464,13 @@ private:
  * @class AutoIncrement
  */
 class AutoIncrement : public Node {
+    using Node::Node;
+};
+
+/**
+ * @class IterationNumber
+ */
+class IterationNumber : public Node {
     using Node::Node;
 };
 

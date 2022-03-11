@@ -19,6 +19,7 @@
 #include "ast/Clause.h"
 #include "ast/Variable.h"
 #include "ast/utility/Utils.h"
+#include "ast2ram/utility/Location.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
@@ -43,8 +44,7 @@
 namespace souffle::ast2ram::incremental {
 
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
-        Own<ram::Operation>, const ast::Atom*) const {
-    /*
+        Own<ram::Operation> op, const ast::Atom* atom) const {
     std::size_t arity = atom->getArity();
     std::string name = getDeltaRelationName(atom->getQualifiedName());
 
@@ -64,14 +64,14 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
 
     return mk<ram::Filter>(
             mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
-            */
 
     // For incremental evaluation, the delta check is enforced during merge time so does not need to be checked during rule evaluation
-    return nullptr;
+    // return nullptr;
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedAtom(
-        Own<ram::Operation> op, const ast::Clause& /* clause */, const ast::Atom* atom) const {
+        Own<ram::Operation> op, const ast::Clause& /* clause */, const ast::Atom* /* atom */) const {
+    /*
     VecOwn<ram::Expression> values;
 
     auto args = atom->getArguments();
@@ -89,11 +89,13 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
     return mk<ram::Filter>(mk<ram::Negation>(mk<ram::ProvenanceExistenceCheck>(
                                    getConcreteRelationName(atom->getQualifiedName()), std::move(values))),
             std::move(op));
+            */
+
+    return op;
 }
 
 Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         const ast::Clause& clause, Own<ram::Operation> op) const {
-    std::cout << "hello????" << std::endl;
 
     op = ast2ram::seminaive::ClauseTranslator::addBodyLiteralConstraints(clause, std::move(op));
 
@@ -113,8 +115,6 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         // For an atom A(X...,iter,count), generate an aggregate constraint
         // iter = i : min(A(X...,i,c WHERE c > 0))
 
-        std::cout << "making agg for " << *atom << ", level is " << aggLevel << std::endl;
-
         std::string iterationNum = "@min_iteration_" + std::to_string(atomIdx);
         valueIndex->addVarReference(iterationNum, aggLevel, atom->getArity());
 
@@ -125,10 +125,39 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         auto aggExpr = mk<ram::TupleElement>(aggLevel, atom->getArity());
 
         // Make aggregate condition, i.e., c > 0 in above example
-        auto aggCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(aggLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+        Own<ram::Condition> aggCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(aggLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
+        // Add aggregate conditions such that X... inside aggregate is equal to outside
+        std::size_t argNum = 0;
+        for (auto* arg : atom->getArguments()) {
+            aggCond = addConjunctiveTerm(std::move(aggCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(aggLevel, argNum)));
+            argNum++;
+        }
+
+        /*
+        // Get location of iteration variable from current atom
+        std::cout << "arity: " << atom->getArity() << std::endl;
+        std::cout << "args: ";
+        for (auto* arg : atom->getArguments()) {
+            std::cout << *arg << ", ";
+        }
+        std::cout << std::endl;
+        auto iterationVariable = atom->getArguments()[atom->getArity()];
+        std::cout << "iter arg: " << iterationVariable << std::endl;
+        */
+        // assert(iterationVariable != nullptr && "Iteration number must be a variable");
+        // auto iterationLocation = valueIndex->getDefinitionPoint(iterationVariable->getName());
+        auto iterationVariableLocation = valueIndex->getDefinitionPoint("@iteration_" + std::to_string(atomIdx));
+
+        op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ,
+                    mk<ram::TupleElement>(iterationVariableLocation.identifier, iterationVariableLocation.element),
+                    clone(aggExpr)), std::move(op));
+
+        // Make aggregate, i.e., i : min(A(X...,i,c WHERE c > 0)) in above example
+        // This has to go after the filter, because the op is being built inside out
         op = mk<ram::Aggregate>(std::move(op), AggregateOp::MIN, ast::getName(*atom).toString(), std::move(aggExpr), std::move(aggCond), aggLevel);
 
+        atomIdx++;
         aggLevel++;
     }
 
