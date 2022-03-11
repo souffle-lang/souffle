@@ -44,6 +44,7 @@ Own<ram::Expression> ValueTranslator::translateValue(const ast::Argument* arg) {
 }
 
 Own<ram::Expression> ValueTranslator::visit_(type_identity<ast::Variable>, const ast::Variable& var) {
+    std::cout << "variable: " << var << std::endl;
     assert(index.isDefined(var.getName()) && "variable not grounded");
     return makeRamTupleElement(index.getDefinitionPoint(var.getName()));
 }

@@ -15,6 +15,7 @@
 #include "ast2ram/incremental/TranslationStrategy.h"
 // #include "ast2ram/provenance/ClauseTranslator.h"
 // #include "ast2ram/provenance/ConstraintTranslator.h"
+#include "ast2ram/incremental/ClauseTranslator.h"
 #include "ast2ram/incremental/UnitTranslator.h"
 
 #include "ast2ram/seminaive/ClauseTranslator.h"
@@ -33,7 +34,7 @@ ast2ram::UnitTranslator* TranslationStrategy::createUnitTranslator() const {
 
 ast2ram::ClauseTranslator* TranslationStrategy::createClauseTranslator(
         const TranslatorContext& context, TranslationMode mode) const {
-    return new ast2ram::seminaive::ClauseTranslator(context, mode);
+    return new ClauseTranslator(context, mode);
 }
 
 ast2ram::ConstraintTranslator* TranslationStrategy::createConstraintTranslator(

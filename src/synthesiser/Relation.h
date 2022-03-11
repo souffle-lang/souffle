@@ -120,14 +120,15 @@ public:
 class DirectRelation : public Relation {
 public:
     DirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection,
-            bool isProvenance, bool hasErase)
-            : Relation(ramRel, indexSelection, isProvenance), hasErase(hasErase) {}
+            bool isProvenance, bool isIncremental, bool hasErase)
+            : Relation(ramRel, indexSelection, isProvenance), isIncremental(isIncremental), hasErase(hasErase) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 
 private:
+    const bool isIncremental;
     const bool hasErase;
 };
 

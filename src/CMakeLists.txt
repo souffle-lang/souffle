@@ -108,6 +108,7 @@ set(SOUFFLE_SOURCES
     ast/utility/BindingStore.cpp
     ast/utility/SipsMetric.cpp
     ast/utility/Utils.cpp
+    ast2ram/incremental/ClauseTranslator.cpp
     ast2ram/incremental/TranslationStrategy.cpp
     ast2ram/incremental/UnitTranslator.cpp
     ast2ram/provenance/ClauseTranslator.cpp

@@ -49,13 +49,15 @@ Own<Relation> Relation::getSynthesiserRelation(
 
     // Handle the qualifier in souffle code
     if (isProvenance) {
-        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false);
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false, false);
+    } else if (ramRel.getRepresentation() == RelationRepresentation::INCREMENTAL) {
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, true, false);
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false);
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false, false);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        rel = new DirectRelation(ramRel, indexSelection, isProvenance, true);
+        rel = new DirectRelation(ramRel, indexSelection, isProvenance, false, true);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection, isProvenance);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -67,7 +69,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection, isProvenance);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, isProvenance, false);
+            rel = new DirectRelation(ramRel, indexSelection, isProvenance, false, false);
         }
     }
 
@@ -134,7 +136,7 @@ void DirectRelation::computeIndices() {
         // we must expand all search orders to be full indices,
         // since weak/strong comparators and updaters need this,
         // and also add provenance annotations to the indices
-        if (isProvenance) {
+        if (isProvenance || isIncremental) {
             // expand index to be full
             for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
                 if (curIndexElems.find(i) == curIndexElems.end()) {
@@ -216,6 +218,26 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
         for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
             out << "old_t[" << i << "] = new_t[" << i << "];\n";
         }
+
+        out << "}\n";
+        out << "};\n";
+    }
+
+    if (isIncremental) {
+        out << "struct updater_" << getTypeName() << " {\n";
+        out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
+
+        if (relation.getName().find("applied@") != std::string::npos || relation.getName().find("@") == std::string::npos) {
+            // out << "if (new_t[" << arity - 1 << "] == 0 && new_t[" << arity - 2 << "] == 0) {\n";
+            out << "if (new_t[" << arity - 1 << "] == 0) {\n";
+            // out << "old_t[" << arity - 2 << "] = 0;\n";
+            out << "old_t[" << arity - 1 << "] = 0;\n";
+            out << "return true;\n";
+            out << "}\n";
+        }
+
+        out << "old_t[" << arity - 1 << "] += new_t[" << arity - 1 << "];\n";
+        out << "return true;\n";
 
         out << "}\n";
         out << "};\n";
@@ -305,6 +327,20 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 // index for bottom up phase
                 comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
                 genstruct(comparator_aux, ind.size() - auxiliaryArity);
+            } else {
+                // index for top down phase
+                comparator_aux = comparator;
+            }
+            out << "using t_ind_" << i << " = btree_set<t_tuple," << comparator
+                << ",std::allocator<t_tuple>,256,typename "
+                   "souffle::detail::default_strategy<t_tuple>::type,"
+                << comparator_aux << ",updater_" << getTypeName() << ">;\n";
+        } else if (isIncremental) {
+            std::string comparator_aux;
+            if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
+                // index for bottom up phase
+                comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
+                genstruct(comparator_aux, ind.size() - auxiliaryArity + 1);
             } else {
                 // index for top down phase
                 comparator_aux = comparator;

@@ -61,7 +61,8 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
 Own<ram::Relation> UnitTranslator::createRamRelation(
         const ast::Relation* baseRelation, std::string ramRelationName) const {
     auto arity = baseRelation->getArity();
-    auto representation = baseRelation->getRepresentation();
+    // auto representation = baseRelation->getRepresentation();
+    auto representation = RelationRepresentation::INCREMENTAL;
 
     // Add in base relation information
     std::vector<std::string> attributeNames;
@@ -72,10 +73,10 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     }
 
     // Add in provenance information
-    attributeNames.push_back("@rule_number");
+    attributeNames.push_back("@iteration");
     attributeTypeQualifiers.push_back("i:number");
 
-    attributeNames.push_back("@level_number");
+    attributeNames.push_back("@count");
     attributeTypeQualifiers.push_back("i:number");
 
     return mk<ram::Relation>(
@@ -90,8 +91,10 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
     // - diff_applied
     // - delta_diff_applied
     // - new_diff_applied
-    // - temp_diff_plus
-    // - temp_diff_minus
+    // - temp_diff_plus (updated_diff_plus)
+    // - temp_diff_minus (updated_diff_minus)
+    //      - check if we can simulate semantics of temp without having extra relations
+    //        this might be slow, but do it as an initial step
     // - diff_plus
     // - diff_minus
     // - delta_diff_plus
