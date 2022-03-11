@@ -59,6 +59,8 @@
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast2ram/TranslationStrategy.h"
 #include "ast2ram/UnitTranslator.h"
+#include "ast2ram/incremental/TranslationStrategy.h"
+#include "ast2ram/incremental/UnitTranslator.h"
 #include "ast2ram/provenance/TranslationStrategy.h"
 #include "ast2ram/provenance/UnitTranslator.h"
 #include "ast2ram/seminaive/TranslationStrategy.h"
@@ -249,6 +251,7 @@ int main(int argc, char** argv) {
                 {"pragma", 'P', "OPTIONS", "", true, "Set pragma options."},
                 {"provenance", 't', "[ none | explain | explore ]", "", false,
                         "Enable provenance instrumentation and interaction."},
+                {"incremental", '\7', "", "", false, "Enable incremental evaluation."},
                 {"verbose", 'v', "", "", false, "Verbose output."},
                 {"version", '\3', "", "", false, "Version."},
                 {"show", '\4', "[ <see-list> ]", "", true,
@@ -484,7 +487,8 @@ int main(int argc, char** argv) {
                     mk<ast::transform::ReplaceSingletonVariablesTransformer>());
 
     // Provenance pipeline
-    auto provenancePipeline = mk<ast::transform::ConditionalTransformer>(Global::config().has("provenance"),
+    auto provenancePipeline = mk<ast::transform::ConditionalTransformer>(
+            Global::config().has("provenance") || Global::config().has("incremental"),
             mk<ast::transform::PipelineTransformer>(mk<ast::transform::ExpandEqrelsTransformer>(),
                     mk<ast::transform::NameUnnamedVariablesTransformer>()));
 
@@ -611,7 +615,10 @@ int main(int argc, char** argv) {
     auto translationStrategy =
             Global::config().has("provenance")
                     ? mk<ast2ram::TranslationStrategy, ast2ram::provenance::TranslationStrategy>()
+            : Global::config().has("incremental")
+                    ? mk<ast2ram::TranslationStrategy, ast2ram::incremental::TranslationStrategy>()
                     : mk<ast2ram::TranslationStrategy, ast2ram::seminaive::TranslationStrategy>();
+    std::cout << translationStrategy->getName() << std::endl;
     auto unitTranslator = Own<ast2ram::UnitTranslator>(translationStrategy->createUnitTranslator());
     auto ramTranslationUnit = unitTranslator->translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");

@@ -12,10 +12,14 @@
  *
  ***********************************************************************/
 
-// #include "ast2ram/provenance/TranslationStrategy.h"
+#include "ast2ram/incremental/TranslationStrategy.h"
 // #include "ast2ram/provenance/ClauseTranslator.h"
 // #include "ast2ram/provenance/ConstraintTranslator.h"
-// #include "ast2ram/provenance/UnitTranslator.h"
+#include "ast2ram/incremental/UnitTranslator.h"
+
+#include "ast2ram/seminaive/ClauseTranslator.h"
+#include "ast2ram/seminaive/ConstraintTranslator.h"
+
 #include "ast2ram/seminaive/ValueTranslator.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ram/Condition.h"
@@ -29,12 +33,12 @@ ast2ram::UnitTranslator* TranslationStrategy::createUnitTranslator() const {
 
 ast2ram::ClauseTranslator* TranslationStrategy::createClauseTranslator(
         const TranslatorContext& context, TranslationMode mode) const {
-    return new ClauseTranslator(context, mode);
+    return new ast2ram::seminaive::ClauseTranslator(context, mode);
 }
 
 ast2ram::ConstraintTranslator* TranslationStrategy::createConstraintTranslator(
         const TranslatorContext& context, const ValueIndex& index) const {
-    return new ConstraintTranslator(context, index);
+    return new ast2ram::seminaive::ConstraintTranslator(context, index);
 }
 
 ast2ram::ValueTranslator* TranslationStrategy::createValueTranslator(
