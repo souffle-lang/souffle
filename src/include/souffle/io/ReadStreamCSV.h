@@ -138,6 +138,10 @@ protected:
             }
         }
 
+        for (uint32_t column = 0; column < auxiliaryValues.size(); column++) {
+            tuple[column + columnsFilled] = auxiliaryValues[column];
+        }
+
         return tuple;
     }
 

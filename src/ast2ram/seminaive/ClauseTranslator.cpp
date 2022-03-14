@@ -206,9 +206,6 @@ Own<ram::Statement> ClauseTranslator::createRamRuleQuery(const ast::Clause& clau
     op = addVariableIntroductions(clause, std::move(op));
     op = addEntryPoint(clause, std::move(op));
 
-    std::cout << "after translating a rule" << std::endl;
-    std::cout << *op << std::endl;
-
     return mk<ram::Query>(std::move(op));
 }
 

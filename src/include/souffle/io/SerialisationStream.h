@@ -44,10 +44,10 @@ protected:
     using RO = std::conditional_t<readOnlyTables, const A, A>;
 
     SerialisationStream(RO<SymbolTable>& symTab, RO<RecordTable>& recTab, Json types,
-            std::vector<std::string> relTypes, std::size_t auxArity = 0)
+            std::vector<std::string> relTypes, std::vector<RamDomain> auxValues = {})
             : symbolTable(symTab), recordTable(recTab), types(std::move(types)),
-              typeAttributes(std::move(relTypes)), arity(typeAttributes.size() - auxArity),
-              auxiliaryArity(auxArity) {}
+              typeAttributes(std::move(relTypes)), arity(typeAttributes.size() - auxValues.size()),
+              auxiliaryValues(auxValues) {}
 
     SerialisationStream(RO<SymbolTable>& symTab, RO<RecordTable>& recTab, Json types)
             : symbolTable(symTab), recordTable(recTab), types(std::move(types)) {
@@ -57,6 +57,7 @@ protected:
     SerialisationStream(RO<SymbolTable>& symTab, RO<RecordTable>& recTab,
             const std::map<std::string, std::string>& rwOperation)
             : symbolTable(symTab), recordTable(recTab) {
+
         std::string parseErrors;
         types = Json::parse(rwOperation.at("types"), parseErrors);
         assert(parseErrors.size() == 0 && "Internal JSON parsing failed.");
@@ -67,7 +68,13 @@ protected:
             params = Json::object();
         }
 
-        auxiliaryArity = RamSignedFromString(getOr(rwOperation, "auxArity", "0"));
+        // Set up auxiliary values
+        if (rwOperation.count("auxValues") > 0) {
+            auto auxValueStrings = splitString(rwOperation.at("auxValues"), ',');
+            for (auto value : auxValueStrings) {
+                auxiliaryValues.push_back(RamSignedFromString(value));
+            }
+        }
 
         setupFromJson();
     }
@@ -79,7 +86,7 @@ protected:
     std::vector<std::string> typeAttributes;
 
     std::size_t arity = 0;
-    std::size_t auxiliaryArity = 0;
+    std::vector<RamDomain> auxiliaryValues;
 
 private:
     void setupFromJson() {
@@ -96,7 +103,7 @@ private:
             typeAttributes.push_back(typeString);
         }
 
-        for (std::size_t i = 0; i < auxiliaryArity; i++) {
+        for (std::size_t i = 0; i < auxiliaryValues.size(); i++) {
             typeAttributes.push_back("i:number");
         }
     }

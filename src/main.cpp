@@ -618,7 +618,6 @@ int main(int argc, char** argv) {
             : Global::config().has("incremental")
                     ? mk<ast2ram::TranslationStrategy, ast2ram::incremental::TranslationStrategy>()
                     : mk<ast2ram::TranslationStrategy, ast2ram::seminaive::TranslationStrategy>();
-    std::cout << translationStrategy->getName() << std::endl;
     auto unitTranslator = Own<ast2ram::UnitTranslator>(translationStrategy->createUnitTranslator());
     auto ramTranslationUnit = unitTranslator->translateUnit(*astTranslationUnit);
     debugReport.endSection("ast-to-ram", "Translate AST to RAM");

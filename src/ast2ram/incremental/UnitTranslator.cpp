@@ -107,7 +107,8 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
 
 void UnitTranslator::addAuxiliaryArity(
         const ast::Relation* /* relation */, std::map<std::string, std::string>& directives) const {
-    directives.insert(std::make_pair("auxArity", "2"));
+    // directives.insert(std::make_pair("auxArity", "2"));
+    directives.insert(std::make_pair("auxValues", "0,1"));
 }
 
 Own<ram::Statement> UnitTranslator::generateClearExpiredRelations(

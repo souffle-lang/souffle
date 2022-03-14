@@ -60,7 +60,7 @@ protected:
             return nullptr;
         }
 
-        Own<RamDomain[]> tuple = mk<RamDomain[]>(arity + auxiliaryArity);
+        Own<RamDomain[]> tuple = mk<RamDomain[]>(arity + auxiliaryValues.size());
 
         uint32_t column;
         for (column = 0; column < arity; column++) {
