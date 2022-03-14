@@ -109,7 +109,12 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     // have two tuples (1,2,3,1) and (1,2,5,1), we should only execute a rule
     // evaluation for the earliest tuple (1,2,3,1), otherwise incremental
     // evaluation double counts.
+
+    // atomIdx keeps track of which atom we are creating an aggregate for
     std::size_t atomIdx = 0;
+
+    // aggLevel denotes the current level for aggregation, it starts after all
+    // atoms in the rule
     std::size_t aggLevel = firstAggregateLevel;
     for (const auto* atom : getAtomOrdering(clause)) {
         // For an atom A(X...,iter,count), generate an aggregate constraint
@@ -118,8 +123,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         std::string iterationNum = "@min_iteration_" + std::to_string(atomIdx);
         valueIndex->addVarReference(iterationNum, aggLevel, atom->getArity());
 
-        std::string iterationCountNum = "@min_iteration_count_" + std::to_string(atomIdx);
-        valueIndex->addVarReference(iterationCountNum, aggLevel, atom->getArity() + 1);
+        // std::string iterationCountNum = "@min_iteration_count_" + std::to_string(atomIdx);
+        // valueIndex->addVarReference(iterationCountNum, aggLevel, atom->getArity() + 1);
 
         // Make aggregate expression, i.e., i in the above example
         auto aggExpr = mk<ram::TupleElement>(aggLevel, atom->getArity());
@@ -134,24 +139,11 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
             argNum++;
         }
 
-        /*
-        // Get location of iteration variable from current atom
-        std::cout << "arity: " << atom->getArity() << std::endl;
-        std::cout << "args: ";
-        for (auto* arg : atom->getArguments()) {
-            std::cout << *arg << ", ";
-        }
-        std::cout << std::endl;
-        auto iterationVariable = atom->getArguments()[atom->getArity()];
-        std::cout << "iter arg: " << iterationVariable << std::endl;
-        */
-        // assert(iterationVariable != nullptr && "Iteration number must be a variable");
-        // auto iterationLocation = valueIndex->getDefinitionPoint(iterationVariable->getName());
         auto iterationVariableLocation = valueIndex->getDefinitionPoint("@iteration_" + std::to_string(atomIdx));
 
         op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ,
                     mk<ram::TupleElement>(iterationVariableLocation.identifier, iterationVariableLocation.element),
-                    clone(aggExpr)), std::move(op));
+                    mk<ram::TupleElement>(aggLevel, 0)), std::move(op));
 
         // Make aggregate, i.e., i : min(A(X...,i,c WHERE c > 0)) in above example
         // This has to go after the filter, because the op is being built inside out
@@ -160,8 +152,6 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         atomIdx++;
         aggLevel++;
     }
-
-    std::cout << "final op: " << *op << std::endl;
 
     return op;
 }
