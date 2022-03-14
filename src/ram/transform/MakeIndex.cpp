@@ -93,6 +93,7 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
         bool interpreter = !Global::config().has("compile") && !Global::config().has("dl-program") &&
                            !Global::config().has("generate") && !Global::config().has("swig");
         bool provenance = Global::config().has("provenance");
+        bool incremental = Global::config().has("incremental");
         bool btree = (rep == RelationRepresentation::BTREE || rep == RelationRepresentation::DEFAULT ||
                       rep == RelationRepresentation::BTREE_DELETE);
         auto op = binRelOp->getOperator();
@@ -105,8 +106,8 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
         if (isIneqConstraint(op) && !isSignedInequalityConstraint(op) && interpreter) {
             return {mk<UndefValue>(), mk<UndefValue>()};
         }
-        // don't index inequalities for provenance
-        if (isIneqConstraint(op) && provenance) {
+        // don't index inequalities for provenance or incremental
+        if (isIneqConstraint(op) && (provenance || incremental)) {
             return {mk<UndefValue>(), mk<UndefValue>()};
         }
         // don't index inequalities if we aren't using a BTREE

@@ -541,7 +541,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
         void visit_(type_identity<Loop>, const Loop& loop, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
-            out << "iter = 0;\n";
+            // For incremental update, it is important that a loop starts at iteration 1
+            out << "iter = 1;\n";
             out << "for(;;) {\n";
             dispatch(loop.getBody(), out);
             out << "iter++;\n";
@@ -1955,6 +1956,12 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
         void visit_(type_identity<AutoIncrement>, const AutoIncrement& /*inc*/, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
             out << "(ctr++)";
+            PRINT_END_COMMENT(out);
+        }
+
+        void visit_(type_identity<IterationNumber>, const IterationNumber& /*inc*/, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            out << "(RamUnsigned(iter))";
             PRINT_END_COMMENT(out);
         }
 

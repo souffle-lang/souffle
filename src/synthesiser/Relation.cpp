@@ -232,12 +232,12 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             out << "if (new_t[" << arity - 1 << "] == 0) {\n";
             // out << "old_t[" << arity - 2 << "] = 0;\n";
             out << "old_t[" << arity - 1 << "] = 0;\n";
-            out << "return true;\n";
+            // out << "return true;\n";
             out << "}\n";
         }
 
         out << "old_t[" << arity - 1 << "] += new_t[" << arity - 1 << "];\n";
-        out << "return true;\n";
+        // out << "return true;\n";
 
         out << "}\n";
         out << "};\n";
