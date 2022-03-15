@@ -93,6 +93,7 @@
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
 #include "souffle/RamTypes.h"
+#include "souffle/incremental/Incremental.h"
 #include "souffle/profile/Tui.h"
 #include "souffle/provenance/Explain.h"
 #include "souffle/utility/ContainerUtil.h"
@@ -694,6 +695,11 @@ int main(int argc, char** argv) {
                 } else if (Global::config().get("provenance") == "explore") {
                     explain(interface, true);
                 }
+            }
+
+            if (Global::config().has("incremental")) {
+                interpreter::ProgInterface interface(*interpreter);
+                startIncremental(interface);
             }
         } else {
             // ------- compiler -------------

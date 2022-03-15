@@ -487,6 +487,12 @@ void Engine::executeSubroutine(
     const ram::Program& program = tUnit.getProgram();
     auto subs = program.getSubroutines();
     std::size_t i = distance(subs.begin(), subs.find(name));
+
+    // if subroutine is not found
+    if (i == subs.size()) {
+        std::cerr << "warning: subroutine " << name << " not found!\n";
+        return;
+    }
     execute(subroutine[i].get(), ctxt);
 }
 

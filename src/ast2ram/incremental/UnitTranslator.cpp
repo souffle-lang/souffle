@@ -24,6 +24,7 @@
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
 #include "ram/Call.h"
+#include "ram/Clear.h"
 #include "ram/DebugInfo.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
@@ -40,6 +41,7 @@
 #include "ram/StringConstant.h"
 #include "ram/SubroutineArgument.h"
 #include "ram/SubroutineReturn.h"
+#include "ram/Swap.h"
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
 #include "souffle/SymbolTable.h"
@@ -117,6 +119,42 @@ Own<ram::Statement> UnitTranslator::generateClearExpiredRelations(
     return mk<ram::Sequence>();
 }
 
+Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(
+        const std::set<const ast::Relation*>& scc) const {
+    VecOwn<ram::Statement> updateTable;
+
+    for (const ast::Relation* rel : scc) {
+        // Copy @new into main relation, @delta := @new, and empty out @new
+        std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
+        std::string newRelation = getNewRelationName(rel->getQualifiedName());
+        std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
+
+        // swap new and and delta relation and clear new relation afterwards (if not a subsumptive relation)
+        Own<ram::Statement> updateRelTable;
+        if (!context->hasSubsumptiveClause(rel->getQualifiedName())) {
+            updateRelTable = mk<ram::Sequence>(mk<ram::Clear>(deltaRelation),
+                    generateMergeRelationsWithFilter(rel, deltaRelation, newRelation, mainRelation),
+                    generateMergeRelations(rel, mainRelation, newRelation),
+                    mk<ram::Clear>(newRelation));
+
+        /* TODO: Handle subsumptive clauses correctly
+        } else {
+            updateRelTable = generateMergeRelations(rel, mainRelation, deltaRelation);
+            */
+        }
+
+        // Measure update time
+        if (Global::config().has("profile")) {
+            updateRelTable = mk<ram::LogRelationTimer>(std::move(updateRelTable),
+                    LogStatement::cRecursiveRelation(toString(rel->getQualifiedName()), rel->getSrcLoc()),
+                    newRelation);
+        }
+
+        appendStmt(updateTable, std::move(updateRelTable));
+    }
+    return mk<ram::Sequence>(std::move(updateTable));
+}
+
 Own<ram::Statement> UnitTranslator::generateMergeRelations(
         const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const {
     VecOwn<ram::Expression> values;
@@ -128,9 +166,29 @@ Own<ram::Statement> UnitTranslator::generateMergeRelations(
 
     auto insertion = mk<ram::Insert>(destRelation, std::move(values));
     auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(insertion)));
-    if (rel->getRepresentation() == RelationRepresentation::EQREL) {
-        return mk<ram::Sequence>(mk<ram::MergeExtend>(destRelation, srcRelation), std::move(stmt));
+    return stmt;
+}
+
+Own<ram::Statement> UnitTranslator::generateMergeRelationsWithFilter(const ast::Relation* rel,
+        const std::string& destRelation, const std::string& srcRelation,
+        const std::string& filterRelation) const {
+    VecOwn<ram::Expression> values;
+    VecOwn<ram::Expression> values2;
+
+    // Predicate - insert all values
+    for (std::size_t i = 0; i < rel->getArity() + 2; i++) {
+        values.push_back(mk<ram::TupleElement>(0, i));
+        if (i < rel->getArity()) {
+            values2.push_back(mk<ram::TupleElement>(0, i));
+        } else {
+            values2.push_back(mk<ram::UndefValue>());
+        }
     }
+    auto insertion = mk<ram::Insert>(destRelation, std::move(values));
+    auto filtered =
+            mk<ram::Filter>(mk<ram::Negation>(mk<ram::ExistenceCheck>(filterRelation, std::move(values2))),
+                    std::move(insertion));
+    auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(filtered)));
     return stmt;
 }
 

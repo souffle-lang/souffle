@@ -53,8 +53,13 @@ protected:
     void addAuxiliaryArity(
             const ast::Relation* relation, std::map<std::string, std::string>& directives) const override;
 
+    /** Low-level stratum translation */
+    Own<ram::Statement> generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const override;
     Own<ram::Statement> generateMergeRelations(const ast::Relation* rel, const std::string& destRelation,
             const std::string& srcRelation) const override;
+    Own<ram::Statement> generateMergeRelationsWithFilter(const ast::Relation* rel,
+            const std::string& destRelation, const std::string& srcRelation,
+            const std::string& filterRelation) const override;
 
 private:
     // TODO: This needs to do incremental update

@@ -57,7 +57,7 @@ protected:
     void writeNextTupleCSV(std::ostream& destination, const RamDomain* tuple) {
         writeNextTupleElement(destination, typeAttributes.at(0), tuple[0]);
 
-        for (std::size_t col = 1; col < arity; ++col) {
+        for (std::size_t col = 1; col < /* arity */ typeAttributes.size(); ++col) {
             destination << delimiter;
             writeNextTupleElement(destination, typeAttributes.at(col), tuple[col]);
         }
