@@ -21,6 +21,7 @@
 namespace souffle::ast {
 class Atom;
 class Program;
+class Relation;
 class Variable;
 }  // namespace souffle::ast
 
@@ -67,6 +68,8 @@ private:
 
     Own<ram::ExistenceCheck> makeRamAtomExistenceCheck(const ast::Atom* atom,
             const std::map<int, std::string>& idToVarName, ValueIndex& valueIndex) const;
+    Own<ram::Statement> generateCleanupMerges(const std::vector<ast::Relation*>& rels) const;
+
     Own<ram::SubroutineReturn> makeRamReturnTrue() const;
     Own<ram::SubroutineReturn> makeRamReturnFalse() const;
     void transformVariablesToSubroutineArgs(ram::Node* node, const std::map<int, std::string>& idToVar) const;

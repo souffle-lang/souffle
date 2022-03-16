@@ -50,12 +50,11 @@
 
 namespace souffle::ast2ram::incremental::update {
 
-Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& translationUnit) {
+Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& /* translationUnit */) {
     // Do the regular translation
-    auto ramProgram = seminaive::UnitTranslator::generateProgram(translationUnit);
+    // auto ramProgram = seminaive::UnitTranslator::generateProgram(translationUnit);
 
-    std::cout << "hello i am generating an incremental program" << std::endl;
-    std::cout << *ramProgram << std::endl;
+    auto ramProgram = mk<ram::Sequence>();
 
     return ramProgram;
 }

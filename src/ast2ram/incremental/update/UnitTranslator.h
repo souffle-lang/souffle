@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ast2ram/seminaive/UnitTranslator.h"
+#include "ast2ram/incremental/bootstrap/UnitTranslator.h"
 
 namespace souffle::ast {
 class Atom;
@@ -40,6 +41,8 @@ class ValueIndex;
 namespace souffle::ast2ram::incremental::update {
 
 class UnitTranslator : public ast2ram::seminaive::UnitTranslator {
+    friend class incremental::bootstrap::UnitTranslator;
+
 public:
     UnitTranslator() : ast2ram::seminaive::UnitTranslator() {}
 

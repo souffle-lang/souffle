@@ -13,12 +13,14 @@
  ***********************************************************************/
 
 #include "ast2ram/incremental/bootstrap/UnitTranslator.h"
+#include "ast2ram/incremental/update/UnitTranslator.h"
 #include "ast2ram/incremental/Utils.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"
+#include "ast/Relation.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "ast2ram/utility/TranslatorContext.h"
@@ -54,6 +56,14 @@ namespace souffle::ast2ram::incremental::bootstrap {
 Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& translationUnit) {
     // Do the regular translation
     auto ramProgram = seminaive::UnitTranslator::generateProgram(translationUnit);
+
+    // Add cleanup sequence after evaluation
+    auto cleanupMerges = generateCleanupMerges(context->getProgram()->getRelations());
+    ramProgram = mk<ram::Sequence>(std::move(ramProgram), std::move(cleanupMerges));
+
+    // Add an update subroutine for incremental updates
+    auto updateTranslator = incremental::update::UnitTranslator();
+    addRamSubroutine("update", updateTranslator.generateProgram(translationUnit));
 
     std::cout << "hello i am generating an incremental program" << std::endl;
     std::cout << *ramProgram << std::endl;
@@ -233,6 +243,14 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsWithFilter(const ast::
                     std::move(insertion));
     auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(filtered)));
     return stmt;
+}
+
+Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<ast::Relation*>& rels) const {
+    VecOwn<ram::Statement> cleanupSequence;
+    for (auto rel : rels) {
+        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getRelationName(rel->getQualifiedName())));
+    }
+    return mk<ram::Sequence>(std::move(cleanupSequence));
 }
 
 Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnTrue() const {
