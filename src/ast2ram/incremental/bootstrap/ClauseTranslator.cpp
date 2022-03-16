@@ -12,7 +12,7 @@
  *
  ***********************************************************************/
 
-#include "ast2ram/incremental/ClauseTranslator.h"
+#include "ast2ram/incremental/bootstrap/ClauseTranslator.h"
 #include "Global.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -41,7 +41,7 @@
 #include "ram/UndefValue.h"
 #include "souffle/utility/StringUtil.h"
 
-namespace souffle::ast2ram::incremental {
+namespace souffle::ast2ram::incremental::bootstrap {
 
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
         Own<ram::Operation> op, const ast::Atom* atom) const {
@@ -249,4 +249,4 @@ Own<ram::Operation> ClauseTranslator::createInsertion(const ast::Clause& clause)
     return mk<ram::Insert>(headRelationName, std::move(values));
 }
 
-}  // namespace souffle::ast2ram::incremental
+}  // namespace souffle::ast2ram::incremental::bootstrap

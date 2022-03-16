@@ -12,7 +12,7 @@
  *
  ***********************************************************************/
 
-#include "ast2ram/incremental/UnitTranslator.h"
+#include "ast2ram/incremental/bootstrap/UnitTranslator.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "ast/BinaryConstraint.h"
@@ -48,7 +48,7 @@
 #include "souffle/utility/StringUtil.h"
 #include <sstream>
 
-namespace souffle::ast2ram::incremental {
+namespace souffle::ast2ram::incremental::bootstrap {
 
 Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& translationUnit) {
     // Do the regular translation
@@ -214,4 +214,4 @@ Own<ram::Sequence> UnitTranslator::makeIfStatement(
     return mk<ram::Sequence>(std::move(trueBranch), std::move(falseBranch));
 }
 
-}  // namespace souffle::ast2ram::incremental
+}  // namespace souffle::ast2ram::incremental::bootstrap

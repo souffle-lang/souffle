@@ -35,7 +35,7 @@
 #include "ast2ram/ClauseTranslator.h"
 #include "ast2ram/ConstraintTranslator.h"
 #include "ast2ram/ValueTranslator.h"
-#include "ast2ram/incremental/TranslationStrategy.h"
+#include "ast2ram/incremental/bootstrap/TranslationStrategy.h"
 #include "ast2ram/provenance/TranslationStrategy.h"
 #include "ast2ram/seminaive/TranslationStrategy.h"
 #include "ram/Condition.h"
@@ -83,7 +83,7 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
     if (Global::config().has("provenance")) {
         translationStrategy = mk<provenance::TranslationStrategy>();
     } else if (Global::config().has("incremental")) {
-        translationStrategy = mk<incremental::TranslationStrategy>();
+        translationStrategy = mk<incremental::bootstrap::TranslationStrategy>();
     } else {
         translationStrategy = mk<seminaive::TranslationStrategy>();
     }

@@ -28,7 +28,7 @@ class ValueIndex;
 class ValueTranslator;
 }  // namespace souffle::ast2ram
 
-namespace souffle::ast2ram::incremental {
+namespace souffle::ast2ram::incremental::bootstrap {
 
 class TranslationStrategy : public ast2ram::TranslationStrategy {
 public:
@@ -45,4 +45,4 @@ public:
             const TranslatorContext& context, const ValueIndex& index) const override;
 };
 
-}  // namespace souffle::ast2ram::incremental
+}  // namespace souffle::ast2ram::incremental::bootstrap

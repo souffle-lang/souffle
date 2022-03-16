@@ -30,7 +30,7 @@ namespace souffle::ast2ram {
 class TranslatorContext;
 }
 
-namespace souffle::ast2ram::incremental {
+namespace souffle::ast2ram::incremental::bootstrap {
 
 class ClauseTranslator : public ast2ram::seminaive::ClauseTranslator {
 public:
@@ -52,4 +52,4 @@ private:
     Own<ram::Expression> getLevelNumber(const ast::Clause& clause) const;
 };
 
-}  // namespace souffle::ast2ram::incremental
+}  // namespace souffle::ast2ram::incremental::bootstrap

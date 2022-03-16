@@ -59,8 +59,8 @@
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast2ram/TranslationStrategy.h"
 #include "ast2ram/UnitTranslator.h"
-#include "ast2ram/incremental/TranslationStrategy.h"
-#include "ast2ram/incremental/UnitTranslator.h"
+#include "ast2ram/incremental/bootstrap/TranslationStrategy.h"
+#include "ast2ram/incremental/bootstrap/UnitTranslator.h"
 #include "ast2ram/provenance/TranslationStrategy.h"
 #include "ast2ram/provenance/UnitTranslator.h"
 #include "ast2ram/seminaive/TranslationStrategy.h"
@@ -617,7 +617,7 @@ int main(int argc, char** argv) {
             Global::config().has("provenance")
                     ? mk<ast2ram::TranslationStrategy, ast2ram::provenance::TranslationStrategy>()
             : Global::config().has("incremental")
-                    ? mk<ast2ram::TranslationStrategy, ast2ram::incremental::TranslationStrategy>()
+                    ? mk<ast2ram::TranslationStrategy, ast2ram::incremental::bootstrap::TranslationStrategy>()
                     : mk<ast2ram::TranslationStrategy, ast2ram::seminaive::TranslationStrategy>();
     auto unitTranslator = Own<ast2ram::UnitTranslator>(translationStrategy->createUnitTranslator());
     auto ramTranslationUnit = unitTranslator->translateUnit(*astTranslationUnit);

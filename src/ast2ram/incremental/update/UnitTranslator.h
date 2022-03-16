@@ -37,7 +37,7 @@ namespace souffle::ast2ram {
 class ValueIndex;
 }
 
-namespace souffle::ast2ram::incremental {
+namespace souffle::ast2ram::incremental::update {
 
 class UnitTranslator : public ast2ram::seminaive::UnitTranslator {
 public:
@@ -74,4 +74,4 @@ private:
             Own<ram::Condition> condition, Own<ram::Operation> trueOp, Own<ram::Operation> falseOp) const;
 };
 
-}  // namespace souffle::ast2ram::incremental
+}  // namespace souffle::ast2ram::incremental::update

@@ -12,11 +12,11 @@
  *
  ***********************************************************************/
 
-#include "ast2ram/incremental/TranslationStrategy.h"
+#include "ast2ram/incremental/bootstrap/TranslationStrategy.h"
 // #include "ast2ram/provenance/ClauseTranslator.h"
 // #include "ast2ram/provenance/ConstraintTranslator.h"
-#include "ast2ram/incremental/ClauseTranslator.h"
-#include "ast2ram/incremental/UnitTranslator.h"
+#include "ast2ram/incremental/bootstrap/ClauseTranslator.h"
+#include "ast2ram/incremental/bootstrap/UnitTranslator.h"
 
 #include "ast2ram/seminaive/ClauseTranslator.h"
 #include "ast2ram/seminaive/ConstraintTranslator.h"
@@ -26,7 +26,7 @@
 #include "ram/Condition.h"
 #include "ram/Expression.h"
 
-namespace souffle::ast2ram::incremental {
+namespace souffle::ast2ram::incremental::bootstrap {
 
 ast2ram::UnitTranslator* TranslationStrategy::createUnitTranslator() const {
     return new UnitTranslator();
@@ -47,4 +47,4 @@ ast2ram::ValueTranslator* TranslationStrategy::createValueTranslator(
     return new ast2ram::seminaive::ValueTranslator(context, index);
 }
 
-}  // namespace souffle::ast2ram::incremental
+}  // namespace souffle::ast2ram::incremental::bootstrap
