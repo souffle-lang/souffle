@@ -13,6 +13,7 @@
  ***********************************************************************/
 
 #include "ast2ram/incremental/bootstrap/UnitTranslator.h"
+#include "ast2ram/incremental/Utils.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "ast/BinaryConstraint.h"
@@ -90,9 +91,11 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
     auto ramRelations = seminaive::UnitTranslator::createRamRelations(sccOrdering);
 
     // We need to also generate all the auxiliary relations:
-    // - diff_applied
-    // - delta_diff_applied
-    // - new_diff_applied
+    // - prev
+    // - delta_prev
+    // - new_prev
+    //      - if we keep the normal relation as the updated one, the instead of diff_applied,
+    //        we can have prev
     // - temp_diff_plus (updated_diff_plus)
     // - temp_diff_minus (updated_diff_minus)
     //      - check if we can simulate semantics of temp without having extra relations
@@ -103,6 +106,46 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
     // - delta_diff_minus
     // - new_diff_plus
     // - new_diff_minus
+
+    for (const auto& scc : sccOrdering) {
+        bool isRecursive = context->isRecursiveSCC(scc);
+        for (const auto& rel : context->getRelationsInSCC(scc)) {
+            // Add diff plus and diff minus relations for incremental eval
+            std::string diffPlusName = getDiffPlusRelationName(rel->getQualifiedName());
+            ramRelations.push_back(createRamRelation(rel, diffPlusName));
+
+            std::string diffMinusName = getDiffMinusRelationName(rel->getQualifiedName());
+            ramRelations.push_back(createRamRelation(rel, diffMinusName));
+
+            // Add prev version of the relation used to store the state of the
+            // relation before an incremental update
+            std::string prevName = getPrevRelationName(rel->getQualifiedName());
+            ramRelations.push_back(createRamRelation(rel, prevName));
+
+            // Recursive relations also require @delta and @new variants, with the same signature
+            if (isRecursive) {
+                // Add delta versions of the above
+                std::string deltaDiffPlusName = getDeltaDiffPlusRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, deltaDiffPlusName));
+
+                std::string deltaDiffMinusName = getDeltaDiffMinusRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, deltaDiffMinusName));
+
+                std::string deltaPrevName = getDeltaPrevRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, deltaPrevName));
+
+                // Add new versions of the above
+                std::string newDiffPlusName = getNewDiffPlusRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, newDiffPlusName));
+
+                std::string newDiffMinusName = getNewDiffMinusRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, newDiffMinusName));
+
+                std::string newPrevName = getNewPrevRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, newPrevName));
+            }
+        }
+    }
 
     return ramRelations;
 }
