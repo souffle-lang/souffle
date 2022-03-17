@@ -119,6 +119,8 @@ public:
      */
     Own<Operation> rewriteAggregate(const Aggregate* agg);
 
+    // TODO (davidwzhao): Rewrite IfNotExists to index version
+
     /**
      * @brief Make indexable RAM operation indexed
      * @param RAM program that is transformed

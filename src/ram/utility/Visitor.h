@@ -41,8 +41,10 @@
 #include "ram/GuardedInsert.h"
 #include "ram/IO.h"
 #include "ram/IfExists.h"
+#include "ram/IfNotExists.h"
 #include "ram/IndexAggregate.h"
 #include "ram/IndexIfExists.h"
+#include "ram/IndexIfNotExists.h"
 #include "ram/IndexOperation.h"
 #include "ram/IndexScan.h"
 #include "ram/Insert.h"
@@ -158,6 +160,8 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(IfExists);
         SOUFFLE_VISITOR_FORWARD(ParallelIndexIfExists);
         SOUFFLE_VISITOR_FORWARD(IndexIfExists);
+        SOUFFLE_VISITOR_FORWARD(IfNotExists);
+        SOUFFLE_VISITOR_FORWARD(IndexIfNotExists);
         SOUFFLE_VISITOR_FORWARD(ParallelAggregate);
         SOUFFLE_VISITOR_FORWARD(Aggregate);
         SOUFFLE_VISITOR_FORWARD(ParallelIndexAggregate);
@@ -227,6 +231,8 @@ protected:
     SOUFFLE_VISITOR_LINK(ParallelIfExists, IfExists);
     SOUFFLE_VISITOR_LINK(IndexIfExists, IndexOperation);
     SOUFFLE_VISITOR_LINK(ParallelIndexIfExists, IndexIfExists);
+    SOUFFLE_VISITOR_LINK(IfNotExists, RelationOperation);
+    SOUFFLE_VISITOR_LINK(IndexIfNotExists, IndexOperation);
     SOUFFLE_VISITOR_LINK(RelationOperation, TupleOperation);
     SOUFFLE_VISITOR_LINK(Aggregate, RelationOperation);
     SOUFFLE_VISITOR_LINK(ParallelAggregate, Aggregate);
