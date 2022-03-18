@@ -150,8 +150,11 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
         }
 
         if (dominatedHeadAtom == atom) {
-            if (mode == SubsumeDeleteCurrentDelta || mode == SubsumeDeleteCurrentCurrent) {
+            if (mode == SubsumeDeleteCurrentCurrent) {
                 return getConcreteRelationName(atom->getQualifiedName());
+            }
+            if (mode == SubsumeDeleteCurrentDelta) {
+                return getDeltaRelationName(atom->getQualifiedName());
             }
             return getNewRelationName(atom->getQualifiedName());
         }
@@ -159,8 +162,8 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
         if (dominatingHeadAtom == atom) {
             switch (mode) {
                 case SubsumeRejectNewCurrent:
-                case SubsumeDeleteCurrentCurrent: return getConcreteRelationName(atom->getQualifiedName());
-                case SubsumeDeleteCurrentDelta: return getDeltaRelationName(atom->getQualifiedName());
+                case SubsumeDeleteCurrentCurrent:
+                case SubsumeDeleteCurrentDelta: return getConcreteRelationName(atom->getQualifiedName());
                 default: return getNewRelationName(atom->getQualifiedName());
             }
         }
