@@ -172,19 +172,21 @@ public:
         assert(toInsert.size() == (std::size_t)size);
 
         // add the intersecting dj sets into this one
-        {
-            value_type el;
-            value_type rep;
-            auto it = other.sds.sparseToDenseMap.begin();
-            auto end = other.sds.sparseToDenseMap.end();
-            for (; it != end; ++it) {
-                std::tie(el, std::ignore) = *it;
-                rep = other.sds.findNode(el);
+        other.genAllDisjointSetLists();
+        for (typename StatesMap::chunk it : other.equivalencePartition.getChunks(MAX_THREADS)) {
+            for (auto& p : it) {
+                value_type rep = p.first;
                 if (repsCovered.count(rep) != 0) {
-                    this->insert(el, rep);
+                    StatesList& pl = *p.second;
+                    const std::size_t ksize = pl.size();
+                    for (std::size_t i = 0; i < ksize; ++i) {
+                        this->sds.unionNodes(rep, pl.get(i));
+                    }
                 }
             }
         }
+        // invalidate iterators unconditionally
+        this->statesMapStale.store(true, std::memory_order_relaxed);
 
         // Insert all new tuples from this relation into the old relation
         {
