@@ -31,24 +31,47 @@
 
 namespace souffle::ram::transform {
 
-static bool only_uses_var(std::size_t id, const Expression* e) {
-    if (as<UndefValue>(e)) {
-        return true;
+static std::optional<RamPattern> swap_pattern(
+        std::size_t id, const std::pair<std::vector<Expression*>, std::vector<Expression*>>& p) {
+    RamPattern pattern;
+    std::optional<RamPattern> none;
+    const auto size = p.first.size();
+    assert(size == p.second.size());
+    pattern.first.reserve(size);
+    pattern.second.reserve(size);
+    for (std::size_t i = 0; i < size; i++) {
+        pattern.first.emplace_back(new UndefValue());
     }
-    if (const auto tup_elem = as<TupleElement>(e)) {
-        return tup_elem->getTupleId() == id;
+    for (std::size_t i = 0; i < size; i++) {
+        pattern.second.emplace_back(new UndefValue());
     }
-    return false;
-}
-
-static Expression* replace_var(std::size_t id, const Expression* e) {
-    if (as<UndefValue>(e)) {
-        return e->cloning();
+    for (std::size_t i = 0; i < size; i++) {
+        const auto* expr = p.first[i];
+        if (as<UndefValue>(expr)) {
+            continue;
+        } else if (const auto tup_elem = as<TupleElement>(expr)) {
+            if (tup_elem->getTupleId() != id) {
+                return none;
+            }
+            pattern.second[tup_elem->getElement()] = Own<TupleElement>(new TupleElement(id, i));
+        } else {
+            return none;
+        }
     }
-    if (const auto tup_elem = as<TupleElement>(e)) {
-        return new TupleElement(id, tup_elem->getElement());
+    for (std::size_t i = 0; i < size; i++) {
+        const auto* expr = p.second[i];
+        if (as<UndefValue>(expr)) {
+            continue;
+        } else if (const auto tup_elem = as<TupleElement>(expr)) {
+            if (tup_elem->getTupleId() != id) {
+                return none;
+            }
+            pattern.first[tup_elem->getElement()] = Own<TupleElement>(new TupleElement(id, i));
+        } else {
+            return none;
+        }
     }
-    return nullptr;
+    return std::optional(std::move(pattern));
 }
 
 bool ReorderDelta::reorderDelta(Program& program) {
@@ -59,27 +82,11 @@ bool ReorderDelta::reorderDelta(Program& program) {
                 const auto relation1 = scan1->getRelation();
                 const auto relation2 = scan2->getRelation();
                 if ("@delta_" + relation1 == relation2) {
-                    const auto pats = scan2->getRangePattern();
-                    assert(pats.first.size() == pats.second.size());
-                    auto rewrite = true;
-                    for (std::size_t i = 0; i < pats.first.size(); i++) {
-                        const auto expr1 = pats.first[i];
-                        const auto expr2 = pats.second[i];
-                        const auto id = scan1->getTupleId();
-                        if (!only_uses_var(id, expr1) || !only_uses_var(id, expr2)) {
-                            rewrite = false;
-                        }
-                    }
-                    if (rewrite) {
+                    std::optional<RamPattern> pattern =
+                            swap_pattern(scan1->getTupleId(), scan2->getRangePattern());
+                    if (pattern.has_value()) {
                         changed = true;
-                        RamPattern pattern;
-                        for (const auto expr : pats.first) {
-                            pattern.first.emplace_back(replace_var(scan2->getTupleId(), expr));
-                        }
-                        for (const auto expr : pats.second) {
-                            pattern.second.emplace_back(replace_var(scan2->getTupleId(), expr));
-                        }
-                        auto* inner = new IndexScan(relation1, scan2->getTupleId(), std::move(pattern),
+                        auto* inner = new IndexScan(relation1, scan2->getTupleId(), std::move(*pattern),
                                 clone(scan2->getOperation()), scan1->getProfileText());
                         node = Own<Scan>(new Scan(relation2, scan1->getTupleId(), Own<IndexScan>(inner),
                                 scan1->getProfileText()));
