@@ -45,7 +45,7 @@ public:
     Own<ram::TranslationUnit> translateUnit(ast::TranslationUnit& tu) override;
 
 protected:
-    void addRamSubroutine(std::string subroutineID, Own<ram::Statement> subroutine);
+    virtual void addRamSubroutine(std::string subroutineID, Own<ram::Statement> subroutine);
     virtual Own<ram::Relation> createRamRelation(
             const ast::Relation* baseRelation, std::string ramRelationName) const;
     virtual VecOwn<ram::Relation> createRamRelations(const std::vector<std::size_t>& sccOrdering) const;
@@ -65,7 +65,7 @@ protected:
 
     /** High-level relation translation */
     virtual Own<ram::Sequence> generateProgram(const ast::TranslationUnit& translationUnit);
-    Own<ram::Statement> generateNonRecursiveRelation(const ast::Relation& rel) const;
+    virtual Own<ram::Statement> generateNonRecursiveRelation(const ast::Relation& rel) const;
     Own<ram::Statement> generateRecursiveStratum(const std::set<const ast::Relation*>& scc) const;
 
     /** IO translation */

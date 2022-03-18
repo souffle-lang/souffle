@@ -18,6 +18,7 @@
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"
+#include "ast/analysis/TopologicallySortedSCCGraph.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "ast2ram/utility/TranslatorContext.h"
@@ -30,7 +31,9 @@
 #include "ram/Expression.h"
 #include "ram/Filter.h"
 #include "ram/Insert.h"
+#include "ram/LogSize.h"
 #include "ram/LogRelationTimer.h"
+#include "ram/LogTimer.h"
 #include "ram/MergeExtend.h"
 #include "ram/Negation.h"
 #include "ram/Query.h"
@@ -50,13 +53,123 @@
 
 namespace souffle::ast2ram::incremental::update {
 
-Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& /* translationUnit */) {
+void UnitTranslator::addRamSubroutine(std::string subroutineID, Own<ram::Statement> subroutine) {
+    assert(!contains(updateRamSubroutines, subroutineID) && "subroutine ID should not already exist");
+    updateRamSubroutines[subroutineID] = std::move(subroutine);
+}
+
+Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& translationUnit) {
     // Do the regular translation
     // auto ramProgram = seminaive::UnitTranslator::generateProgram(translationUnit);
 
-    auto ramProgram = mk<ram::Sequence>();
+    // auto ramProgram = mk<ram::Sequence>();
+    // return ramProgram;
 
-    return ramProgram;
+    // Generate context here
+    context = mk<TranslatorContext>(translationUnit);
+
+    const auto& sccOrdering =
+            translationUnit.getAnalysis<ast::analysis::TopologicallySortedSCCGraphAnalysis>().order();
+
+    std::cout << "scc ordering size: " << sccOrdering.size() << std::endl;
+
+    // Create subroutines for each SCC according to topological order
+    for (std::size_t i = 0; i < sccOrdering.size(); i++) {
+        // Generate the main stratum code
+        auto stratum = generateStratum(sccOrdering.at(i));
+
+        if (stratum != nullptr) {
+            std::cout << "update stratum " << i << std::endl;
+            std::cout << *stratum << std::endl;
+        }
+
+        // Clear expired relations
+        const auto& expiredRelations = context->getExpiredRelations(i);
+        stratum = mk<ram::Sequence>(std::move(stratum), generateClearExpiredRelations(expiredRelations));
+
+        // Add the subroutine
+        std::string stratumID = "update_stratum_" + toString(i);
+        addRamSubroutine(stratumID, std::move(stratum));
+    }
+
+    // Invoke all strata
+    VecOwn<ram::Statement> res;
+    for (std::size_t i = 0; i < sccOrdering.size(); i++) {
+        appendStmt(res, mk<ram::Call>("update_stratum_" + toString(i)));
+    }
+
+    // Add main timer if profiling
+    if (!res.empty() && Global::config().has("profile")) {
+        auto newStmt = mk<ram::LogTimer>(mk<ram::Sequence>(std::move(res)), LogStatement::runtime());
+        res.clear();
+        appendStmt(res, std::move(newStmt));
+    }
+
+    // Program translated!
+    return mk<ram::Sequence>(std::move(res));
+}
+
+Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Relation& rel) const {
+    VecOwn<ram::Statement> result;
+
+    // Get relation names
+    std::string mainRelation = getConcreteRelationName(rel.getQualifiedName());
+
+    // Iterate over all non-recursive clauses that belong to the relation
+    for (auto&& clause : context->getProgram()->getClauses(rel)) {
+        // Skip recursive and subsumptive clauses
+        if (context->isRecursiveClause(clause) || isA<ast::SubsumptiveClause>(clause)) {
+            continue;
+        }
+
+        // Translate clause
+        Own<ram::Statement> diffMinusRule = context->translateNonRecursiveClause(*clause, IncrementalDiffMinus);
+        Own<ram::Statement> diffPlusRule = context->translateNonRecursiveClause(*clause, IncrementalDiffPlus);
+
+        // Add logging
+        if (Global::config().has("profile")) {
+            const std::string& relationName = toString(rel.getQualifiedName());
+            const auto& srcLocation = clause->getSrcLoc();
+            const std::string clauseText = stringify(toString(*clause));
+            const std::string logTimerStatement =
+                    LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
+            diffMinusRule = mk<ram::LogRelationTimer>(std::move(diffMinusRule), logTimerStatement, mainRelation);
+            diffPlusRule = mk<ram::LogRelationTimer>(std::move(diffPlusRule), logTimerStatement, mainRelation);
+        }
+
+        // Add debug info
+        std::ostringstream ds;
+        ds << toString(*clause) << "\nin file ";
+        ds << clause->getSrcLoc();
+        diffMinusRule = mk<ram::DebugInfo>(std::move(diffMinusRule), ds.str());
+        diffPlusRule = mk<ram::DebugInfo>(std::move(diffPlusRule), ds.str());
+
+        // Add rule to result
+        appendStmt(result, std::move(diffMinusRule));
+        appendStmt(result, std::move(diffPlusRule));
+    }
+
+    // Add logging for entire relation
+    if (Global::config().has("profile")) {
+        const std::string& relationName = toString(rel.getQualifiedName());
+        const auto& srcLocation = rel.getSrcLoc();
+        const std::string logSizeStatement = LogStatement::nNonrecursiveRelation(relationName, srcLocation);
+
+        // Add timer if we did any work
+        if (!result.empty()) {
+            const std::string logTimerStatement =
+                    LogStatement::tNonrecursiveRelation(relationName, srcLocation);
+            auto newStmt = mk<ram::LogRelationTimer>(
+                    mk<ram::Sequence>(std::move(result)), logTimerStatement, mainRelation);
+            result.clear();
+            appendStmt(result, std::move(newStmt));
+        } else {
+            // Add table size printer
+            appendStmt(result, mk<ram::LogSize>(mainRelation, logSizeStatement));
+        }
+    }
+
+    return mk<ram::Sequence>(std::move(result));
 }
 
 Own<ram::Relation> UnitTranslator::createRamRelation(
@@ -116,7 +229,7 @@ void UnitTranslator::addAuxiliaryArity(
 
 Own<ram::Statement> UnitTranslator::generateClearExpiredRelations(
         const std::set<const ast::Relation*>& /* expiredRelations */) const {
-    // Relations should be preserved if provenance is enabled
+    // Relations should be preserved if incremental is enabled
     return mk<ram::Sequence>();
 }
 
@@ -213,6 +326,18 @@ Own<ram::Sequence> UnitTranslator::makeIfStatement(
     auto falseBranch = mk<ram::Query>(mk<ram::Filter>(std::move(negatedCondition), std::move(falseOp)));
 
     return mk<ram::Sequence>(std::move(trueBranch), std::move(falseBranch));
+}
+
+std::map<std::string, Own<ram::Statement>>& UnitTranslator::getRamSubroutines() {
+    /*
+    std::map<std::string, ram::Statement*> res;
+
+    for (const auto& sub : updateRamSubroutines) {
+        res.insert(std::make_pair(sub.first, sub.second.get()));
+    }
+    */
+
+    return updateRamSubroutines;
 }
 
 }  // namespace souffle::ast2ram::incremental::update

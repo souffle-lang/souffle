@@ -19,6 +19,8 @@
 #include "ast2ram/seminaive/UnitTranslator.h"
 #include "ast2ram/incremental/bootstrap/UnitTranslator.h"
 
+#include "ram/Statement.h"
+
 namespace souffle::ast {
 class Atom;
 class Program;
@@ -47,7 +49,11 @@ public:
     UnitTranslator() : ast2ram::seminaive::UnitTranslator() {}
 
 protected:
+    void addRamSubroutine(std::string subroutineID, Own<ram::Statement> subroutine) override;
+
     Own<ram::Sequence> generateProgram(const ast::TranslationUnit& translationUnit) override;
+    Own<ram::Statement> generateNonRecursiveRelation(const ast::Relation& rel) const override;
+
     Own<ram::Statement> generateClearExpiredRelations(
             const std::set<const ast::Relation*>& expiredRelations) const override;
     Own<ram::Relation> createRamRelation(
@@ -64,6 +70,9 @@ protected:
             const std::string& destRelation, const std::string& srcRelation,
             const std::string& filterRelation) const override;
 
+    /** Method to get update subroutines generated during translation */
+    std::map<std::string, Own<ram::Statement>>& getRamSubroutines();
+
 private:
     // TODO: This needs to do incremental update
     void addProvenanceClauseSubroutines(const ast::Program* program);
@@ -75,6 +84,10 @@ private:
     void transformVariablesToSubroutineArgs(ram::Node* node, const std::map<int, std::string>& idToVar) const;
     Own<ram::Sequence> makeIfStatement(
             Own<ram::Condition> condition, Own<ram::Operation> trueOp, Own<ram::Operation> falseOp) const;
+
+    // Similar to ramSubroutines of the base class, but defined here for access
+    // in the calling class
+    std::map<std::string, Own<ram::Statement>> updateRamSubroutines;
 };
 
 }  // namespace souffle::ast2ram::incremental::update

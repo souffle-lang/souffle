@@ -13,6 +13,7 @@
  ***********************************************************************/
 
 #include "ast2ram/incremental/bootstrap/UnitTranslator.h"
+#include "ast2ram/incremental/update/TranslationStrategy.h"
 #include "ast2ram/incremental/update/UnitTranslator.h"
 #include "ast2ram/incremental/Utils.h"
 #include "Global.h"
@@ -62,8 +63,21 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     ramProgram = mk<ram::Sequence>(std::move(ramProgram), std::move(cleanupMerges));
 
     // Add an update subroutine for incremental updates
-    auto updateTranslator = incremental::update::UnitTranslator();
-    addRamSubroutine("update", updateTranslator.generateProgram(translationUnit));
+    auto updateTranslatorStrategy = mk<ast2ram::TranslationStrategy, incremental::update::TranslationStrategy>();
+    auto updateTranslator = Own<ast2ram::UnitTranslator>(updateTranslatorStrategy->createUnitTranslator());
+
+    if (auto* updateUnitTranslator = as<incremental::update::UnitTranslator>(updateTranslator)) {
+        addRamSubroutine("update", updateUnitTranslator->generateProgram(translationUnit));
+
+        // updateUnitTranslator->generateProgram also creates subroutines for
+        // incrementally updating each stratum, add these to the main program
+        for (const auto& sub : updateUnitTranslator->getRamSubroutines()) {
+            addRamSubroutine(sub.first, Own<ram::Statement>(clone(sub.second)));
+            // addRamSubroutine(sub.first, std::move(sub.second));
+        }
+    } else {
+        std::cerr << "update translator isn't an incremental update translator???" << std::endl;
+    }
 
     std::cout << "hello i am generating an incremental program" << std::endl;
     std::cout << *ramProgram << std::endl;

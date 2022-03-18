@@ -59,7 +59,22 @@ enum TranslationMode {
     SubsumeDeleteCurrentDelta,
 
     // delete delete-R(x0) :- R(x0), R(x1), x0!=x1, body. (outside fix-point)
-    SubsumeDeleteCurrentCurrent
+    SubsumeDeleteCurrentCurrent,
+
+    // Incremental update clauses
+    //
+    //   R(x0) :- R1(x1), R2(x2).
+    // 
+    // are translated into various versions, each involving various combinations
+    // of diff_plus and diff_minus.
+    //
+    // Note these following modes only apply in ast2ram/incremental/update
+
+    // diff_plus versions for insertion
+    IncrementalDiffPlus,
+
+    // diff_minus versions for deletion
+    IncrementalDiffMinus
 };
 
 /* Abstract Clause Translator */
