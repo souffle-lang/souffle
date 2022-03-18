@@ -148,6 +148,7 @@ set(SOUFFLE_SOURCES
     ram/transform/MakeIndex.cpp
     ram/transform/Parallel.cpp
     ram/transform/ReorderConditions.cpp
+    ram/transform/ReorderDelta.cpp
     ram/transform/ReorderFilterBreak.cpp
     ram/transform/Transformer.cpp
     ram/transform/TupleId.cpp

@@ -84,6 +84,7 @@
 #include "ram/transform/MakeIndex.h"
 #include "ram/transform/Parallel.h"
 #include "ram/transform/ReorderConditions.h"
+#include "ram/transform/ReorderDelta.h"
 #include "ram/transform/ReorderFilterBreak.h"
 #include "ram/transform/ReportIndex.h"
 #include "ram/transform/Sequence.h"
@@ -692,6 +693,7 @@ int main(int argc, char** argv) {
                 mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(),
                 mk<CollapseFiltersTransformer>(), mk<EliminateDuplicatesTransformer>(),
                 mk<ReorderConditionsTransformer>(), mk<LoopTransformer>(mk<ReorderFilterBreak>()),
+                mk<LoopTransformer>(mk<ReorderDelta>()),
                 mk<ConditionalTransformer>(
                         // job count of 0 means all cores are used.
                         []() -> bool { return std::stoi(Global::config().get("jobs")) != 1; },
