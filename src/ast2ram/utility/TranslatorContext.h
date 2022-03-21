@@ -68,7 +68,7 @@ class ValueIndex;
 
 class TranslatorContext {
 public:
-    TranslatorContext(const ast::TranslationUnit& tu);
+    TranslatorContext(const ast::TranslationUnit& tu, bool isIncrementalUpdate = false);
     ~TranslatorContext();
 
     const ast::Program* getProgram() const {

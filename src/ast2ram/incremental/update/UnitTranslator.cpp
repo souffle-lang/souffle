@@ -66,7 +66,7 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     // return ramProgram;
 
     // Generate context here
-    context = mk<TranslatorContext>(translationUnit);
+    context = mk<TranslatorContext>(translationUnit, true);
 
     const auto& sccOrdering =
             translationUnit.getAnalysis<ast::analysis::TopologicallySortedSCCGraphAnalysis>().order();

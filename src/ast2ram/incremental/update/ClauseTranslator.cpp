@@ -237,7 +237,14 @@ Own<ram::Operation> ClauseTranslator::createInsertion(const ast::Clause& clause)
         values.push_back(mk<ram::SignedConstant>(0));
     } else {
         values.push_back(mk<ram::IterationNumber>());
-        values.push_back(mk<ram::SignedConstant>(1));
+        if (mode == IncrementalDiffPlus) {
+            values.push_back(mk<ram::SignedConstant>(1));
+        } else if (mode == IncrementalDiffMinus) {
+            values.push_back(mk<ram::SignedConstant>(-1));
+        } else {
+            std::cerr << "incremental update translate mode should be either diff_plus or diff_minus, never default" << std::endl;
+            values.push_back(mk<ram::SignedConstant>(1));
+        }
     }
 
     // Relations with functional dependency constraints

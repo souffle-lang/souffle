@@ -37,7 +37,20 @@ public:
     ClauseTranslator(const TranslatorContext& context, TranslationMode mode = DEFAULT)
             : ast2ram::seminaive::ClauseTranslator(context, mode) {}
 
+    /** Entry points */
+    // Own<ram::Statement> translateNonRecursiveClause(const ast::Clause& clause) override;
+    /*
+    Own<ram::Statement> translateRecursiveClause(
+            const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version);
+            */
+
 protected:
+    /** This keeps track of which position the diff_plus/diff_minus atom should
+     * be in the rule, in a similar manner to how version in
+     * seminaive/ClauseTranslator keeps track of the position of the delta
+     * atom */
+    std::size_t diffVersion{0};
+
     Own<ram::Operation> addNegatedDeltaAtom(Own<ram::Operation> op, const ast::Atom* atom) const override;
     Own<ram::Operation> addNegatedAtom(
             Own<ram::Operation> op, const ast::Clause& clause, const ast::Atom* atom) const override;
