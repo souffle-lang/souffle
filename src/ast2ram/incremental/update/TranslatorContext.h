@@ -15,19 +15,23 @@
  *
  ***********************************************************************/
 
-#include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/incremental/update/TranslationStrategy.h"
+#include "ast2ram/utility/TranslatorContext.h"
 
 namespace souffle::ast2ram::incremental::update {
 
 class TranslatorContext : public ast2ram::TranslatorContext {
 public:
-    TranslatorContext(const ast::TranslationUnit& tu) 
-            : ast2ram::TranslatorContext(tu) {
-        std::cout << "Making ast2ram::incremental::update::TranslatorContext!!!!" << std::endl;
-
+    TranslatorContext(const ast::TranslationUnit& tu) : ast2ram::TranslatorContext(tu) {
         translationStrategy = mk<incremental::update::TranslationStrategy>();
     }
+
+    /** Versions of clause translations which allow for diffVersions */
+    Own<ram::Statement> translateNonRecursiveClause(
+            const ast::Clause& clause, std::size_t diffVersion, TranslationMode mode = DEFAULT) const;
+    Own<ram::Statement> translateRecursiveClause(const ast::Clause& clause,
+            const std::set<const ast::Relation*>& scc, std::size_t version, std::size_t diffVersion,
+            TranslationMode mode = DEFAULT) const;
 };
 
-} // namespace souffle::ast2ram::incremental::update
+}  // namespace souffle::ast2ram::incremental::update

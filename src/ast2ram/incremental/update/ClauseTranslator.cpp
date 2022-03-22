@@ -37,11 +37,33 @@
 #include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Scan.h"
 #include "ram/SignedConstant.h"
+#include "ram/Statement.h"
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
 #include "souffle/utility/StringUtil.h"
 
 namespace souffle::ast2ram::incremental::update {
+
+/*
+void ClauseTranslator::setDiffVersion(std::size_t diffVersion) {
+    this->diffVersion = diffVersion;
+}
+*/
+
+Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Clause& clause, std::size_t diffVersion) {
+    // Update diffVersion config
+    this->diffVersion = diffVersion;
+
+    return translateNonRecursiveClause(clause);
+}
+
+Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
+        const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version, std::size_t diffVersion) {
+    // Update diffVersion config
+    this->diffVersion = diffVersion;
+
+    return translateRecursiveClause(clause, scc, version);
+}
 
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
         Own<ram::Operation> op, const ast::Atom* atom) const {

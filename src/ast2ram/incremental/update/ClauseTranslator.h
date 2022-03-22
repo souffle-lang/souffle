@@ -37,12 +37,15 @@ public:
     ClauseTranslator(const TranslatorContext& context, TranslationMode mode = DEFAULT)
             : ast2ram::seminaive::ClauseTranslator(context, mode) {}
 
+    /** Allow using the base class translators */
+    using ast2ram::seminaive::ClauseTranslator::translateNonRecursiveClause;
+    using ast2ram::seminaive::ClauseTranslator::translateRecursiveClause;
+
     /** Entry points */
-    // Own<ram::Statement> translateNonRecursiveClause(const ast::Clause& clause) override;
-    /*
+    Own<ram::Statement> translateNonRecursiveClause(const ast::Clause& clause, std::size_t diffVersion);
     Own<ram::Statement> translateRecursiveClause(
-            const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version);
-            */
+            const ast::Clause& clause, const std::set<const ast::Relation*>& scc,
+            std::size_t version, std::size_t diffVersion);
 
 protected:
     /** This keeps track of which position the diff_plus/diff_minus atom should
