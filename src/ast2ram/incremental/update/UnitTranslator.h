@@ -77,6 +77,9 @@ private:
     // TODO: This needs to do incremental update
     void addProvenanceClauseSubroutines(const ast::Program* program);
 
+    /** Helper functions for generating diff versions of clauses */
+    Own<ram::Statement> translateNonRecursiveClauseDiffVersions(const ast::Clause* clause);
+
     Own<ram::ExistenceCheck> makeRamAtomExistenceCheck(const ast::Atom* atom,
             const std::map<int, std::string>& idToVarName, ValueIndex& valueIndex) const;
     Own<ram::SubroutineReturn> makeRamReturnTrue() const;

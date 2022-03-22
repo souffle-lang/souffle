@@ -68,7 +68,7 @@ class ValueIndex;
 
 class TranslatorContext {
 public:
-    TranslatorContext(const ast::TranslationUnit& tu, bool isIncrementalUpdate = false);
+    TranslatorContext(const ast::TranslationUnit& tu);
     ~TranslatorContext();
 
     const ast::Program* getProgram() const {
@@ -128,6 +128,9 @@ public:
 
     Own<ram::Expression> translateValue(const ValueIndex& index, const ast::Argument* arg) const;
 
+protected:
+    Own<TranslationStrategy> translationStrategy;
+
 private:
     const ast::Program* program;
     const ast::analysis::RecursiveClausesAnalysis* recursiveClauses;
@@ -141,7 +144,6 @@ private:
     const ast::analysis::PolymorphicObjectsAnalysis* polyAnalysis;
     std::map<const ast::Clause*, std::size_t> clauseNums;
     Own<ast::SipsMetric> sipsMetric;
-    Own<TranslationStrategy> translationStrategy;
 };
 
 }  // namespace souffle::ast2ram

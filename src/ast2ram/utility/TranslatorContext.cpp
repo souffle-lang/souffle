@@ -48,7 +48,7 @@
 
 namespace souffle::ast2ram {
 
-TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu, bool isIncrementalUpdate) {
+TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
     program = &tu.getProgram();
 
     // Set up analyses
@@ -84,11 +84,7 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu, bool isIncr
     if (Global::config().has("provenance")) {
         translationStrategy = mk<provenance::TranslationStrategy>();
     } else if (Global::config().has("incremental")) {
-        if (isIncrementalUpdate) {
-            translationStrategy = mk<incremental::update::TranslationStrategy>();
-        } else {
-            translationStrategy = mk<incremental::bootstrap::TranslationStrategy>();
-        }
+        translationStrategy = mk<incremental::bootstrap::TranslationStrategy>();
     } else {
         translationStrategy = mk<seminaive::TranslationStrategy>();
     }

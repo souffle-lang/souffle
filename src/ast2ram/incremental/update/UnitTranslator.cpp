@@ -21,7 +21,7 @@
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
-#include "ast2ram/utility/TranslatorContext.h"
+#include "ast2ram/incremental/update/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
 #include "ram/Call.h"
@@ -66,7 +66,7 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     // return ramProgram;
 
     // Generate context here
-    context = mk<TranslatorContext>(translationUnit, true);
+    context = mk<ast2ram::incremental::update::TranslatorContext>(translationUnit); //, true);
 
     const auto& sccOrdering =
             translationUnit.getAnalysis<ast::analysis::TopologicallySortedSCCGraphAnalysis>().order();
@@ -170,6 +170,15 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
     }
 
     return mk<ram::Sequence>(std::move(result));
+}
+
+Own<ram::Statement> UnitTranslator::translateNonRecursiveClauseDiffVersions(const ast::Clause* clause) {
+    // Generate diff versions
+    const auto& bodyAtoms = filter(ast::getBodyLiterals<ast::Atom>(*clause), [&](const ast::Atom* /* atom */) {
+        return true;
+    });
+
+    return nullptr;
 }
 
 Own<ram::Relation> UnitTranslator::createRamRelation(
