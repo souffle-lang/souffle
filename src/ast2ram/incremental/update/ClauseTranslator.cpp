@@ -23,6 +23,8 @@
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
+#include "ast2ram/incremental/Utils.h"
+#include "ast2ram/seminaive/ClauseTranslator.h"
 #include "ram/Aggregate.h"
 #include "ram/Constraint.h"
 #include "ram/EmptinessCheck.h"
@@ -36,6 +38,7 @@
 #include "ram/Operation.h"
 #include "ram/ProvenanceExistenceCheck.h"
 #include "ram/Scan.h"
+#include "ram/Sequence.h"
 #include "ram/SignedConstant.h"
 #include "ram/Statement.h"
 #include "ram/TupleElement.h"
@@ -50,19 +53,26 @@ void ClauseTranslator::setDiffVersion(std::size_t diffVersion) {
 }
 */
 
-Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Clause& clause, std::size_t diffVersion) {
-    // Update diffVersion config
-    this->diffVersion = diffVersion;
+Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Clause& clause) {
 
-    return translateNonRecursiveClause(clause);
+    VecOwn<ram::Statement> result;
+
+    for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size(); diffVersion++) {
+        // Update diffVersion config
+        this->diffVersion = diffVersion;
+
+        appendStmt(result, seminaive::ClauseTranslator::translateNonRecursiveClause(clause));
+    }
+
+    return mk<ram::Sequence>(std::move(result));
 }
 
 Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
-        const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version, std::size_t diffVersion) {
+        const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version) {
     // Update diffVersion config
-    this->diffVersion = diffVersion;
+    this->diffVersion = 0;
 
-    return translateRecursiveClause(clause, scc, version);
+    return seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version);
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
@@ -89,6 +99,70 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
 
     // For incremental evaluation, the delta check is enforced during merge time so does not need to be checked during rule evaluation
     // return nullptr;
+}
+
+std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom) const {
+    /* TODO: incremental does not currently work with subsumptive clauses
+    if (isA<ast::SubsumptiveClause>(clause)) {
+        // find the dominated / dominating heads
+        const auto& body = clause.getBodyLiterals();
+        auto dominatedHeadAtom = dynamic_cast<const ast::Atom*>(body[0]);
+        auto dominatingHeadAtom = dynamic_cast<const ast::Atom*>(body[1]);
+
+        if (clause.getHead() == atom) {
+            if (mode == SubsumeDeleteCurrentDelta || mode == SubsumeDeleteCurrentCurrent) {
+                return getDeleteRelationName(atom->getQualifiedName());
+            }
+            return getRejectRelationName(atom->getQualifiedName());
+        }
+
+        if (dominatedHeadAtom == atom) {
+            if (mode == SubsumeDeleteCurrentDelta || mode == SubsumeDeleteCurrentCurrent) {
+                return getConcreteRelationName(atom->getQualifiedName());
+            }
+            return getNewRelationName(atom->getQualifiedName());
+        }
+
+        if (dominatingHeadAtom == atom) {
+            switch (mode) {
+                case SubsumeRejectNewCurrent:
+                case SubsumeDeleteCurrentCurrent: return getConcreteRelationName(atom->getQualifiedName());
+                case SubsumeDeleteCurrentDelta: return getDeltaRelationName(atom->getQualifiedName());
+                default: return getNewRelationName(atom->getQualifiedName());
+            }
+        }
+
+        if (isRecursive()) {
+            if (sccAtoms.at(version + 1) == atom) {
+                return getDeltaRelationName(atom->getQualifiedName());
+            }
+        }
+    }
+    */
+
+    if (!isRecursive()) {
+        if (ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion) == atom ||
+                clause.getHead() == atom) {
+            if (mode == IncrementalDiffPlus) {
+                return getDiffPlusRelationName(atom->getQualifiedName());
+            } else if (mode == IncrementalDiffMinus) {
+                return getDiffMinusRelationName(atom->getQualifiedName());
+            }
+        }
+
+        if (mode == IncrementalDiffPlus) {
+            return getConcreteRelationName(atom->getQualifiedName());
+        } else if (mode == IncrementalDiffMinus) {
+            return getPrevRelationName(atom->getQualifiedName());
+        }
+    }
+    if (clause.getHead() == atom) {
+        return getNewRelationName(atom->getQualifiedName());
+    }
+    if (sccAtoms.at(version) == atom) {
+        return getDeltaRelationName(atom->getQualifiedName());
+    }
+    return getConcreteRelationName(atom->getQualifiedName());
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedAtom(

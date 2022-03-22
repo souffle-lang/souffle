@@ -42,17 +42,13 @@ public:
     using ast2ram::seminaive::ClauseTranslator::translateRecursiveClause;
 
     /** Entry points */
-    Own<ram::Statement> translateNonRecursiveClause(const ast::Clause& clause, std::size_t diffVersion);
+    Own<ram::Statement> translateNonRecursiveClause(const ast::Clause& clause) override;
     Own<ram::Statement> translateRecursiveClause(
             const ast::Clause& clause, const std::set<const ast::Relation*>& scc,
-            std::size_t version, std::size_t diffVersion);
+            std::size_t version) override;
 
 protected:
-    /** This keeps track of which position the diff_plus/diff_minus atom should
-     * be in the rule, in a similar manner to how version in
-     * seminaive/ClauseTranslator keeps track of the position of the delta
-     * atom */
-    std::size_t diffVersion{0};
+    std::string getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom) const override;
 
     Own<ram::Operation> addNegatedDeltaAtom(Own<ram::Operation> op, const ast::Atom* atom) const override;
     Own<ram::Operation> addNegatedAtom(
@@ -63,6 +59,12 @@ protected:
     void indexAtoms(const ast::Clause& clause) override;
     Own<ram::Operation> addAtomScan(Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause,
             int curLevel) const override;
+
+    /** This keeps track of which position the diff_plus/diff_minus atom should
+     * be in the rule, in a similar manner to how version in
+     * seminaive/ClauseTranslator keeps track of the position of the delta
+     * atom */
+    std::size_t diffVersion{0};
 
 private:
     Own<ram::Expression> getLevelNumber(const ast::Clause& clause) const;

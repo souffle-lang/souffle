@@ -115,7 +115,6 @@ set(SOUFFLE_SOURCES
     ast2ram/incremental/update/ClauseTranslator.cpp
     ast2ram/incremental/update/ConstraintTranslator.cpp
     ast2ram/incremental/update/TranslationStrategy.cpp
-    ast2ram/incremental/update/TranslatorContext.cpp
     ast2ram/incremental/update/UnitTranslator.cpp
     ast2ram/incremental/Utils.cpp
     ast2ram/provenance/ClauseTranslator.cpp

@@ -18,6 +18,7 @@
 
 #include "ast2ram/seminaive/UnitTranslator.h"
 #include "ast2ram/incremental/bootstrap/UnitTranslator.h"
+// #include "ast2ram/incremental/update/TranslatorContext.h"
 
 #include "ram/Statement.h"
 
@@ -78,7 +79,7 @@ private:
     void addProvenanceClauseSubroutines(const ast::Program* program);
 
     /** Helper functions for generating diff versions of clauses */
-    Own<ram::Statement> translateNonRecursiveClauseDiffVersions(const ast::Clause* clause);
+    VecOwn<ram::Statement> translateNonRecursiveClauseDiffVersions(const ast::Clause& clause) const;
 
     Own<ram::ExistenceCheck> makeRamAtomExistenceCheck(const ast::Atom* atom,
             const std::map<int, std::string>& idToVarName, ValueIndex& valueIndex) const;

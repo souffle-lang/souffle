@@ -146,18 +146,15 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
             std::string prevName = getPrevRelationName(rel->getQualifiedName());
             ramRelations.push_back(createRamRelation(rel, prevName));
 
+            // Add delta versions of the above
+            std::string actualDiffPlusName = getActualDiffPlusRelationName(rel->getQualifiedName());
+            ramRelations.push_back(createRamRelation(rel, actualDiffPlusName));
+
+            std::string actualDiffMinusName = getActualDiffMinusRelationName(rel->getQualifiedName());
+            ramRelations.push_back(createRamRelation(rel, actualDiffMinusName));
+
             // Recursive relations also require @delta and @new variants, with the same signature
             if (isRecursive) {
-                // Add delta versions of the above
-                std::string deltaDiffPlusName = getDeltaDiffPlusRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, deltaDiffPlusName));
-
-                std::string deltaDiffMinusName = getDeltaDiffMinusRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, deltaDiffMinusName));
-
-                std::string deltaPrevName = getDeltaPrevRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, deltaPrevName));
-
                 // Add new versions of the above
                 std::string newDiffPlusName = getNewDiffPlusRelationName(rel->getQualifiedName());
                 ramRelations.push_back(createRamRelation(rel, newDiffPlusName));
@@ -167,6 +164,10 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
 
                 std::string newPrevName = getNewPrevRelationName(rel->getQualifiedName());
                 ramRelations.push_back(createRamRelation(rel, newPrevName));
+
+                // For incremental eval, deltas are not required, and are
+                // replaced with an indexed constraint on the iteration number
+                // annotation
             }
         }
     }

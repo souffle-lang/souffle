@@ -21,7 +21,7 @@
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
-#include "ast2ram/incremental/update/TranslatorContext.h"
+#include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
 #include "ram/Call.h"
@@ -66,7 +66,7 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     // return ramProgram;
 
     // Generate context here
-    context = mk<ast2ram::incremental::update::TranslatorContext>(translationUnit); //, true);
+    context = mk<TranslatorContext>(translationUnit, true);
 
     const auto& sccOrdering =
             translationUnit.getAnalysis<ast::analysis::TopologicallySortedSCCGraphAnalysis>().order();
@@ -110,6 +110,27 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
 }
 
 Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Relation& rel) const {
+    auto addProfiling = [](const ast::Relation& rel, const ast::Clause* clause, Own<ram::Statement> stmt) -> Own<ram::Statement> {
+        if (Global::config().has("profile")) {
+            const std::string& relationName = toString(rel.getQualifiedName());
+            const auto& srcLocation = clause->getSrcLoc();
+            const std::string clauseText = stringify(toString(*clause));
+            const std::string logTimerStatement = LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
+            return mk<ram::LogRelationTimer>(std::move(stmt), logTimerStatement,
+                    getConcreteRelationName(rel.getQualifiedName()));
+        }
+        return stmt;
+    };
+
+    auto addDebugInfo = [](const ast::Clause* clause, Own<ram::Statement> stmt) -> Own<ram::Statement> {
+        // Add debug info
+        std::ostringstream ds;
+        ds << toString(*clause) << "\nin file ";
+        ds << clause->getSrcLoc();
+
+        return mk<ram::DebugInfo>(std::move(stmt), ds.str());
+    };
+
     VecOwn<ram::Statement> result;
 
     // Get relation names
@@ -122,31 +143,12 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
             continue;
         }
 
-        // Translate clause
-        Own<ram::Statement> diffMinusRule = context->translateNonRecursiveClause(*clause, IncrementalDiffMinus);
-        Own<ram::Statement> diffPlusRule = context->translateNonRecursiveClause(*clause, IncrementalDiffPlus);
-
-        // Add logging
-        if (Global::config().has("profile")) {
-            const std::string& relationName = toString(rel.getQualifiedName());
-            const auto& srcLocation = clause->getSrcLoc();
-            const std::string clauseText = stringify(toString(*clause));
-            const std::string logTimerStatement =
-                    LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
-            diffMinusRule = mk<ram::LogRelationTimer>(std::move(diffMinusRule), logTimerStatement, mainRelation);
-            diffPlusRule = mk<ram::LogRelationTimer>(std::move(diffPlusRule), logTimerStatement, mainRelation);
+        // Translate each diff version, where the diff_minus/diff_plus occurs in
+        // different body atom positions in each diff version
+        VecOwn<ram::Statement> clauseDiffVersions = translateNonRecursiveClauseDiffVersions(*clause);
+        for (auto& clauseDiffVersion : clauseDiffVersions) {
+            appendStmt(result, addDebugInfo(clause, addProfiling(rel, clause, std::move(clauseDiffVersion))));
         }
-
-        // Add debug info
-        std::ostringstream ds;
-        ds << toString(*clause) << "\nin file ";
-        ds << clause->getSrcLoc();
-        diffMinusRule = mk<ram::DebugInfo>(std::move(diffMinusRule), ds.str());
-        diffPlusRule = mk<ram::DebugInfo>(std::move(diffPlusRule), ds.str());
-
-        // Add rule to result
-        appendStmt(result, std::move(diffMinusRule));
-        appendStmt(result, std::move(diffPlusRule));
     }
 
     // Add logging for entire relation
@@ -172,13 +174,16 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
     return mk<ram::Sequence>(std::move(result));
 }
 
-Own<ram::Statement> UnitTranslator::translateNonRecursiveClauseDiffVersions(const ast::Clause* clause) {
+VecOwn<ram::Statement> UnitTranslator::translateNonRecursiveClauseDiffVersions(const ast::Clause& clause) const {
     // Generate diff versions
-    const auto& bodyAtoms = filter(ast::getBodyLiterals<ast::Atom>(*clause), [&](const ast::Atom* /* atom */) {
-        return true;
-    });
+    VecOwn<ram::Statement> clauseDiffVersions;
 
-    return nullptr;
+    // for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size(); diffVersion++) {
+    appendStmt(clauseDiffVersions, context->translateNonRecursiveClause(clause, IncrementalDiffMinus));
+    appendStmt(clauseDiffVersions, context->translateNonRecursiveClause(clause, IncrementalDiffPlus));
+    // }
+
+    return clauseDiffVersions;
 }
 
 Own<ram::Relation> UnitTranslator::createRamRelation(

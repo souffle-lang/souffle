@@ -32,9 +32,9 @@ std::string getDiffPlusRelationName(const ast::QualifiedName& name);
 /** Get the corresponding diff_minus relation name, used for incremental deletes */
 std::string getDiffMinusRelationName(const ast::QualifiedName& name);
 
-/** Get delta versions of the above for recursive relations */
-std::string getDeltaDiffPlusRelationName(const ast::QualifiedName& name);
-std::string getDeltaDiffMinusRelationName(const ast::QualifiedName& name);
+/** Get actual versions of the above, since diff_plus/diff_minus may be over-approximations */
+std::string getActualDiffPlusRelationName(const ast::QualifiedName& name);
+std::string getActualDiffMinusRelationName(const ast::QualifiedName& name);
 
 /** Get new versions of the above for recursive relations */
 std::string getNewDiffPlusRelationName(const ast::QualifiedName& name);
@@ -42,7 +42,7 @@ std::string getNewDiffMinusRelationName(const ast::QualifiedName& name);
 
 /** Get the corresponding prev relation name, storing the state of the relation before an incremental update */
 std::string getPrevRelationName(const ast::QualifiedName& name);
-std::string getDeltaPrevRelationName(const ast::QualifiedName& name);
+// std::string getDeltaPrevRelationName(const ast::QualifiedName& name);
 std::string getNewPrevRelationName(const ast::QualifiedName& name);
 
 }  // namespace souffle::ast2ram::incremental

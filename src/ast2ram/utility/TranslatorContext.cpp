@@ -37,6 +37,7 @@
 #include "ast2ram/ValueTranslator.h"
 #include "ast2ram/incremental/bootstrap/TranslationStrategy.h"
 #include "ast2ram/incremental/update/TranslationStrategy.h"
+#include "ast2ram/incremental/update/ClauseTranslator.h"
 #include "ast2ram/provenance/TranslationStrategy.h"
 #include "ast2ram/seminaive/TranslationStrategy.h"
 #include "ram/Condition.h"
@@ -48,7 +49,7 @@
 
 namespace souffle::ast2ram {
 
-TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
+TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu, bool isIncrementalUpdate) {
     program = &tu.getProgram();
 
     // Set up analyses
@@ -84,7 +85,11 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
     if (Global::config().has("provenance")) {
         translationStrategy = mk<provenance::TranslationStrategy>();
     } else if (Global::config().has("incremental")) {
-        translationStrategy = mk<incremental::bootstrap::TranslationStrategy>();
+        if (isIncrementalUpdate) {
+            translationStrategy = mk<incremental::update::TranslationStrategy>();
+        } else {
+            translationStrategy = mk<incremental::bootstrap::TranslationStrategy>();
+        }
     } else {
         translationStrategy = mk<seminaive::TranslationStrategy>();
     }

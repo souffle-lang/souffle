@@ -33,12 +33,12 @@ std::string getDiffMinusRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@diff_minus_");
 }
 
-std::string getDeltaDiffPlusRelationName(const ast::QualifiedName& name) {
-    return getConcreteRelationName(name, "@delta_diff_plus_");
+std::string getActualDiffPlusRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@actual_diff_plus_");
 }
 
-std::string getDeltaDiffMinusRelationName(const ast::QualifiedName& name) {
-    return getConcreteRelationName(name, "@delta_diff_minus_");
+std::string getActualDiffMinusRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@actual_diff_minus_");
 }
 
 std::string getNewDiffPlusRelationName(const ast::QualifiedName& name) {
@@ -51,10 +51,6 @@ std::string getNewDiffMinusRelationName(const ast::QualifiedName& name) {
 
 std::string getPrevRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@prev_");
-}
-
-std::string getDeltaPrevRelationName(const ast::QualifiedName& name) {
-    return getConcreteRelationName(name, "@delta_prev_");
 }
 
 std::string getNewPrevRelationName(const ast::QualifiedName& name) {
