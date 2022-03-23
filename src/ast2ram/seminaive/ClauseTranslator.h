@@ -133,6 +133,7 @@ protected:
 private:
     std::vector<const ast::Argument*> generators;
     std::vector<const ast::Node*> operators;
+    bool isIndexed = false;
 };
 
 }  // namespace souffle::ast2ram::seminaive

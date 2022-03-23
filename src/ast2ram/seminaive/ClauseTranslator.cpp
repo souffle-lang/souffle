@@ -831,6 +831,12 @@ void ClauseTranslator::indexMultiResultFunctors(const ast::Clause& clause) {
 }
 
 void ClauseTranslator::indexClause(const ast::Clause& clause) {
+    if (isIndexed) {
+        return;
+    }
+
+    isIndexed = true;
+
     indexAtoms(clause);
     indexAggregators(clause);
     indexMultiResultFunctors(clause);

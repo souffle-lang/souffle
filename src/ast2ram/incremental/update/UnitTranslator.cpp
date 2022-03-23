@@ -78,11 +78,6 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
         // Generate the main stratum code
         auto stratum = generateStratum(sccOrdering.at(i));
 
-        if (stratum != nullptr) {
-            std::cout << "update stratum " << i << std::endl;
-            std::cout << *stratum << std::endl;
-        }
-
         // Clear expired relations
         const auto& expiredRelations = context->getExpiredRelations(i);
         stratum = mk<ram::Sequence>(std::move(stratum), generateClearExpiredRelations(expiredRelations));
