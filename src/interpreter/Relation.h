@@ -455,6 +455,10 @@ Own<RelationWrapper> createBTreeDeleteRelation(
 Own<RelationWrapper> createProvenanceRelation(
         const ram::Relation& id, const ram::analysis::IndexCluster& indexSelection);
 
+// A factory for BTree incremental index.
+Own<RelationWrapper> createIncrementalRelation(
+        const ram::Relation& id, const ram::analysis::IndexCluster& indexSelection);
+
 // A factory for Brie based index.
 Own<RelationWrapper> createBrieRelation(
         const ram::Relation& id, const ram::analysis::IndexCluster& indexSelection);

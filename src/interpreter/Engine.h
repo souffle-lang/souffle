@@ -161,6 +161,8 @@ private:
     const bool frequencyCounterEnabled;
     /** If running a provenance program */
     const bool isProvenance;
+    /** If running an incremental program */
+    const bool isIncremental;
     /** subroutines */
     VecOwn<Node> subroutine;
     /** main program */

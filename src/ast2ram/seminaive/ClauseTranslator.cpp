@@ -102,7 +102,7 @@ Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
     this->version = version;
 
     // Translate the resultant clause as would be done normally
-    Own<ram::Statement> rule = translateNonRecursiveClause(clause);
+    Own<ram::Statement> rule = createRamRuleQuery(clause);
 
     // Add logging
     if (Global::config().has("profile")) {

@@ -286,6 +286,7 @@ Engine::Engine(ram::TranslationUnit& tUnit)
         : profileEnabled(Global::config().has("profile")),
           frequencyCounterEnabled(Global::config().has("profile-frequency")),
           isProvenance(Global::config().has("provenance")),
+          isIncremental(Global::config().has("incremental")),
           numOfThreads(number_of_threads(std::stoi(Global::config().get("jobs")))), tUnit(tUnit),
           isa(tUnit.getAnalysis<ram::analysis::IndexAnalysis>()), recordTable(numOfThreads),
           symbolTable(numOfThreads) {}
@@ -339,6 +340,8 @@ void Engine::createRelation(const ram::Relation& id, const std::size_t idx) {
         res = createBTreeDeleteRelation(id, isa.getIndexSelection(id.getName()));
     } else if (isProvenance) {
         res = createProvenanceRelation(id, isa.getIndexSelection(id.getName()));
+    } else if (isIncremental) {
+        res = createIncrementalRelation(id, isa.getIndexSelection(id.getName()));
     } else {
         res = createBTreeRelation(id, isa.getIndexSelection(id.getName()));
     }

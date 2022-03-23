@@ -58,6 +58,36 @@ namespace souffle::interpreter {
     func(Provenance, 29, __VA_ARGS__)  \
     func(Provenance, 30, __VA_ARGS__)
 
+#define FOR_EACH_INCREMENTAL(func, ...) \
+    func(Incremental, 2, __VA_ARGS__)   \
+    func(Incremental, 3, __VA_ARGS__)   \
+    func(Incremental, 4, __VA_ARGS__)   \
+    func(Incremental, 5, __VA_ARGS__)   \
+    func(Incremental, 6, __VA_ARGS__)   \
+    func(Incremental, 7, __VA_ARGS__)   \
+    func(Incremental, 8, __VA_ARGS__)   \
+    func(Incremental, 9, __VA_ARGS__)   \
+    func(Incremental, 10, __VA_ARGS__)  \
+    func(Incremental, 11, __VA_ARGS__)  \
+    func(Incremental, 12, __VA_ARGS__)  \
+    func(Incremental, 13, __VA_ARGS__)  \
+    func(Incremental, 14, __VA_ARGS__)  \
+    func(Incremental, 15, __VA_ARGS__)  \
+    func(Incremental, 16, __VA_ARGS__)  \
+    func(Incremental, 17, __VA_ARGS__)  \
+    func(Incremental, 18, __VA_ARGS__)  \
+    func(Incremental, 19, __VA_ARGS__)  \
+    func(Incremental, 20, __VA_ARGS__)  \
+    func(Incremental, 21, __VA_ARGS__)  \
+    func(Incremental, 22, __VA_ARGS__)  \
+    func(Incremental, 23, __VA_ARGS__)  \
+    func(Incremental, 24, __VA_ARGS__)  \
+    func(Incremental, 25, __VA_ARGS__)  \
+    func(Incremental, 26, __VA_ARGS__)  \
+    func(Incremental, 27, __VA_ARGS__)  \
+    func(Incremental, 28, __VA_ARGS__)  \
+    func(Incremental, 29, __VA_ARGS__)  \
+    func(Incremental, 30, __VA_ARGS__)
 
 #define FOR_EACH_BTREE(func, ...)\
     func(Btree, 0, __VA_ARGS__) \
@@ -135,6 +165,7 @@ namespace souffle::interpreter {
     FOR_EACH_BTREE(func, __VA_ARGS__)       \
     FOR_EACH_BTREE_DELETE(func, __VA_ARGS__)       \
     FOR_EACH_BRIE(func, __VA_ARGS__)        \
+    FOR_EACH_INCREMENTAL(func, __VA_ARGS__)  \
     FOR_EACH_PROVENANCE(func, __VA_ARGS__)  \
     FOR_EACH_EQREL(func, __VA_ARGS__)
 
@@ -232,6 +263,12 @@ struct get_full_prov_index {
             arity - 2>::type;
 };
 
+// -- obtains a full incremental index for a given arity --
+template <unsigned arity>
+struct get_full_incremental_index {
+    using type = typename extend<typename get_full_index<arity - 1>::type, arity - 1>::type;
+};
+
 }  // namespace index_utils
 
 template <std::size_t Arity>
@@ -243,6 +280,9 @@ using comparator = typename index_utils::get_full_index<Arity>::type::comparator
 
 template <std::size_t Arity>
 using prov_comparator = typename index_utils::get_full_prov_index<Arity>::type::comparator;
+
+template <std::size_t Arity>
+using incremental_comparator = typename index_utils::get_full_incremental_index<Arity>::type::comparator;
 
 // Alias for btree_set
 template <std::size_t Arity>
@@ -265,11 +305,28 @@ struct ProvenanceUpdater {
     }
 };
 
+// Updater for Provenance
+template <std::size_t Arity>
+struct IncrementalUpdater {
+    void update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
+        if (new_t[Arity - 1] == 0) {
+            old_t[Arity - 1] = 0;
+        }
+        old_t[Arity - 1] += new_t[Arity - 1];
+    }
+};
+
 // Alias for Provenance
 template <std::size_t Arity>
 using Provenance = btree_set<t_tuple<Arity>, prov_comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
         typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - 2>,
         ProvenanceUpdater<Arity>>;
+
+// Alias for Incremental
+template <std::size_t Arity>
+using Incremental = btree_set<t_tuple<Arity>, incremental_comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
+        typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - 1>,
+        IncrementalUpdater<Arity>>;
 
 // Alias for Eqrel
 // Note: require Arity = 2.

@@ -141,6 +141,7 @@ enum NodeType {
  */
 inline NodeType constructNodeType(std::string tokBase, const ram::Relation& rel) {
     static bool isProvenance = Global::config().has("provenance");
+    static bool isIncremental = Global::config().has("incremental");
 
     static const std::unordered_map<std::string, NodeType> map = {
             FOR_EACH_INTERPRETER_TOKEN(SINGLE_TOKEN_ENTRY, EXPAND_TOKEN_ENTRY)
@@ -153,6 +154,8 @@ inline NodeType constructNodeType(std::string tokBase, const ram::Relation& rel)
         return map.at("I_" + tokBase + "_BtreeDelete_" + arity);
     } else if (isProvenance) {
         return map.at("I_" + tokBase + "_Provenance_" + arity);
+    } else if (isIncremental) {
+        return map.at("I_" + tokBase + "_Incremental_" + arity);
     } else  {
         return map.at("I_" + tokBase + "_Btree_" + arity);
     }
