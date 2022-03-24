@@ -55,8 +55,8 @@ public:
     }
 
     /**
-     * @brief reorder filter-break nesting to break-filter nesting
-     * @param program Program that is transform
+     * @brief reorder a scan over a relation followed by a scan over its delta
+     * @param program Program that is to be transformed
      * @return Flag showing whether the program has been changed by the transformation
      */
     bool reorderDelta(Program& program);
