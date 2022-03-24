@@ -59,8 +59,8 @@ bool ReorderDelta::reorderDelta(Program& program) {
                             node->apply(go);
                             return node;
                         }));
-                        auto* inner = new Scan(relation1, id2, std::move(op), scan1->getProfileText());
-                        node = Own<Scan>(new Scan(relation2, id1, Own<Scan>(inner), scan2->getProfileText()));
+                        auto* inner = new Scan(relation1, id2, std::move(op), scan2->getProfileText());
+                        node = Own<Scan>(new Scan(relation2, id1, Own<Scan>(inner), scan1->getProfileText()));
                     }
                 }
             }
