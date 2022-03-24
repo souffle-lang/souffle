@@ -41,10 +41,10 @@ bool ReorderDelta::reorderDelta(Program& program) {
                 if (const Scan* scan2 = as<Scan>(scan1->getOperation())) {
                     const auto relation1 = scan1->getRelation();
                     const auto relation2 = scan2->getRelation();
-                    const auto id1 = scan1->getTupleId();
-                    const auto id2 = scan2->getTupleId();
                     if ("@delta_" + relation1 == relation2) {
                         changed = true;
+                        const auto id1 = scan1->getTupleId();
+                        const auto id2 = scan2->getTupleId();
                         rename[id1] = id2;
                         rename[id2] = id1;
                         // Swap the names of the two variables. Note that this
