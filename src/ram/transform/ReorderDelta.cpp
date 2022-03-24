@@ -31,6 +31,18 @@
 
 namespace souffle::ram::transform {
 
+static void rename_variables(Node& n, std::map<std::size_t, std::size_t> rename) {
+    n.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
+        if (auto* element = as<TupleElement>(node)) {
+            if (rename[element->getTupleId()] != element->getTupleId()) {
+                node = mk<TupleElement>(rename[element->getTupleId()], element->getElement());
+            }
+        }
+        node->apply(go);
+        return node;
+    }));
+}
+
 bool ReorderDelta::reorderDelta(Program& program) {
     bool changed = false;
     forEachQuery(program, [&](Query& query) {
@@ -47,24 +59,14 @@ bool ReorderDelta::reorderDelta(Program& program) {
                         const auto id2 = scan2->getTupleId();
                         rename[id1] = id2;
                         rename[id2] = id1;
-                        // Swap the names of the two variables. Note that this
-                        // is not necessary for user code (because user code
-                        // cannot be written in such a way to distinguish deltas
-                        // from full relations), but is necessary for
-                        // the deletion phase of subsumption, which
-                        // differentiates between the two.
+                        // Swap the names of the two variables in the body of
+                        // the inner scan. Note that this is not necessary for
+                        // user code (because user code cannot be written in
+                        // such a way to distinguish deltas from full
+                        // relations), but is necessary for the deletion phase
+                        // of subsumption, which differentiates between the two.
                         auto op = clone(scan2->getOperation());
-                        op->apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
-                            if (auto* element = as<TupleElement>(node)) {
-                                if (rename[element->getTupleId()] != element->getTupleId()) {
-                                    changed = true;
-                                    node = mk<TupleElement>(
-                                            rename[element->getTupleId()], element->getElement());
-                                }
-                            }
-                            node->apply(go);
-                            return node;
-                        }));
+                        rename_variables(*op, rename);
                         // Swap the order of the scans (and which variables they
                         // bind).
                         auto* inner = new Scan(relation1, id2, std::move(op), scan2->getProfileText());
