@@ -685,7 +685,7 @@ int main(int argc, char** argv) {
         using namespace ram::transform;
         Own<Transformer> ramTransform = mk<TransformerSequence>(
                 mk<LoopTransformer>(mk<TransformerSequence>(mk<ExpandFilterTransformer>(),
-                        mk<HoistConditionsTransformer>(), mk<MakeIndexTransformer>())),
+                        mk<HoistConditionsTransformer>(), mk<ReorderDelta>(), mk<MakeIndexTransformer>())),
                 mk<IfConversionTransformer>(), mk<IfExistsConversionTransformer>(),
                 mk<CollapseFiltersTransformer>(), mk<TupleIdTransformer>(),
                 mk<LoopTransformer>(
@@ -693,7 +693,6 @@ int main(int argc, char** argv) {
                 mk<ExpandFilterTransformer>(), mk<HoistConditionsTransformer>(),
                 mk<CollapseFiltersTransformer>(), mk<EliminateDuplicatesTransformer>(),
                 mk<ReorderConditionsTransformer>(), mk<LoopTransformer>(mk<ReorderFilterBreak>()),
-                mk<LoopTransformer>(mk<ReorderDelta>()),
                 mk<ConditionalTransformer>(
                         // job count of 0 means all cores are used.
                         []() -> bool { return std::stoi(Global::config().get("jobs")) != 1; },

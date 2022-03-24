@@ -31,7 +31,7 @@ namespace souffle::ram::transform {
  *  QUERY
  *   ...
  *    FOR t0 in r
- *     FOR t1 in delta_r ON INDEX t1.0 = t0.1
+ *     FOR t1 in delta_r
  *      ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
@@ -41,12 +41,12 @@ namespace souffle::ram::transform {
  *  QUERY
  *   ...
  *    FOR t0 in delta_r
- *     FOR t1 in r ON INDEX t1.0 = t0.1
+ *     FOR t1 in r
  *      ...
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
- * TODO: The same principle applies to IF EXISTS, this transformation could be
- * extended to handle that as well.
+ * For maximal efficacy, this should be run after hoisting conditionals so that
+ * more such scans will be next to one another.
  */
 class ReorderDelta : public Transformer {
 public:

@@ -31,67 +31,20 @@
 
 namespace souffle::ram::transform {
 
-static std::optional<RamPattern> swap_in_pattern(std::size_t id1, std::size_t id2,
-        const std::pair<std::vector<Expression*>, std::vector<Expression*>>& p) {
-    RamPattern pattern;
-    std::optional<RamPattern> none;
-    const auto size = p.first.size();
-    assert(size == p.second.size());
-    pattern.first.reserve(size);
-    pattern.second.reserve(size);
-    for (std::size_t i = 0; i < size; i++) {
-        pattern.first.emplace_back(new UndefValue());
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        pattern.second.emplace_back(new UndefValue());
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        const auto* expr = p.first[i];
-        if (as<UndefValue>(expr)) {
-            continue;
-        } else if (const auto tup_elem = as<TupleElement>(expr)) {
-            if (tup_elem->getTupleId() != id1) {
-                return none;
-            }
-            pattern.second[tup_elem->getElement()] = Own<TupleElement>(new TupleElement(id2, i));
-        } else {
-            return none;
-        }
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        const auto* expr = p.second[i];
-        if (as<UndefValue>(expr)) {
-            continue;
-        } else if (const auto tup_elem = as<TupleElement>(expr)) {
-            if (tup_elem->getTupleId() != id1) {
-                return none;
-            }
-            pattern.first[tup_elem->getElement()] = Own<TupleElement>(new TupleElement(id2, i));
-        } else {
-            return none;
-        }
-    }
-    return std::optional(std::move(pattern));
-}
-
 bool ReorderDelta::reorderDelta(Program& program) {
     bool changed = false;
     forEachQueryMap(program, [&](auto&& go, Own<Node> node) -> Own<Node> {
         if (const Scan* scan1 = as<Scan>(node)) {
-            if (const IndexScan* scan2 = as<IndexScan>(scan1->getOperation())) {
+            if (const Scan* scan2 = as<Scan>(scan1->getOperation())) {
                 const auto relation1 = scan1->getRelation();
                 const auto relation2 = scan2->getRelation();
                 const auto id1 = scan1->getTupleId();
                 const auto id2 = scan2->getTupleId();
                 if ("@delta_" + relation1 == relation2) {
-                    std::optional<RamPattern> pattern = swap_in_pattern(id1, id2, scan2->getRangePattern());
-                    if (pattern.has_value()) {
-                        changed = true;
-                        auto* inner = new IndexScan(relation1, id1, std::move(*pattern),
-                                clone(scan2->getOperation()), scan1->getProfileText());
-                        node = Own<Scan>(
-                                new Scan(relation2, id2, Own<IndexScan>(inner), scan1->getProfileText()));
-                    }
+                    changed = true;
+                    auto* inner =
+                            new Scan(relation1, id2, clone(scan2->getOperation()), scan1->getProfileText());
+                    node = Own<Scan>(new Scan(relation2, id1, Own<Scan>(inner), scan2->getProfileText()));
                 }
             }
         }
