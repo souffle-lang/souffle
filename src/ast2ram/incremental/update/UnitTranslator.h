@@ -71,6 +71,11 @@ protected:
             const std::string& destRelation, const std::string& srcRelation,
             const std::string& filterRelation) const override;
 
+    /** Special merge functions for handling actual_diff_minus/actual_diff_plus */
+    Own<ram::Statement> generateMergeRelationsActualDiff(
+            const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation,
+            const std::string& checkRelation, int insertTupleCount) const;
+
     /** Method to get update subroutines generated during translation */
     std::map<std::string, Own<ram::Statement>>& getRamSubroutines();
 

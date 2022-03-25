@@ -13,6 +13,7 @@
  ***********************************************************************/
 
 #include "ast2ram/incremental/update/UnitTranslator.h"
+#include "ast2ram/incremental/Utils.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "ast/BinaryConstraint.h"
@@ -26,11 +27,14 @@
 #include "ast2ram/utility/ValueIndex.h"
 #include "ram/Call.h"
 #include "ram/Clear.h"
+#include "ram/Constraint.h"
 #include "ram/DebugInfo.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
 #include "ram/Filter.h"
+#include "ram/IfNotExists.h"
 #include "ram/Insert.h"
+#include "ram/IterationNumber.h"
 #include "ram/LogSize.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogTimer.h"
@@ -127,6 +131,24 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
     };
 
     VecOwn<ram::Statement> result;
+
+    // Generate merges from diff_plus/diff_minus into main relation
+    appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()), getDiffMinusRelationName(rel.getQualifiedName())));
+    appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()), getDiffPlusRelationName(rel.getQualifiedName())));
+
+    // Generate checked merges
+    appendStmt(result, generateMergeRelationsActualDiff(&rel,
+                getActualDiffMinusRelationName(rel.getQualifiedName()),
+                getDiffMinusRelationName(rel.getQualifiedName()),
+                getConcreteRelationName(rel.getQualifiedName()),
+                -1));
+
+    appendStmt(result, generateMergeRelationsActualDiff(&rel,
+                getActualDiffPlusRelationName(rel.getQualifiedName()),
+                getDiffPlusRelationName(rel.getQualifiedName()),
+                getPrevRelationName(rel.getQualifiedName()),
+                1));
+
 
     // Get relation names
     std::string mainRelation = getConcreteRelationName(rel.getQualifiedName());
@@ -312,6 +334,61 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsWithFilter(const ast::
             mk<ram::Filter>(mk<ram::Negation>(mk<ram::ExistenceCheck>(filterRelation, std::move(values2))),
                     std::move(insertion));
     auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(filtered)));
+    return stmt;
+}
+
+Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
+        const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation,
+        const std::string& checkRelation, int insertTupleCount) const {
+
+    // For some relation R, this method generates a merge that is as follows:
+    //
+    // FOR t0 IN srcRelation:
+    //   IF t0.iter = iternum():
+    //     IF NOT EXISTS t1 IN checkRelation WHERE t1.0 = t0.0 AND t1.1 = t0.1 AND ... AND t1.iter <= iternum() AND t1.count > 0:
+    //       INSERT t0.0, t0.1, ..., insertTupleCount INTO destRelation
+
+    // Create insertion
+    VecOwn<ram::Expression> values;
+
+    for (std::size_t i = 0; i < rel->getArity() + 1; i++) {
+        values.push_back(mk<ram::TupleElement>(0, i));
+    }
+    values.push_back(mk<ram::SignedConstant>(insertTupleCount));
+
+    Own<ram::Operation> op = mk<ram::Insert>(destRelation, std::move(values));
+
+    // Create filter for checking in checkRelation
+    Own<ram::Condition> existenceCond;
+    for (size_t i = 0; i < rel->getArity(); i++) {
+        existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
+                    BinaryConstraintOp::EQ,
+                    mk<ram::TupleElement>(0, i),
+                    mk<ram::TupleElement>(1, i)));
+    }
+
+    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
+                BinaryConstraintOp::LE,
+                mk<ram::TupleElement>(1, rel->getArity() + 1),
+                mk<ram::IterationNumber>()));
+
+    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
+                BinaryConstraintOp::GT,
+                mk<ram::TupleElement>(1, rel->getArity() + 2),
+                mk<ram::SignedConstant>(0)));
+
+    op = mk<ram::IfNotExists>(checkRelation, 1, std::move(existenceCond), std::move(op));
+
+    // Create filter for iternum
+    op = mk<ram::Filter>(mk<ram::Constraint>(
+                BinaryConstraintOp::EQ,
+                mk<ram::TupleElement>(0, rel->getArity() + 1),
+                mk<ram::IterationNumber>()),
+            std::move(op));
+
+    // Create outer scan
+    auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(op)));
+
     return stmt;
 }
 
