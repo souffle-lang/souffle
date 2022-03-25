@@ -30,14 +30,17 @@
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
+#include "ast/Conjunction.h"
 #include "ast/Constant.h"
 #include "ast/Constraint.h"
 #include "ast/Counter.h"
+#include "ast/Disjunction.h"
 #include "ast/FunctionalConstraint.h"
 #include "ast/Functor.h"
 #include "ast/FunctorDeclaration.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
+#include "ast/LiteralNegation.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
 #include "ast/Node.h"
@@ -99,6 +102,9 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         // literals
         SOUFFLE_VISITOR_FORWARD(Atom)
         SOUFFLE_VISITOR_FORWARD(Negation)
+        SOUFFLE_VISITOR_FORWARD(Disjunction)
+        SOUFFLE_VISITOR_FORWARD(Conjunction)
+        SOUFFLE_VISITOR_FORWARD(LiteralNegation)
         SOUFFLE_VISITOR_FORWARD(BooleanConstraint)
         SOUFFLE_VISITOR_FORWARD(BinaryConstraint)
         SOUFFLE_VISITOR_FORWARD(FunctionalConstraint)
@@ -157,6 +163,9 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     // literals
     SOUFFLE_VISITOR_LINK(Atom, Literal)
     SOUFFLE_VISITOR_LINK(Negation, Literal)
+    SOUFFLE_VISITOR_LINK(Disjunction, Literal)
+    SOUFFLE_VISITOR_LINK(Conjunction, Literal)
+    SOUFFLE_VISITOR_LINK(LiteralNegation, Literal)
     SOUFFLE_VISITOR_LINK(Literal, Node);
 
     SOUFFLE_VISITOR_LINK(BooleanConstraint, Constraint)

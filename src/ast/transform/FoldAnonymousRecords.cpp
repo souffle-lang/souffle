@@ -138,7 +138,7 @@ bool FoldAnonymousRecords::transform(TranslationUnit& translationUnit) {
                             }
                         }
                     }
-                    replacementAggregator->setBody(std::move(newBody));
+                    replacementAggregator->setBodyLiterals(std::move(newBody));
                     return replacementAggregator;
                 }
             } else if (auto* clause = as<Clause>(node)) {
