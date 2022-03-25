@@ -73,24 +73,29 @@ TEST(SparseArray, Basic) {
 
 TEST(SparseArray, Limits) {
     SparseArray<int> map;
+    using index_type = SparseArray<int>::index_type;
 
     map.update(std::numeric_limits<typename SparseArray<int>::index_type>::min(), 10);
     map.update(std::numeric_limits<typename SparseArray<int>::index_type>::max(), 20);
 
     map.dump();
 
-    std::vector<std::pair<uint32_t, int>> present;
+    std::vector<std::pair<index_type, int>> present;
     for (const auto& cur : map) {
         present.push_back(cur);
     }
 
-    EXPECT_EQ("[(0,10),(4294967295,20)]", toString(present));
+    std::vector<std::pair<index_type, int>> expected;
+    expected.emplace_back(std::numeric_limits<typename SparseArray<int>::index_type>::min(), 10);
+    expected.emplace_back(std::numeric_limits<typename SparseArray<int>::index_type>::max(), 20);
+    EXPECT_EQ(toString(expected), toString(present));
 }
 
 TEST(SparseArray, Iterator) {
     SparseArray<int> map;
+    using index_type = SparseArray<int>::index_type;
 
-    std::set<std::pair<int, int>> should;
+    std::set<std::pair<index_type, int>> should;
     should.insert(std::make_pair(14, 4));
     should.insert(std::make_pair(0, 1));
     should.insert(std::make_pair(4, 2));
@@ -102,7 +107,7 @@ TEST(SparseArray, Iterator) {
         map.update(cur.first, cur.second);
     }
 
-    std::set<std::pair<int, int>> is;
+    std::set<std::pair<index_type, int>> is;
     for (const auto& cur : map) {
         is.insert(cur);
     }
@@ -113,17 +118,23 @@ TEST(SparseArray, Iterator) {
 TEST(SparseArray, IteratorStress) {
     const static int N = 10000;
 
-    SparseArray<int> map;
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
 
-    std::vector<int> pos;
+    SparseArray<RamDomain> map;
+    using index_type = SparseArray<int>::index_type;
+
+    std::vector<RamDomain> pos;
     while (pos.size() < N) {
-        int n = random() % (N * 10);
+        RamDomain n = rnd();
         if (!contains(pos, n)) {
             pos.push_back(n);
         }
     }
 
-    std::set<std::pair<int, int>> should;
+    std::set<std::pair<index_type, RamDomain>> should;
     for (int i = 0; i < N; i++) {
         should.insert(std::make_pair(pos[i], i + 1));
     }
@@ -133,7 +144,7 @@ TEST(SparseArray, IteratorStress) {
         ASSERT_TRUE(map[cur.first] == cur.second);
     }
 
-    std::set<std::pair<int, int>> is;
+    std::set<std::pair<index_type, RamDomain>> is;
     for (const auto& cur : map) {
         is.insert(cur);
     }
@@ -144,22 +155,28 @@ TEST(SparseArray, IteratorStress) {
 TEST(SparseArray, IteratorStress2) {
     const static int N = 1000;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     bool log = false;
 
     for (unsigned j = 0; j < N; j++) {
-        SparseArray<int> map;
+        SparseArray<RamDomain> map;
+        using index_type = SparseArray<int>::index_type;
 
         if (log) std::cout << "Creating " << j << " random numbers ..\n";
-        std::vector<int> pos;
+        std::vector<RamDomain> pos;
         while (pos.size() < j) {
-            int n = random() % (N * 10);
+            RamDomain n = rnd();
             if (!contains(pos, n)) {
                 pos.push_back(n);
             }
         }
 
         if (log) std::cout << "Creating input list ..\n";
-        std::set<std::pair<int, int>> should;
+        std::set<std::pair<index_type, RamDomain>> should;
         for (unsigned i = 0; i < j; i++) {
             should.insert(std::make_pair(pos[i], i + 1));
         }
@@ -173,7 +190,7 @@ TEST(SparseArray, IteratorStress2) {
         if (log) std::cout << "Sort should list ..\n";
 
         if (log) std::cout << "Collect is list ..\n";
-        std::set<std::pair<int, int>> is;
+        std::set<std::pair<index_type, RamDomain>> is;
         unsigned i = 0;
         for (const auto& cur : map) {
             is.insert(cur);
@@ -270,13 +287,14 @@ TEST(SparseArray, Merge) {
 
     SparseArray<int> m1;
     SparseArray<int> m2;
+    using index_type = SparseArray<int>::index_type;
 
     m1.update(500, 2);
     m2.update(100, 1);
 
     m1.addAll(m2);
 
-    std::vector<std::pair<int, int>> data;
+    std::vector<std::pair<index_type, int>> data;
     for (const auto& it : m1) {
         data.push_back(it);
     }
@@ -508,13 +526,18 @@ TEST(SparseBitMap, Basic) {
 }
 
 TEST(SparseBitMap, Stress) {
-    const static int N = 10000;
+    const static RamDomain N = 10000;
+
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
 
     SparseBitMap<> map;
 
-    std::vector<int> should;
+    std::vector<RamDomain> should;
     while (should.size() < N) {
-        int n = random() % (N * 10);
+        RamDomain n = rnd();
         if (!contains(should, n)) {
             should.push_back(n);
         }
@@ -526,7 +549,7 @@ TEST(SparseBitMap, Stress) {
     }
 
     // check all the entries
-    for (int i = 0; i < N * 10; i++) {
+    for (RamDomain i = 0; i < N * 10; i++) {
         EXPECT_EQ(map[i], contains(should, i));
     }
 }
@@ -534,7 +557,7 @@ TEST(SparseBitMap, Stress) {
 TEST(SparseBitMap, Iterator) {
     SparseBitMap<> map;
 
-    std::set<int> vals;
+    std::set<uint64_t> vals;
     for (const auto& cur : map) {
         vals.insert(cur);
     }
@@ -571,17 +594,22 @@ TEST(SparseBitMap, Iterator) {
 }
 
 TEST(SparseBitMap, IteratorStress2) {
-    const static int N = 1000;
+    const static RamDomain N = 1000;
+
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
 
     bool log = false;
 
-    for (unsigned j = 0; j < N; j++) {
+    for (RamDomain j = 0; j < N; j++) {
         SparseBitMap<> map;
 
         if (log) std::cout << "Creating " << j << " random numbers ..\n";
-        std::set<int> should;
-        while (should.size() < j) {
-            int n = random() % (N * 10);
+        std::set<RamDomain> should;
+        while (static_cast<int64_t>(should.size()) < j) {
+            RamDomain n = rnd();
             if (!contains(should, n)) {
                 should.insert(n);
             }
@@ -594,8 +622,8 @@ TEST(SparseBitMap, IteratorStress2) {
         }
 
         if (log) std::cout << "Collect is list ..\n";
-        std::set<int> is;
-        unsigned i = 0;
+        std::set<RamDomain> is;
+        RamDomain i = 0;
         for (const auto& cur : map) {
             is.insert(cur);
             i++;
@@ -760,23 +788,21 @@ TEST(Trie, Iterator) {
     EXPECT_EQ(3, card(set));
 }
 
-namespace {
-
-RamDomain rand(RamDomain max) {
-    return random() % max;
-}
-}  // namespace
-
 TEST(Trie, IteratorStress_1D) {
     using tuple = std::array<RamDomain, 1>;
 
     const int N = 10000;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     Trie<1> set;
 
     std::set<tuple> data;
     while (data.size() < N) {
-        tuple cur{(RamDomain)(rand(N * 10))};
+        tuple cur{(RamDomain)(rnd())};
         if (data.insert(cur).second) {
             EXPECT_FALSE(set.contains(cur));
             set.insert(cur);
@@ -798,13 +824,18 @@ TEST(Trie, IteratorStress_2D) {
 
     const int N = 10000;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     Trie<2> set;
 
     std::set<tuple> data;
     while (data.size() < N) {
         tuple cur;
-        cur[0] = (RamDomain)(rand(N * 10));
-        cur[1] = (RamDomain)(rand(N * 10));
+        cur[0] = (RamDomain)(rnd());
+        cur[1] = (RamDomain)(rnd());
         if (data.insert(cur).second) {
             EXPECT_FALSE(set.contains(cur));
             set.insert(cur);
@@ -826,14 +857,19 @@ TEST(Trie, IteratorStress_3D) {
 
     const int N = 10000;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     Trie<3> set;
 
     std::set<tuple> data;
     while (data.size() < N) {
         tuple cur;
-        cur[0] = (RamDomain)(rand(N * 10));
-        cur[1] = (RamDomain)(rand(N * 10));
-        cur[2] = (RamDomain)(rand(N * 10));
+        cur[0] = (RamDomain)(rnd());
+        cur[1] = (RamDomain)(rnd());
+        cur[2] = (RamDomain)(rnd());
         if (data.insert(cur).second) {
             EXPECT_FALSE(set.contains(cur));
             set.insert(cur);
@@ -855,15 +891,20 @@ TEST(Trie, IteratorStress_4D) {
 
     const int N = 10000;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, 10 * N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     Trie<4> set;
 
     std::set<tuple> data;
     while (data.size() < N) {
         tuple cur;
-        cur[0] = (RamDomain)(rand(N * 10));
-        cur[1] = (RamDomain)(rand(N * 10));
-        cur[2] = (RamDomain)(rand(N * 10));
-        cur[3] = (RamDomain)(rand(N * 10));
+        cur[0] = (RamDomain)(rnd());
+        cur[1] = (RamDomain)(rnd());
+        cur[2] = (RamDomain)(rnd());
+        cur[3] = (RamDomain)(rnd());
         if (data.insert(cur).second) {
             EXPECT_FALSE(set.contains(cur));
             set.insert(cur);
@@ -1554,14 +1595,19 @@ TEST(Trie, Merge_Stress) {
     const int N = 1000;
     const int M = 100;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, N / 2 - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     std::set<entry_t> ref;
     Trie<2> a;
 
     for (int i = 0; i < M; i++) {
         Trie<2> b;
         for (int i = 0; i < N; i++) {
-            RamDomain x = rand(N / 2);
-            RamDomain y = rand(N / 2);
+            RamDomain x = rnd();
+            RamDomain y = rnd();
             if (!a.contains({x, y})) {
                 b.insert({x, y});
                 ref.insert(entry_t{x, y});
@@ -1674,13 +1720,18 @@ TEST(Trie, Limits) {
 TEST(Trie, Parallel) {
     const int N = 10000;
 
+    std::default_random_engine randomGenerator(3);
+    std::uniform_int_distribution<RamDomain> distribution(0, N - 1);
+    auto random = std::bind(distribution, randomGenerator);
+    auto rnd = [&]() { return random(); };
+
     // get a unordered list of test data
     using entry_t = typename Trie<2>::entry_type;
     std::vector<entry_t> list;
     Trie<2> filter;
 
     while (filter.size() < N) {
-        entry_t entry{(RamDomain)(random() % N), (RamDomain)(random() % N)};
+        entry_t entry{(RamDomain)(rnd()), (RamDomain)(rnd())};
         if (filter.insert(entry)) {
             list.push_back(entry);
         }
@@ -1707,8 +1758,8 @@ TEST(Trie, Parallel) {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-        for (auto it = full.begin(); it < full.end(); ++it) {
-            res.insert(*it);
+        for (int idx = 0; idx < static_cast<int>(full.size()); ++idx) {
+            res.insert(full[idx]);
         }
 
         // check resulting values

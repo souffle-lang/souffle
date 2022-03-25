@@ -23,8 +23,14 @@
 #include <cstdlib>
 #include <optional>
 #include <type_traits>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#include <windows.h>
+#else
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 namespace souffle {
 
@@ -59,6 +65,7 @@ template <typename Envp = span<std::pair<char const*, char const*>>,
         typename = std::enable_if_t<is_iterable_of<Envp, std::pair<char const*, char const*> const>>>
 std::optional<detail::LinuxWaitStatus> execute(
         std::string const& program, span<char const* const> argv = {}, Envp&& envp = {}) {
+#ifndef _MSC_VER
     using EC = detail::LinuxExitCode;
 
     auto pid = ::fork();
@@ -103,6 +110,63 @@ std::optional<detail::LinuxWaitStatus> execute(
             return status;
         }
     }
+#else
+    STARTUPINFOW si;
+    PROCESS_INFORMATION pi;
+    DWORD exit_code = 0;
+
+    memset(&si, 0, sizeof(si));
+    si.cb = sizeof(si);
+    memset(&pi, 0, sizeof(pi));
+
+    std::size_t l;
+    std::wstring program_w(program.length() + 1, L' ');
+    ::mbstowcs_s(&l, program_w.data(), program_w.size(), program.data(), program.size());
+    program_w.resize(l - 1);
+
+    WCHAR FoundPath[PATH_MAX];
+    int64_t Found = (int64_t)FindExecutableW(program_w.c_str(), nullptr, FoundPath);
+    if (Found <= 32) {
+        std::cerr << "Cannot find executable '" << program << "'.\n";
+        return {};
+    }
+
+    std::wstringstream args_w;
+    args_w << program_w;
+    for (const auto& arg : argv) {
+        std::string arg_s(arg);
+        std::wstring arg_w(arg_s.length() + 1, L' ');
+        ::mbstowcs_s(&l, arg_w.data(), arg_w.size(), arg_s.data(), arg_s.size());
+        arg_w.resize(l - 1);
+        args_w << L' ' << arg_w;
+    }
+
+    std::string envir;
+    for (const auto& couple : envp) {
+        envir += couple.first;
+        envir += '=';
+        envir += couple.second;
+        envir += '\0';
+    }
+    envir += '\0';
+
+    if (!CreateProcessW(FoundPath, args_w.str().data(), NULL, NULL, FALSE, 0, /*envir.data()*/ nullptr, NULL,
+                &si, &pi)) {
+        return {};
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
+        return {};
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return static_cast<int>(exit_code);
+
+#endif
 }
 
 /**
@@ -127,10 +191,13 @@ std::optional<detail::LinuxWaitStatus> execute(
         return span<std::remove_pointer_t<decltype(dst)>>{dst, dst + src.size()};
     };
 
-    char const* argv_temp[argv.size()];
-    std::pair<char const*, char const*> envp_temp[envp.size()];
-    auto argv_ptr = go(argv_temp, argv, [](auto&& x) { return x.c_str(); });
-    auto envp_ptr = go(envp_temp, envp, [](auto&& kv) { return std::pair{kv.first, kv.second.c_str()}; });
+    std::unique_ptr<char const*[]> argv_temp = std::make_unique<char const*[]>(argv.size());
+    std::unique_ptr<std::pair<char const*, char const*>[]> envp_temp =
+            std::make_unique<std::pair<char const*, char const*>[]>(envp.size());
+    auto argv_ptr = go(argv_temp.get(), argv, [](auto&& x) { return x.c_str(); });
+    auto envp_ptr = go(envp_temp.get(), envp, [](auto&& kv) {
+        return std::pair{kv.first, kv.second.c_str()};
+    });
     return souffle::execute(program, argv_ptr, envp_ptr);
 }
 

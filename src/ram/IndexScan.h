@@ -47,7 +47,7 @@ using RamPattern = std::pair<RamBound, RamBound>;
  */
 class IndexScan : public IndexOperation {
 public:
-    IndexScan(std::string rel, int ident, RamPattern queryPattern, Own<Operation> nested,
+    IndexScan(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
             : IndexOperation(rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)) {
     }

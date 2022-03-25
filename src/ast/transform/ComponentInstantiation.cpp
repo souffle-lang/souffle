@@ -50,7 +50,8 @@ using namespace analysis;
 
 namespace {
 
-static const unsigned int MAX_INSTANTIATION_DEPTH = 1000;
+/* Used to be 1000 but stack-size on Windows does not allow such depth. */
+static const unsigned int MAX_INSTANTIATION_DEPTH = 100;
 
 /**
  * A container type for the (instantiated) content of a component.
@@ -124,7 +125,8 @@ struct ComponentContent {
  */
 ComponentContent getInstantiatedContent(Program& program, const ComponentInit& componentInit,
         const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
-        VecOwn<Clause>& orphans, ErrorReport& report, const TypeBinding& binding = analysis::TypeBinding(),
+        VecOwn<Clause>& orphans, const std::set<std::string>& overridden, ErrorReport& report,
+        const TypeBinding& binding = analysis::TypeBinding(),
         unsigned int maxDepth = MAX_INSTANTIATION_DEPTH);
 
 /**
@@ -135,20 +137,27 @@ void collectContent(Program& program, const Component& component, const TypeBind
         ComponentContent& res, VecOwn<Clause>& orphans, const std::set<std::string>& overridden,
         ErrorReport& report, unsigned int maxInstantiationDepth) {
     // start with relations and clauses of the base components
+    std::set<std::string> superOverridden;
+    superOverridden.insert(overridden.begin(), overridden.end());
+    superOverridden.insert(component.getOverridden().begin(), component.getOverridden().end());
+
     for (const auto& base : component.getBaseComponents()) {
-        const Component* comp = componentLookup.getComponent(enclosingComponent, base->getName(), binding);
-        if (comp != nullptr) {
+        const Component* baseComp =
+                componentLookup.getComponent(enclosingComponent, base->getName(), binding);
+
+        if (baseComp != nullptr) {
             // link formal with actual type parameters
-            const auto& formalParams = comp->getComponentType()->getTypeParameters();
+            const auto& formalParams = baseComp->getComponentType()->getTypeParameters();
             const auto& actualParams = base->getTypeParameters();
 
             // update type binding
             TypeBinding activeBinding = binding.extend(formalParams, actualParams);
 
-            for (const auto& cur : comp->getInstantiations()) {
+            for (const auto& cur : baseComp->getInstantiations()) {
                 // instantiate sub-component
-                ComponentContent content = getInstantiatedContent(program, *cur, enclosingComponent,
-                        componentLookup, orphans, report, activeBinding, maxInstantiationDepth - 1);
+                const std::set<std::string> noOverridden;
+                ComponentContent content = getInstantiatedContent(program, *cur, baseComp, componentLookup,
+                        orphans, noOverridden, report, activeBinding, maxInstantiationDepth - 1);
 
                 // process types
                 for (auto& type : content.types) {
@@ -172,11 +181,10 @@ void collectContent(Program& program, const Component& component, const TypeBind
             }
 
             // collect definitions from base type
-            std::set<std::string> superOverridden;
-            superOverridden.insert(overridden.begin(), overridden.end());
-            superOverridden.insert(component.getOverridden().begin(), component.getOverridden().end());
-            collectContent(program, *comp, activeBinding, comp, componentLookup, res, orphans,
-                    superOverridden, report, maxInstantiationDepth);
+            collectContent(program, *baseComp, activeBinding, componentLookup.getEnclosingComponent(baseComp),
+                    componentLookup, res, orphans, superOverridden, report, maxInstantiationDepth);
+        } else {
+            // base component cannot be found => triggers a semantic error
         }
     }
 
@@ -281,8 +289,8 @@ void collectContent(Program& program, const Component& component, const TypeBind
     }
 
     // add the local clauses
-    // TODO: check orphans
     for (const auto& cur : component.getClauses()) {
+        // do not add clauses for overridden relations
         if (overridden.count(cur->getHead()->getQualifiedName().getQualifiers()[0]) == 0) {
             Relation* rel = index[cur->getHead()->getQualifiedName()];
             if (rel != nullptr) {
@@ -295,6 +303,7 @@ void collectContent(Program& program, const Component& component, const TypeBind
     }
 
     // add orphan clauses at the current level if they can be resolved
+    // TODO regardless of the overridden relations ?
     for (auto iter = orphans.begin(); iter != orphans.end();) {
         auto& cur = *iter;
         Relation* rel = index[cur->getHead()->getQualifiedName()];
@@ -311,7 +320,8 @@ void collectContent(Program& program, const Component& component, const TypeBind
 
 ComponentContent getInstantiatedContent(Program& program, const ComponentInit& componentInit,
         const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
-        VecOwn<Clause>& orphans, ErrorReport& report, const TypeBinding& binding, unsigned int maxDepth) {
+        VecOwn<Clause>& orphans, const std::set<std::string>& overridden, ErrorReport& report,
+        const TypeBinding& binding, unsigned int maxDepth) {
     // start with an empty list
     ComponentContent res;
 
@@ -323,12 +333,13 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
     // get referenced component
     const Component* component = componentLookup.getComponent(
             enclosingComponent, componentInit.getComponentType()->getName(), binding);
+
     if (component == nullptr) {
         // this component is not defined => will trigger a semantic error
         return res;
     }
 
-    // update type biding
+    // update type binding
     const auto& formalParams = component->getComponentType()->getTypeParameters();
     const auto& actualParams = componentInit.getComponentType()->getTypeParameters();
     TypeBinding activeBinding = binding.extend(formalParams, actualParams);
@@ -336,8 +347,8 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
     // instantiated nested components
     for (const auto& cur : component->getInstantiations()) {
         // get nested content
-        ComponentContent nestedContent = getInstantiatedContent(
-                program, *cur, component, componentLookup, orphans, report, activeBinding, maxDepth - 1);
+        ComponentContent nestedContent = getInstantiatedContent(program, *cur, component, componentLookup,
+                orphans, overridden, report, activeBinding, maxDepth - 1);
 
         // add types
         for (auto& type : nestedContent.types) {
@@ -361,9 +372,8 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
     }
 
     // collect all content in this component
-    std::set<std::string> overridden;
-    collectContent(program, *component, activeBinding, enclosingComponent, componentLookup, res, orphans,
-            overridden, report, maxDepth);
+    collectContent(program, *component, activeBinding, componentLookup.getEnclosingComponent(component),
+            componentLookup, res, orphans, overridden, report, maxDepth);
 
     // update user-defined type names
     std::map<QualifiedName, QualifiedName> typeNameMapping;
@@ -524,8 +534,10 @@ bool ComponentInstantiationTransformer::transform(TranslationUnit& translationUn
 
     for (const auto* cur : program.getComponentInstantiations()) {
         VecOwn<Clause> orphans;
+        const std::set<std::string> overridden;
 
-        auto content = getInstantiatedContent(program, *cur, nullptr, componentLookup, orphans, report);
+        auto content =
+                getInstantiatedContent(program, *cur, nullptr, componentLookup, orphans, overridden, report);
         if (report.getNumErrors() != 0) continue;
 
         for (auto& type : content.types) {

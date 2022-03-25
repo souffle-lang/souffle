@@ -14,13 +14,20 @@
  *
  ***********************************************************************/
 
+#ifdef _MSC_VER
+// do not define min and max otherwise cannot use std::min std::max
+#define NOMINMAX
+#endif
+
 #include "parser/SrcLocation.h"
 #include "souffle/utility/FileUtil.h"
+
 #include <cctype>
 #include <cstdio>
 #include <fstream>
 #include <limits>
 #include <sstream>
+#include <string>
 
 namespace souffle {
 
@@ -30,11 +37,11 @@ std::string getCurrentFilename(const std::vector<std::string>& filenames) {
     }
 
     std::string path = ".";
-    for (std::string filename : filenames) {
-        if (!filename.empty() && filename[0] == '/') {
+    for (const std::string& filename : filenames) {
+        if (!filename.empty() && isAbsolute(filename)) {
             path = dirName(filename);
-        } else if (existFile(path + "/" + filename)) {
-            path = dirName(path + "/" + filename);
+        } else if (existFile(path + pathSeparator + filename)) {
+            path = dirName(path + pathSeparator + filename);
         } else if (existFile(filename)) {
             path = dirName(filename);
         } else {
@@ -42,7 +49,7 @@ std::string getCurrentFilename(const std::vector<std::string>& filenames) {
         }
     }
 
-    return path + "/" + baseName(filenames.back());
+    return path + pathSeparator + baseName(filenames.back());
 }
 
 bool SrcLocation::operator<(const SrcLocation& other) const {
@@ -70,6 +77,7 @@ bool SrcLocation::operator<(const SrcLocation& other) const {
 }
 
 void SrcLocation::setFilename(std::string filename) {
+    makePreferred(filename);
     if (filenames.empty()) {
         filenames.emplace_back(filename);
         return;

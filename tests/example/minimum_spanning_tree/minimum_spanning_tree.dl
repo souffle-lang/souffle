@@ -14,7 +14,7 @@
 node(x) :- graph(x,_,_) ; graph(_,x,_).
 
 .decl edge(id:number, x:symbol, y:symbol, w:number)
-edge($,x,y,w) :- graph(x,y,w).
+edge(autoinc(),x,y,w) :- graph(x,y,w).
 
 .decl edgePosition(id:number, pos:number)
 edgePosition(id,0) :- edgeFirst(id).

@@ -671,7 +671,16 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "auto part = " << relName << "->partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
-            out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
+            out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           auto count = std::distance(part.begin(), part.end());
+                           auto base = part.begin();
+                           pfor(int index  = 0; index < count; index++) {
+                               auto it = base + index;
+                   #else
+                           pfor(auto it = part.begin(); it < part.end(); it++) {
+                   #endif
+                   )cpp";
             out << "try{\n";
             out << "for(const auto& env0 : *it) {\n";
 
@@ -746,7 +755,16 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "auto part = " << relName << "->partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
-            out << "pfor(auto it = part.begin(); it<part.end();++it){\n";
+            out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           auto count = std::distance(part.begin(), part.end());
+                           auto base = part.begin();
+                           pfor(int index  = 0; index < count; index++) {
+                               auto it = base + index;
+                   #else
+                           pfor(auto it = part.begin(); it < part.end(); it++) {
+                   #endif
+                   )cpp";
             out << "try{\n";
             out << "for(const auto& env0 : *it) {\n";
             out << "if( ";
@@ -818,7 +836,16 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "auto part = range.partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
-            out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
+            out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           auto count = std::distance(part.begin(), part.end());
+                           auto base = part.begin();
+                           pfor(int index  = 0; index < count; index++) {
+                               auto it = base + index;
+                   #else
+                           pfor(auto it = part.begin(); it < part.end(); it++) {
+                   #endif
+                   )cpp";
             out << "try{\n";
             out << "for(const auto& env0 : *it) {\n";
 
@@ -889,7 +916,16 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "auto part = range.partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
-            out << "pfor(auto it = part.begin(); it<part.end(); ++it) { \n";
+            out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           auto count = std::distance(part.begin(), part.end());
+                           auto base = part.begin();
+                           pfor(int index  = 0; index < count; index++) {
+                               auto it = base + index;
+                   #else
+                           pfor(auto it = part.begin(); it < part.end(); it++) {
+                   #endif
+                   )cpp";
             out << "try{";
             out << "for(const auto& env0 : *it) {\n";
             out << "if( ";
@@ -999,11 +1035,13 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             // Set reduction operation
             std::string op;
+            std::string omp_min_ver;
             switch (aggregate.getFunction()) {
                 case AggregateOp::MIN:
                 case AggregateOp::FMIN:
                 case AggregateOp::UMIN: {
                     op = "min";
+                    omp_min_ver = "200805";  // from OMP 3.0
                     break;
                 }
 
@@ -1011,6 +1049,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case AggregateOp::FMAX:
                 case AggregateOp::UMAX: {
                     op = "max";
+                    omp_min_ver = "200805";  // from OMP 3.0
                     break;
                 }
 
@@ -1019,6 +1058,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case AggregateOp::USUM:
                 case AggregateOp::COUNT:
                 case AggregateOp::SUM: {
+                    omp_min_ver = "0";
                     op = "+";
                     break;
                 }
@@ -1047,7 +1087,11 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "PARALLEL_START\n";
             // check whether there is an index to use
             if (keys.empty()) {
+                // OMP reduction is not available on all versions of OpenMP
+                out << "#if defined _OPENMP && _OPENMP >= " << omp_min_ver << "\n";
                 out << "#pragma omp for reduction(" << op << ":" << sharedVariable << ")\n";
+                out << "#endif\n";
+
                 out << "for(const auto& env" << identifier << " : "
                     << "*" << relName << ") {\n";
             } else {
@@ -1060,9 +1104,29 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                     << rangeBounds.second.str() << "," << ctxName << ");\n";
 
                 out << "auto part = range.partition();\n";
+
+                // old OpenMP versions cannot loop on iterators
+                out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           auto count = std::distance(part.begin(), part.end());
+                           auto base = part.begin();
+                   #endif
+                   )cpp";
+
+                // OMP reduction is not available on all versions of OpenMP
+                out << "#if defined _OPENMP && _OPENMP >= " << omp_min_ver << "\n";
                 out << "#pragma omp for reduction(" << op << ":" << sharedVariable << ")\n";
+                out << "#endif\n";
+
                 // iterate over each part
-                out << "for (auto it = part.begin(); it < part.end(); ++it) {\n";
+                out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           for(int index  = 0; index < count; index++) {
+                               auto it = base + index;
+                   #else
+                           for(auto it = part.begin(); it < part.end(); ++it) {
+                   #endif
+                   )cpp";
                 // iterate over tuples in each part
                 out << "for (const auto& env" << identifier << ": *it) {\n";
             }
@@ -1363,11 +1427,13 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             // Set reduction operation
             std::string op;
+            std::string omp_min_ver;
             switch (aggregate.getFunction()) {
                 case AggregateOp::MIN:
                 case AggregateOp::FMIN:
                 case AggregateOp::UMIN: {
                     op = "min";
+                    omp_min_ver = "200805";  // from OMP 3.0
                     break;
                 }
 
@@ -1375,6 +1441,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case AggregateOp::FMAX:
                 case AggregateOp::UMAX: {
                     op = "max";
+                    omp_min_ver = "200805";  // from OMP 3.0
                     break;
                 }
 
@@ -1384,6 +1451,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case AggregateOp::COUNT:
                 case AggregateOp::SUM: {
                     op = "+";
+                    omp_min_ver = "0";
                     break;
                 }
 
@@ -1413,10 +1481,29 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "auto part = " << relName << "->partition();\n";
             out << "PARALLEL_START\n";
             out << preamble.str();
+
+            // old OpenMP versions cannot loop on iterators
+            out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           auto count = std::distance(part.begin(), part.end());
+                           auto base = part.begin();
+                   #endif
+                   )cpp";
+
             // pragma statement
+            out << "#if defined _OPENMP && _OPENMP >= " << omp_min_ver << "\n";
             out << "#pragma omp for reduction(" << op << ":" << sharedVariable << ")\n";
+            out << "#endif\n";
+
             // iterate over each part
-            out << "for (auto it = part.begin(); it < part.end(); ++it) {\n";
+            out << R"cpp(
+                   #if defined _OPENMP && _OPENMP < 200805
+                           for(int index  = 0; index < count; index++) {
+                               auto it = base + index;
+                   #else
+                           for(auto it = part.begin(); it < part.end(); ++it) {
+                   #endif
+                   )cpp";
             // iterate over tuples in each part
             out << "for (const auto& env" << identifier << ": *it) {\n";
 
@@ -2224,7 +2311,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             auto args = op.getArguments();
             if (op.isStateful()) {
-                out << name << "(&symTable, &recordTable";
+                out << "functors::" << name << "(&symTable, &recordTable";
                 for (auto& arg : args) {
                     out << ",";
                     dispatch(*arg, out);
@@ -2236,7 +2323,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 if (op.getReturnType() == TypeAttribute::Symbol) {
                     out << "symTable.encode(";
                 }
-                out << name << "(";
+                out << "functors::" << name << "(";
 
                 for (std::size_t i = 0; i < args.size(); i++) {
                     if (i > 0) {
@@ -2424,8 +2511,8 @@ void Synthesiser::generateCode(std::ostream& sos, const std::string& id, bool& w
     }
 
     if (Global::config().has("profile") || Global::config().has("live-profile")) {
-        os << "#include \"souffle/profile/Logger.h\"";
-        os << "#include \"souffle/profile/ProfileEvent.h\"";
+        os << "#include \"souffle/profile/Logger.h\"\n";
+        os << "#include \"souffle/profile/ProfileEvent.h\"\n";
     }
 
     os << "\n";
@@ -2437,7 +2524,7 @@ void Synthesiser::generateCode(std::ostream& sos, const std::string& id, bool& w
         }
         withSharedLibrary = true;
     });
-    os << "extern \"C\" {\n";
+    os << "namespace functors {\n extern \"C\" {\n";
     for (const auto& f : functors) {
         //        std::size_t arity = f.second.length() - 1;
         const std::string& name = f.first;
@@ -2471,17 +2558,15 @@ void Synthesiser::generateCode(std::ostream& sos, const std::string& id, bool& w
                     join(map(argsTypes, cppTypeDecl), ","));
         }
     }
-    os << "}\n";
+    os << "}\n}\n";
     os << "\n";
     os << "namespace souffle {\n";
     os << "static const RamDomain RAM_BIT_SHIFT_MASK = RAM_DOMAIN_SIZE - 1;\n";
 
     // synthesise data-structures for relations
     for (auto rel : prog.getRelations()) {
-        bool isProvInfo = rel->getRepresentation() == RelationRepresentation::INFO;
         auto relationType =
-                Relation::getSynthesiserRelation(*rel, idxAnalysis.getIndexSelection(rel->getName()),
-                        Global::config().has("provenance") && !isProvInfo);
+                Relation::getSynthesiserRelation(*rel, idxAnalysis.getIndexSelection(rel->getName()));
 
         generateRelationTypeStruct(os, std::move(relationType));
     }
@@ -2528,7 +2613,7 @@ void Synthesiser::generateCode(std::ostream& sos, const std::string& id, bool& w
 
     // issue symbol table with string constants
     visit(prog, [&](const StringConstant& sc) { convertSymbol2Idx(sc.getConstant()); });
-    os << "SymbolTable symTable";
+    os << "SymbolTableImpl symTable";
     if (!symbolMap.empty()) {
         os << "{\n";
         for (const auto& x : symbolIndex) {
@@ -2596,9 +2681,8 @@ void Synthesiser::generateCode(std::ostream& sos, const std::string& id, bool& w
         const std::string& datalogName = rel->getName();
         const std::string& cppName = getRelationName(*rel);
 
-        bool isProvInfo = rel->getRepresentation() == RelationRepresentation::INFO;
-        auto relationType = Relation::getSynthesiserRelation(*rel, idxAnalysis.getIndexSelection(datalogName),
-                Global::config().has("provenance") && !isProvInfo);
+        auto relationType =
+                Relation::getSynthesiserRelation(*rel, idxAnalysis.getIndexSelection(datalogName));
         const std::string& type = relationType->getTypeName();
 
         // defining table
@@ -2667,7 +2751,7 @@ void runFunction(std::string  inputDirectoryArg,
     // set default threads (in embedded mode)
     // if this is not set, and omp is used, the default omp setting of number of cores is used.
 #if defined(_OPENMP)
-    if (0 < getNumThreads()) { omp_set_num_threads(getNumThreads()); }
+    if (0 < getNumThreads()) { omp_set_num_threads(static_cast<int>(getNumThreads())); }
 #endif
 
     signalHandler->set();

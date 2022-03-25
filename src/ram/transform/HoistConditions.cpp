@@ -49,7 +49,7 @@ bool HoistConditionsTransformer::hoistConditions(Program& program) {
                 const Condition& condition = filter->getCondition();
                 // if filter condition is independent of any TupleOperation,
                 // delete the filter operation and collect condition
-                if (rla->getLevel(&condition) == -1) {
+                if (!rla->hasLevel(&condition)) {
                     changed = true;
                     newCondition = addCondition(std::move(newCondition), clone(condition));
                     node->apply(go);

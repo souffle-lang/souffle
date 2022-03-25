@@ -42,7 +42,7 @@ namespace souffle::ram {
  */
 class Scan : public RelationOperation {
 public:
-    Scan(std::string rel, int ident, Own<Operation> nested, std::string profileText = "")
+    Scan(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
             : RelationOperation(rel, ident, std::move(nested), std::move(profileText)) {}
 
     Scan* cloning() const override {

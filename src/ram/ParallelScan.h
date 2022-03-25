@@ -45,7 +45,7 @@ namespace souffle::ram {
  */
 class ParallelScan : public Scan, public AbstractParallel {
 public:
-    ParallelScan(std::string rel, int ident, Own<Operation> nested, std::string profileText = "")
+    ParallelScan(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
             : Scan(rel, ident, std::move(nested), profileText) {}
 
     ParallelScan* cloning() const override {

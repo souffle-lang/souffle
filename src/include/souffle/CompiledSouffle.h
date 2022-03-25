@@ -24,6 +24,8 @@
 #include "souffle/datastructure/BTreeDelete.h"
 #include "souffle/datastructure/Brie.h"
 #include "souffle/datastructure/EquivalenceRelation.h"
+#include "souffle/datastructure/RecordTableImpl.h"
+#include "souffle/datastructure/SymbolTableImpl.h"
 #include "souffle/datastructure/Table.h"
 #include "souffle/io/IOSystem.h"
 #include "souffle/io/WriteStream.h"

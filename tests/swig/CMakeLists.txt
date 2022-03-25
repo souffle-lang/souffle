@@ -16,7 +16,7 @@ function(SOUFFLE_RUN_PYTHON_SWIG_TEST)
     )
 
     add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_run_swig
-             COMMAND sh -c "set -e; PYTHONPATH=. '${Python_EXECUTABLE}' '${PARAM_INPUT_DIR}/driver.py' '${PARAM_FACTS_DIR}'
+             COMMAND sh -c "set -e; PYTHONPATH=. '${Python3_EXECUTABLE}' '${PARAM_INPUT_DIR}/driver.py' '${PARAM_FACTS_DIR}' \\
                                             1> '${PARAM_TEST_NAME}-python.out' \\
                                             2> '${PARAM_TEST_NAME}-python.err'")
     set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_swig PROPERTIES
@@ -96,7 +96,7 @@ function(SOUFFLE_RUN_SWIG_TEST_HELPER)
                                  OUTPUT_DIR ${OUTPUT_DIR}
                                  FIXTURE_NAME ${FIXTURE_NAME}
                                  TEST_LABELS "${TEST_LABELS}"
-                                 SOUFFLE_PARAMS "-s '${PARAM_LANGUAGE}'")
+                                 SOUFFLE_PARAMS "-s" "${PARAM_LANGUAGE}")
 
     if (PARAM_LANGUAGE STREQUAL "python")
         souffle_run_python_swig_test(TEST_NAME ${PARAM_TEST_NAME}

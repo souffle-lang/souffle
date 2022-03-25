@@ -265,7 +265,7 @@ IndexCluster MinIndexSelectionStrategy::solve(const SearchSet& searches) const {
     // Should never get no chains back as we never call calculate on an empty graph
     assert(!chains.empty());
     for (const auto& chain : chains) {
-        std::vector<uint32_t> ids;
+        std::vector<std::size_t> ids;
 
         SearchSignature initDelta = *(chain.begin());
         insertIndex(ids, initDelta);
@@ -283,7 +283,7 @@ IndexCluster MinIndexSelectionStrategy::solve(const SearchSet& searches) const {
     // Validate the lex-order
     for (auto chain : chains) {
         for (auto search : chain) {
-            int idx = map(search, orders, chains);
+            std::size_t idx = map(search, orders, chains);
 
             // Rebuild the search from the order
             SearchSignature k(search.arity());
@@ -316,9 +316,9 @@ IndexCluster MinIndexSelectionStrategy::solve(const SearchSet& searches) const {
     return IndexCluster(indexSelection, searches, orders);
 }
 
-Chain MinIndexSelectionStrategy::getChain(const SearchSignature umn, const MaxMatching::Matchings& match,
+Chain MinIndexSelectionStrategy::getChain(const SearchSignature& umn, const MaxMatching::Matchings& match,
         const SearchBipartiteMap& mapping) const {
-    SearchSignature start = umn;  // start at an unmatched node
+    const SearchSignature* start = &umn;  // start at an unmatched node
     Chain chain;
     // given an unmapped node from set A we follow it from set B until it cannot be matched from B
     //  if not matched from B then umn is a chain
@@ -326,10 +326,10 @@ Chain MinIndexSelectionStrategy::getChain(const SearchSignature umn, const MaxMa
     // Assume : no circular mappings, i.e. a in A -> b in B -> ........ -> a in A is not allowed.
     // Given this, the loop will terminate
     while (true) {
-        auto mit = match.find(mapping.getRightNode(start));  // we start from B side
+        auto mit = match.find(mapping.getRightNode(*start));  // we start from B side
         // on each iteration we swap sides when collecting the chain so we use the corresponding index map
-        if (std::find(chain.begin(), chain.end(), start) == chain.end()) {
-            chain.push_back(start);
+        if (std::find(chain.begin(), chain.end(), *start) == chain.end()) {
+            chain.push_back(*start);
         }
 
         if (mit == match.end()) {
@@ -337,11 +337,11 @@ Chain MinIndexSelectionStrategy::getChain(const SearchSignature umn, const MaxMa
             return chain;
         }
 
-        SearchSignature a = mapping.getSearch(mit->second);
+        const SearchSignature& a = mapping.getSearch(mit->second);
         if (std::find(chain.begin(), chain.end(), a) == chain.end()) {
             chain.push_back(a);
         }
-        start = a;
+        start = &a;
     }
 }
 

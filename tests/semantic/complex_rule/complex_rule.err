@@ -1,0 +1,3 @@
+Warning: Variable y only occurs once in file complex_rule.dl at line 6
+query(x) :- a(x), (f(x); a(y) ; f(y)).
+---------------------------^-----------

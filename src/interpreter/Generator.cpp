@@ -146,7 +146,8 @@ NodePtr NodeGenerator::visit_(type_identity<ram::UserDefinedOperator>, const ram
         }
     }
 
-    const auto prepStatus = ffi_prep_cif(cif.get(), FFI_DEFAULT_ABI, nbArgs, codomain, args.get());
+    const auto prepStatus =
+            ffi_prep_cif(cif.get(), FFI_DEFAULT_ABI, static_cast<unsigned int>(nbArgs), codomain, args.get());
     if (prepStatus != FFI_OK) {
         fatal("Failed to prepare CIF for user-defined operator `%s`; error code = %d", op.getName(),
                 prepStatus);
@@ -835,11 +836,11 @@ SuperInstruction NodeGenerator::getEraseSuperInstInfo(const ram::Erase& exist) {
 NodeGenerator::OrderingContext::OrderingContext(NodeGenerator& generator) : generator(generator) {}
 
 void NodeGenerator::OrderingContext::addNewTuple(std::size_t tupleId, std::size_t arity) {
-    std::vector<uint32_t> order;
+    std::vector<std::size_t> order;
     for (std::size_t i = 0; i < arity; ++i) {
-        order.push_back((uint32_t)i);
+        order.push_back(i);
     }
-    insertOrder(tupleId, std::move(order));
+    insertOrder(tupleId, order);
 }
 
 template <class RamNode>
@@ -865,7 +866,7 @@ void NodeGenerator::OrderingContext::insertOrder(std::size_t tupleId, const Orde
         tupleOrders.resize(tupleId + 1);
     }
 
-    std::vector<uint32_t> decodeOrder(order.size());
+    std::vector<std::size_t> decodeOrder(order.size());
     for (std::size_t i = 0; i < order.size(); ++i) {
         decodeOrder[order[i]] = i;
     }

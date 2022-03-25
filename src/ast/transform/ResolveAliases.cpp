@@ -153,7 +153,7 @@ public:
             << "}";
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const Substitution& s) __attribute__((unused)) {
+    [[maybe_unused]] friend std::ostream& operator<<(std::ostream& out, const Substitution& s) {
         s.print(out);
         return out;
     }
@@ -194,7 +194,7 @@ public:
         out << *lhs << " = " << *rhs;
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const Equation& e) __attribute__((unused)) {
+    [[maybe_unused]] friend std::ostream& operator<<(std::ostream& out, const Equation& e) {
         e.print(out);
         return out;
     }

@@ -454,7 +454,8 @@ function genRulVer() {
 
     document.getElementById("rulver").style.display = "block";
 }
-
+)___"
+                     R"___(
 function genAtomVer() {
     var atoms = data.atoms[selected.rul];
     var table_body = document.getElementById('atoms_body');

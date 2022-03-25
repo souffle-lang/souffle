@@ -1,0 +1,12 @@
+
+.comp M {
+  .decl R(s:symbol)
+  .output R
+  R("M").
+}
+
+.comp X<T> : T {
+  R("X<T>").
+}
+
+.init Y = X<M>

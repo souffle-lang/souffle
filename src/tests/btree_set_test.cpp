@@ -576,7 +576,7 @@ TEST(BTreeSet, ChunkSplitStress) {
     }
 }
 
-using Entry = std::tuple<int, int>;
+using Entry = std::tuple<int, int64_t>;
 
 std::vector<Entry> getData(unsigned numEntries) {
     std::vector<Entry> res(numEntries);
@@ -597,32 +597,32 @@ time_point now() {
     return std::chrono::high_resolution_clock::now();
 }
 
-long duration(const time_point& start, const time_point& end) {
+int64_t duration(const time_point& start, const time_point& end) {
     return std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 }
 
 template <typename Op>
-long time(const std::string& name, const Op& operation) {
+int64_t time(const std::string& name, const Op& operation) {
     std::cout << "\t" << std::setw(30) << std::setiosflags(std::ios::left) << name
               << std::resetiosflags(std::ios::left) << " ... " << std::flush;
     auto a = now();
     operation();
     auto b = now();
-    long time = duration(a, b);
+    int64_t time = duration(a, b);
     std::cout << " done [" << std::setw(5) << time << "ms]\n";
     return time;
 }
 
 template <typename C>
 struct reserver {
-    void operator()(C&, unsigned) const {
+    void operator()(C&, std::size_t) const {
         // default: no action
     }
 };
 
 template <typename A, typename B, typename C, typename D>
 struct reserver<std::unordered_set<A, B, C, D>> {
-    void operator()(std::unordered_set<A, B, C, D>& set, unsigned size) const {
+    void operator()(std::unordered_set<A, B, C, D>& set, std::size_t size) const {
         set.reserve(size);
     }
 };
@@ -766,8 +766,8 @@ TEST(BTreeSet, Parallel) {
 #ifdef _OPENMP
 #pragma omp parallel for  //  schedule(static,1)
 #endif
-        for (auto it = full.begin(); it < full.end(); ++it) {
-            res.insert(*it);
+        for (int idx = 0; idx < static_cast<int>(full.size()); ++idx) {
+            res.insert(full[idx]);
         }
 
         EXPECT_TRUE(res.check());

@@ -624,7 +624,7 @@ protected:
                         }
                     }
 
-                    pos = (i > other->numElements) ? 0 : i;
+                    pos = (i > static_cast<unsigned>(other->numElements)) ? 0 : static_cast<unsigned>(i);
                     other->insert_inner(root, root_lock, pos, predecessor, key, newNode, locked_nodes);
 #else
                     other->insert_inner(root, root_lock, pos, predecessor, key, newNode);
@@ -1340,7 +1340,8 @@ public:
 
                 // split this node
                 auto old_root = root;
-                idx -= cur->rebalance_or_split(const_cast<node**>(&root), root_lock, idx, parents);
+                idx -= cur->rebalance_or_split(
+                        const_cast<node**>(&root), root_lock, static_cast<int>(idx), parents);
 
                 // release parent lock
                 for (auto it = parents.rbegin(); it != parents.rend(); ++it) {
@@ -1372,7 +1373,7 @@ public:
             assert(cur->numElements < node::maxKeys && "Split required!");
 
             // move keys
-            for (int j = cur->numElements; j > idx; --j) {
+            for (int j = static_cast<int>(cur->numElements); j > static_cast<int>(idx); --j) {
                 cur->keys[j] = cur->keys[j - 1];
             }
 
@@ -1960,7 +1961,7 @@ private:
         const int N = node::maxKeys;
 
         // divide range in N+1 sub-ranges
-        int length = (b - a) + 1;
+        int64_t length = (b - a) + 1;
 
         // terminal case: length is less then maxKeys
         if (length <= N) {
@@ -1977,7 +1978,7 @@ private:
 
         // recursive case - compute step size
         int numKeys = N;
-        int step = ((length - numKeys) / (numKeys + 1));
+        int64_t step = ((length - numKeys) / (numKeys + 1));
 
         while (numKeys > 1 && (step < N / 2)) {
             numKeys--;

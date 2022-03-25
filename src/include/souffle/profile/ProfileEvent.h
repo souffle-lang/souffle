@@ -43,10 +43,10 @@ namespace souffle {
  */
 class ProfileEventSingleton {
     /** profile database */
-    profile::ProfileDatabase database;
+    profile::ProfileDatabase database{};
     std::string filename{""};
 
-    ProfileEventSingleton() = default;
+    ProfileEventSingleton(){};
 
 public:
     ~ProfileEventSingleton() {
@@ -56,8 +56,8 @@ public:
 
     /** get instance */
     static ProfileEventSingleton& instance() {
-        static ProfileEventSingleton singleton;
-        return singleton;
+        static std::unique_ptr<ProfileEventSingleton> singleton(new ProfileEventSingleton);
+        return *singleton;
     }
 
     /** create config record */

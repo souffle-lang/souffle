@@ -44,11 +44,11 @@ Clause* ReorderLiteralsTransformer::reorderClauseWithSips(const SipsMetric& sips
     }
 
     // get the ordering corresponding to the SIPS
-    std::vector<unsigned int> newOrdering = sips.getReordering(clause);
+    std::vector<std::size_t> newOrdering = sips.getReordering(clause);
 
     // check if we need a change
     bool changeNeeded = false;
-    for (unsigned int i = 0; i < newOrdering.size(); i++) {
+    for (std::size_t i = 0; i < newOrdering.size(); i++) {
         if (newOrdering[i] != i) {
             changeNeeded = true;
         }

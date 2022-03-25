@@ -54,12 +54,12 @@ F(x,y) :- F(x,v), F(w,y), !H(w), !D(w).
 F(x,y) :- F(x,v), F(w,y), !H(w), !D(v).
 
 // Type clash in binary relation
-F(x,y) :- F(x,y),  x > y.
+F(x,y) :- F(x,y), x > y.
 // Type clash of derived types in binary relation
 F(x,y) :- F(x,v), F(w,y), w != v.
 
 // Undefined type
-F(x,y) :- F(x,y),  x > t.
-F(x,y) :- F(x,y),  t < x.
+F(x,y) :- F(x,y), x > t.
+F(x,y) :- F(x,y), t < x.
 
 

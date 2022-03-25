@@ -84,6 +84,7 @@
 #include "souffle/SignalHandler.h"
 #include "souffle/SymbolTable.h"
 #include "souffle/TypeAttribute.h"
+#include "souffle/datastructure/SymbolTableImpl.h"
 #include "souffle/io/IOSystem.h"
 #include "souffle/io/ReadStream.h"
 #include "souffle/io/WriteStream.h"
@@ -111,7 +112,13 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#ifdef _MSC_VER
+#define dlopen(libname, flags) LoadLibrary((libname))
+#define dlsym(lib, fn) GetProcAddress(static_cast<HMODULE>(lib), (fn))
+#else
 #include <dlfcn.h>
+#endif
 
 #ifdef USE_LIBFFI
 #include <ffi.h>
@@ -123,16 +130,11 @@ namespace souffle::interpreter {
 #ifdef __APPLE__
 #define dynamicLibSuffix ".dylib";
 #else
+#ifdef _MSC_VER
+#define dynamicLibSuffix ".dll";
+#else
 #define dynamicLibSuffix ".so";
 #endif
-
-// Aliases for foreign function interface.
-#if RAM_DOMAIN_SIZE == 64
-#define EXP_RamUnsigned RamUnsigned
-#define EXP_RamSigned RamSigned
-#else
-#define EXP_RamUnsigned int64_t
-#define EXP_RamSigned int64_t
 #endif
 
 namespace {
@@ -141,7 +143,7 @@ constexpr RamDomain RAM_BIT_SHIFT_MASK = RAM_DOMAIN_SIZE - 1;
 #ifdef _OPENMP
 std::size_t number_of_threads(const std::size_t user_specified) {
     if (user_specified > 0) {
-        omp_set_num_threads(user_specified);
+        omp_set_num_threads(static_cast<int>(user_specified));
         return user_specified;
     } else {
         return omp_get_max_threads();
@@ -284,7 +286,6 @@ RamDomain callStateless(ExecuteFn&& execute, Context& ctxt, Shadow& shadow, souf
 Engine::Engine(ram::TranslationUnit& tUnit)
         : profileEnabled(Global::config().has("profile")),
           frequencyCounterEnabled(Global::config().has("profile-frequency")),
-          isProvenance(Global::config().has("provenance")),
           numOfThreads(number_of_threads(std::stoi(Global::config().get("jobs")))), tUnit(tUnit),
           isa(tUnit.getAnalysis<ram::analysis::IndexAnalysis>()), recordTable(numOfThreads),
           symbolTable(numOfThreads) {}
@@ -299,7 +300,7 @@ void Engine::swapRelation(const std::size_t ramRel1, const std::size_t ramRel2) 
     std::swap(rel1, rel2);
 }
 
-int Engine::incCounter() {
+RamDomain Engine::incCounter() {
     return counter++;
 }
 
@@ -336,7 +337,7 @@ void Engine::createRelation(const ram::Relation& id, const std::size_t idx) {
         res = createEqrelRelation(id, isa.getIndexSelection(id.getName()));
     } else if (id.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
         res = createBTreeDeleteRelation(id, isa.getIndexSelection(id.getName()));
-    } else if (isProvenance) {
+    } else if (id.getRepresentation() == RelationRepresentation::PROVENANCE) {
         res = createProvenanceRelation(id, isa.getIndexSelection(id.getName()));
     } else {
         res = createBTreeRelation(id, isa.getIndexSelection(id.getName()));
@@ -364,12 +365,12 @@ const std::vector<void*>& Engine::loadDLL() {
         auto paths = Global::config().getMany("library-dir");
         // Set up our paths to have a library appended
         for (std::string& path : paths) {
-            if (path.back() != '/') {
-                path += '/';
+            if (path.back() != pathSeparator) {
+                path += pathSeparator;
             }
         }
 
-        if (library.find('/') != std::string::npos) {
+        if (library.find(pathSeparator) != std::string::npos) {
             paths.clear();
         }
 
@@ -453,7 +454,8 @@ void Engine::executeMain() {
         ProfileEventSingleton::instance().stopTimer();
         for (auto const& cur : frequencies) {
             for (std::size_t i = 0; i < cur.second.size(); ++i) {
-                ProfileEventSingleton::instance().makeQuantityEvent(cur.first, cur.second[i], i);
+                ProfileEventSingleton::instance().makeQuantityEvent(
+                        cur.first, cur.second[i], static_cast<int>(i));
             }
         }
         for (auto const& cur : reads) {
@@ -613,8 +615,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 #define CONV_TO_STRING(op, ty)                                                             \
     case FunctorOp::op: return getSymbolTable().encode(std::to_string(EVAL_CHILD(ty, 0)));
 #define CONV_FROM_STRING(op, ty)                              \
-    case FunctorOp::op: return evaluator::symbol2numeric<ty>( \
-        getSymbolTable().decode(EVAL_CHILD(RamDomain, 0)));
+    case FunctorOp::op: return ramBitCast(evaluator::symbol2numeric<ty>( \
+        getSymbolTable().decode(EVAL_CHILD(RamDomain, 0))));
             // clang-format on
 
             const auto& args = cur.getArguments();
@@ -676,22 +678,27 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     // clang-format on
 
                 case FunctorOp::EXP: {
-                    return ramBitCast(static_cast<RamSigned>(static_cast<EXP_RamSigned>(
-                            std::pow(execute(shadow.getChild(0), ctxt), execute(shadow.getChild(1), ctxt)))));
+                    auto first = ramBitCast<RamSigned>(execute(shadow.getChild(0), ctxt));
+                    auto second = ramBitCast<RamSigned>(execute(shadow.getChild(1), ctxt));
+                    // std::pow return a double
+                    static_assert(std::is_same_v<double, decltype(std::pow(first, second))>);
+                    return ramBitCast(static_cast<RamSigned>(std::pow(first, second)));
                 }
 
                 case FunctorOp::UEXP: {
                     auto first = ramBitCast<RamUnsigned>(execute(shadow.getChild(0), ctxt));
                     auto second = ramBitCast<RamUnsigned>(execute(shadow.getChild(1), ctxt));
-                    // Extra casting required: pow returns a floating point.
-                    return ramBitCast(
-                            static_cast<RamUnsigned>(static_cast<EXP_RamUnsigned>(std::pow(first, second))));
+                    // std::pow return a double
+                    static_assert(std::is_same_v<double, decltype(std::pow(first, second))>);
+                    return ramBitCast(static_cast<RamUnsigned>(std::pow(first, second)));
                 }
 
                 case FunctorOp::FEXP: {
                     auto first = ramBitCast<RamFloat>(execute(shadow.getChild(0), ctxt));
                     auto second = ramBitCast<RamFloat>(execute(shadow.getChild(1), ctxt));
-                    return ramBitCast(static_cast<RamFloat>(std::pow(first, second)));
+                    // std::pow return the same type as the float arguments
+                    static_assert(std::is_same_v<RamFloat, decltype(std::pow(first, second))>);
+                    return ramBitCast(std::pow(first, second));
                 }
 
                     // clang-format off
@@ -820,8 +827,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 }
 #ifdef USE_LIBFFI
                 // prepare dynamic call environment
-                void* values[arity + 2];
-                RamDomain intVal[arity];
+                std::unique_ptr<void*[]> values = std::make_unique<void*[]>(arity + 2);
+                std::unique_ptr<RamDomain[]> intVal = std::make_unique<RamDomain[]>(arity);
                 RamDomain rc;
 
                 /* Initialize arguments for ffi-call */
@@ -834,7 +841,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     values[i + 2] = &intVal[i];
                 }
 
-                ffi_call(shadow.getFFIcif(), userFunctor, &rc, values);
+                ffi_call(shadow.getFFIcif(), userFunctor, &rc, values.get());
                 return rc;
 #else
                 fatal("unsupported stateful functor arity without libffi support");
@@ -852,11 +859,11 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
 #ifdef USE_LIBFFI
                 // prepare dynamic call environment
-                void* values[arity];
-                RamDomain intVal[arity];
-                RamUnsigned uintVal[arity];
-                RamFloat floatVal[arity];
-                const char* strVal[arity];
+                std::unique_ptr<void*[]> values = std::make_unique<void*[]>(arity);
+                std::unique_ptr<RamSigned[]> intVal = std::make_unique<RamSigned[]>(arity);
+                std::unique_ptr<RamUnsigned[]> uintVal = std::make_unique<RamUnsigned[]>(arity);
+                std::unique_ptr<RamFloat[]> floatVal = std::make_unique<RamFloat[]>(arity);
+                std::unique_ptr<const char*[]> strVal = std::make_unique<const char*[]>(arity);
 
                 /* Initialize arguments for ffi-call */
                 for (std::size_t i = 0; i < arity; i++) {
@@ -891,7 +898,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     ffi_arg dummy;  // ensures minium size
                 } rvalue;
 
-                ffi_call(shadow.getFFIcif(), userFunctor, &rvalue, values);
+                ffi_call(shadow.getFFIcif(), userFunctor, &rvalue, values.get());
 
                 switch (cur.getReturnType()) {
                     case TypeAttribute::Signed: return static_cast<RamDomain>(rvalue.s);
@@ -912,11 +919,11 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         CASE(PackRecord)
             auto values = cur.getArguments();
             std::size_t arity = values.size();
-            RamDomain data[arity];
+            std::unique_ptr<RamDomain[]> data = std::make_unique<RamDomain[]>(arity);
             for (std::size_t i = 0; i < arity; ++i) {
                 data[i] = execute(shadow.getChild(i), ctxt);
             }
-            return getRecordTable().pack(data, arity);
+            return getRecordTable().pack(data.get(), arity);
         ESAC(PackRecord)
 
         CASE(SubroutineArgument)
@@ -1318,7 +1325,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         CASE(LogSize)
             const auto& rel = *shadow.getRelation();
             ProfileEventSingleton::instance().makeQuantityEvent(
-                    cur.getMessage(), rel.size(), getIterationNumber());
+                    cur.getMessage(), rel.size(), static_cast<int>(getIterationNumber()));
             return true;
         ESAC(LogSize)
 
@@ -1523,7 +1530,14 @@ RamDomain Engine::evalParallelScan(
         for (const auto& info : viewInfo) {
             newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
         }
+#if defined _OPENMP && _OPENMP < 200805
+        auto count = std::distance(pStream.begin(), pStream.end());
+        auto b = pStream.begin();
+        pfor(int i = 0; i < count; i++) {
+            auto it = b + i;
+#else
         pfor(auto it = pStream.begin(); it < pStream.end(); it++) {
+#endif
             for (const auto& tuple : *it) {
                 newCtxt[cur.getTupleId()] = tuple.data();
                 if (!execute(shadow.getNestedOperation(), newCtxt)) {
@@ -1576,7 +1590,14 @@ RamDomain Engine::evalParallelIndexScan(
         for (const auto& info : viewInfo) {
             newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
         }
+#if defined _OPENMP && _OPENMP < 200805
+        auto count = std::distance(pStream.begin(), pStream.end());
+        auto b = pStream.begin();
+        pfor(int i = 0; i < count; i++) {
+            auto it = b + i;
+#else
         pfor(auto it = pStream.begin(); it < pStream.end(); it++) {
+#endif
             for (const auto& tuple : *it) {
                 newCtxt[cur.getTupleId()] = tuple.data();
                 if (!execute(shadow.getNestedOperation(), newCtxt)) {
@@ -1614,7 +1635,14 @@ RamDomain Engine::evalParallelIfExists(
         for (const auto& info : viewInfo) {
             newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
         }
+#if defined _OPENMP && _OPENMP < 200805
+        auto count = std::distance(pStream.begin(), pStream.end());
+        auto b = pStream.begin();
+        pfor(int i = 0; i < count; i++) {
+            auto it = b + i;
+#else
         pfor(auto it = pStream.begin(); it < pStream.end(); it++) {
+#endif
             for (const auto& tuple : *it) {
                 newCtxt[cur.getTupleId()] = tuple.data();
                 if (execute(shadow.getCondition(), newCtxt)) {
@@ -1671,7 +1699,14 @@ RamDomain Engine::evalParallelIndexIfExists(const Rel& rel, const ram::ParallelI
         for (const auto& info : viewInfo) {
             newCtxt.createView(*getRelationHandle(info[0]), info[1], info[2]);
         }
+#if defined _OPENMP && _OPENMP < 200805
+        auto count = std::distance(pStream.begin(), pStream.end());
+        auto b = pStream.begin();
+        pfor(int i = 0; i < count; i++) {
+            auto it = b + i;
+#else
         pfor(auto it = pStream.begin(); it < pStream.end(); it++) {
+#endif
             for (const auto& tuple : *it) {
                 newCtxt[cur.getTupleId()] = tuple.data();
                 if (execute(shadow.getCondition(), newCtxt)) {

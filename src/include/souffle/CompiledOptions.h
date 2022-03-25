@@ -21,8 +21,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <getopt.h>
 #include <sys/stat.h>
+
+#ifdef USE_CUSTOM_GETOPTLONG
+#include "souffle/utility/GetOptLongImpl.h"
+#else
+#include <getopt.h>
+#endif
 
 namespace souffle {
 

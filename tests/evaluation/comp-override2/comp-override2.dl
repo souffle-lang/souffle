@@ -8,7 +8,8 @@
     .decl Rel(x:number) overridable
 .output Rel()
     .comp AA {
-        Rel(0).
+        Rel(0). // should this clause be discarded by override declared in B when
+                // AA is instantiated as a side-effect of B inheriting from A ?
     }
 
     .init aa = AA

@@ -45,6 +45,7 @@ extern YY_BUFFER_STATE yy_scan_string(const char*, yyscan_t scanner);
 extern int yylex_destroy(yyscan_t scanner);
 extern int yylex_init_extra(ScannerInfo* data, yyscan_t* scanner);
 extern void yyset_in(FILE* in_str, yyscan_t scanner);
+extern void yyset_debug(int, yyscan_t scanner);
 
 namespace souffle {
 
@@ -55,6 +56,7 @@ Own<ast::TranslationUnit> ParserDriver::parse(
     ScannerInfo data;
     data.yyfilename = filename;
     yylex_init_extra(&data, &scanner);
+    yyset_debug(0, scanner);
     yyset_in(in, scanner);
 
     yy::parser parser(*this, scanner);
@@ -73,6 +75,7 @@ Own<ast::TranslationUnit> ParserDriver::parse(
     data.yyfilename = "<in-memory>";
     yyscan_t scanner;
     yylex_init_extra(&data, &scanner);
+    yyset_debug(0, scanner);
     yy_scan_string(code.c_str(), scanner);
     yy::parser parser(*this, scanner);
     parser.parse();

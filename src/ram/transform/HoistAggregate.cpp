@@ -45,7 +45,7 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
             if (isA<Aggregate>(node)) {
                 auto* tupleOp = as<TupleOperation>(node);
                 assert(tupleOp != nullptr && "aggregate conversion to tuple operation failed");
-                if (rla->getLevel(tupleOp) == -1 && !priorTupleOp) {
+                if (!rla->hasLevel(tupleOp) && !priorTupleOp) {
                     changed = true;
                     newAgg = clone(tupleOp);
                     assert(newAgg != nullptr && "failed to make a cloning");
@@ -68,16 +68,16 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
 
     // hoist a single aggregate to an outer scope that is data-dependent on a prior operation.
     forEachQuery(program, [&](Query& query) {
-        int newLevel = -1;
+        std::optional<std::size_t> newLevel;
         Own<NestedOperation> newAgg;
-        int priorOpLevel = -1;
+        std::optional<std::size_t> priorOpLevel;
 
         query.apply(nodeMapper<Node>([&](auto&& go, Own<Node> node) -> Own<Node> {
             if (as<AbstractAggregate, AllowCrossCast>(node)) {
                 auto* tupleOp = as<TupleOperation>(node);
                 assert(tupleOp != nullptr && "aggregate conversion to nested operation failed");
-                int dataDepLevel = rla->getLevel(tupleOp);
-                if (dataDepLevel != -1 && dataDepLevel < tupleOp->getTupleId() - 1) {
+                const auto dataDepLevel = rla->getLevel(tupleOp);
+                if (dataDepLevel.has_value() && (*dataDepLevel + 1) < tupleOp->getTupleId()) {
                     // If all tuple ops between the data-dependence level and agg
                     // are aggregates, then we do not hoist, i.e., we would
                     // continuously swap their positions.
@@ -95,7 +95,7 @@ bool HoistAggregateTransformer::hoistAggregate(Program& program) {
             node->apply(go);
 
             if (auto* search = as<TupleOperation>(node)) {
-                if (newAgg != nullptr && search->getTupleId() == newLevel) {
+                if (newAgg != nullptr && newLevel.has_value() && search->getTupleId() == *newLevel) {
                     newAgg->rewrite(&newAgg->getOperation(), clone(search->getOperation()));
                     search->rewrite(&search->getOperation(), std::move(newAgg));
                 }

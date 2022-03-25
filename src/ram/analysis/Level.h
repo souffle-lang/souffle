@@ -22,6 +22,8 @@
 #include "ram/TranslationUnit.h"
 #include "ram/analysis/Relation.h"
 
+#include <optional>
+
 namespace souffle::ram::analysis {
 
 /**
@@ -34,7 +36,7 @@ namespace souffle::ram::analysis {
  * smallest tuple-id and the most inner-loop has the largest tuple-id number.
  *
  * If an expression/condition does not contain an TupleElement accessing an element
- * of a tuple, the analysis yields -1 for denoting that the expression/condition
+ * of a tuple, the analysis yields nullopt for denoting that the expression/condition
  * can be executed outside of the loop-nest, i.e., the expression/condition is
  * independent of data stemming from relations.
  *
@@ -52,7 +54,9 @@ public:
     /**
      * @brief Get level of a RAM expression/condition
      */
-    int getLevel(const Node* value) const;
+    std::optional<std::size_t> getLevel(const Node* value) const;
+
+    bool hasLevel(const Node* value) const;
 
 protected:
     RelationAnalysis* ra{nullptr};

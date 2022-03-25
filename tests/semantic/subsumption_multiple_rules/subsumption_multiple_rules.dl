@@ -85,3 +85,21 @@ F(x1) <= F(x2) :-
    x1 <= x2.
 
 .output F
+
+// build full comparator for all indices in a relation
+
+.decl G(from:number, to:number)
+G(1, 1).
+
+.decl R(a: number, b: number)
+R(2,2).
+
+.decl ES(x:number, y:number) btree_delete
+ES(1,1).
+ES(1,2).
+ES(_, x1) <= ES(_, x2) :- x1 <= x2.
+
+.decl AF(a:number)
+AF(b) :- G(g, b), !R(b, d), ES(d, a), ES(d, e).
+.output AF
+

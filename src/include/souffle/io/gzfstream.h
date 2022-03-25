@@ -91,8 +91,8 @@ protected:
             *pptr() = c;
             pbump(1);
         }
-        int toWrite = pptr() - pbase();
-        if (gzwrite(fileHandle, pbase(), toWrite) != toWrite) {
+        const int toWrite = static_cast<int>(pptr() - pbase());
+        if (gzwrite(fileHandle, pbase(), static_cast<unsigned int>(toWrite)) != toWrite) {
             return EOF;
         }
         pbump(-toWrite);
@@ -108,13 +108,14 @@ protected:
             return traits_type::to_int_type(*gptr());
         }
 
-        unsigned charsPutBack = gptr() - eback();
+        std::size_t charsPutBack = gptr() - eback();
         if (charsPutBack > reserveSize) {
             charsPutBack = reserveSize;
         }
         memcpy(buffer + reserveSize - charsPutBack, gptr() - charsPutBack, charsPutBack);
 
-        int charsRead = gzread(fileHandle, buffer + reserveSize, bufferSize - reserveSize);
+        int charsRead =
+                gzread(fileHandle, buffer + reserveSize, static_cast<unsigned int>(bufferSize - reserveSize));
         if (charsRead <= 0) {
             return EOF;
         }
@@ -126,8 +127,8 @@ protected:
 
     int sync() override {
         if ((pptr() != nullptr) && pptr() > pbase()) {
-            int toWrite = pptr() - pbase();
-            if (gzwrite(fileHandle, pbase(), toWrite) != toWrite) {
+            const int toWrite = static_cast<int>(pptr() - pbase());
+            if (gzwrite(fileHandle, pbase(), static_cast<unsigned int>(toWrite)) != toWrite) {
                 return -1;
             }
             pbump(-toWrite);
@@ -136,8 +137,8 @@ protected:
     }
 
 private:
-    static constexpr unsigned int bufferSize = 65536;
-    static constexpr unsigned int reserveSize = 16;
+    static constexpr std::size_t bufferSize = 65536;
+    static constexpr std::size_t reserveSize = 16;
 
     char buffer[bufferSize] = {};
     gzFile fileHandle = {};

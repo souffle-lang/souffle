@@ -122,13 +122,13 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     }
 
     // -- types --
-    SOUFFLE_VISITOR_LINK(SubsetType, Type);
-    SOUFFLE_VISITOR_LINK(AliasType, Type);
-    SOUFFLE_VISITOR_LINK(RecordType, Type);
-    SOUFFLE_VISITOR_LINK(AlgebraicDataType, Type);
-    SOUFFLE_VISITOR_LINK(UnionType, Type);
-    SOUFFLE_VISITOR_LINK(Type, Node);
-    SOUFFLE_VISITOR_LINK(BranchType, Node);
+    SOUFFLE_VISITOR_LINK(ast::SubsetType, Type);
+    SOUFFLE_VISITOR_LINK(ast::RecordType, Type);
+    SOUFFLE_VISITOR_LINK(ast::AliasType, Type);
+    SOUFFLE_VISITOR_LINK(ast::AlgebraicDataType, Type);
+    SOUFFLE_VISITOR_LINK(ast::UnionType, Type);
+    SOUFFLE_VISITOR_LINK(ast::Type, Node);
+    SOUFFLE_VISITOR_LINK(ast::BranchType, Node);
 
     // -- arguments --
     SOUFFLE_VISITOR_LINK(Variable, Argument)

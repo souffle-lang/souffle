@@ -55,15 +55,15 @@ bool ExecutionPlanChecker::transform(TranslationUnit& translationUnit) {
                 if (isA<SubsumptiveClause>(clause)) {
                     continue;
                 }
-                int version = 0;
+                std::size_t version = 0;
                 for (const auto* atom : getBodyLiterals<Atom>(*clause)) {
                     if (scc.count(program.getRelation(*atom)) != 0u) {
                         version++;
                     }
                 }
-                int maxVersion = -1;
+                std::optional<std::size_t> maxVersion;
                 for (auto const& cur : clause->getExecutionPlan()->getOrders()) {
-                    maxVersion = std::max(cur.first, maxVersion);
+                    maxVersion = std::max(cur.first, maxVersion.value_or(cur.first));
 
                     bool isComplete = true;
                     auto order = cur.second->getOrder();
@@ -79,7 +79,7 @@ bool ExecutionPlanChecker::transform(TranslationUnit& translationUnit) {
                     }
                 }
 
-                if (version <= maxVersion) {
+                if (version <= *maxVersion) {
                     for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
                         if (cur.first >= version) {
                             report.addDiagnostic(Diagnostic(Diagnostic::Type::ERROR,

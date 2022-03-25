@@ -22,7 +22,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 #include <sys/stat.h>
 
@@ -95,31 +98,31 @@ inline std::string formatNum(int precision, int64_t amount) {
 }
 
 inline std::string formatMemory(uint64_t kbytes) {
-    if (kbytes < 1024L * 2) {
+    if (kbytes < 1024UL * 2UL) {
         return std::to_string(kbytes) + "kB";
-    } else if (kbytes < 1024L * 1024 * 2) {
-        return std::to_string(kbytes / 1024) + "MB";
-    } else if (kbytes < 1024L * 1024 * 1024 * 2) {
-        return std::to_string(kbytes / (1024 * 1024)) + "GB";
+    } else if (kbytes < 1024UL * 1024UL * 2UL) {
+        return std::to_string(kbytes / 1024UL) + "MB";
+    } else if (kbytes < 1024UL * 1024UL * 1024UL * 2UL) {
+        return std::to_string(kbytes / (1024UL * 1024UL)) + "GB";
     }
-    return std::to_string(kbytes / (1024 * 1024 * 1024)) + "TB";
+    return std::to_string(kbytes / (1024UL * 1024UL * 1024UL)) + "TB";
 }
 
 inline std::string formatTime(std::chrono::microseconds number) {
     uint64_t sec = number.count() / 1000000;
     if (sec >= 100) {
-        uint64_t min = std::floor(sec / 60);
+        uint64_t min = static_cast<uint64_t>(std::floor(sec / 60));
         if (min >= 100) {
-            uint64_t hours = std::floor(min / 60);
+            uint64_t hours = static_cast<uint64_t>(std::floor(min / 60));
             if (hours >= 100) {
-                uint64_t days = std::floor(hours / 24);
+                uint64_t days = static_cast<uint64_t>(std::floor(hours / 24));
                 return std::to_string(days) + "D";
             }
             return std::to_string(hours) + "h";
         }
         if (min < 10) {
             // temp should always be 1 digit long
-            uint64_t temp = std::floor((sec - (min * 60.0)) * 10.0 / 6.0);
+            uint64_t temp = static_cast<uint64_t>(std::floor((sec - (min * 60.0)) * 10.0 / 6.0));
             return std::to_string(min) + "." + std::to_string(temp).substr(0, 1) + "m";
         }
         return std::to_string(min) + "m";

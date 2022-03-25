@@ -17,95 +17,105 @@
 #pragma once
 
 #include "souffle/RamTypes.h"
-#include "souffle/datastructure/ConcurrentFlyweight.h"
-#include "souffle/utility/MiscUtil.h"
-#include "souffle/utility/ParallelUtil.h"
-#include "souffle/utility/StreamUtil.h"
-#include <algorithm>
-#include <cstdlib>
-#include <deque>
-#include <initializer_list>
-#include <iostream>
+
+#include <memory>
 #include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
 namespace souffle {
+
+/** Interface of a generic SymbolTable iterator. */
+class SymbolTableIteratorInterface {
+public:
+    virtual ~SymbolTableIteratorInterface() {}
+
+    virtual const std::pair<const std::string, const std::size_t>& get() const = 0;
+
+    virtual bool equals(const SymbolTableIteratorInterface& other) = 0;
+
+    virtual SymbolTableIteratorInterface& incr() = 0;
+
+    virtual std::unique_ptr<SymbolTableIteratorInterface> copy() const = 0;
+};
 
 /**
  * @class SymbolTable
  *
  * SymbolTable encodes symbols to numbers and decodes numbers to symbols.
  */
-class SymbolTable : protected FlyweightImpl<std::string> {
-private:
-    using Base = FlyweightImpl<std::string>;
-
+class SymbolTable {
 public:
-    using iterator = typename Base::iterator;
-
-    /** @brief Construct a symbol table with the given number of concurrent access lanes. */
-    SymbolTable(const std::size_t LaneCount = 1) : Base(LaneCount) {}
-
-    /** @brief Construct a symbol table with the given initial symbols. */
-    SymbolTable(std::initializer_list<std::string> symbols) : Base(1, symbols.size()) {
-        for (const auto& symbol : symbols) {
-            findOrInsert(symbol);
-        }
-    }
-
-    /** @brief Construct a symbol table with the given number of concurrent access lanes and initial symbols.
-     */
-    SymbolTable(const std::size_t LaneCount, std::initializer_list<std::string> symbols)
-            : Base(LaneCount, symbols.size()) {
-        for (const auto& symbol : symbols) {
-            findOrInsert(symbol);
-        }
-    }
+    virtual ~SymbolTable() {}
 
     /**
-     * @brief Set the number of concurrent access lanes.
-     * This function is not thread-safe, do not call when other threads are using the datastructure.
+     * @brief Iterator on a symbol table.
+     *
+     * Iterator over pairs of a symbol and its encoding index.
      */
-    void setNumLanes(const std::size_t NumLanes) {
-        Base::setNumLanes(NumLanes);
-    }
+    class Iterator {
+    public:
+        using value_type = const std::pair<const std::string, const std::size_t>;
+        using reference = value_type&;
+        using pointer = value_type*;
+
+        Iterator(std::unique_ptr<SymbolTableIteratorInterface> ptr) : impl(std::move(ptr)) {}
+
+        Iterator(const Iterator& it) : impl(it.impl->copy()) {}
+
+        Iterator(Iterator&& it) : impl(std::move(it.impl)) {}
+
+        reference operator*() const {
+            return impl->get();
+        }
+
+        pointer operator->() const {
+            return &impl->get();
+        }
+
+        Iterator& operator++() {
+            impl->incr();
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator prev(impl->copy());
+            impl->incr();
+            return prev;
+        }
+
+        bool operator==(const Iterator& I) const {
+            return impl->equals(*I.impl);
+        }
+
+        bool operator!=(const Iterator& I) const {
+            return !impl->equals(*I.impl);
+        }
+
+    private:
+        std::unique_ptr<SymbolTableIteratorInterface> impl;
+    };
+
+    using iterator = Iterator;
 
     /** @brief Return an iterator on the first symbol. */
-    iterator begin() const {
-        return Base::begin();
-    }
+    virtual iterator begin() const = 0;
 
     /** @brief Return an iterator past the last symbol. */
-    iterator end() const {
-        return Base::end();
-    }
+    virtual iterator end() const = 0;
 
     /** @brief Check if the given symbol exist. */
-    bool weakContains(const std::string& symbol) const {
-        return Base::weakContains(symbol);
-    }
+    virtual bool weakContains(const std::string& symbol) const = 0;
 
     /** @brief Encode a symbol to a symbol index. */
-    RamDomain encode(const std::string& symbol) {
-        return Base::findOrInsert(symbol).first;
-    }
+    virtual RamDomain encode(const std::string& symbol) = 0;
 
     /** @brief Decode a symbol index to a symbol. */
-    const std::string& decode(const RamDomain index) const {
-        return Base::fetch(index);
-    }
+    virtual const std::string& decode(const RamDomain index) const = 0;
 
     /** @brief Encode a symbol to a symbol index; aliases encode. */
-    RamDomain unsafeEncode(const std::string& symbol) {
-        return encode(symbol);
-    }
+    virtual RamDomain unsafeEncode(const std::string& symbol) = 0;
 
     /** @brief Decode a symbol index to a symbol; aliases decode. */
-    const std::string& unsafeDecode(const RamDomain index) const {
-        return decode(index);
-    }
+    virtual const std::string& unsafeDecode(const RamDomain index) const = 0;
 
     /**
      * @brief Encode the symbol, it is inserted if it does not exist.
@@ -113,10 +123,7 @@ public:
      * @return the symbol index and a boolean indicating if an insertion
      * happened.
      */
-    std::pair<RamDomain, bool> findOrInsert(const std::string& symbol) {
-        auto Res = Base::findOrInsert(symbol);
-        return std::make_pair(Res.first, Res.second);
-    }
+    virtual std::pair<RamDomain, bool> findOrInsert(const std::string& symbol) = 0;
 };
 
 }  // namespace souffle

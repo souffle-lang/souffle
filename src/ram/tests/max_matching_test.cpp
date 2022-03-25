@@ -40,7 +40,7 @@ TEST(Matching, StaticTest_1) {
     match.addEdge(6, 12);
 
     match.solve();
-    int num = match.getNumMatchings();
+    std::size_t num = match.getNumMatchings();
 
     EXPECT_EQ(num, 5);
 }
@@ -60,7 +60,7 @@ TEST(Matching, StaticTest_2) {
     match.addEdge(5, 9);
 
     match.solve();
-    int num = match.getNumMatchings();
+    std::size_t num = match.getNumMatchings();
 
     EXPECT_EQ(num, 5);
 }

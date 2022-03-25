@@ -27,7 +27,9 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#ifndef _MSC_VER
 #include <dirent.h>
+#endif
 #include <sys/stat.h>
 
 namespace souffle {
@@ -336,6 +338,9 @@ public:
                         std::string relationName = extractRelationNameFromAtom(atom);
                         if (relationName.substr(0, 6) == "@delta") {
                             relationName = relationName.substr(7);
+                        }
+                        if (relationName.substr(0, 4) == "@new") {
+                            relationName = relationName.substr(5);
                         }
                         assert(relationMap.count(relationName) > 0 || "Relation name for atom not found");
                         relationMap[relationName]->addReads(atom.frequency);

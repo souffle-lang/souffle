@@ -1612,7 +1612,7 @@ private:
 
 /**
  * A sparse bit-map is a bit map virtually assigning a bit value to every value if the
- * uint32_t domain. However, only 1-bits are stored utilizing a nested sparse array
+ * uint64_t domain. However, only 1-bits are stored utilizing a nested sparse array
  * structure.
  *
  * @tparam BITS similar to the BITS parameter of the sparse array type
@@ -1640,7 +1640,7 @@ class SparseBitMap {
 
     // some constants for manipulating stored values
     static constexpr std::size_t BITS_PER_ENTRY = sizeof(value_t) * CHAR_BIT;
-    static constexpr std::size_t LEAF_INDEX_WIDTH = __builtin_ctz(BITS_PER_ENTRY);
+    static constexpr std::size_t LEAF_INDEX_WIDTH = __builtin_ctz(static_cast<unsigned long>(BITS_PER_ENTRY));
     static constexpr uint64_t LEAF_INDEX_MASK = BITS_PER_ENTRY - 1;
 
     static uint64_t toMask(const value_t& value) {
@@ -1936,8 +1936,8 @@ class TrieIterator {
     // remove ref-qual (if any); this can happen if we're a iterator-view
     using iter_core_arg_type = typename std::remove_reference_t<IterCore>::store_iter;
 
-    Value value;         // the value currently pointed to
-    IterCore iter_core;  // the wrapped iterator
+    Value value = {};         // the value currently pointed to
+    IterCore iter_core = {};  // the wrapped iterator
 
     // return an ephemeral nested iterator-view (view -> mutating us mutates our parent)
     // NB: be careful that the lifetime of this iterator-view doesn't exceed that of its parent.
@@ -2887,9 +2887,9 @@ public:
         if (this->empty()) return res;
 
         // use top-level elements for partitioning
-        int step = std::max(store.size() / chunks, std::size_t(1));
+        size_t step = std::max(store.size() / chunks, std::size_t(1));
 
-        int c = 1;
+        size_t c = 1;
         auto priv = begin();
         for (auto it = store.begin(); it != store.end(); ++it, c++) {
             if (c % step != 0 || c == 1) {

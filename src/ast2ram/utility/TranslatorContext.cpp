@@ -204,7 +204,7 @@ int TranslatorContext::getADTBranchId(const ast::BranchInit* adt) const {
                     const ast::analysis::AlgebraicDataType::Branch& right) {
                 return left.name < right.name;
             });
-    return std::distance(std::begin(branches), iterToBranch);
+    return static_cast<int>(std::distance(std::begin(branches), iterToBranch));
 }
 
 bool TranslatorContext::isADTBranchSimple(const ast::BranchInit* adt) const {

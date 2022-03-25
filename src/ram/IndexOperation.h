@@ -42,7 +42,7 @@ using RamPattern = std::pair<RamBound, RamBound>;
  */
 class IndexOperation : public RelationOperation {
 public:
-    IndexOperation(std::string rel, int ident, RamPattern queryPattern, Own<Operation> nested,
+    IndexOperation(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
             : RelationOperation(rel, ident, std::move(nested), std::move(profileText)),
               queryPattern(std::move(queryPattern)) {
@@ -88,7 +88,7 @@ public:
     void printIndex(std::ostream& os) const {
         //  const auto& attrib = getRelation().getAttributeNames();
         bool first = true;
-        for (unsigned int i = 0; i < queryPattern.first.size(); ++i) {
+        for (std::size_t i = 0; i < queryPattern.first.size(); ++i) {
             // early exit if no upper/lower bounds are defined
             if (isUndefValue(queryPattern.first[i].get()) && isUndefValue(queryPattern.second[i].get())) {
                 continue;

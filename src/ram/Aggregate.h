@@ -48,7 +48,7 @@ namespace souffle::ram {
 class Aggregate : public RelationOperation, public AbstractAggregate {
 public:
     Aggregate(Own<Operation> nested, AggregateOp fun, std::string rel, Own<Expression> expression,
-            Own<Condition> condition, int ident)
+            Own<Condition> condition, std::size_t ident)
             : RelationOperation(rel, ident, std::move(nested)),
               AbstractAggregate(fun, std::move(expression), std::move(condition)) {}
 

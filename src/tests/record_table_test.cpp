@@ -18,6 +18,7 @@
 
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
+#include "souffle/datastructure/RecordTableImpl.h"
 #include <algorithm>
 #include <functional>
 #include <iostream>

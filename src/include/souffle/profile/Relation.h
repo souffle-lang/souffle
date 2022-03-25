@@ -33,7 +33,7 @@ private:
     std::chrono::microseconds endtime{};
     std::chrono::microseconds loadtime{};
     std::chrono::microseconds savetime{};
-    long nonRecTuples = 0;
+    std::size_t nonRecTuples = 0;
     std::size_t preMaxRSS = 0;
     std::size_t postMaxRSS = 0;
     const std::string id;
@@ -143,7 +143,7 @@ public:
         endtime = time;
     }
 
-    void setNumTuples(long numTuples) {
+    void setNumTuples(std::size_t numTuples) {
         nonRecTuples = numTuples;
     }
 

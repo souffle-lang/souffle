@@ -52,7 +52,7 @@ namespace souffle::ram {
  */
 class IndexIfExists : public IndexOperation, public AbstractIfExists {
 public:
-    IndexIfExists(std::string rel, int ident, Own<Condition> cond, RamPattern queryPattern,
+    IndexIfExists(std::string rel, std::size_t ident, Own<Condition> cond, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
 
             : IndexOperation(rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)),

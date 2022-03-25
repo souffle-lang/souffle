@@ -13,13 +13,11 @@
  * Testing the user-defined functor interface
  *
  ***********************************************************************/
-#include "souffle/RecordTable.h"
-#include "souffle/SymbolTable.h"
+#include "souffle/SouffleFunctor.h"
 #include "souffle/utility/MiscUtil.h"
+#include <cassert>
 #include <charconv>
 #include <cmath>
-#include <cstdint>
-#include <cstring>
 #include <deque>
 #include <mutex>
 #include <string>
@@ -74,7 +72,7 @@ FF_int factorial(FF_uint x) {
 }
 
 FF_int rnd(FF_float x) {
-    return round(x);
+    return static_cast<FF_int>(round(x));
 }
 
 FF_float incr(FF_float x) {

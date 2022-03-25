@@ -49,11 +49,17 @@ class Table {
     std::size_t count = 0;
 
 public:
-    class iterator : public std::iterator<std::forward_iterator_tag, T> {
+    class iterator {
         Block* block;
         unsigned pos;
 
     public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = T;
+        using difference_type = void;
+        using pointer = T*;
+        using reference = T&;
+
         iterator(Block* block = nullptr, unsigned pos = 0) : block(block), pos(pos) {}
 
         iterator(const iterator&) = default;

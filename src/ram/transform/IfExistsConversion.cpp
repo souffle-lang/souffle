@@ -52,7 +52,7 @@ Own<Operation> IfExistsConversionTransformer::rewriteScan(const Scan* scan) {
     // Convert the Scan/If pair into a IfExists
     if (transformTuple) {
         const auto* filter = as<Filter>(scan->getOperation());
-        const int identifier = scan->getTupleId();
+        const std::size_t identifier = scan->getTupleId();
 
         return mk<IfExists>(scan->getRelation(), identifier, clone(filter->getCondition()),
                 clone(filter->getOperation()), scan->getProfileText());
@@ -100,7 +100,7 @@ Own<Operation> IfExistsConversionTransformer::rewriteIndexScan(const IndexScan* 
         RamPattern newValues = make_pair(
                 clone(indexScan->getRangePattern().first), clone(indexScan->getRangePattern().second));
         const auto* filter = as<Filter>(indexScan->getOperation());
-        const int identifier = indexScan->getTupleId();
+        const std::size_t identifier = indexScan->getTupleId();
         const std::string& rel = indexScan->getRelation();
         return mk<IndexIfExists>(rel, identifier, clone(filter->getCondition()), std::move(newValues),
                 clone(filter->getOperation()), indexScan->getProfileText());

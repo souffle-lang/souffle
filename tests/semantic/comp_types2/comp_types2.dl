@@ -79,6 +79,7 @@ myA2.R($myA2.b(1)).
 .comp F {
    .type T = b {x:number}
    .decl R(x:T)
+   .output R
    R($b(1)).
    .printsize R
 }

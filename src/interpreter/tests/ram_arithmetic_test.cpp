@@ -37,6 +37,7 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -45,8 +46,6 @@
 namespace souffle::interpreter::test {
 
 using namespace ram;
-
-#define TESTS_PER_OPERATION 20
 
 /** Function to evaluate a single Expression. */
 RamDomain evalExpression(Own<Expression> expression) {
@@ -107,7 +106,7 @@ TEST(SignedConstant, ArithmeticEvaluation) {
 }
 
 TEST(Unary, Neg) {
-    for (RamDomain randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
+    for (RamDomain randomNumber : testutil::generateValues<RamDomain>()) {
         EXPECT_EQ(evalUnary(FunctorOp::NEG, randomNumber), -randomNumber);
     }
 }
@@ -115,7 +114,7 @@ TEST(Unary, Neg) {
 TEST(Unary, FloatNeg) {
     FunctorOp functor = FunctorOp::FNEG;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamFloat>()) {
         auto result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(ramBitCast<RamFloat>(result), -randomNumber);
     }
@@ -124,7 +123,7 @@ TEST(Unary, FloatNeg) {
 TEST(Unary, BinaryNot) {
     FunctorOp functor = FunctorOp::BNOT;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamDomain>()) {
         EXPECT_EQ(evalUnary(functor, randomNumber), ~randomNumber);
     }
 }
@@ -132,7 +131,7 @@ TEST(Unary, BinaryNot) {
 TEST(Unary, UnsignedBinaryNot) {
     FunctorOp functor = FunctorOp::UBNOT;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamUnsigned>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(ramBitCast<RamUnsigned>(result), ~randomNumber);
     }
@@ -141,7 +140,7 @@ TEST(Unary, UnsignedBinaryNot) {
 TEST(Unary, LogicalNeg) {
     FunctorOp functor = FunctorOp::LNOT;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamDomain>()) {
         EXPECT_EQ(evalUnary(functor, randomNumber), !randomNumber);
     }
 }
@@ -149,7 +148,7 @@ TEST(Unary, LogicalNeg) {
 TEST(Unary, UnsignedLogicalNeg) {
     FunctorOp functor = FunctorOp::ULNOT;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamUnsigned>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(!randomNumber));
     }
@@ -158,7 +157,7 @@ TEST(Unary, UnsignedLogicalNeg) {
 TEST(Unary, SingedTpUnsigned) {
     FunctorOp functor = FunctorOp::I2U;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamDomain>()) {
         RamDomain result = evalUnary(functor, randomNumber);
         EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(randomNumber));
     }
@@ -167,7 +166,7 @@ TEST(Unary, SingedTpUnsigned) {
 TEST(Unary, UnsignedToSigned) {
     FunctorOp functor = FunctorOp::U2I;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamUnsigned>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(result, static_cast<RamDomain>(randomNumber));
     }
@@ -176,7 +175,7 @@ TEST(Unary, UnsignedToSigned) {
 TEST(Unary, SignedToFloat) {
     FunctorOp functor = FunctorOp::I2F;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamDomain>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(ramBitCast<RamFloat>(result), static_cast<RamFloat>(randomNumber));
     }
@@ -185,7 +184,7 @@ TEST(Unary, SignedToFloat) {
 TEST(Unary, FloatToSigned) {
     FunctorOp functor = FunctorOp::F2I;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamFloat>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(result, static_cast<RamDomain>(randomNumber));
     }
@@ -194,7 +193,7 @@ TEST(Unary, FloatToSigned) {
 TEST(Unary, UnsignedToFloat) {
     FunctorOp functor = FunctorOp::U2F;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamUnsigned>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(ramBitCast<RamFloat>(result), static_cast<RamFloat>(randomNumber));
     }
@@ -203,7 +202,7 @@ TEST(Unary, UnsignedToFloat) {
 TEST(Unary, FloatToUnsigned) {
     FunctorOp functor = FunctorOp::F2U;
 
-    for (auto randomNumber : testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION)) {
+    for (auto randomNumber : testutil::generateValues<RamFloat>()) {
         RamDomain result = evalUnary(functor, ramBitCast(randomNumber));
         EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(randomNumber));
     }
@@ -212,141 +211,141 @@ TEST(Unary, FloatToUnsigned) {
 TEST(Binary, SignedAdd) {
     FunctorOp functor = FunctorOp::ADD;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (std::size_t i = 0; i < TESTS_PER_OPERATION; ++i) {
-        RamDomain arg1 = vecArg1[i];
-        RamDomain arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 + arg2);
+    for (auto i : vecArg1) {
+        for (auto j : vecArg2) {
+            RamDomain result = evalBinary(functor, i, j);
+            EXPECT_EQ(result, i + j);
+        }
     }
 }
 
 TEST(Binary, UnsignedAdd) {
     FunctorOp functor = FunctorOp::UADD;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        RamUnsigned arg1 = vecArg1[i];
-        RamUnsigned arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 + arg2);
+    for (auto i : vecArg1) {
+        for (auto j : vecArg2) {
+            RamDomain result = evalBinary(functor, i, j);
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), i + j);
+        }
     }
 }
 
 TEST(Binary, FloatAdd) {
     FunctorOp functor = FunctorOp::FADD;
 
-    auto vecArg1 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamFloat>();
+    auto vecArg2 = testutil::generateValues<RamFloat>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 + arg2);
+    for (auto i : vecArg1) {
+        for (auto j : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(i), ramBitCast(j));
+            EXPECT_EQ(ramBitCast<RamFloat>(result), i + j);
+        }
     }
 }
 
 TEST(Binary, SignedSub) {
     FunctorOp functor = FunctorOp::SUB;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 - arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 - arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedSub) {
     FunctorOp functor = FunctorOp::USUB;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 - arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 - arg2);
+        }
     }
 }
 
 TEST(Binary, FloatSub) {
     FunctorOp functor = FunctorOp::FSUB;
 
-    auto vecArg1 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamFloat>();
+    auto vecArg2 = testutil::generateValues<RamFloat>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 - arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 - arg2);
+        }
     }
 }
 
 TEST(Binary, SignedMul) {
     FunctorOp functor = FunctorOp::MUL;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 * arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 * arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedMul) {
     FunctorOp functor = FunctorOp::UMUL;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 * arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 * arg2);
+        }
     }
 }
 
 TEST(Binary, FloatMul) {
     FunctorOp functor = FunctorOp::FMUL;
 
-    auto vecArg1 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamFloat>();
+    auto vecArg2 = testutil::generateValues<RamFloat>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 * arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 * arg2);
+        }
     }
 }
 
 TEST(Binary, SignedDiv) {
     FunctorOp functor = FunctorOp::DIV;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        if (arg2 != 0) {
-            RamDomain result = evalBinary(functor, arg1, arg2);
-            EXPECT_EQ(result, arg1 / arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            if (arg2 != 0 && !(arg1 == std::numeric_limits<RamDomain>::min() && arg2 == -1)) {
+                RamDomain result = evalBinary(functor, arg1, arg2);
+                EXPECT_EQ(result, arg1 / arg2);
+            }
         }
     }
 }
@@ -354,15 +353,15 @@ TEST(Binary, SignedDiv) {
 TEST(Binary, UnsignedDiv) {
     FunctorOp functor = FunctorOp::UDIV;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        if (arg2 != 0) {
-            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 / arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            if (arg2 != 0) {
+                RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+                EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 / arg2);
+            }
         }
     }
 }
@@ -370,15 +369,15 @@ TEST(Binary, UnsignedDiv) {
 TEST(Binary, FloatDiv) {
     FunctorOp functor = FunctorOp::FDIV;
 
-    auto vecArg1 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamFloat>();
+    auto vecArg2 = testutil::generateValues<RamFloat>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        if (arg2 != 0) {
-            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-            EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 / arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            if (arg2 != 0) {
+                RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+                EXPECT_EQ(ramBitCast<RamFloat>(result), arg1 / arg2);
+            }
         }
     }
 }
@@ -386,211 +385,219 @@ TEST(Binary, FloatDiv) {
 TEST(Binary, SignedExp) {
     FunctorOp functor = FunctorOp::EXP;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, static_cast<RamDomain>(static_cast<int64_t>(std::pow(arg1, arg2))));
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            const RamSigned result = ramBitCast<RamSigned>(evalBinary(functor, arg1, arg2));
+            const RamSigned expected = static_cast<RamSigned>(std::pow(arg1, arg2));
+            EXPECT_EQ(result, expected);
+        }
     }
 }
 
 TEST(Binary, UnsignedExp) {
     FunctorOp functor = FunctorOp::UEXP;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), static_cast<RamUnsigned>(std::pow(arg1, arg2)));
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            const RamUnsigned result =
+                    ramBitCast<RamUnsigned>(evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2)));
+            const RamUnsigned expected = static_cast<RamUnsigned>(std::pow(arg1, arg2));
+            EXPECT_EQ(result, expected);
+        }
     }
 }
 
 TEST(Binary, FloatExp) {
     FunctorOp functor = FunctorOp::FEXP;
 
-    auto vecArg1 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamFloat>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamFloat>();
+    auto vecArg2 = testutil::generateValues<RamFloat>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        auto result = ramBitCast<RamFloat>(evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2)));
-        auto expected = static_cast<RamFloat>(std::pow(arg1, arg2));
-        EXPECT_TRUE((std::isnan(result) && std::isnan(expected)) || result == expected);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            const RamFloat result =
+                    ramBitCast<RamFloat>(evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2)));
+            const RamFloat expected = static_cast<RamFloat>(std::pow(arg1, arg2));
+            EXPECT_TRUE((std::isnan(result) && std::isnan(expected)) || result == expected);
+        }
     }
 }
 
 TEST(Binary, SignedMod) {
     FunctorOp functor = FunctorOp::MOD;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 % arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            if (arg2 > 0) {
+                RamDomain result = evalBinary(functor, arg1, arg2);
+                EXPECT_EQ(result, arg1 % arg2);
+            }
+        }
     }
 }
 
 TEST(Binary, UnsignedMod) {
     FunctorOp functor = FunctorOp::UMOD;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 % arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            if (arg2 > 0) {
+                RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+                EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 % arg2);
+            }
+        }
     }
 }
 
 TEST(Binary, SignedBinaryAnd) {
     FunctorOp functor = FunctorOp::BAND;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 & arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 & arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedBinaryAnd) {
     FunctorOp functor = FunctorOp::UBAND;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 & arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 & arg2);
+        }
     }
 }
 
 TEST(Binary, SignedBinaryOr) {
     FunctorOp functor = FunctorOp::BOR;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 | arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 | arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedBinaryOr) {
     FunctorOp functor = FunctorOp::UBOR;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 | arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 | arg2);
+        }
     }
 }
 
 TEST(Binary, SignedBinaryXor) {
     FunctorOp functor = FunctorOp::BXOR;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 ^ arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 ^ arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedBinaryXor) {
     FunctorOp functor = FunctorOp::UBXOR;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 ^ arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 ^ arg2);
+        }
     }
 }
 
 TEST(Binary, SignedLogicalAnd) {
     FunctorOp functor = FunctorOp::LAND;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 || arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 && arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedLogicalAnd) {
     FunctorOp functor = FunctorOp::ULAND;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 || arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 && arg2);
+        }
     }
 }
 
 TEST(Binary, SignedLogicalOr) {
     FunctorOp functor = FunctorOp::LOR;
 
-    auto vecArg1 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamDomain>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamDomain>();
+    auto vecArg2 = testutil::generateValues<RamDomain>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, arg1, arg2);
-        EXPECT_EQ(result, arg1 || arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, arg1, arg2);
+            EXPECT_EQ(result, arg1 || arg2);
+        }
     }
 }
 
 TEST(Binary, UnsignedLogicalOr) {
     FunctorOp functor = FunctorOp::ULOR;
 
-    auto vecArg1 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
-    auto vecArg2 = testutil::generateRandomVector<RamUnsigned>(TESTS_PER_OPERATION);
+    auto vecArg1 = testutil::generateValues<RamUnsigned>();
+    auto vecArg2 = testutil::generateValues<RamUnsigned>();
 
-    for (int i = 0; i < TESTS_PER_OPERATION; ++i) {
-        auto arg1 = vecArg1[i];
-        auto arg2 = vecArg2[i];
-        RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
-        EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 || arg2);
+    for (auto arg1 : vecArg1) {
+        for (auto arg2 : vecArg2) {
+            RamDomain result = evalBinary(functor, ramBitCast(arg1), ramBitCast(arg2));
+            EXPECT_EQ(ramBitCast<RamUnsigned>(result), arg1 || arg2);
+        }
     }
 }
 

@@ -1,0 +1,3 @@
+Warning: Variable x only occurs once in file whitespaces.dl at line 12
+A(1)                                  :- A(x).
+-------------------------------------------^---

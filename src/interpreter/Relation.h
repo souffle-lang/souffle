@@ -155,7 +155,7 @@ template <std::size_t _Arity, template <std::size_t> typename Structure>
 class Relation : public RelationWrapper {
 public:
     static constexpr std::size_t Arity = _Arity;
-    using Attribute = uint32_t;
+    using Attribute = std::size_t;
     using AttributeSet = std::set<Attribute>;
     using Index = interpreter::Index<Arity, Structure>;
     using Tuple = souffle::Tuple<RamDomain, Arity>;

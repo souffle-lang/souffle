@@ -1,9 +1,9 @@
 .type N <: symbol
 
-.decl Reachable   (a:N x b:N)
-.decl Same        (a:N, b:N)
-.output Same        ()
-.decl Edge        (a:N, b:N)
+.decl Reachable (a:N x b:N)
+.decl Same      (a:N, b:N)
+.output Same    ()
+.decl Edge      (a:N, b:N)
 
 Reachable(x,y)  :- Edge(x,y).
 Reachable(x,y)  :- Edge(x,z), Reachable(z,y).

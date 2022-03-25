@@ -29,16 +29,17 @@
 
 namespace souffle::ast {
 
-std::vector<unsigned int> SipsMetric::getReordering(const Clause* clause) const {
+std::vector<std::size_t> SipsMetric::getReordering(const Clause* clause) const {
     BindingStore bindingStore(clause);
     auto atoms = getBodyLiterals<Atom>(*clause);
-    std::vector<unsigned int> newOrder(atoms.size());
+    std::vector<std::size_t> newOrder(atoms.size());
 
     std::size_t numAdded = 0;
     while (numAdded < atoms.size()) {
         // grab the index of the next atom, based on the SIPS function
         const auto& costs = evaluateCosts(atoms, bindingStore);
-        auto minIdx = std::distance(costs.begin(), std::min_element(costs.begin(), costs.end()));
+        std::size_t minIdx = static_cast<std::size_t>(
+                std::distance(costs.begin(), std::min_element(costs.begin(), costs.end())));
         const auto* nextAtom = atoms[minIdx];
         assert(nextAtom != nullptr && "nullptr atoms should have maximal cost");
 
@@ -103,8 +104,8 @@ std::vector<double> AllBoundSips::evaluateCosts(
             continue;
         }
 
-        int arity = atom->getArity();
-        int numBound = bindingStore.numBoundArguments(atom);
+        std::size_t arity = atom->getArity();
+        std::size_t numBound = bindingStore.numBoundArguments(atom);
         cost.push_back(arity == numBound ? 0 : 1);
     }
     assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
@@ -121,8 +122,8 @@ std::vector<double> NaiveSips::evaluateCosts(
             continue;
         }
 
-        int arity = atom->getArity();
-        int numBound = bindingStore.numBoundArguments(atom);
+        std::size_t arity = atom->getArity();
+        std::size_t numBound = bindingStore.numBoundArguments(atom);
         if (arity == numBound) {
             cost.push_back(0);
         } else if (numBound >= 1) {
@@ -145,8 +146,8 @@ std::vector<double> MaxBoundSips::evaluateCosts(
             continue;
         }
 
-        int arity = atom->getArity();
-        int numBound = bindingStore.numBoundArguments(atom);
+        std::size_t arity = atom->getArity();
+        std::size_t numBound = bindingStore.numBoundArguments(atom);
         if (arity == numBound) {
             // Always better than anything else
             cost.push_back(0);
@@ -155,7 +156,7 @@ std::vector<double> MaxBoundSips::evaluateCosts(
             cost.push_back(2);
         } else {
             // Between 0 and 1, decreasing with more num bound
-            cost.push_back(1 / numBound);
+            cost.push_back(1.0 / numBound);
         }
     }
     assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
@@ -172,8 +173,8 @@ std::vector<double> MaxRatioSips::evaluateCosts(
             continue;
         }
 
-        int arity = atom->getArity();
-        int numBound = bindingStore.numBoundArguments(atom);
+        std::size_t arity = atom->getArity();
+        std::size_t numBound = bindingStore.numBoundArguments(atom);
         if (arity == 0) {
             // Always better than anything else
             cost.push_back(0);
@@ -182,7 +183,7 @@ std::vector<double> MaxRatioSips::evaluateCosts(
             cost.push_back(2);
         } else {
             // Between 0 and 1, decreasing as the ratio increases
-            cost.push_back(1 - numBound / arity);
+            cost.push_back(1.0 - numBound / arity);
         }
     }
     assert(atoms.size() == cost.size() && "each atom should have exactly one cost");
@@ -199,7 +200,7 @@ std::vector<double> LeastFreeSips::evaluateCosts(
             continue;
         }
 
-        cost.push_back(atom->getArity() - bindingStore.numBoundArguments(atom));
+        cost.push_back((double)(atom->getArity() - bindingStore.numBoundArguments(atom)));
     }
     return cost;
 }
@@ -221,7 +222,7 @@ std::vector<double> LeastFreeVarsSips::evaluateCosts(
                 freeVars.insert(var.getName());
             }
         });
-        cost.push_back(freeVars.size());
+        cost.push_back((double)freeVars.size());
     }
     return cost;
 }
@@ -239,15 +240,15 @@ std::vector<double> ProfileUseSips::evaluateCosts(
         }
 
         // prioritise propositions
-        int arity = atom->getArity();
+        std::size_t arity = atom->getArity();
         if (arity == 0) {
             cost.push_back(0);
             continue;
         }
 
         // calculate log(|R|) * #free/#args
-        int numBound = bindingStore.numBoundArguments(atom);
-        int numFree = arity - numBound;
+        std::size_t numBound = bindingStore.numBoundArguments(atom);
+        std::size_t numFree = arity - numBound;
         double value = log(profileUse.getRelationSize(atom->getQualifiedName()));
         value *= (numFree * 1.0) / arity;
     }
@@ -265,8 +266,8 @@ std::vector<double> InputSips::evaluateCosts(
         }
 
         const auto& relName = atom->getQualifiedName();
-        int arity = atom->getArity();
-        int numBound = bindingStore.numBoundArguments(atom);
+        std::size_t arity = atom->getArity();
+        std::size_t numBound = bindingStore.numBoundArguments(atom);
         if (arity == numBound) {
             // prioritise all-bound
             cost.push_back(0);

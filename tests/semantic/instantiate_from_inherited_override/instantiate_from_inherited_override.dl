@@ -1,0 +1,17 @@
+
+.comp _Model {
+  .decl R(s:symbol) overridable
+  .comp _Inner {
+    R("Model.Inner").
+  }
+  R("Model").
+}
+
+.comp _Concrete : _Model {
+  .override R
+  .init Inner = _Inner
+  R("Concrete").
+}
+
+.init Concrete = _Concrete
+.output Concrete.R

@@ -45,12 +45,12 @@ namespace souffle::ast::transform {
 using namespace analysis;
 
 bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& left,
-        const NormalisedClause& right, const std::vector<std::vector<unsigned int>>& permutationMatrix) {
+        const NormalisedClause& right, const std::vector<std::vector<std::size_t>>& permutationMatrix) {
     std::size_t clauseSize = permutationMatrix.size();
     // keep track of the possible end-positions of each atom in the first clause
-    std::vector<std::vector<unsigned int>> validMoves;
+    std::vector<std::vector<std::size_t>> validMoves;
     for (std::size_t i = 0; i < clauseSize; i++) {
-        std::vector<unsigned int> currentRow;
+        std::vector<std::size_t> currentRow;
         for (std::size_t j = 0; j < clauseSize; j++) {
             if (permutationMatrix[i][j] == 1) {
                 currentRow.push_back(j);
@@ -60,9 +60,9 @@ bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& 
     }
 
     // extract the possible permutations, DFS style
-    std::vector<unsigned int> seen(clauseSize);
-    std::vector<unsigned int> currentPermutation;
-    std::stack<std::vector<unsigned int>> todoStack;
+    std::vector<std::size_t> seen(clauseSize);
+    std::vector<std::size_t> currentPermutation;
+    std::stack<std::vector<std::size_t>> todoStack;
 
     todoStack.push(validMoves[0]);
 
@@ -92,7 +92,7 @@ bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& 
         }
 
         // pull out the possibilities for the current point of the permutation
-        std::vector<unsigned int> possibilities = todoStack.top();
+        std::vector<std::size_t> possibilities = todoStack.top();
         todoStack.pop();
         if (possibilities.empty()) {
             // no more possibilities at this point, so undo our last move
@@ -111,7 +111,7 @@ bool MinimiseProgramTransformer::existsValidPermutation(const NormalisedClause& 
         }
 
         // try the next possibility
-        unsigned int nextNum = possibilities[0];
+        std::size_t nextNum = possibilities[0];
 
         // update the possibility vector for the current position
         possibilities.erase(possibilities.begin());
@@ -158,7 +158,7 @@ bool MinimiseProgramTransformer::areEquivalentRelations(
 }
 
 bool MinimiseProgramTransformer::isValidPermutation(const NormalisedClause& left,
-        const NormalisedClause& right, const std::vector<unsigned int>& permutation) {
+        const NormalisedClause& right, const std::vector<std::size_t>& permutation) {
     const auto& leftElements = left.getElements();
     const auto& rightElements = right.getElements();
 
@@ -235,9 +235,9 @@ bool MinimiseProgramTransformer::areBijectivelyEquivalent(
 
     // set up the n x n permutation matrix, where n is the number of clause elements
     std::size_t size = leftElements.size();
-    auto permutationMatrix = std::vector<std::vector<unsigned int>>(size);
+    auto permutationMatrix = std::vector<std::vector<std::size_t>>(size);
     for (auto& i : permutationMatrix) {
-        i = std::vector<unsigned int>(size);
+        i = std::vector<std::size_t>(size);
     }
 
     // create permutation matrix

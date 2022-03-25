@@ -53,7 +53,7 @@ namespace souffle::ram {
  */
 class ParallelIndexIfExists : public IndexIfExists, public AbstractParallel {
 public:
-    ParallelIndexIfExists(std::string rel, int ident, Own<Condition> cond, RamPattern queryPattern,
+    ParallelIndexIfExists(std::string rel, std::size_t ident, Own<Condition> cond, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
             : IndexIfExists(
                       rel, ident, std::move(cond), std::move(queryPattern), std::move(nested), profileText) {}

@@ -219,6 +219,20 @@ bool equal_targets(const Container<Own<T>>& a, const Container<Own<T>>& b) {
     return equal_targets(a, b, comp_deref<Own<T>>());
 }
 
+#ifdef _MSC_VER
+// issue:
+// https://developercommunity.visualstudio.com/t/c-template-template-not-recognized-as-class-templa/558979
+template <typename T>
+bool equal_targets(const std::vector<Own<T>>& a, const std::vector<Own<T>>& b) {
+    return equal_targets(a, b, comp_deref<Own<T>>());
+}
+
+template <typename T>
+bool equal_targets(const std::vector<T>& a, const std::vector<T>& b) {
+    return equal_targets(a, b, comp_deref<T>());
+}
+#endif
+
 /**
  * A function testing whether two maps of unique pointers are referencing to equivalent
  * targets.

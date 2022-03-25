@@ -26,7 +26,18 @@
 namespace souffle {
 
 namespace detail {
-
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4172)
+#elif defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wreturn-local-addr"
+#elif defined(__has_warning)
+#pragma clang diagnostic push
+#if __has_warning("-Wreturn-stack-address")
+#pragma clang diagnostic ignored "-Wreturn-stack-address"
+#endif
+#endif
 // This is a helper in the cases when the lambda is stateless
 template <typename F>
 F makeFun() {
@@ -34,9 +45,16 @@ F makeFun() {
     // Even thought the lambda is stateless, it has no default ctor
     // Is this gross?  Yes, yes it is.
     // FIXME: Remove after C++20
-    typename std::aligned_storage<sizeof(F)>::type fakeLam;
+    typename std::aligned_storage<sizeof(F)>::type fakeLam{};
     return reinterpret_cast<F const&>(fakeLam);
 }
+#ifdef _MSC_VER
+#pragma warning(pop)
+#elif defined(__GNUC__) && (__GNUC__ >= 7)
+#pragma GCC diagnostic pop
+#elif defined(__has_warning)
+#pragma clang diagnostic pop
+#endif
 }  // namespace detail
 
 // -------------------------------------------------------------
@@ -101,7 +119,7 @@ public:
     }
 
     /* Support for the pointer operator. */
-    auto operator-> () const {
+    auto operator->() const {
         return &**this;
     }
 
@@ -265,9 +283,9 @@ struct range {
     }
 
     // splits up this range into the given number of partitions
-    std::vector<range> partition(int np = 100) {
+    std::vector<range> partition(std::size_t np = 100) {
         // obtain the size
-        int n = 0;
+        std::size_t n = 0;
         for (auto i = a; i != b; ++i) {
             n++;
         }
@@ -279,8 +297,8 @@ struct range {
         res.reserve(np);
         auto cur = a;
         auto last = cur;
-        int i = 0;
-        int p = 0;
+        std::size_t i = 0;
+        std::size_t p = 0;
         while (cur != b) {
             ++cur;
             i++;

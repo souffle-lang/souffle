@@ -152,8 +152,8 @@
 %token MAX                       "max aggregator"
 %token COUNT                     "count aggregator"
 %token SUM                       "sum aggregator"
-%token TRUE                      "true literal constraint"
-%token FALSE                     "false literal constraint"
+%token TRUELIT                   "true literal constraint"
+%token FALSELIT                  "false literal constraint"
 %token PLAN                      "plan keyword"
 %token CHOICEDOMAIN              "choice-domain"
 %token IF                        ":-"
@@ -849,11 +849,11 @@ constraint
     }
 
     /* zero-arity constraints */
-  | TRUE
+  | TRUELIT
     {
       $$ = mk<ast::BooleanConstraint>(true , @$);
     }
-  | FALSE
+  | FALSELIT
     {
       $$ = mk<ast::BooleanConstraint>(false, @$);
     }
@@ -1503,11 +1503,11 @@ kvp_value
     {
       $$ = $NUMBER;
     }
-  | TRUE
+  | TRUELIT
     {
       $$ = "true";
     }
-  | FALSE
+  | FALSELIT
     {
       $$ = "false";
     }

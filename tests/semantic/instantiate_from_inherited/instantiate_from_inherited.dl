@@ -1,0 +1,14 @@
+
+.comp _Model {
+  .comp _Inner {
+    R("Model.Inner").
+  }
+}
+
+.comp _Concrete : _Model {
+  .decl R(s:symbol)
+  .init Inner = _Inner
+}
+
+.init Concrete = _Concrete
+.output Concrete.R

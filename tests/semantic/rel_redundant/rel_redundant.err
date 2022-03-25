@@ -14,8 +14,8 @@ Warning: No rules/facts defined for relation eX in file rel_redundant.dl at line
 .decl eX(A:number, B:number)
 ------^----------------------
 Warning: Variable y only occurs once in file rel_redundant.dl at line 59
-cX(x)  :- aX(x), y=0.
------------------^----
+cX(x) :- aX(x), y=0.
+----------------^----
 Warning: Variable c only occurs once in file rel_redundant.dl at line 62
 outX(Y) :- dX(f,Y,f), fX(c), eX(a,b).
 -------------------------^------------

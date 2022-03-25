@@ -44,7 +44,7 @@ namespace souffle::ram::transform {
 using ExpressionPair = std::pair<Own<Expression>, Own<Expression>>;
 
 ExpressionPair MakeIndexTransformer::getExpressionPair(
-        const Constraint* binRelOp, std::size_t& element, int identifier) {
+        const Constraint* binRelOp, std::size_t& element, const std::optional<std::size_t>& identifier) {
     if (isLessEqual(binRelOp->getOperator())) {
         // Tuple[level, element] <= <expr>
         if (const auto* lhs = as<TupleElement>(binRelOp->getLHS())) {
@@ -87,12 +87,12 @@ ExpressionPair MakeIndexTransformer::getExpressionPair(
 
 // Retrieves the <expr1> <= Tuple[level, element] <= <expr2> part of the constraint as a pair { <expr1>,
 // <expr2> }
-ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
-        Condition* c, std::size_t& element, int identifier, RelationRepresentation rep) {
+ExpressionPair MakeIndexTransformer::getLowerUpperExpression(Condition* c, std::size_t& element,
+        const std::optional<std::size_t>& identifier, RelationRepresentation rep) {
     if (auto* binRelOp = as<Constraint>(c)) {
         bool interpreter = !Global::config().has("compile") && !Global::config().has("dl-program") &&
                            !Global::config().has("generate") && !Global::config().has("swig");
-        bool provenance = Global::config().has("provenance");
+        bool provenance = rep == RelationRepresentation::PROVENANCE;
         bool btree = (rep == RelationRepresentation::BTREE || rep == RelationRepresentation::DEFAULT ||
                       rep == RelationRepresentation::BTREE_DELETE);
         auto op = binRelOp->getOperator();
@@ -139,7 +139,7 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(
 }
 
 Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::string>& attributeTypes,
-        RamPattern& queryPattern, bool& indexable, VecOwn<Condition> conditionList, int identifier,
+        RamPattern& queryPattern, bool& indexable, VecOwn<Condition> conditionList, std::size_t identifier,
         RelationRepresentation rep) {
     // Remaining conditions which cannot be handled by an index
     Own<Condition> condition;
@@ -405,9 +405,9 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
 Own<Operation> MakeIndexTransformer::rewriteAggregate(const Aggregate* agg) {
     if (!isA<True>(agg->getCondition())) {
         const Relation& rel = relAnalysis->lookup(agg->getRelation());
-        int identifier = agg->getTupleId();
+        std::size_t identifier = agg->getTupleId();
         RamPattern queryPattern;
-        for (unsigned int i = 0; i < rel.getArity(); ++i) {
+        for (std::size_t i = 0; i < rel.getArity(); ++i) {
             queryPattern.first.push_back(mk<UndefValue>());
             queryPattern.second.push_back(mk<UndefValue>());
         }
@@ -427,9 +427,9 @@ Own<Operation> MakeIndexTransformer::rewriteAggregate(const Aggregate* agg) {
 Own<Operation> MakeIndexTransformer::rewriteScan(const Scan* scan) {
     if (const auto* filter = as<Filter>(scan->getOperation())) {
         const Relation& rel = relAnalysis->lookup(scan->getRelation());
-        const int identifier = scan->getTupleId();
+        const std::size_t identifier = scan->getTupleId();
         RamPattern queryPattern;
-        for (unsigned int i = 0; i < rel.getArity(); ++i) {
+        for (std::size_t i = 0; i < rel.getArity(); ++i) {
             queryPattern.first.push_back(mk<UndefValue>());
             queryPattern.second.push_back(mk<UndefValue>());
         }
@@ -452,7 +452,7 @@ Own<Operation> MakeIndexTransformer::rewriteScan(const Scan* scan) {
 Own<Operation> MakeIndexTransformer::rewriteIndexScan(const IndexScan* iscan) {
     if (const auto* filter = as<Filter>(iscan->getOperation())) {
         const Relation& rel = relAnalysis->lookup(iscan->getRelation());
-        const int identifier = iscan->getTupleId();
+        const std::size_t identifier = iscan->getTupleId();
 
         RamPattern strengthenedPattern;
         strengthenedPattern.first = clone(iscan->getRangePattern().first);

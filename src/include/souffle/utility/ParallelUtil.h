@@ -48,14 +48,28 @@ constexpr std::size_t hardware_destructive_interference_size = 2 * sizeof(max_al
 #include <sched.h>
 // pthread_yield is deprecated and should be replaced by sched_yield
 #define pthread_yield sched_yield
+#elif defined _MSC_VER
+#include <thread>
+#define NOMINMAX
+#include <windows.h>
+#define pthread_yield std::this_thread::yield
 #endif
 
+#ifdef _MSC_VER
+// support for a parallel region
+#define PARALLEL_START __pragma(omp parallel) {
+#define PARALLEL_END }
+
+// support for parallel loops
+#define pfor __pragma(omp for schedule(dynamic)) for
+#else
 // support for a parallel region
 #define PARALLEL_START _Pragma("omp parallel") {
 #define PARALLEL_END }
 
 // support for parallel loops
 #define pfor _Pragma("omp for schedule(dynamic)") for
+#endif
 
 // spawn and sync are processed sequentially (overhead to expensive)
 #define task_spawn
@@ -221,10 +235,14 @@ public:
 namespace detail {
 
 /* Pause instruction to prevent excess processor bus usage */
+#if defined _MSC_VER
+#define cpu_relax() YieldProcessor()
+#else
 #ifdef __x86_64__
 #define cpu_relax() asm volatile("pause\n" : : : "memory")
 #else
 #define cpu_relax() asm volatile("" : : : "memory")
+#endif
 #endif
 
 /**

@@ -41,7 +41,7 @@ void ValueIndex::addVarReference(std::string varName, const Location& l) {
     locs.insert(l);
 }
 
-void ValueIndex::addVarReference(std::string varName, int ident, int pos) {
+void ValueIndex::addVarReference(std::string varName, std::size_t ident, std::size_t pos) {
     addVarReference(varName, Location({ident, pos}));
 }
 
@@ -65,7 +65,7 @@ const Location& ValueIndex::getGeneratorLoc(const ast::Argument& arg) const {
     return generatorDefinitionPoints.at(&arg);
 }
 
-void ValueIndex::setRecordDefinition(const ast::RecordInit& init, int ident, int pos) {
+void ValueIndex::setRecordDefinition(const ast::RecordInit& init, std::size_t ident, std::size_t pos) {
     recordDefinitionPoints.insert({&init, Location({ident, pos})});
 }
 
@@ -74,7 +74,7 @@ const Location& ValueIndex::getDefinitionPoint(const ast::RecordInit& init) cons
     return recordDefinitionPoints.at(&init);
 }
 
-void ValueIndex::setAdtDefinition(const ast::BranchInit& adt, int ident, int pos) {
+void ValueIndex::setAdtDefinition(const ast::BranchInit& adt, std::size_t ident, std::size_t pos) {
     adtDefinitionPoints.insert({&adt, Location({ident, pos})});
 }
 
@@ -83,13 +83,13 @@ const Location& ValueIndex::getDefinitionPoint(const ast::BranchInit& adt) const
     return adtDefinitionPoints.at(&adt);
 }
 
-bool ValueIndex::isGenerator(const int level) const {
+bool ValueIndex::isGenerator(const std::size_t level) const {
     // check for aggregator definitions
     return any_of(generatorDefinitionPoints,
             [&level](const auto& location) { return location.second.identifier == level; });
 }
 
-bool ValueIndex::isSomethingDefinedOn(int level) const {
+bool ValueIndex::isSomethingDefinedOn(std::size_t level) const {
     // check for variable definitions
     for (const auto& cur : varReferencePoints) {
         if (cur.second.begin()->identifier == level) {

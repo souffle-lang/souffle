@@ -7,6 +7,7 @@
 # Make sure that the functor library is built
 add_subdirectory(functors)
 add_subdirectory(graph_coloring)
+add_subdirectory(pathseq)
 
 # swig test which will run python, java or both
 function(SOUFFLE_POSITIVE_FUNCTOR_TEST TEST_NAME)
@@ -23,24 +24,63 @@ function(SOUFFLE_RUN_CPP_TEST)
         ${ARGV}
     )
 
+  set(ADDITIONNAL_FLAGS)
 
-    add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_compile_cpp
-             COMMAND sh -c "set -e; '${CMAKE_CXX_COMPILER}' --std=c++17 -D__EMBEDDED_SOUFFLE__  '-I${CMAKE_SOURCE_DIR}/src/include' '${TEST_NAME}.cpp' '${PARAM_INPUT_DIR}/driver.cpp' -o '${TEST_NAME}'")
-    set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_compile_cpp PROPERTIES
-                         WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
-                         LABELS "${PARAM_TEST_LABELS}"
-                         FIXTURES_SETUP ${PARAM_FIXTURE_NAME}_compile_cpp
-                         FIXTURES_REQUIRED ${PARAM_FIXTURE_NAME}_run_souffle
-                        )
+  if (OPENMP_FOUND)
+    list(APPEND ADDITIONNAL_FLAGS ${OpenMP_CXX_FLAGS})
+  endif()
 
-    add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_run_cpp
-            COMMAND sh -c "set -e; './${TEST_NAME}' '${FACTS_DIR}' > '${TEST_NAME}.out' 2> '${TEST_NAME}.err'")
-    set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_cpp PROPERTIES
-                         WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
-                         LABELS "${PARAM_TEST_LABELS}"
-                         FIXTURES_SETUP ${PARAM_FIXTURE_NAME}_run_cpp
-                         FIXTURES_REQUIRED ${PARAM_FIXTURE_NAME}_compile_cpp
-                        )
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+      list(APPEND ADDITIONNAL_FLAGS "-lstdc++fs")
+    endif ()
+  endif()
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(OUTNAME ${TEST_NAME})
+    set(OUT_OPTION "-o" "${TEST_NAME}")
+  elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(OUTNAME "${TEST_NAME}.exe")
+    set(OUT_OPTION "/Fe:${TEST_NAME}")
+    list(APPEND ADDITIONNAL_FLAGS "/Zc:preprocessor")
+    list(APPEND ADDITIONNAL_FLAGS "/permissive-")
+    list(APPEND ADDITIONNAL_FLAGS "/EHsc")
+    list(APPEND ADDITIONNAL_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
+    list(APPEND ADDITIONNAL_FLAGS "/nologo")
+  endif ()
+
+  # compilation
+  add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_compile_cpp
+    COMMAND
+      ${CMAKE_CXX_COMPILER}
+      ${CMAKE_CXX17_STANDARD_COMPILE_OPTION}
+      ${OUT_OPTION}
+      -D__EMBEDDED_SOUFFLE__
+      "-I${CMAKE_SOURCE_DIR}/src/include"
+      "${TEST_NAME}.cpp"
+      "${PARAM_INPUT_DIR}/driver.cpp"
+      ${ADDITIONNAL_FLAGS})
+
+  set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_compile_cpp PROPERTIES
+    WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
+    LABELS "${PARAM_TEST_LABELS}"
+    FIXTURES_SETUP ${PARAM_FIXTURE_NAME}_compile_cpp
+    FIXTURES_REQUIRED ${PARAM_FIXTURE_NAME}_run_souffle)
+
+  # execution
+  add_test(NAME ${PARAM_QUALIFIED_TEST_NAME}_run_cpp
+    COMMAND
+    ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cmake/redirect.py
+      --out "${TEST_NAME}.out"
+      --err "${TEST_NAME}.err"
+      "${OUTNAME}" "${FACTS_DIR}")
+
+  set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_cpp PROPERTIES
+    WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
+    LABELS "${PARAM_TEST_LABELS}"
+    FIXTURES_SETUP ${PARAM_FIXTURE_NAME}_run_cpp
+    FIXTURES_REQUIRED ${PARAM_FIXTURE_NAME}_compile_cpp
+    )
 endfunction()
 
 function(SOUFFLE_RUN_CPP_TEST_HELPER)
@@ -62,6 +102,12 @@ function(SOUFFLE_RUN_CPP_TEST_HELPER)
     set(FIXTURE_NAME ${QUALIFIED_TEST_NAME}_fixture)
     set(TEST_LABELS "positive;integration")
 
+    set(PP_FLAGS)
+    if (MSVC)
+      list(APPEND PP_FLAGS "--preprocessor" "cl -nologo -TC -E")
+    endif()
+
+
     souffle_setup_integration_test_dir(TEST_NAME ${PARAM_TEST_NAME}
                                        QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
                                        DATA_CHECK_DIR ${INPUT_DIR}
@@ -76,7 +122,7 @@ function(SOUFFLE_RUN_CPP_TEST_HELPER)
                                  OUTPUT_DIR ${OUTPUT_DIR}
                                  FIXTURE_NAME ${FIXTURE_NAME}
                                  TEST_LABELS "${TEST_LABELS}"
-                                 SOUFFLE_PARAMS "-g '${OUTPUT_DIR}/${TEST_NAME}.cpp'")
+                                 SOUFFLE_PARAMS "-g" "${OUTPUT_DIR}/${TEST_NAME}.cpp" ${PP_FLAGS})
 
     souffle_run_cpp_test(TEST_NAME ${PARAM_TEST_NAME}
                          QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
@@ -108,6 +154,7 @@ function(SOUFFLE_POSITIVE_CPP_TEST TEST_NAME)
 endfunction()
 
 souffle_positive_functor_test(functors CATEGORY interface)
+souffle_positive_functor_test(pathseq CATEGORY interface)
 souffle_positive_functor_test(graph_coloring CATEGORY interface)
 souffle_positive_cpp_test(contain_insert)
 souffle_positive_cpp_test(get_symboltabletype)

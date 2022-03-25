@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace souffle::ast::analysis {
@@ -45,7 +46,7 @@ public:
      * @param clause clause to reorder
      * @return the vector of new positions; v[i] = j iff atom j moves to pos i
      */
-    std::vector<unsigned int> getReordering(const Clause* clause) const;
+    std::vector<std::size_t> getReordering(const Clause* clause) const;
 
     /** Create a SIPS metric based on a given heuristic. */
     static std::unique_ptr<SipsMetric> create(const std::string& heuristic, const TranslationUnit& tu);
@@ -100,17 +101,6 @@ protected:
             const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
 };
 
-/** Goal: prioritise (1) all-bound, then (2) max number of bound vars, then (3) left-most, but use deltas as a
- * tiebreaker between these. */
-class MaxBoundDeltaSips : public SipsMetric {
-public:
-    MaxBoundDeltaSips() = default;
-
-protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
-};
-
 /** Goal: prioritise max ratio of bound args */
 class MaxRatioSips : public SipsMetric {
 public:
@@ -158,35 +148,10 @@ private:
     const analysis::ProfileUseAnalysis& profileUse;
 };
 
-/** Goal: prioritise (1) all-bound, then (2) deltas, and then (3) left-most */
-class DeltaSips : public SipsMetric {
-public:
-    DeltaSips() = default;
-
-protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
-};
-
 /** Goal: prioritise (1) all-bound, then (2) input, and then (3) left-most */
 class InputSips : public SipsMetric {
 public:
     InputSips(const Program& program, const analysis::IOTypeAnalysis& ioTypes)
-            : program(program), ioTypes(ioTypes) {}
-
-protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
-
-private:
-    const Program& program;
-    const analysis::IOTypeAnalysis& ioTypes;
-};
-
-/** Goal: prioritise (1) all-bound, then (2) deltas, then (3) input, and then (4) left-most */
-class DeltaInputSips : public SipsMetric {
-public:
-    DeltaInputSips(const Program& program, const analysis::IOTypeAnalysis& ioTypes)
             : program(program), ioTypes(ioTypes) {}
 
 protected:

@@ -59,7 +59,7 @@ private:
     std::map<std::string, const ram::Relation*> relationMap;
 
     /** Symbol map */
-    mutable std::map<std::string, unsigned> symbolMap;
+    mutable std::map<std::string, std::size_t> symbolMap;
 
     /** Symbol map */
     mutable std::vector<std::string> symbolIndex;

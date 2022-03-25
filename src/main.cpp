@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "Global.h"
+#include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
@@ -91,8 +92,10 @@
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
 #include "souffle/RamTypes.h"
+#ifndef _MSC_VER
 #include "souffle/profile/Tui.h"
 #include "souffle/provenance/Explain.h"
+#endif
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -128,11 +131,27 @@ namespace souffle {
     std::map<char const*, std::string> env;
     if (Global::config().has("library-dir")) {
         auto escapeLdPath = [](auto&& xs) { return escape(xs, {':', ' '}, "\\"); };
-        auto ld_path = toString(join(map(Global::config().getMany("library-dir"), escapeLdPath), ":"));
+        auto ld_path = toString(join(
+                map(Global::config().getMany("library-dir"), escapeLdPath), std::string(1, PATHdelimiter)));
+#if defined(_MSC_VER)
+        std::size_t l;
+        std::wstring env_path(ld_path.length() + 1, L' ');
+        ::mbstowcs_s(&l, env_path.data(), env_path.size(), ld_path.data(), ld_path.size());
+        env_path.resize(l - 1);
 
-        env["LD_LIBRARY_PATH"] = ld_path;
-#ifdef __APPLE__
+        DWORD n = GetEnvironmentVariableW(L"PATH", nullptr, 0);
+        if (n > 0) {
+            // append path
+            std::unique_ptr<wchar_t[]> orig(new wchar_t[n]);
+            GetEnvironmentVariableW(L"PATH", orig.get(), n);
+            env_path = env_path + L";" + std::wstring(orig.get());
+        }
+        SetEnvironmentVariableW(L"PATH", env_path.c_str());
+
+#elif defined(__APPLE__)
         env["DYLD_LIBRARY_PATH"] = ld_path;
+#else
+        env["LD_LIBRARY_PATH"] = ld_path;
 #endif
     }
 
@@ -152,6 +171,14 @@ namespace souffle {
  */
 void compileToBinary(const std::string& command, std::string_view sourceFilename) {
     std::vector<std::string> argv;
+
+    argv.push_back(command);
+
+#ifndef NDEBUG
+    // compile with debug
+    argv.push_back("-g");
+#endif
+
     if (Global::config().has("swig")) {
         argv.push_back("-s");
         argv.push_back(Global::config().get("swig"));
@@ -174,8 +201,13 @@ void compileToBinary(const std::string& command, std::string_view sourceFilename
 
     argv.push_back(std::string(sourceFilename));
 
-    auto exit = execute(command, argv);
-    if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <%s>", command));
+#if defined(_MSC_VER)
+    const char* interpreter = "python";
+#else
+    const char* interpreter = "python3";
+#endif
+    auto exit = execute(interpreter, argv);
+    if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <python3 %s>", command));
     if (exit != 0)
         throw std::invalid_argument(tfm::format("failed to compile C++ source <%s>", sourceFilename));
 }
@@ -266,7 +298,8 @@ int main(int argc, char** argv) {
                         "\ttype-analysis"},
                 {"parse-errors", '\5', "", "", false, "Show parsing errors, if any, then exit."},
                 {"help", 'h', "", "", false, "Display this help message."},
-                {"legacy", '\6', "", "", false, "Enable legacy support."}};
+                {"legacy", '\6', "", "", false, "Enable legacy support."},
+                {"preprocessor", '\7', "CMD", "", false, "C preprocessor to use."}};
         Global::config().processArgs(argc, argv, header.str(), footer.str(), options);
 
         // ------ command line arguments -------------
@@ -383,28 +416,48 @@ int main(int argc, char** argv) {
 
     // ------ start souffle -------------
 
-    std::string souffleExecutable = which(argv[0]);
+    const std::string souffleExecutable = which(argv[0]);
 
     if (souffleExecutable.empty()) {
         throw std::runtime_error("failed to determine souffle executable path");
     }
 
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = which("mcpp");
 
-    if (!isExecutable(cmd)) {
-        throw std::runtime_error("failed to locate mcpp pre-processor");
+    std::string cmd;
+
+    if (Global::config().has("preprocessor")) {
+        cmd = Global::config().get("preprocessor");
+    } else {
+        cmd = which("mcpp");
+        if (isExecutable(cmd)) {
+            cmd += " -e utf8 -W0";
+        } else {
+            cmd = which("gcc");
+            if (isExecutable(cmd)) {
+                cmd += " -x c -E";
+            } else {
+                std::cerr << "failed to locate mcpp or gcc pre-processors\n";
+                throw std::runtime_error("failed to locate mcpp or gcc pre-processors");
+            }
+        }
     }
 
-    cmd += " -e utf8 -W0 ";
-    cmd += toString(join(Global::config().getMany("include-dir"), " ",
-            [&](auto&& os, auto&& dir) { tfm::format(os, "'-I%s'", dir); }));
+    cmd += " " + toString(join(Global::config().getMany("include-dir"), " ",
+                         [&](auto&& os, auto&& dir) { tfm::format(os, "-I \"%s\"", dir); }));
+
     if (Global::config().has("macro")) {
         cmd += " " + Global::config().get("macro");
     }
     // Add RamDomain size as a macro
     cmd += " -DRAM_DOMAIN_SIZE=" + std::to_string(RAM_DOMAIN_SIZE);
-    cmd += " '" + Global::config().get("") + "'";
+    cmd += " \"" + Global::config().get("") + "\"";
+#if defined(_MSC_VER)
+    // cl.exe prints the input file name on the standard error stream,
+    // we must silent it in order to preserve an empty error output
+    // because Souffle test-suite is sensible to error outputs.
+    cmd += " 2> nul";
+#endif
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -423,6 +476,10 @@ int main(int argc, char** argv) {
     if (preprocessor_status == -1) {
         perror(nullptr);
         throw std::runtime_error("failed to close pre-processor pipe");
+    } else if (preprocessor_status != 0) {
+        std::cerr << "Pre-processors command failed with code " << preprocessor_status << ": '" << cmd
+                  << "'\n";
+        throw std::runtime_error("Pre-processor command failed");
     }
 
     /* Report run-time of the parser if verbose flag is set */
@@ -442,7 +499,7 @@ int main(int argc, char** argv) {
         }
 
         std::cout << astTranslationUnit->getErrorReport();
-        return astTranslationUnit->getErrorReport().getNumErrors();
+        return static_cast<int>(astTranslationUnit->getErrorReport().getNumErrors());
     }
 
     // ------- check for parse errors -------------
@@ -661,7 +718,7 @@ int main(int argc, char** argv) {
     const bool must_interpret =
             !execute_mode && !compile_mode && !generate_mode && !Global::config().has("swig");
     const bool must_execute = execute_mode;
-    const bool must_compile = must_execute || compile_mode;
+    const bool must_compile = must_execute || compile_mode || Global::config().has("swig");
 
     try {
         if (must_interpret) {
@@ -670,7 +727,11 @@ int main(int argc, char** argv) {
             std::thread profiler;
             // Start up profiler if needed
             if (Global::config().has("live-profile")) {
+#ifdef _MSC_VER
+                throw("No live-profile on Windows\n.");
+#else
                 profiler = std::thread([]() { profile::Tui().runProf(); });
+#endif
             }
 
             // configure and execute interpreter
@@ -681,6 +742,9 @@ int main(int argc, char** argv) {
                 profiler.join();
             }
             if (Global::config().has("provenance")) {
+#ifdef _MSC_VER
+                throw("No explain/explore provenance on Windows\n.");
+#else
                 // only run explain interface if interpreted
                 interpreter::ProgInterface interface(*interpreter);
                 if (Global::config().get("provenance") == "explain") {
@@ -688,6 +752,7 @@ int main(int argc, char** argv) {
                 } else if (Global::config().get("provenance") == "explore") {
                     explain(interface, true);
                 }
+#endif
             }
         } else {
             // ------- compiler -------------
@@ -726,6 +791,7 @@ int main(int argc, char** argv) {
             else {
                 std::ofstream os{sourceFilename};
                 synthesiser->generateCode(os, baseIdentifier, withSharedLibrary);
+                os.close();
             }
             if (Global::config().has("verbose")) {
                 auto synthesisEnd = std::chrono::high_resolution_clock::now();
@@ -744,12 +810,11 @@ int main(int argc, char** argv) {
 
             if (must_compile) {
                 /* Fail if a souffle-compile executable is not found */
-                auto souffle_compile = findTool("souffle-compile", souffleExecutable, ".");
-                if (!isExecutable(souffle_compile))
-                    throw std::runtime_error("failed to locate souffle-compile");
+                const auto souffle_compile = findTool("souffle-compile.py", souffleExecutable, ".");
+                if (!souffle_compile) throw std::runtime_error("failed to locate souffle-compile.py");
 
                 auto t_bgn = std::chrono::high_resolution_clock::now();
-                compileToBinary(souffle_compile, sourceFilename);
+                compileToBinary(*souffle_compile, sourceFilename);
                 auto t_end = std::chrono::high_resolution_clock::now();
 
                 if (Global::config().has("verbose")) {
@@ -760,7 +825,11 @@ int main(int argc, char** argv) {
 
             // run compiled C++ program if requested.
             if (must_execute) {
-                executeBinaryAndExit(baseFilename);
+                std::string binaryFilename = baseFilename;
+#if defined(_MSC_VER)
+                binaryFilename += ".exe";
+#endif
+                executeBinaryAndExit(binaryFilename);
             }
         }
     } catch (std::exception& e) {

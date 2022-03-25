@@ -23,9 +23,8 @@ namespace souffle::synthesiser {
 
 class Relation {
 public:
-    Relation(const ram::Relation& rel, const ram::analysis::IndexCluster& indexSelection,
-            const bool isProvenance = false)
-            : relation(rel), indexSelection(indexSelection), isProvenance(isProvenance) {}
+    Relation(const ram::Relation& rel, const ram::analysis::IndexCluster& indexSelection)
+            : relation(rel), indexSelection(indexSelection) {}
 
     virtual ~Relation() = default;
 
@@ -49,7 +48,7 @@ public:
         return computedIndices;
     }
 
-    std::set<int> getProvenenceIndexNumbers() const {
+    std::set<std::size_t> getProvenenceIndexNumbers() const {
         return provenanceIndexNumbers;
     }
 
@@ -63,14 +62,14 @@ public:
 
     /** Helper function to convert attribute types to a single string */
     std::string getTypeAttributeString(const std::vector<std::string>& attributeTypes,
-            const std::unordered_set<uint32_t>& attributesUsed) const;
+            const std::unordered_set<std::size_t>& attributesUsed) const;
 
     /** Generate relation type struct */
     virtual void generateTypeStruct(std::ostream& out) = 0;
 
     /** Factory method to generate a SynthesiserRelation */
-    static Own<Relation> getSynthesiserRelation(const ram::Relation& ramRel,
-            const ram::analysis::IndexCluster& indexSelection, bool isProvenance);
+    static Own<Relation> getSynthesiserRelation(
+            const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection);
 
 protected:
     /** Ram relation referred to by this */
@@ -86,20 +85,16 @@ protected:
     ram::analysis::OrderCollection computedIndices;
 
     /** The list of indices added for provenance computation */
-    std::set<int> provenanceIndexNumbers;
+    std::set<std::size_t> provenanceIndexNumbers;
 
     /** The number of the master index */
     std::size_t masterIndex = -1;
-
-    /** Is this relation used with provenance */
-    const bool isProvenance;
 };
 
 class NullaryRelation : public Relation {
 public:
-    NullaryRelation(
-            const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection, bool isProvenance)
-            : Relation(ramRel, indexSelection, isProvenance) {}
+    NullaryRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection)
+            : Relation(ramRel, indexSelection) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
@@ -108,9 +103,8 @@ public:
 
 class InfoRelation : public Relation {
 public:
-    InfoRelation(
-            const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection, bool isProvenance)
-            : Relation(ramRel, indexSelection, isProvenance) {}
+    InfoRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection)
+            : Relation(ramRel, indexSelection) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
@@ -121,21 +115,21 @@ class DirectRelation : public Relation {
 public:
     DirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection,
             bool isProvenance, bool hasErase)
-            : Relation(ramRel, indexSelection, isProvenance), hasErase(hasErase) {}
+            : Relation(ramRel, indexSelection), isProvenance(isProvenance), hasErase(hasErase) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
 
 private:
+    const bool isProvenance;
     const bool hasErase;
 };
 
 class IndirectRelation : public Relation {
 public:
-    IndirectRelation(
-            const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection, bool isProvenance)
-            : Relation(ramRel, indexSelection, isProvenance) {}
+    IndirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection)
+            : Relation(ramRel, indexSelection) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
@@ -144,9 +138,8 @@ public:
 
 class BrieRelation : public Relation {
 public:
-    BrieRelation(
-            const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection, bool isProvenance)
-            : Relation(ramRel, indexSelection, isProvenance) {}
+    BrieRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection)
+            : Relation(ramRel, indexSelection) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
@@ -155,9 +148,8 @@ public:
 
 class EqrelRelation : public Relation {
 public:
-    EqrelRelation(
-            const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection, bool isProvenance)
-            : Relation(ramRel, indexSelection, isProvenance) {}
+    EqrelRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection)
+            : Relation(ramRel, indexSelection) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
