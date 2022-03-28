@@ -62,6 +62,7 @@
 #include "ram/Node.h"
 #include "ram/NumericConstant.h"
 #include "ram/Operation.h"
+#include "ram/OperationSequence.h"
 #include "ram/PackRecord.h"
 #include "ram/Parallel.h"
 #include "ram/ParallelAggregate.h"
@@ -179,6 +180,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         // Control-flow
         SOUFFLE_VISITOR_FORWARD(Program);
         SOUFFLE_VISITOR_FORWARD(Sequence);
+        SOUFFLE_VISITOR_FORWARD(OperationSequence);
         SOUFFLE_VISITOR_FORWARD(Loop);
         SOUFFLE_VISITOR_FORWARD(Parallel);
         SOUFFLE_VISITOR_FORWARD(Exit);
@@ -244,6 +246,8 @@ protected:
     SOUFFLE_VISITOR_LINK(Break, AbstractConditional);
     SOUFFLE_VISITOR_LINK(AbstractConditional, NestedOperation);
     SOUFFLE_VISITOR_LINK(NestedOperation, Operation);
+
+    SOUFFLE_VISITOR_LINK(OperationSequence, Operation);
 
     SOUFFLE_VISITOR_LINK(Operation, Node);
 
