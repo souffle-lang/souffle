@@ -174,11 +174,6 @@ void compileToBinary(const std::string& command, std::string_view sourceFilename
 
     argv.push_back(command);
 
-#ifndef NDEBUG
-    // compile with debug
-    argv.push_back("-g");
-#endif
-
     if (Global::config().has("swig")) {
         argv.push_back("-s");
         argv.push_back(Global::config().get("swig"));
