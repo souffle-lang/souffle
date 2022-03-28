@@ -76,6 +76,13 @@ protected:
             const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation,
             const std::string& checkRelation, int insertTupleCount) const;
 
+    /** Special merge functions for handling actual_diff_minus/actual_diff_plus
+     * along with updated_diff_minus/updated_diff_plus in a recursive stratum
+     * */
+    Own<ram::Statement> generateMergeRelationsActualDiffUpdated(
+            const ast::Relation* rel, const std::string& toUpdateRelation,
+            const std::string& checkRelation, const std::string& updatedRelation, int insertTupleCount) const;
+
     /** Method to get update subroutines generated during translation */
     std::map<std::string, Own<ram::Statement>>& getRamSubroutines();
 

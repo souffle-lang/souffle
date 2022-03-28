@@ -392,6 +392,72 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
     return stmt;
 }
 
+Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
+        const ast::Relation* rel, const std::string& toUpdateRelation,
+        const std::string& checkRelation, const std::string& updatedRelation, int insertTupleCount) const {
+
+    // For some relation R, this method generates a merge that is as follows:
+    //
+    // FOR t0 IN toUpdateRelation:
+    //   IF t0.iter < iternum():
+    //     FOR t1 IN checkRelation:
+    //       IF t1.payload = t0.payload AND t1.iter = iternum() AND t1.count > 0:
+    //         INSERT t0.payload, t0.iter, 0 INTO toUpdateRelation
+    //         INSERT t0 INTO updatedRelation
+
+    // Create insertion
+    VecOwn<ram::Expression> toUpdateValues;
+    VecOwn<ram::Expression> updatedValues;
+
+    for (std::size_t i = 0; i < rel->getArity() + 1; i++) {
+        toUpdateValues.push_back(mk<ram::TupleElement>(0, i));
+    }
+    toUpdateValues.push_back(mk<ram::SignedConstant>(insertTupleCount));
+
+    for (std::size_t i = 0; i < rel->getArity(); i++) {
+        updatedValues.push_back(mk<ram::TupleElement>(0, i));
+    }
+    updatedValues.push_back(mk<ram::IterationNumber>());
+    updatedValues.push_back(mk<ram::SignedConstant>(1));
+
+    // TODO: continue from here!!
+    //
+    Own<ram::Operation> op = mk<ram::Insert>(destRelation, std::move(values));
+
+    // Create filter for checking in checkRelation
+    Own<ram::Condition> existenceCond;
+    for (size_t i = 0; i < rel->getArity(); i++) {
+        existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
+                    BinaryConstraintOp::EQ,
+                    mk<ram::TupleElement>(0, i),
+                    mk<ram::TupleElement>(1, i)));
+    }
+
+    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
+                BinaryConstraintOp::LE,
+                mk<ram::TupleElement>(1, rel->getArity() + 1),
+                mk<ram::IterationNumber>()));
+
+    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
+                BinaryConstraintOp::GT,
+                mk<ram::TupleElement>(1, rel->getArity() + 2),
+                mk<ram::SignedConstant>(0)));
+
+    op = mk<ram::IfNotExists>(checkRelation, 1, std::move(existenceCond), std::move(op));
+
+    // Create filter for iternum
+    op = mk<ram::Filter>(mk<ram::Constraint>(
+                BinaryConstraintOp::EQ,
+                mk<ram::TupleElement>(0, rel->getArity() + 1),
+                mk<ram::IterationNumber>()),
+            std::move(op));
+
+    // Create outer scan
+    auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(op)));
+
+    return stmt;
+}
+
 Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnTrue() const {
     VecOwn<ram::Expression> returnTrue;
     returnTrue.push_back(mk<ram::SignedConstant>(1));
