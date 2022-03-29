@@ -162,6 +162,13 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
                 std::string newDiffMinusName = getNewDiffMinusRelationName(rel->getQualifiedName());
                 ramRelations.push_back(createRamRelation(rel, newDiffMinusName));
 
+                // Add updated versions of the above
+                std::string updatedDiffPlusName = getUpdatedDiffPlusRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, updatedDiffPlusName));
+
+                std::string updatedDiffMinusName = getUpdatedDiffMinusRelationName(rel->getQualifiedName());
+                ramRelations.push_back(createRamRelation(rel, updatedDiffMinusName));
+
                 std::string newPrevName = getNewPrevRelationName(rel->getQualifiedName());
                 ramRelations.push_back(createRamRelation(rel, newPrevName));
 

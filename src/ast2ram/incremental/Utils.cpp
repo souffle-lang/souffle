@@ -41,6 +41,14 @@ std::string getActualDiffMinusRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@actual_diff_minus_");
 }
 
+std::string getUpdatedDiffPlusRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@updated_diff_plus_");
+}
+
+std::string getUpdatedDiffMinusRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@updated_diff_minus_");
+}
+
 std::string getNewDiffPlusRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@new_diff_plus_");
 }

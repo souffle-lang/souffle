@@ -36,6 +36,11 @@ std::string getDiffMinusRelationName(const ast::QualifiedName& name);
 std::string getActualDiffPlusRelationName(const ast::QualifiedName& name);
 std::string getActualDiffMinusRelationName(const ast::QualifiedName& name);
 
+/** Get updated versions of diff_plus/diff_minus to handle cases where tuples
+ * are deleted/inserted earlier but exist in the current iteration */
+std::string getUpdatedDiffPlusRelationName(const ast::QualifiedName& name);
+std::string getUpdatedDiffMinusRelationName(const ast::QualifiedName& name);
+
 /** Get new versions of the above for recursive relations */
 std::string getNewDiffPlusRelationName(const ast::QualifiedName& name);
 std::string getNewDiffMinusRelationName(const ast::QualifiedName& name);
