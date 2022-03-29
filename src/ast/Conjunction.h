@@ -27,7 +27,7 @@ namespace souffle::ast {
  * @brief Conjunction of two literals
  *
  * Example:
- *     A \/ B.
+ *     A /\ B.
  *
  * where A and B are literals.
  */

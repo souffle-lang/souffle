@@ -17,6 +17,8 @@
 #include "ast/BinaryConstraint.h"
 #include "ast/BooleanConstraint.h"
 #include "ast/Clause.h"
+#include "ast/Conjunction.h"
+#include "ast/Disjunction.h"
 #include "ast/Literal.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
@@ -67,43 +69,36 @@ bool isValidRecordConstraint(const Literal& literal) {
 /**
  * Expand constraint on records position-wise.
  *
- * eg.  `[1, 2, 3]  = [a, b, c]` => `1  = a, 2  = b, 3  = c`
- *      `[x, y, z] != [a, b, c]` => `x != a, x != b, z != c`
+ * eg.  `[1, 2, 3]  = [a, b, c]` => `1  = a /\ 2  = b /\ 3  = c`
+ *      `[x, y, z] != [a, b, c]` => `x != a \/ x != b \/ z != c`
  *
  * Procedure assumes that argument has a valid operation,
  * that children are of type RecordInit and that the size
  * of both sides is the same
  */
-VecOwn<Literal> expandRecordBinaryConstraint(const BinaryConstraint& constraint) {
-    VecOwn<Literal> replacedContraint;
-
+Own<Literal> expandRecordConstraint(const BinaryConstraint& constraint) {
     const auto* left = as<RecordInit>(constraint.getLHS());
     const auto* right = as<RecordInit>(constraint.getRHS());
-    assert(left != nullptr && "Non-record passed to record method");
-    assert(right != nullptr && "Non-record passed to record method");
 
     auto leftChildren = left->getArguments();
     auto rightChildren = right->getArguments();
 
     assert(leftChildren.size() == rightChildren.size());
 
+    Own<Literal> result = mk<BooleanConstraint>(true, constraint.getSrcLoc());
+
     // [a, b..] = [c, d...] → a = c, b = d ...
     for (std::size_t i = 0; i < leftChildren.size(); ++i) {
         auto newConstraint = mk<BinaryConstraint>(
                 constraint.getBaseOperator(), clone(leftChildren[i]), clone(rightChildren[i]));
-        replacedContraint.push_back(std::move(newConstraint));
-    }
-
-    // Handle edge case. Empty records.
-    if (leftChildren.size() == 0) {
         if (isEqConstraint(constraint.getBaseOperator())) {
-            replacedContraint.emplace_back(new BooleanConstraint(true));
+            result = mk<Disjunction>(std::move(result), std::move(newConstraint));
         } else {
-            replacedContraint.emplace_back(new BooleanConstraint(false));
+            result = mk<Conjunction>(std::move(result), std::move(newConstraint));
         }
     }
 
-    return replacedContraint;
+    return result;
 }
 }  // namespace
 
@@ -118,51 +113,9 @@ bool FoldAnonymousRecords::transform(TranslationUnit& translationUnit) {
     struct foldRecords : public NodeMapper {
         Own<Node> operator()(Own<Node> node) const override {
             node->apply(*this);
-            if (auto* aggr = as<Aggregator>(node)) {
-                bool containsFoldableRecord = false;
-                for (Literal* lit : aggr->getBodyLiterals()) {
-                    if (isValidRecordConstraint(*lit)) {
-                        containsFoldableRecord = true;
-                    }
-                }
-                if (containsFoldableRecord) {
-                    auto replacementAggregator = clone(aggr);
-                    VecOwn<Literal> newBody;
-                    for (Literal* lit : aggr->getBodyLiterals()) {
-                        if (!isValidRecordConstraint(*lit)) {
-                            newBody.push_back(clone(lit));
-                        } else {
-                            const BinaryConstraint* bc = as<BinaryConstraint>(lit);
-                            for (auto& c : expandRecordBinaryConstraint(*bc)) {
-                                newBody.push_back(std::move(c));
-                            }
-                        }
-                    }
-                    replacementAggregator->setBodyLiterals(std::move(newBody));
-                    return replacementAggregator;
-                }
-            } else if (auto* clause = as<Clause>(node)) {
-                bool containsFoldableRecord = false;
-                for (Literal* lit : clause->getBodyLiterals()) {
-                    if (isValidRecordConstraint(*lit)) {
-                        containsFoldableRecord = true;
-                    }
-                }
-                if (containsFoldableRecord) {
-                    auto replacementClause = clone(clause);
-                    VecOwn<Literal> newBody;
-                    for (Literal* lit : clause->getBodyLiterals()) {
-                        if (!isValidRecordConstraint(*lit)) {
-                            newBody.push_back(clone(lit));
-                        } else {
-                            const BinaryConstraint* bc = as<BinaryConstraint>(lit);
-                            for (auto& c : expandRecordBinaryConstraint(*bc)) {
-                                newBody.push_back(std::move(c));
-                            }
-                        }
-                    }
-                    replacementClause->setBodyLiterals(std::move(newBody));
-                    return replacementClause;
+            if (auto* constraint = as<BinaryConstraint>(node)) {
+                if (isValidRecordConstraint(*constraint)) {
+                    return expandRecordConstraint(*constraint);
                 }
             }
             return node;
