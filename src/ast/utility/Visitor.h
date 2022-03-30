@@ -40,7 +40,6 @@
 #include "ast/FunctorDeclaration.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/Literal.h"
-#include "ast/LiteralNegation.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
 #include "ast/Node.h"
@@ -104,7 +103,6 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(Negation)
         SOUFFLE_VISITOR_FORWARD(Disjunction)
         SOUFFLE_VISITOR_FORWARD(Conjunction)
-        SOUFFLE_VISITOR_FORWARD(LiteralNegation)
         SOUFFLE_VISITOR_FORWARD(BooleanConstraint)
         SOUFFLE_VISITOR_FORWARD(BinaryConstraint)
         SOUFFLE_VISITOR_FORWARD(FunctionalConstraint)
@@ -165,7 +163,6 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     SOUFFLE_VISITOR_LINK(Negation, Literal)
     SOUFFLE_VISITOR_LINK(Disjunction, Literal)
     SOUFFLE_VISITOR_LINK(Conjunction, Literal)
-    SOUFFLE_VISITOR_LINK(LiteralNegation, Literal)
     SOUFFLE_VISITOR_LINK(Literal, Node);
 
     SOUFFLE_VISITOR_LINK(BooleanConstraint, Constraint)
