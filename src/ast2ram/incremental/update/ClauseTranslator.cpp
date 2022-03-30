@@ -62,6 +62,9 @@ Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Cla
         this->diffVersion = diffVersion;
 
         appendStmt(result, seminaive::ClauseTranslator::translateNonRecursiveClause(clause));
+        std::cout << "after translating " << clause << ", diffVersion " << diffVersion << std::endl;
+        valueIndex->print(std::cout);
+        std::cout << std::endl;
     }
 
     this->diffVersion = 0;

@@ -510,12 +510,12 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
 
     existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
                 BinaryConstraintOp::EQ,
-                mk<ram::TupleElement>(1, rel->getArity() + 1),
+                mk<ram::TupleElement>(1, rel->getArity()),
                 mk<ram::IterationNumber>()));
 
     existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
                 BinaryConstraintOp::GT,
-                mk<ram::TupleElement>(1, rel->getArity() + 2),
+                mk<ram::TupleElement>(1, rel->getArity() + 1),
                 mk<ram::SignedConstant>(0)));
 
     op = mk<ram::Filter>(std::move(existenceCond), std::move(op));

@@ -27,7 +27,7 @@ namespace souffle::interpreter {
 Own<RelationWrapper> createIncrementalRelation(
         const ram::Relation& id, const ram::analysis::IndexCluster& indexSelection) {
     switch (id.getArity()) {
-        FOR_EACH_PROVENANCE(CREATE_INCREMENTAL_REL);
+        FOR_EACH_INCREMENTAL(CREATE_INCREMENTAL_REL);
 
         default: fatal("Requested arity not yet supported. Feel free to add it.");
     }

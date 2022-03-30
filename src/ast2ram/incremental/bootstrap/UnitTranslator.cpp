@@ -107,7 +107,7 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     attributeTypeQualifiers.push_back("i:number");
 
     return mk<ram::Relation>(
-            ramRelationName, arity + 2, 2, attributeNames, attributeTypeQualifiers, representation);
+            ramRelationName, arity + 2, 1, attributeNames, attributeTypeQualifiers, representation);
 }
 
 VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::size_t>& sccOrdering) const {

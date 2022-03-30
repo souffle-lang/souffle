@@ -52,6 +52,7 @@
 #include "ram/Negation.h"
 #include "ram/NestedIntrinsicOperator.h"
 #include "ram/NumericConstant.h"
+#include "ram/OperationSequence.h"
 #include "ram/PackRecord.h"
 #include "ram/Parallel.h"
 #include "ram/ParallelAggregate.h"
@@ -1078,6 +1079,15 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
             return result;
         ESAC(TupleOperation)
+
+        CASE(OperationSequence)
+            for (const auto& child : shadow.getChildren()) {
+                if (!execute(child.get(), ctxt)) {
+                    return false;
+                }
+            }
+            return true;
+        ESAC(OperationSequence)
 
 #define SCAN(Structure, Arity, ...)                                     \
     CASE(Scan, Structure, Arity)                                        \

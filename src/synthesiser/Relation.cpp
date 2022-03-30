@@ -136,7 +136,7 @@ void DirectRelation::computeIndices() {
         // we must expand all search orders to be full indices,
         // since weak/strong comparators and updaters need this,
         // and also add provenance annotations to the indices
-        if (isProvenance || isIncremental) {
+        if (isProvenance) {
             // expand index to be full
             for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
                 if (curIndexElems.find(i) == curIndexElems.end()) {
@@ -155,6 +155,28 @@ void DirectRelation::computeIndices() {
             // add provenance annotations to the index, but in reverse order
             ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
             ind.push_back(getArity() - relation.getAuxiliaryArity());
+            masterIndex = 0;
+        } else if (isIncremental) {
+            // expand index to be full
+            for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
+                if (curIndexElems.find(i) == curIndexElems.end()) {
+                    ind.push_back(i);
+                }
+            }
+            /*
+            // remove any provenance annotations already in the index order
+            if (curIndexElems.find(getArity() - relation.getAuxiliaryArity() + 1) != curIndexElems.end()) {
+                ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity() + 1));
+            }
+            */
+
+            if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
+                ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
+            }
+
+            // add provenance annotations to the index, but in reverse order
+            ind.push_back(getArity() - relation.getAuxiliaryArity());
+            // ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
             masterIndex = 0;
         } else if (ind.size() == getArity()) {
             masterIndex = index_nr;
@@ -340,7 +362,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
                 // index for bottom up phase
                 comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
-                genstruct(comparator_aux, ind.size() - auxiliaryArity + 1);
+                genstruct(comparator_aux, ind.size() - auxiliaryArity);
             } else {
                 // index for top down phase
                 comparator_aux = comparator;

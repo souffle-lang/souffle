@@ -54,6 +54,7 @@
 #include "ram/NestedOperation.h"
 #include "ram/Node.h"
 #include "ram/Operation.h"
+#include "ram/OperationSequence.h"
 #include "ram/PackRecord.h"
 #include "ram/Parallel.h"
 #include "ram/ParallelAggregate.h"
@@ -496,6 +497,16 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
         }
 
         // -- control flow statements --
+
+        void visit_(type_identity<OperationSequence>, const OperationSequence& opers, std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            for (const auto& cur : opers.getOperations()) {
+                out << "{";
+                dispatch(*cur, out);
+                out << "}";
+            }
+            PRINT_END_COMMENT(out);
+        }
 
         void visit_(type_identity<Sequence>, const Sequence& seq, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);

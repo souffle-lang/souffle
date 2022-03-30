@@ -59,6 +59,7 @@
 #include "ram/Node.h"
 #include "ram/NumericConstant.h"
 #include "ram/Operation.h"
+#include "ram/OperationSequence.h"
 #include "ram/PackRecord.h"
 #include "ram/Parallel.h"
 #include "ram/ParallelAggregate.h"
@@ -169,6 +170,8 @@ public:
     NodePtr visit_(type_identity<ram::NestedOperation>, const ram::NestedOperation& nested) override;
 
     NodePtr visit_(type_identity<ram::TupleOperation>, const ram::TupleOperation& search) override;
+
+    NodePtr visit_(type_identity<ram::OperationSequence>, const ram::OperationSequence& opers) override;
 
     NodePtr visit_(type_identity<ram::Scan>, const ram::Scan& scan) override;
 

@@ -247,6 +247,14 @@ NodePtr NodeGenerator::visit_(type_identity<ram::NestedOperation>, const ram::Ne
     return dispatch(nested.getOperation());
 }
 
+NodePtr NodeGenerator::visit_(type_identity<ram::OperationSequence>, const ram::OperationSequence& opers) {
+    NodePtrVec children;
+    for (const auto& value : opers.getOperations()) {
+        children.push_back(dispatch(*value));
+    }
+    return mk<OperationSequence>(I_OperationSequence, &opers, std::move(children));
+}
+
 NodePtr NodeGenerator::visit_(type_identity<ram::TupleOperation>, const ram::TupleOperation& search) {
     if (engine.profileEnabled && engine.frequencyCounterEnabled && !search.getProfileText().empty()) {
         return mk<TupleOperation>(I_TupleOperation, &search, dispatch(search.getOperation()));
