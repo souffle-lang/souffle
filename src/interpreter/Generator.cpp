@@ -309,6 +309,15 @@ NodePtr NodeGenerator::visit_(type_identity<ram::IfExists>, const ram::IfExists&
             visit_(type_identity<ram::TupleOperation>(), ifexists));
 }
 
+NodePtr NodeGenerator::visit_(type_identity<ram::IfNotExists>, const ram::IfNotExists& ifexists) {
+    orderingContext.addTupleWithDefaultOrder(ifexists.getTupleId(), ifexists);
+    std::size_t relId = encodeRelation(ifexists.getRelation());
+    auto rel = getRelationHandle(relId);
+    NodeType type = constructNodeType("IfNotExists", lookup(ifexists.getRelation()));
+    return mk<IfNotExists>(type, &ifexists, rel, dispatch(ifexists.getCondition()),
+            visit_(type_identity<ram::TupleOperation>(), ifexists));
+}
+
 NodePtr NodeGenerator::visit_(type_identity<ram::ParallelIfExists>, const ram::ParallelIfExists& pIfExists) {
     orderingContext.addTupleWithDefaultOrder(pIfExists.getTupleId(), pIfExists);
     std::size_t relId = encodeRelation(pIfExists.getRelation());

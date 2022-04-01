@@ -38,6 +38,7 @@
 #include "ram/Filter.h"
 #include "ram/IO.h"
 #include "ram/IfExists.h"
+#include "ram/IfNotExists.h"
 #include "ram/IndexAggregate.h"
 #include "ram/IndexIfExists.h"
 #include "ram/IndexScan.h"
@@ -1132,6 +1133,15 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(IFEXISTS)
 #undef IFEXISTS
 
+#define IFNOTEXISTS(Structure, Arity, ...)                                 \
+    CASE(IfNotExists, Structure, Arity)                                    \
+        const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
+        return evalIfNotExists(rel, cur, shadow, ctxt);                    \
+    ESAC(IfNotExists)
+
+        FOR_EACH(IFNOTEXISTS)
+#undef IFNOTEXISTS
+
 #define PARALLEL_IFEXISTS(Structure, Arity, ...)                        \
     CASE(ParallelIfExists, Structure, Arity)                            \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
@@ -1625,6 +1635,26 @@ RamDomain Engine::evalIfExists(
             execute(shadow.getNestedOperation(), ctxt);
             break;
         }
+    }
+    return true;
+}
+
+template <typename Rel>
+RamDomain Engine::evalIfNotExists(
+        const Rel& rel, const ram::IfNotExists& cur, const IfNotExists& shadow, Context& ctxt) {
+    // use simple iterator
+    bool exists = false;
+
+    for (const auto& tuple : rel.scan()) {
+        ctxt[cur.getTupleId()] = tuple.data();
+        if (execute(shadow.getCondition(), ctxt)) {
+            exists = true;
+            break;
+        }
+    }
+
+    if (!exists) {
+        execute(shadow.getNestedOperation(), ctxt);
     }
     return true;
 }

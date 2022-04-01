@@ -41,6 +41,7 @@
 #include "ram/Filter.h"
 #include "ram/IO.h"
 #include "ram/IfExists.h"
+#include "ram/IfNotExists.h"
 #include "ram/IndexAggregate.h"
 #include "ram/IndexIfExists.h"
 #include "ram/IndexOperation.h"
@@ -182,6 +183,8 @@ public:
     NodePtr visit_(type_identity<ram::ParallelIndexScan>, const ram::ParallelIndexScan& piscan) override;
 
     NodePtr visit_(type_identity<ram::IfExists>, const ram::IfExists& ifexists) override;
+
+    NodePtr visit_(type_identity<ram::IfNotExists>, const ram::IfNotExists& ifexists) override;
 
     NodePtr visit_(type_identity<ram::ParallelIfExists>, const ram::ParallelIfExists& pIfExists) override;
 

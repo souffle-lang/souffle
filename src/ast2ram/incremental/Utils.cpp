@@ -26,11 +26,11 @@
 namespace souffle::ast2ram::incremental {
 
 std::string getDiffPlusRelationName(const ast::QualifiedName& name) {
-    return getConcreteRelationName(name, "@diff_plus_");
+    return getConcreteRelationName(name, "_diff_plus_");
 }
 
 std::string getDiffMinusRelationName(const ast::QualifiedName& name) {
-    return getConcreteRelationName(name, "@diff_minus_");
+    return getConcreteRelationName(name, "_diff_minus_");
 }
 
 std::string getActualDiffPlusRelationName(const ast::QualifiedName& name) {
@@ -58,7 +58,7 @@ std::string getNewDiffMinusRelationName(const ast::QualifiedName& name) {
 }
 
 std::string getPrevRelationName(const ast::QualifiedName& name) {
-    return getConcreteRelationName(name, "@prev_");
+    return getConcreteRelationName(name, "_prev_");
 }
 
 std::string getNewPrevRelationName(const ast::QualifiedName& name) {

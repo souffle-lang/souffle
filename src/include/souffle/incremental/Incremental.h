@@ -52,7 +52,7 @@ public:
                 return true;
             }
             query = parseTuple(command[1]);
-            insertTuple("@diff_plus_" + query.first, query.second);
+            insertTuple("_diff_plus_" + query.first, query.second);
         } else if (command[0] == "remove") {
             std::pair<std::string, std::vector<std::string>> query;
             if (command.size() != 2) {
@@ -60,7 +60,7 @@ public:
                 return true;
             }
             query = parseTuple(command[1]);
-            removeTuple("@diff_minus_" + query.first, query.second);
+            removeTuple("_diff_minus_" + query.first, query.second);
         } else if (command[0] == "commit") {
             // std::cout << "### BEGIN EPOCH " << currentEpoch << std::endl;
             currentEpoch++;

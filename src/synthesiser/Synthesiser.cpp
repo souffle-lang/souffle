@@ -39,6 +39,7 @@
 #include "ram/FloatConstant.h"
 #include "ram/IO.h"
 #include "ram/IfExists.h"
+#include "ram/IfNotExists.h"
 #include "ram/IndexAggregate.h"
 #include "ram/IndexIfExists.h"
 #include "ram/IndexScan.h"
@@ -736,6 +737,38 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             out << "break;\n";
             out << "}\n";
+            out << "}\n";
+
+            PRINT_END_COMMENT(out);
+        }
+
+        void visit_(type_identity<IfNotExists>, const IfNotExists& ifexists, std::ostream& out) override {
+            const auto* rel = synthesiser.lookup(ifexists.getRelation());
+            auto relName = synthesiser.getRelationName(rel);
+            auto identifier = ifexists.getTupleId();
+
+            assert(rel->getArity() > 0 && "AstToRamTranslator failed/no ifnotexists for nullaries");
+
+            PRINT_BEGIN_COMMENT(out);
+
+            out << "bool exists = false;\n";
+
+            out << "for(const auto& env" << identifier << " : "
+                << "*" << relName << ") {\n";
+            out << "if( ";
+
+            dispatch(ifexists.getCondition(), out);
+
+            out << ") {\n";
+
+            out << "exists = true;\n";
+
+            out << "break;\n";
+            out << "}\n";
+            out << "}\n";
+
+            out << "if (!exists) {\n";
+            visit_(type_identity<TupleOperation>(), ifexists, out);
             out << "}\n";
 
             PRINT_END_COMMENT(out);
@@ -2430,6 +2463,9 @@ void Synthesiser::generateCode(std::ostream& sos, const std::string& id, bool& w
         os << "#include <mutex>\n";
         os << "#include \"souffle/provenance/Explain.h\"\n";
     }
+    if (Global::config().has("incremental")) {
+        os << "#include \"souffle/incremental/Incremental.h\"\n";
+    }
 
     if (Global::config().has("live-profile")) {
         os << "#include <thread>\n";
@@ -3001,6 +3037,10 @@ void runFunction(std::string  inputDirectoryArg,
         os << "explain(obj, false);\n";
     } else if (Global::config().get("provenance") == "explore") {
         os << "explain(obj, true);\n";
+    }
+
+    if (Global::config().has("incremental")) {
+        os << "startIncremental(obj);\n";
     }
     os << "return 0;\n";
     os << "} catch(std::exception &e) { souffle::SignalHandler::instance()->error(e.what());}\n";

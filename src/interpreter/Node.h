@@ -84,6 +84,7 @@ struct RelationWrapper;
     FOR_EACH(Expand, IndexScan)\
     FOR_EACH(Expand, ParallelIndexScan)\
     FOR_EACH(Expand, IfExists)\
+    FOR_EACH(Expand, IfNotExists)\
     FOR_EACH(Expand, ParallelIfExists)\
     FOR_EACH(Expand, IndexIfExists)\
     FOR_EACH(Expand, ParallelIndexIfExists)\
@@ -719,6 +720,20 @@ public:
  */
 class ParallelIndexIfExists : public IndexIfExists, public AbstractParallel {
     using IndexIfExists::IndexIfExists;
+};
+
+/**
+ * @class IfNotExists
+ */
+class IfNotExists : public Node,
+                 public ConditionalOperation,
+                 public NestedOperation,
+                 public RelationalOperation {
+public:
+    IfNotExists(enum NodeType ty, const ram::Node* sdw, RelationHandle* relHandle, Own<Node> cond,
+            Own<Node> nested)
+            : Node(ty, sdw), ConditionalOperation(std::move(cond)), NestedOperation(std::move(nested)),
+              RelationalOperation(relHandle) {}
 };
 
 /**
