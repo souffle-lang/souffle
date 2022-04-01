@@ -309,13 +309,14 @@ NodePtr NodeGenerator::visit_(type_identity<ram::IfExists>, const ram::IfExists&
             visit_(type_identity<ram::TupleOperation>(), ifexists));
 }
 
-NodePtr NodeGenerator::visit_(type_identity<ram::IfNotExists>, const ram::IfNotExists& ifexists) {
-    orderingContext.addTupleWithDefaultOrder(ifexists.getTupleId(), ifexists);
-    std::size_t relId = encodeRelation(ifexists.getRelation());
+NodePtr NodeGenerator::visit_(type_identity<ram::IfNotExists>, const ram::IfNotExists& ifNotExists) {
+    orderingContext.addTupleWithDefaultOrder(ifNotExists.getTupleId(), ifNotExists);
+    std::size_t relId = encodeRelation(ifNotExists.getRelation());
     auto rel = getRelationHandle(relId);
-    NodeType type = constructNodeType("IfNotExists", lookup(ifexists.getRelation()));
-    return mk<IfNotExists>(type, &ifexists, rel, dispatch(ifexists.getCondition()),
-            visit_(type_identity<ram::TupleOperation>(), ifexists));
+    NodeType type = constructNodeType("IfNotExists", lookup(ifNotExists.getRelation()));
+    std::cout << "translating IfNotExists " << ifNotExists << " into " << type << std::endl;
+    return mk<IfNotExists>(type, &ifNotExists, rel, dispatch(ifNotExists.getCondition()),
+            visit_(type_identity<ram::TupleOperation>(), ifNotExists));
 }
 
 NodePtr NodeGenerator::visit_(type_identity<ram::ParallelIfExists>, const ram::ParallelIfExists& pIfExists) {

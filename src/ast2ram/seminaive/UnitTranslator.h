@@ -53,7 +53,7 @@ protected:
             const std::set<const ast::Relation*>& scc, const ast::Relation* rel) const;
     Own<ram::Statement> translateSubsumptiveRecursiveClauses(
             const std::set<const ast::Relation*>& scc, const ast::Relation* rel) const;
-    VecOwn<ram::Statement> generateClauseVersions(
+    virtual VecOwn<ram::Statement> generateClauseVersions(
             const ast::Clause* clause, const std::set<const ast::Relation*>& scc) const;
     std::vector<ast::Atom*> getSccAtoms(
             const ast::Clause* clause, const std::set<const ast::Relation*>& scc) const;
@@ -79,7 +79,7 @@ protected:
     Own<ram::Statement> generateStratumPostamble(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateStratumLoopBody(const std::set<const ast::Relation*>& scc) const;
     virtual Own<ram::Statement> generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const;
-    Own<ram::Statement> generateStratumExitSequence(const std::set<const ast::Relation*>& scc) const;
+    virtual Own<ram::Statement> generateStratumExitSequence(const std::set<const ast::Relation*>& scc) const;
 
     /** Other helper generations */
     virtual Own<ram::Statement> generateClearExpiredRelations(

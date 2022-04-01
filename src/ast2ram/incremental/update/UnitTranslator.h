@@ -55,6 +55,9 @@ protected:
     Own<ram::Sequence> generateProgram(const ast::TranslationUnit& translationUnit) override;
     Own<ram::Statement> generateNonRecursiveRelation(const ast::Relation& rel) const override;
 
+    VecOwn<ram::Statement> generateClauseVersions(
+            const ast::Clause* clause, const std::set<const ast::Relation*>& scc) const override;
+
     Own<ram::Statement> generateClearExpiredRelations(
             const std::set<const ast::Relation*>& expiredRelations) const override;
     Own<ram::Relation> createRamRelation(
@@ -82,6 +85,8 @@ protected:
     Own<ram::Statement> generateMergeRelationsActualDiffUpdated(
             const ast::Relation* rel, const std::string& toUpdateRelation,
             const std::string& checkRelation, const std::string& updatedRelation, int insertTupleCount) const;
+
+    Own<ram::Statement> generateStratumExitSequence(const std::set<const ast::Relation*>& scc) const override;
 
     /** Method to get update subroutines generated during translation */
     std::map<std::string, Own<ram::Statement>>& getRamSubroutines();

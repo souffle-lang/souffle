@@ -28,8 +28,11 @@
 #include "ram/Call.h"
 #include "ram/Clear.h"
 #include "ram/Constraint.h"
+#include "ram/Conjunction.h"
 #include "ram/DebugInfo.h"
+#include "ram/EmptinessCheck.h"
 #include "ram/ExistenceCheck.h"
+#include "ram/Exit.h"
 #include "ram/Expression.h"
 #include "ram/Filter.h"
 #include "ram/IfNotExists.h"
@@ -42,6 +45,7 @@
 #include "ram/Negation.h"
 #include "ram/OperationSequence.h"
 #include "ram/Query.h"
+#include "ram/RelationSize.h"
 #include "ram/Scan.h"
 #include "ram/Sequence.h"
 #include "ram/SignedConstant.h"
@@ -202,6 +206,30 @@ VecOwn<ram::Statement> UnitTranslator::translateNonRecursiveClauseDiffVersions(c
     // }
 
     return clauseDiffVersions;
+}
+
+
+VecOwn<ram::Statement> UnitTranslator::generateClauseVersions(
+        const ast::Clause* clause, const std::set<const ast::Relation*>& scc) const {
+    const auto& sccAtoms = getSccAtoms(clause, scc);
+
+    // Create each version
+    VecOwn<ram::Statement> clauseVersions;
+    for (std::size_t version = 0; version < sccAtoms.size(); version++) {
+        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalDiffMinus));
+        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalDiffPlus));
+    }
+
+    // Check that the correct number of versions have been created
+    if (clause->getExecutionPlan() != nullptr) {
+        int maxVersion = -1;
+        for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
+            maxVersion = std::max(cur.first, maxVersion);
+        }
+        assert((int)sccAtoms.size() > maxVersion && "missing clause versions");
+    }
+
+    return clauseVersions;
 }
 
 Own<ram::Relation> UnitTranslator::createRamRelation(
@@ -444,12 +472,12 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
 
     existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
                 BinaryConstraintOp::LE,
-                mk<ram::TupleElement>(1, rel->getArity() + 1),
+                mk<ram::TupleElement>(1, rel->getArity()),
                 mk<ram::IterationNumber>()));
 
     existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
                 BinaryConstraintOp::GT,
-                mk<ram::TupleElement>(1, rel->getArity() + 2),
+                mk<ram::TupleElement>(1, rel->getArity() + 1),
                 mk<ram::SignedConstant>(0)));
 
     op = mk<ram::IfNotExists>(checkRelation, 1, std::move(existenceCond), std::move(op));
@@ -534,6 +562,40 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
     auto stmt = mk<ram::Query>(mk<ram::Scan>(toUpdateRelation, 0, std::move(op)));
 
     return stmt;
+}
+
+Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
+        const std::set<const ast::Relation*>& scc) const {
+    // Helper function to add a new term to a conjunctive condition
+    auto addCondition = [&](Own<ram::Condition>& cond, Own<ram::Condition> term) {
+        cond = (cond == nullptr) ? std::move(term) : mk<ram::Conjunction>(std::move(cond), std::move(term));
+    };
+
+    VecOwn<ram::Statement> exitConditions;
+
+    // (1) if all relations in the scc are empty
+    Own<ram::Condition> emptinessCheck;
+    for (const ast::Relation* rel : scc) {
+        addCondition(
+                emptinessCheck, mk<ram::EmptinessCheck>(getNewDiffPlusRelationName(rel->getQualifiedName())));
+        addCondition(
+                emptinessCheck, mk<ram::EmptinessCheck>(getNewDiffMinusRelationName(rel->getQualifiedName())));
+    }
+    appendStmt(exitConditions, mk<ram::Exit>(std::move(emptinessCheck)));
+
+    // (2) if the size limit has been reached for any limitsize relations
+    for (const ast::Relation* rel : scc) {
+        if (context->hasSizeLimit(rel)) {
+            Own<ram::Condition> limit = mk<ram::Constraint>(BinaryConstraintOp::GE,
+                    mk<ram::RelationSize>(getConcreteRelationName(rel->getQualifiedName())),
+                    mk<ram::SignedConstant>(context->getSizeLimit(rel)));
+            appendStmt(exitConditions, mk<ram::Exit>(std::move(limit)));
+        }
+    }
+
+    // TODO: (3) if we haven't reached the same iteration number as in the previous epoch
+
+    return mk<ram::Sequence>(std::move(exitConditions));
 }
 
 Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnTrue() const {

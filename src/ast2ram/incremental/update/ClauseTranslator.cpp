@@ -32,6 +32,7 @@
 #include "ram/Expression.h"
 #include "ram/Filter.h"
 #include "ram/GuardedInsert.h"
+#include "ram/IfNotExists.h"
 #include "ram/IntrinsicOperator.h"
 #include "ram/IterationNumber.h"
 #include "ram/Negation.h"
@@ -62,9 +63,6 @@ Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Cla
         this->diffVersion = diffVersion;
 
         appendStmt(result, seminaive::ClauseTranslator::translateNonRecursiveClause(clause));
-        std::cout << "after translating " << clause << ", diffVersion " << diffVersion << std::endl;
-        valueIndex->print(std::cout);
-        std::cout << std::endl;
     }
 
     this->diffVersion = 0;
@@ -74,10 +72,19 @@ Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Cla
 
 Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
         const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version) {
-    // Update diffVersion config
+
+    VecOwn<ram::Statement> result;
+
+    for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size(); diffVersion++) {
+        // Update diffVersion config
+        this->diffVersion = diffVersion;
+
+        appendStmt(result, seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version));
+    }
+
     this->diffVersion = 0;
 
-    return seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version);
+    return mk<ram::Sequence>(std::move(result));
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
@@ -146,8 +153,15 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
     */
 
     if (!isRecursive()) {
-        if (ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion) == atom ||
-                clause.getHead() == atom) {
+        if (ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion) == atom) {
+            if (mode == IncrementalDiffPlus) {
+                return getActualDiffPlusRelationName(atom->getQualifiedName());
+            } else if (mode == IncrementalDiffMinus) {
+                return getActualDiffMinusRelationName(atom->getQualifiedName());
+            }
+        }
+
+        if (clause.getHead() == atom) {
             if (mode == IncrementalDiffPlus) {
                 return getDiffPlusRelationName(atom->getQualifiedName());
             } else if (mode == IncrementalDiffMinus) {
@@ -161,12 +175,29 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
             return getPrevRelationName(atom->getQualifiedName());
         }
     }
+
     if (clause.getHead() == atom) {
-        return getNewRelationName(atom->getQualifiedName());
+        if (mode == IncrementalDiffMinus) {
+            return getNewDiffMinusRelationName(atom->getQualifiedName());
+        } else if (mode == IncrementalDiffPlus) {
+            return getNewDiffPlusRelationName(atom->getQualifiedName());
+        }
     }
-    if (sccAtoms.at(version) == atom) {
-        return getDeltaRelationName(atom->getQualifiedName());
+
+    if (ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion) == atom) {
+        if (mode == IncrementalDiffPlus) {
+            return getActualDiffPlusRelationName(atom->getQualifiedName());
+        } else if (mode == IncrementalDiffMinus) {
+            return getActualDiffMinusRelationName(atom->getQualifiedName());
+        }
     }
+
+    if (mode == IncrementalDiffPlus) {
+        return getConcreteRelationName(atom->getQualifiedName());
+    } else if (mode == IncrementalDiffMinus) {
+        return getPrevRelationName(atom->getQualifiedName());
+    }
+
     return getConcreteRelationName(atom->getQualifiedName());
 }
 
@@ -265,6 +296,45 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     // atomIdx keeps track of which atom we are creating an aggregate for
     std::size_t atomIdx = 0;
 
+    std::size_t iterCheckLevel = lastScanLevel;
+    for (const auto* atom : getAtomOrdering(clause)) {
+
+        // Add a constraint saying that iter = ITERNUM() for the current
+        // version atom, simulating delta of semi-naive
+        if (isRecursive() && sccAtoms.at(version) == atom) {
+            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(atomIdx, atom->getArity()), mk<ram::IterationNumber>()), std::move(op));
+        }
+
+        // Make conditions
+        // Make count condition, i.e., c > 0 in above example
+        Own<ram::Condition> cond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+
+        // Make iteration condition, i.e., iter > current iter
+        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity()), mk<ram::TupleElement>(atomIdx, atom->getArity())));
+
+        // Add conditions such that X... inside ifnotexists is equal to outside
+        std::size_t argNum = 0;
+        for (auto* arg : atom->getArguments()) {
+            cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(iterCheckLevel, argNum)));
+            argNum++;
+        }
+
+        std::string relName;
+
+        if (mode == IncrementalDiffPlus) {
+            relName = getConcreteRelationName(atom->getQualifiedName());
+        } else if (mode == IncrementalDiffMinus) {
+            relName = getPrevRelationName(atom->getQualifiedName());
+        }
+
+        op = mk<ram::IfNotExists>(relName, iterCheckLevel, std::move(cond), std::move(op));
+
+        atomIdx++;
+        iterCheckLevel++;
+    }
+
+
+    /*
     // aggLevel denotes the current level for aggregation, it starts after all
     // atoms in the rule
     std::size_t aggLevel = lastScanLevel;
@@ -308,6 +378,7 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         atomIdx++;
         aggLevel++;
     }
+    */
 
     return op;
 }
