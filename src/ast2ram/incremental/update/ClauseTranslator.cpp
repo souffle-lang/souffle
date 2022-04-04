@@ -231,6 +231,23 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
 
     op = ast2ram::seminaive::ClauseTranslator::addBodyLiteralConstraints(clause, std::move(op));
 
+    // For incremental update, ensure that all tuples are correctly existing/not-existing
+    for (std::size_t i = 0; i < getAtomOrdering(clause).size(); i++) {
+        const auto* atom = getAtomOrdering(clause)[i];
+
+        if (mode == IncrementalDiffMinus && i == diffVersion) {
+            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LT,
+                        mk<ram::TupleElement>(i, atom->getArity() + 1),
+                        mk<ram::SignedConstant>(0)),
+                    std::move(op));
+        } else {
+            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::GT,
+                        mk<ram::TupleElement>(i, atom->getArity() + 1),
+                        mk<ram::SignedConstant>(0)),
+                    std::move(op));
+        }
+    }
+
     std::size_t lastScanLevel = 0;
     while (valueIndex->isSomethingDefinedOn(lastScanLevel)) {
         lastScanLevel++;
@@ -299,18 +316,24 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     std::size_t iterCheckLevel = lastScanLevel;
     for (const auto* atom : getAtomOrdering(clause)) {
 
-        // Add a constraint saying that iter = ITERNUM() for the current
+        // Add a constraint saying that iter = ITERNUM() - 1 for the current
         // version atom, simulating delta of semi-naive
         if (isRecursive() && sccAtoms.at(version) == atom) {
-            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(atomIdx, atom->getArity()), mk<ram::IterationNumber>()), std::move(op));
+            VecOwn<ram::Expression> iterMinusOneArgs;
+            iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
+            iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
+
+            auto iterMinusOne = mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
+
+            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(atomIdx, atom->getArity()), std::move(iterMinusOne)), std::move(op));
         }
 
         // Make conditions
         // Make count condition, i.e., c > 0 in above example
         Own<ram::Condition> cond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
-        // Make iteration condition, i.e., iter > current iter
-        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity()), mk<ram::TupleElement>(atomIdx, atom->getArity())));
+        // Make iteration condition, i.e., iter < current iter
+        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity()), mk<ram::TupleElement>(atomIdx, atom->getArity())));
 
         // Add conditions such that X... inside ifnotexists is equal to outside
         std::size_t argNum = 0;

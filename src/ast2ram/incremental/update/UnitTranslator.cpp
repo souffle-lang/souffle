@@ -109,6 +109,9 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
         appendStmt(res, std::move(newStmt));
     }
 
+    // Add cleanup merges at the end of the epoch
+    appendStmt(res, generateCleanupMerges(context->getProgram()->getRelations()));
+
     // Program translated!
     return mk<ram::Sequence>(std::move(res));
 }
@@ -363,6 +366,11 @@ void UnitTranslator::addAuxiliaryArity(
     directives.insert(std::make_pair("auxValues", "0,1"));
 }
 
+Own<ram::Statement> UnitTranslator::generateLoadRelation(const ast::Relation* /* relation */) const {
+    // Don't load relations again during inc update
+    return mk<ram::Sequence>();
+}
+
 Own<ram::Statement> UnitTranslator::generateClearExpiredRelations(
         const std::set<const ast::Relation*>& /* expiredRelations */) const {
     // Relations should be preserved if incremental is enabled
@@ -485,7 +493,7 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
     // Create filter for iternum
     op = mk<ram::Filter>(mk<ram::Constraint>(
                 BinaryConstraintOp::EQ,
-                mk<ram::TupleElement>(0, rel->getArity() + 1),
+                mk<ram::TupleElement>(0, rel->getArity()),
                 mk<ram::IterationNumber>()),
             std::move(op));
 
@@ -554,7 +562,7 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
     // Create filter for iternum
     op = mk<ram::Filter>(mk<ram::Constraint>(
                 BinaryConstraintOp::LT,
-                mk<ram::TupleElement>(0, rel->getArity() + 1),
+                mk<ram::TupleElement>(0, rel->getArity()),
                 mk<ram::IterationNumber>()),
             std::move(op));
 
@@ -596,6 +604,20 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
     // TODO: (3) if we haven't reached the same iteration number as in the previous epoch
 
     return mk<ram::Sequence>(std::move(exitConditions));
+}
+
+Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<ast::Relation*>& rels) const {
+    VecOwn<ram::Statement> cleanupSequence;
+    for (auto rel : rels) {
+        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffMinusRelationName(rel->getQualifiedName())));
+        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffPlusRelationName(rel->getQualifiedName())));
+
+        appendStmt(cleanupSequence, mk<ram::Clear>(getDiffMinusRelationName(rel->getQualifiedName())));
+        appendStmt(cleanupSequence, mk<ram::Clear>(getDiffPlusRelationName(rel->getQualifiedName())));
+        appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
+        appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
+    }
+    return mk<ram::Sequence>(std::move(cleanupSequence));
 }
 
 Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnTrue() const {

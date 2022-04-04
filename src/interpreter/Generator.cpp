@@ -314,7 +314,6 @@ NodePtr NodeGenerator::visit_(type_identity<ram::IfNotExists>, const ram::IfNotE
     std::size_t relId = encodeRelation(ifNotExists.getRelation());
     auto rel = getRelationHandle(relId);
     NodeType type = constructNodeType("IfNotExists", lookup(ifNotExists.getRelation()));
-    std::cout << "translating IfNotExists " << ifNotExists << " into " << type << std::endl;
     return mk<IfNotExists>(type, &ifNotExists, rel, dispatch(ifNotExists.getCondition()),
             visit_(type_identity<ram::TupleOperation>(), ifNotExists));
 }

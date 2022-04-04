@@ -249,6 +249,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
         out << "struct updater_" << getTypeName() << " {\n";
         out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
 
+        /*
         if (relation.getName().find("applied@") != std::string::npos || relation.getName().find("@") == std::string::npos) {
             // out << "if (new_t[" << arity - 1 << "] == 0 && new_t[" << arity - 2 << "] == 0) {\n";
             out << "if (new_t[" << arity - 1 << "] == 0) {\n";
@@ -257,6 +258,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             // out << "return true;\n";
             out << "}\n";
         }
+        */
 
         out << "old_t[" << arity - 1 << "] += new_t[" << arity - 1 << "];\n";
         // out << "return true;\n";
@@ -587,6 +589,14 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             << "\\n\";\n";
         out << "ind_" << i << ".printStats(o);\n";
     }
+    out << "}\n";
+
+    // printRel method
+    out << "void printRel(std::string relName) const {\n";
+    out << "std::cout << relName << \":\" << std::endl;\n";
+    out << "for (auto const &t : ind_" << masterIndex << ") {\n";
+    out << "std::cout << t << std::endl;\n";
+    out << "}\n";
     out << "}\n";
 
     // end struct

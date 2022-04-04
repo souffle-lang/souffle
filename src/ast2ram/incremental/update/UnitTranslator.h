@@ -66,6 +66,9 @@ protected:
     void addAuxiliaryArity(
             const ast::Relation* relation, std::map<std::string, std::string>& directives) const override;
 
+    /** IO translation */
+    Own<ram::Statement> generateLoadRelation(const ast::Relation* relation) const override;
+
     /** Low-level stratum translation */
     Own<ram::Statement> generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const override;
     Own<ram::Statement> generateMergeRelations(const ast::Relation* rel, const std::string& destRelation,
@@ -97,6 +100,8 @@ private:
 
     /** Helper functions for generating diff versions of clauses */
     VecOwn<ram::Statement> translateNonRecursiveClauseDiffVersions(const ast::Clause& clause) const;
+
+    Own<ram::Statement> generateCleanupMerges(const std::vector<ast::Relation*>& rels) const;
 
     Own<ram::ExistenceCheck> makeRamAtomExistenceCheck(const ast::Atom* atom,
             const std::map<int, std::string>& idToVarName, ValueIndex& valueIndex) const;

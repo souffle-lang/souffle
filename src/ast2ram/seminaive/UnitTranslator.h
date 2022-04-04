@@ -70,7 +70,7 @@ protected:
 
     /** IO translation */
     Own<ram::Statement> generateStoreRelation(const ast::Relation* relation) const;
-    Own<ram::Statement> generateLoadRelation(const ast::Relation* relation) const;
+    virtual Own<ram::Statement> generateLoadRelation(const ast::Relation* relation) const;
 
     /** Low-level stratum translation */
     Own<ram::Statement> generateStratum(std::size_t scc) const;
