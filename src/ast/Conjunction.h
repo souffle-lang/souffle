@@ -35,8 +35,8 @@ class Conjunction : public Literal {
 public:
     Conjunction(Own<Literal> lhs, Own<Literal> rhs, SrcLocation loc = {}) :
        Literal(std::move(loc)), lhs(std::move(lhs)), rhs(std::move(rhs)) { 
-       assert(lhs != nullptr && "Left-hand side cannot be a null-pointer!");
-       assert(rhs != nullptr && "Righ-hand side cannot be a null-pointer!");
+       assert(this->lhs != nullptr && "Left-hand side cannot be a null-pointer!");
+       assert(this->rhs != nullptr && "Righ-hand side cannot be a null-pointer!");
     } 
          
 
@@ -57,7 +57,7 @@ public:
 
 protected:
     void print(std::ostream& os) const override {
-      os << "(" << *lhs << "),(" << *rhs << ")"; 
+      os << "(" << *lhs << ")/\\(" << *rhs << ")"; 
     }
 
     NodeVec getChildren() const override {

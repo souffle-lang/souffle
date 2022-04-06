@@ -85,16 +85,16 @@ Own<Literal> expandRecordConstraint(const BinaryConstraint& constraint) {
 
     assert(leftChildren.size() == rightChildren.size());
 
-    Own<Literal> result = mk<BooleanConstraint>(true, constraint.getSrcLoc());
+    Own<Literal> result = mk<BooleanConstraint>(isEqConstraint(constraint.getBaseOperator()), constraint.getSrcLoc());
 
     // [a, b..] = [c, d...] → a = c, b = d ...
     for (std::size_t i = 0; i < leftChildren.size(); ++i) {
         auto newConstraint = mk<BinaryConstraint>(
                 constraint.getBaseOperator(), clone(leftChildren[i]), clone(rightChildren[i]));
         if (isEqConstraint(constraint.getBaseOperator())) {
-            result = mk<Disjunction>(std::move(result), std::move(newConstraint));
-        } else {
             result = mk<Conjunction>(std::move(result), std::move(newConstraint));
+        } else {
+            result = mk<Disjunction>(std::move(result), std::move(newConstraint));
         }
     }
 
