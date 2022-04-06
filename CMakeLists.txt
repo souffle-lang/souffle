@@ -393,7 +393,7 @@ execute_process(COMMAND bash "${CMAKE_SOURCE_DIR}/sh/check_os.sh"
                 RESULT_VARIABLE CHECK_OS_RESULT
                 OUTPUT_VARIABLE CHECK_OS_OUTPUT)
 
-SET(CPACK_PACKAGE_CONTACT "Patrick H.")
+SET(CPACK_PACKAGE_CONTACT "Bernhard Scholz <bernhard.scholz@sydney.edu.au>")
 SET(CPACK_PACKAGE_DESCRIPTION "Souffle - A Datalog Compiler")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Datalog Compiler")
 
@@ -401,7 +401,7 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Datalog Compiler")
 SET(CPACK_THREADS 0)
 
 # Make sure changelog, bash-completion and other important files in debian directory also packaged
-SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/debian/changelog.in" "${CMAKE_SOURCE_DIR}/debian/souffle.bash-completion" "${CMAKE_SOURCE_DIR}/debian/copyright")
+SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/debian/changelog" "${CMAKE_SOURCE_DIR}/debian/souffle.bash-completion" "${CMAKE_SOURCE_DIR}/debian/copyright")
 
 # --------------------------------------------------
 # CPack configuration 

@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ram/AbstractExistenceCheck.h"
+#include "ram/CountUniqueKeys.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/IndexOperation.h"
 #include "ram/ProvenanceExistenceCheck.h"
@@ -499,6 +500,13 @@ public:
     const IndexCluster getIndexSelection(const std::string& relName) const {
         return indexCover.at(relName);
     }
+
+    /**
+     * @Brief Get index signature for an Ram CountUniqueKeys operation
+     * @param  CountUniqueKeys operation
+     * @result Index signature of operation
+     */
+    SearchSignature getSearchSignature(const CountUniqueKeys* count) const;
 
     /**
      * @Brief Get index signature for an Ram IndexOperation operation

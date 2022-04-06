@@ -388,8 +388,8 @@ public:
         return main->contains(tuple);
     }
 
-    Index* getIndex(std::size_t idx) {
-        return indexes[idx];
+    Index* getIndex(std::size_t idx) const {
+        return indexes.at(idx).get();
     }
 
 protected:

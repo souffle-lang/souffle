@@ -30,6 +30,7 @@
 #include "ast/SubsumptiveClause.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/analysis/Functor.h"
+#include "ast/utility/SipsMetric.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "ast2ram/utility/Location.h"
@@ -39,6 +40,7 @@
 #include "ram/Aggregate.h"
 #include "ram/Break.h"
 #include "ram/Constraint.h"
+#include "ram/CountUniqueKeys.h"
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
 #include "ram/ExistenceCheck.h"
@@ -60,6 +62,7 @@
 #include "ram/utility/Utils.h"
 #include "souffle/utility/StringUtil.h"
 #include <map>
+#include <unordered_set>
 #include <vector>
 
 namespace souffle::ast2ram::seminaive {
@@ -689,22 +692,21 @@ Own<ram::Condition> ClauseTranslator::getFunctionalDependencies(const ast::Claus
 std::vector<ast::Atom*> ClauseTranslator::getAtomOrdering(const ast::Clause& clause) const {
     auto atoms = ast::getBodyLiterals<ast::Atom>(clause);
 
-    const auto& plan = clause.getExecutionPlan();
-    if (plan == nullptr) {
-        return atoms;
+    // stick to the plan if we have one set
+    auto* plan = clause.getExecutionPlan();
+    if (plan != nullptr) {
+        auto orders = plan->getOrders();
+        if (contains(orders, version)) {
+            // get the imposed order, and change it to start at zero
+            const auto& order = orders.at(version);
+            std::vector<std::size_t> newOrder(order->getOrder().size());
+            std::transform(order->getOrder().begin(), order->getOrder().end(), newOrder.begin(),
+                    [](std::size_t i) -> std::size_t { return i - 1; });
+            return reorderAtoms(atoms, newOrder);
+        }
     }
 
-    // check if there's a plan for the current version
-    auto orders = plan->getOrders();
-    if (!contains(orders, version)) {
-        return atoms;
-    }
-
-    // get the imposed order, and change it to start at zero
-    const auto& order = orders.at(version);
-    std::vector<std::size_t> newOrder(order->getOrder().size());
-    std::transform(order->getOrder().begin(), order->getOrder().end(), newOrder.begin(),
-            [](std::size_t i) -> std::size_t { return i - 1; });
+    auto newOrder = context.getSipsMetric()->getReordering(&clause, version, mode);
     return reorderAtoms(atoms, newOrder);
 }
 

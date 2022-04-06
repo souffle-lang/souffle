@@ -29,6 +29,7 @@
 #include "ram/Clear.h"
 #include "ram/Conjunction.h"
 #include "ram/Constraint.h"
+#include "ram/CountUniqueKeys.h"
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
 #include "ram/Erase.h"
@@ -107,6 +108,7 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -1317,6 +1319,15 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(CLEAR)
 #undef CLEAR
 
+#define COUNTUNIQUEKEYS(Structure, Arity, ...)                          \
+    CASE(CountUniqueKeys, Structure, Arity)                             \
+        const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
+        return evalCountUniqueKeys<RelType>(rel, cur, shadow, ctxt);    \
+    ESAC(CountUniqueKeys)
+
+        FOR_EACH(COUNTUNIQUEKEYS)
+#undef COUNTUNIQUEKEYS
+
         CASE(Call)
             execute(subroutine[shadow.getSubroutineId()].get(), ctxt);
             return true;
@@ -1546,6 +1557,120 @@ RamDomain Engine::evalParallelScan(
             }
         }
     PARALLEL_END
+    return true;
+}
+
+template <typename Rel>
+RamDomain Engine::evalCountUniqueKeys(
+        const Rel& rel, const ram::CountUniqueKeys& cur, const CountUniqueKeys& shadow, Context& ctxt) {
+    (void)ctxt;
+    constexpr std::size_t Arity = Rel::Arity;
+    bool onlyConstants = true;
+
+    for (auto col : cur.getKeyColumns()) {
+        if (cur.getConstantsMap().count(col) == 0) {
+            onlyConstants = false;
+            break;
+        }
+    }
+
+    // save a copy of the columns and index
+    std::vector<std::size_t> keyColumns(cur.getKeyColumns().size());
+    std::iota(keyColumns.begin(), keyColumns.end(), 0);
+
+    std::size_t indexPos = shadow.getViewId();
+    auto order = rel.getIndexOrder(indexPos);
+
+    std::vector<std::size_t> inverseOrder;
+    inverseOrder.resize(order.size());
+
+    for (std::size_t i = 0; i < order.size(); ++i) {
+        inverseOrder[order[i]] = i;
+    }
+
+    // create a copy of the map to the real numeric constants
+    std::map<std::size_t, RamDomain> keyConstants;
+    for (auto [k, constant] : cur.getConstantsMap()) {
+        RamDomain value;
+        if (const auto* signedConstant = as<ram::SignedConstant>(constant)) {
+            value = ramBitCast<RamDomain>(signedConstant->getValue());
+        } else if (const auto* stringConstant = as<ram::StringConstant>(constant)) {
+            auto& symTable = getSymbolTable();
+            assert(symTable.weakContains(stringConstant->getConstant()));
+            value = ramBitCast<RamDomain>(symTable.encode(stringConstant->getConstant()));
+        } else if (const auto* unsignedConstant = as<ram::UnsignedConstant>(constant)) {
+            value = ramBitCast<RamDomain>(unsignedConstant->getValue());
+        } else if (const auto* floatConstant = as<ram::FloatConstant>(constant)) {
+            value = ramBitCast<RamDomain>(floatConstant->getValue());
+        } else {
+            fatal("Something went wrong. Should have gotten a constant!");
+        }
+
+        keyConstants[inverseOrder[k]] = value;
+    }
+
+    // ensure range is non-empty
+    auto* index = rel.getIndex(indexPos);
+    // initial values
+    std::size_t total = 0;
+    std::size_t duplicates = 0;
+
+    if (!index->scan().empty()) {
+        // assign first tuple as prev as a dummy
+        bool first = true;
+        Tuple<RamDomain, Arity> prev = *index->scan().begin();
+
+        for (const auto& tuple : index->scan()) {
+            // only if every constant matches do we consider the tuple
+            bool matchesConstants = std::all_of(keyConstants.begin(), keyConstants.end(),
+                    [tuple](const auto& p) { return tuple[p.first] == p.second; });
+            if (!matchesConstants) {
+                continue;
+            }
+            if (first) {
+                first = false;
+            } else {
+                // only if on every column do we have a match do we consider it a duplicate
+                bool matchesPrev = std::all_of(keyColumns.begin(), keyColumns.end(),
+                        [&prev, &tuple](std::size_t column) { return tuple[column] == prev[column]; });
+                if (matchesPrev) {
+                    ++duplicates;
+                }
+            }
+            prev = tuple;
+            ++total;
+        }
+    }
+    std::size_t uniqueKeys = (onlyConstants ? total : total - duplicates);
+
+    std::stringstream columnsStream;
+    columnsStream << cur.getKeyColumns();
+    std::string columns = columnsStream.str();
+
+    std::stringstream constantsStream;
+    constantsStream << "[";
+    bool first = true;
+    for (auto& [k, constant] : cur.getConstantsMap()) {
+        if (first) {
+            first = false;
+        } else {
+            constantsStream << ",";
+        }
+        constantsStream << k << "->" << *constant;
+    }
+    constantsStream << "]";
+
+    std::string constants = stringify(constantsStream.str());
+
+    if (cur.isRecursiveRelation()) {
+        std::string txt =
+                "@recursive-count-unique-keys;" + cur.getRelation() + ";" + columns + ";" + constants;
+        ProfileEventSingleton::instance().makeRecursiveCountEvent(txt, uniqueKeys, getIterationNumber());
+    } else {
+        std::string txt =
+                "@non-recursive-count-unique-keys;" + cur.getRelation() + ";" + columns + ";" + constants;
+        ProfileEventSingleton::instance().makeNonRecursiveCountEvent(txt, uniqueKeys);
+    }
     return true;
 }
 

@@ -1,4 +1,4 @@
-Copyright (c) 2016-21 The Souffle Developers. All Rights reserved
+Copyright (c) 2016-22 The Souffle Developers. All Rights reserved
 Copyright (c) 2013-16 Oracle and/or its affiliates. All Rights reserved
 
 The Universal Permissive License (UPL), Version 1.0

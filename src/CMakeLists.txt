@@ -61,6 +61,7 @@ set(SOUFFLE_SOURCES
     ast/analysis/RecursiveClauses.cpp
     ast/analysis/RedundantRelations.cpp
     ast/analysis/RelationSchedule.cpp
+    ast/analysis/UniqueKeys.cpp
     ast/analysis/SCCGraph.cpp
     ast/analysis/TopologicallySortedSCCGraph.cpp
     ast/analysis/typesystem/PolymorphicObjects.cpp
@@ -96,7 +97,6 @@ set(SOUFFLE_SOURCES
     ast/transform/RemoveRedundantRelations.cpp
     ast/transform/RemoveRedundantSums.cpp
     ast/transform/RemoveRelationCopies.cpp
-    ast/transform/ReorderLiterals.cpp
     ast/transform/ReplaceSingletonVariables.cpp
     ast/transform/ResolveAliases.cpp
     ast/transform/ResolveAnonymousRecordAliases.cpp

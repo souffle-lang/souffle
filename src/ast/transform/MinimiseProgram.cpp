@@ -377,6 +377,10 @@ bool MinimiseProgramTransformer::reduceClauseBodies(TranslationUnit& translation
 
     bool changed = false;
     for (auto* clause : program.getClauses()) {
+        if (isA<SubsumptiveClause>(clause)) {
+            break;
+        }
+
         auto bodyLiterals = clause->getBodyLiterals();
         // TODO: This is n^2. Add AST hashing and use a hash-set.
         std::set<std::size_t> redundantPositions;

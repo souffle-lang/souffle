@@ -6,7 +6,10 @@
 
 include(SouffleTests)
 
-add_subdirectory(pragma2)
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_subdirectory(pragma2)
+endif()
+
 
 function(positive_test NAME)
     souffle_positive_test(${NAME} semantic)
@@ -60,6 +63,7 @@ positive_test(duplicates)
 positive_test(eqrel_tests)
 positive_test(eqrel_tests2)
 positive_test(eqrel_tests3)
+positive_test(eqrel_tests4)
 positive_test(equivalent)
 negative_test(execution_plan)
 positive_test(extended_subtypes)
@@ -221,12 +225,14 @@ positive_test(choice1)
 negative_test(disjoint_names2)
 positive_test(pragma)
 positive_test(pragma1)
-# Only test `pragma2` w/ interpreter mode.
-# Reason: Linux tooling becomes violently incontinent when confronted with the
-#         idea of an so w/ non alpha-numeric characters in the name.
-#         See `tests/semantic/pragma2/CMakeLists.txt` for details.
-# souffle_positive_functor_test(pragma2 CATEGORY semantic)
-souffle_run_test_helper(TEST_NAME pragma2 FUNCTORS CATEGORY semantic)
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	# Only test `pragma2` w/ interpreter mode.
+	# Reason: Linux tooling becomes violently incontinent when confronted with the
+	#         idea of an so w/ non alpha-numeric characters in the name.
+	#         See `tests/semantic/pragma2/CMakeLists.txt` for details.
+	# souffle_positive_functor_test(pragma2 CATEGORY semantic)
+	souffle_run_test_helper(TEST_NAME pragma2 FUNCTORS CATEGORY semantic)
+endif()
 positive_test(rel_redundant)
 positive_test(type_as4)
 positive_test(record_alias)

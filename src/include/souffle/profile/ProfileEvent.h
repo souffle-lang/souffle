@@ -51,7 +51,7 @@ class ProfileEventSingleton {
 public:
     ~ProfileEventSingleton() {
         stopTimer();
-        ProfileEventSingleton::instance().dump();
+        dump();
     }
 
     /** get instance */
@@ -83,6 +83,14 @@ public:
     /** create quantity event */
     void makeQuantityEvent(const std::string& txt, std::size_t number, int iteration) {
         profile::EventProcessorSingleton::instance().process(database, txt.c_str(), number, iteration);
+    }
+
+    void makeNonRecursiveCountEvent(const std::string& txt, std::size_t uniqueKeys) {
+        profile::EventProcessorSingleton::instance().process(database, txt.c_str(), uniqueKeys);
+    }
+
+    void makeRecursiveCountEvent(const std::string& txt, std::size_t uniqueKeys, std::size_t iteration) {
+        profile::EventProcessorSingleton::instance().process(database, txt.c_str(), uniqueKeys, iteration);
     }
 
     /** create utilisation event */

@@ -114,6 +114,10 @@ private:
             const Rel& rel, const ram::ParallelScan& cur, const ParallelScan& shadow, Context& ctxt);
 
     template <typename Rel>
+    RamDomain evalCountUniqueKeys(
+            const Rel& rel, const ram::CountUniqueKeys& cur, const CountUniqueKeys& shadow, Context& ctxt);
+
+    template <typename Rel>
     RamDomain evalIndexScan(const ram::IndexScan& cur, const IndexScan& shadow, Context& ctxt);
 
     template <typename Rel>

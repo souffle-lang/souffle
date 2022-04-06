@@ -103,3 +103,13 @@ ES(_, x1) <= ES(_, x2) :- x1 <= x2.
 AF(b) :- G(g, b), !R(b, d), ES(d, a), ES(d, e).
 .output AF
 
+.decl my(x:number)
+.decl mx(x:number)
+mx(n) <= mx(n) :- my(n).
+.output mx
+
+.decl nx(x:number)
+nx(n) <= nx(n) :- nx(n).
+.output nx
+
+

@@ -17,6 +17,7 @@
 #include "ram/analysis/Index.h"
 #include "Global.h"
 #include "RelationTag.h"
+#include "ram/CountUniqueKeys.h"
 #include "ram/Expression.h"
 #include "ram/Node.h"
 #include "ram/Program.h"
@@ -393,7 +394,9 @@ void IndexAnalysis::run(const TranslationUnit& translationUnit) {
 
     // visit all nodes to collect searches of each relation
     visit(translationUnit.getProgram(), [&](const Node& node) {
-        if (const auto* indexSearch = as<IndexOperation>(node)) {
+        if (const auto* countUniqueKeys = as<CountUniqueKeys>(node)) {
+            relationToSearches[countUniqueKeys->getRelation()].insert(getSearchSignature(countUniqueKeys));
+        } else if (const auto* indexSearch = as<IndexOperation>(node)) {
             relationToSearches[indexSearch->getRelation()].insert(getSearchSignature(indexSearch));
         } else if (const auto* exists = as<ExistenceCheck>(node)) {
             relationToSearches[exists->getRelation()].insert(getSearchSignature(exists));
@@ -487,6 +490,19 @@ SearchSignature searchSignature(std::size_t arity, Seq const& xs) {
     return searchSignature(arity, xs.begin(), xs.end());
 }
 }  // namespace
+
+SearchSignature IndexAnalysis::getSearchSignature(const CountUniqueKeys* count) const {
+    const Relation* rel = &relAnalysis->lookup(count->getRelation());
+    std::size_t arity = rel->getArity();
+
+    // default everything is AttributeConstraint::None
+    SearchSignature keys(arity);
+    // set join column attributes
+    for (std::size_t col : count->getKeyColumns()) {
+        keys[col] = AttributeConstraint::Equal;
+    }
+    return keys;
+}
 
 SearchSignature IndexAnalysis::getSearchSignature(const IndexOperation* search) const {
     const Relation* rel = &relAnalysis->lookup(search->getRelation());

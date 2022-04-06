@@ -51,6 +51,11 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(TranslationUnit& tran
         if (!rel->getFunctionalDependencies().empty()) {
             continue;
         }
+        // skip equivalence relations (which automatically create reflexive,
+        // symmetric, and transitive tuples)
+        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
+            continue;
+        }
         const auto& clauses = program.getClauses(*rel);
         if (!ioType.isIO(rel) && clauses.size() == 1u) {
             // .. of shape r(x,y,..) :- s(x,y,..)

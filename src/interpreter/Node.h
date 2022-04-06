@@ -104,6 +104,7 @@ struct RelationWrapper;
     Forward(LogTimer)\
     Forward(DebugInfo)\
     FOR_EACH(Expand, Clear)\
+    FOR_EACH(Expand, CountUniqueKeys)\
     Forward(LogSize)\
     Forward(IO)\
     Forward(Query)\
@@ -875,6 +876,15 @@ class Clear : public Node, public RelationalOperation {
 public:
     Clear(enum NodeType ty, const ram::Node* sdw, RelationHandle* handle)
             : Node(ty, sdw), RelationalOperation(handle) {}
+};
+
+/**
+ * @class CountUniqueKeys
+ */
+class CountUniqueKeys : public Node, public RelationalOperation, public ViewOperation {
+public:
+    CountUniqueKeys(enum NodeType ty, const ram::Node* sdw, RelationHandle* handle, std::size_t viewId)
+            : Node(ty, sdw), RelationalOperation(handle), ViewOperation(viewId) {}
 };
 
 /**

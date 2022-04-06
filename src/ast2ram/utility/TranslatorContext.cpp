@@ -25,6 +25,7 @@
 #include "ast/analysis/RecursiveClauses.h"
 #include "ast/analysis/RelationSchedule.h"
 #include "ast/analysis/SCCGraph.h"
+#include "ast/analysis/UniqueKeys.h"
 #include "ast/analysis/typesystem/PolymorphicObjects.h"
 #include "ast/analysis/typesystem/SumTypeBranches.h"
 #include "ast/analysis/typesystem/Type.h"
@@ -59,6 +60,7 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
     typeEnv = &tu.getAnalysis<ast::analysis::TypeEnvironmentAnalysis>().getTypeEnvironment();
     sumTypeBranches = &tu.getAnalysis<ast::analysis::SumTypeBranchesAnalysis>();
     polyAnalysis = &tu.getAnalysis<ast::analysis::PolymorphicObjectsAnalysis>();
+    uniqueKeysAnalysis = &tu.getAnalysis<ast::analysis::UniqueKeysAnalysis>();
 
     // Set up clause nums
     for (const ast::Relation* rel : program->getRelations()) {
@@ -140,6 +142,26 @@ std::set<const ast::Relation*> TranslatorContext::getInputRelationsInSCC(std::si
 
 std::set<const ast::Relation*> TranslatorContext::getOutputRelationsInSCC(std::size_t scc) const {
     return sccGraph->getInternalOutputRelations(scc);
+}
+
+VecOwn<ram::Statement> TranslatorContext::getRecursiveUniqueKeyStatementsInSCC(std::size_t scc) const {
+    VecOwn<ram::Statement> res;
+    for (auto&& s : uniqueKeysAnalysis->getUniqueKeyStatementsInSCC(scc)) {
+        if (s->isRecursiveRelation()) {
+            res.push_back(clone(s));
+        }
+    }
+    return res;
+}
+
+VecOwn<ram::Statement> TranslatorContext::getNonRecursiveUniqueKeyStatementsInSCC(std::size_t scc) const {
+    VecOwn<ram::Statement> res;
+    for (auto&& s : uniqueKeysAnalysis->getUniqueKeyStatementsInSCC(scc)) {
+        if (!s->isRecursiveRelation()) {
+            res.push_back(clone(s));
+        }
+    }
+    return res;
 }
 
 std::set<const ast::Relation*> TranslatorContext::getExpiredRelations(std::size_t scc) const {

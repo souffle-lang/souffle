@@ -160,13 +160,6 @@ std::set<QualifiedName> MagicSetTransformer::getWeaklyIgnoredRelations(const Tra
         });
     }
 
-    // - Any eqrel relation
-    for (auto* rel : program.getRelations()) {
-        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
-            weaklyIgnoredRelations.insert(rel->getQualifiedName());
-        }
-    }
-
     // - Any relation with functional dependencies
     for (auto* rel : program.getRelations()) {
         if (!rel->getFunctionalDependencies().empty()) {

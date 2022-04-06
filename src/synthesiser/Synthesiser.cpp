@@ -810,6 +810,119 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             PRINT_END_COMMENT(out);
         }
 
+        void visit_(
+                type_identity<CountUniqueKeys>, const CountUniqueKeys& count, std::ostream& out) override {
+            const auto* rel = synthesiser.lookup(count.getRelation());
+            auto relName = synthesiser.getRelationName(rel);
+            auto keys = isa->getSearchSignature(&count);
+
+            std::size_t indexNumber = 0;
+            if (!keys.empty()) {
+                indexNumber = isa->getIndexSelection(count.getRelation()).getLexOrderNum(keys);
+            }
+            auto indexName = relName + "->ind_" + std::to_string(indexNumber);
+
+            bool onlyConstants = true;
+            for (auto col : count.getKeyColumns()) {
+                if (count.getConstantsMap().count(col) == 0) {
+                    onlyConstants = false;
+                    break;
+                }
+            }
+
+            // create a copy of the map to the real numeric constants
+            std::map<std::size_t, RamDomain> keyConstants;
+            for (auto [k, constant] : count.getConstantsMap()) {
+                RamDomain value;
+                if (const auto* signedConstant = as<ram::SignedConstant>(constant)) {
+                    value = ramBitCast<RamDomain>(signedConstant->getValue());
+                } else if (const auto* stringConstant = as<ram::StringConstant>(constant)) {
+                    value = ramBitCast<RamDomain>(
+                            synthesiser.convertSymbol2Idx(stringConstant->getConstant()));
+                } else if (const auto* unsignedConstant = as<ram::UnsignedConstant>(constant)) {
+                    value = ramBitCast<RamDomain>(unsignedConstant->getValue());
+                } else if (const auto* floatConstant = as<ram::FloatConstant>(constant)) {
+                    value = ramBitCast<RamDomain>(floatConstant->getValue());
+                } else {
+                    fatal("Something went wrong. Should have gotten a constant!");
+                }
+
+                keyConstants[k] = value;
+            }
+            std::stringstream columnsStream;
+            columnsStream << count.getKeyColumns();
+            std::string columns = columnsStream.str();
+
+            std::stringstream constantsStream;
+            constantsStream << "[";
+            bool first = true;
+            for (auto& [k, constant] : count.getConstantsMap()) {
+                if (first) {
+                    first = false;
+                } else {
+                    constantsStream << ",";
+                }
+                constantsStream << k << "->" << *constant;
+            }
+            constantsStream << "]";
+            std::string constants = stringify(constantsStream.str());
+
+            std::string profilerText =
+                    (count.isRecursiveRelation()
+                                    ? stringify("@recursive-count-unique-keys;" + count.getRelation() + ";" +
+                                                columns + ";" + constants)
+                                    : stringify("@non-recursive-count-unique-keys;" + count.getRelation() +
+                                                ";" + columns + ";" + constants));
+
+            PRINT_BEGIN_COMMENT(out);
+            auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(*rel) + ")";
+            out << "{\n";
+            out << "std::size_t total = 0;\n";
+            out << "std::size_t duplicates = 0;\n";
+
+            out << "if (!" << indexName << ".empty()) {\n";
+            out << "bool first = true;\n";
+            out << "auto prev = *" << indexName << ".begin();\n";
+            out << "for(const auto& tup : " << indexName << ") {\n";
+            out << "    bool matchesConstants = true;\n";
+            for (auto& [k, constant] : keyConstants) {
+                if (rel->getArity() > 6) {
+                    out << "matchesConstants &= (tup[0][" << k << "] == " << constant << ");\n";
+                } else {
+                    out << "matchesConstants &= (tup[" << k << "] == " << constant << ");\n";
+                }
+            }
+            out << "if (!matchesConstants) {\n";
+            out << "    continue;\n";
+            out << "}\n";
+            out << "if (first) { first = false; }\n";
+            out << "else {\n";
+            out << "    bool matchesPrev = true;\n";
+            for (auto k : count.getKeyColumns()) {
+                if (rel->getArity() > 6) {
+                    out << "matchesPrev &= (tup[0][" << k << "] == prev[0][" << k << "]);\n";
+                } else {
+                    out << "matchesPrev &= (tup[" << k << "] == prev[" << k << "]);\n";
+                }
+            }
+            out << "if (matchesPrev) { ++duplicates; }\n";
+            out << "}\n";
+            out << "prev = tup; ++total;\n";
+            out << "\n";
+            out << "}\n";
+            out << "}\n";
+            out << "std::size_t uniqueKeys = (" << (onlyConstants ? "total" : "total - duplicates") << ");\n";
+            if (count.isRecursiveRelation()) {
+                out << "ProfileEventSingleton::instance().makeRecursiveCountEvent(\"" << profilerText
+                    << "\", uniqueKeys, iter);\n";
+            } else {
+                out << "ProfileEventSingleton::instance().makeNonRecursiveCountEvent(\"" << profilerText
+                    << "\", uniqueKeys);\n";
+            }
+            out << "}\n";
+            PRINT_END_COMMENT(out);
+        }
+
         void visit_(type_identity<ParallelIndexScan>, const ParallelIndexScan& piscan,
                 std::ostream& out) override {
             const auto* rel = synthesiser.lookup(piscan.getRelation());
