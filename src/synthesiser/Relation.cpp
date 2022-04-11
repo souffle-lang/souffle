@@ -49,15 +49,15 @@ Own<Relation> Relation::getSynthesiserRelation(
 
     // Handle the qualifier in souffle code
     if (ramRel.getRepresentation() == RelationRepresentation::PROVENANCE) {
-        rel = new DirectRelation(ramRel, indexSelection, true, false);
+        rel = new DirectRelation(ramRel, indexSelection, true, false, false);
     } else if (ramRel.getRepresentation() == RelationRepresentation::INCREMENTAL) {
-        rel = new DirectRelation(ramRel, indexSelection, isProvenance, true, false);
+        rel = new DirectRelation(ramRel, indexSelection, false, true, false);
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, false);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, true);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, true);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -69,7 +69,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, false, false);
+            rel = new DirectRelation(ramRel, indexSelection, false, false, false);
         }
     }
 

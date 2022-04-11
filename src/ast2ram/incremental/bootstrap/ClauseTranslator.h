@@ -46,7 +46,7 @@ protected:
     Own<ram::Operation> createInsertion(const ast::Clause& clause) const override;
     void indexAtoms(const ast::Clause& clause) override;
     Own<ram::Operation> addAtomScan(Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause,
-            int curLevel) const override;
+            std::size_t curLevel) const override;
 
 private:
     Own<ram::Expression> getLevelNumber(const ast::Clause& clause) const;

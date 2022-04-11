@@ -58,7 +58,7 @@ protected:
     Own<ram::Operation> createInsertion(const ast::Clause& clause) const override;
     void indexAtoms(const ast::Clause& clause) override;
     Own<ram::Operation> addAtomScan(Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause,
-            int curLevel) const override;
+            std::size_t curLevel) const override;
 
     /** This keeps track of which position the diff_plus/diff_minus atom should
      * be in the rule, in a similar manner to how version in

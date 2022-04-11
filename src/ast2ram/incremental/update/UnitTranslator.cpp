@@ -225,11 +225,11 @@ VecOwn<ram::Statement> UnitTranslator::generateClauseVersions(
 
     // Check that the correct number of versions have been created
     if (clause->getExecutionPlan() != nullptr) {
-        int maxVersion = -1;
+        std::optional<std::size_t> maxVersion;
         for (const auto& cur : clause->getExecutionPlan()->getOrders()) {
-            maxVersion = std::max(cur.first, maxVersion);
+            maxVersion = std::max(cur.first, maxVersion.value_or(cur.first));
         }
-        assert((int)sccAtoms.size() > maxVersion && "missing clause versions");
+        assert(sccAtoms.size() > *maxVersion && "missing clause versions");
     }
 
     return clauseVersions;

@@ -143,9 +143,6 @@ enum NodeType {
  * Add reflective from string to NodeType.
  */
 inline NodeType constructNodeType(std::string tokBase, const ram::Relation& rel) {
-    static bool isProvenance = Global::config().has("provenance");
-    static bool isIncremental = Global::config().has("incremental");
-
     static const std::unordered_map<std::string, NodeType> map = {
             FOR_EACH_INTERPRETER_TOKEN(SINGLE_TOKEN_ENTRY, EXPAND_TOKEN_ENTRY)
     };
@@ -155,9 +152,9 @@ inline NodeType constructNodeType(std::string tokBase, const ram::Relation& rel)
         return map.at("I_" + tokBase + "_Eqrel_" + arity);
     } else if(rel.getRepresentation() == RelationRepresentation::BTREE_DELETE) { 
         return map.at("I_" + tokBase + "_BtreeDelete_" + arity);
-    } else if (isProvenance) {
+    } else if (rel.getRepresentation() == RelationRepresentation::PROVENANCE) {
         return map.at("I_" + tokBase + "_Provenance_" + arity);
-    } else if (isIncremental) {
+    } else if (rel.getRepresentation() == RelationRepresentation::INCREMENTAL) {
         return map.at("I_" + tokBase + "_Incremental_" + arity);
     } else  {
         return map.at("I_" + tokBase + "_Btree_" + arity);

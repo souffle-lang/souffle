@@ -200,9 +200,9 @@ std::optional<std::size_t> LevelAnalysis::getLevel(const Node* node) const {
             return std::nullopt;
         }
 
-        // auto increment
-        int visit_(type_identity<IterationNumber>, const IterationNumber&) override {
-            return -1;
+        // iteration number
+        maybe_level visit_(type_identity<IterationNumber>, const IterationNumber&) override {
+            return std::nullopt;
         }
 
         // undef value
