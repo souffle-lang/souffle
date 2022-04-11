@@ -79,30 +79,30 @@ TypeConstraint hasSuperTypeInSet(const TypeVar& var, TypeSet values) {
 
         C(TypeVar var, TypeSet values) : var(std::move(var)), values(std::move(values)) {}
 
-        bool update(Assignment<TypeVar>& assigment) const override {
+        bool update(Assignment<TypeVar>& assignment) const override {
             // get current value of variable a
-            TypeSet& assigments = assigment[var];
+            TypeSet& assignments = assignment[var];
 
             // remove all types that are not sub-types of b
-            if (assigments.isAll()) {
-                assigments = values;
+            if (assignments.isAll()) {
+                assignments = values;
                 return true;
             }
 
-            TypeSet newAssigments;
-            for (const Type& type : assigments) {
+            TypeSet newAssignments;
+            for (const Type& type : assignments) {
                 assert(!isA<AliasType>(type));
                 bool existsSuperTypeInValues =
                         any_of(values, [&type](const Type& value) { return isSubtypeOf(type, value); });
                 if (existsSuperTypeInValues) {
-                    newAssigments.insert(type);
+                    newAssignments.insert(type);
                 }
             }
             // check whether there was a change
-            if (newAssigments == assigments) {
+            if (newAssignments == assignments) {
                 return false;
             }
-            assigments = newAssigments;
+            assignments = newAssignments;
             return true;
         }
 
@@ -124,10 +124,10 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
 
         C(TypeVar left, TypeVar right) : left(std::move(left)), right(std::move(right)) {}
 
-        bool update(Assignment<TypeVar>& assigment) const override {
+        bool update(Assignment<TypeVar>& assignment) const override {
             // get current value of variable a
-            TypeSet& assigmentsLeft = assigment[left];
-            TypeSet& assigmentsRight = assigment[right];
+            TypeSet& assignmentsLeft = assignment[left];
+            TypeSet& assignmentsRight = assignment[right];
 
             // Base types common to left and right variables.
             TypeSet baseTypes;
@@ -138,8 +138,8 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
 
             // Iterate over possible types extracting base types.
             // Left
-            if (!assigmentsLeft.isAll()) {
-                for (const Type& type : assigmentsLeft) {
+            if (!assignmentsLeft.isAll()) {
+                for (const Type& type : assignmentsLeft) {
                     assert(!isA<AliasType>(type));
                     if (isA<SubsetType>(type) || isA<ConstantType>(type)) {
                         baseTypesLeft.insert(getBaseType(&type));
@@ -147,8 +147,8 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
                 }
             }
             // Right
-            if (!assigmentsRight.isAll()) {
-                for (const Type& type : assigmentsRight) {
+            if (!assignmentsRight.isAll()) {
+                for (const Type& type : assignmentsRight) {
                     assert(!isA<AliasType>(type));
                     if (isA<SubsetType>(type) || isA<ConstantType>(type)) {
                         baseTypesRight.insert(getBaseType(&type));
@@ -160,24 +160,24 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
             TypeSet resultRight;
 
             // Handle all
-            if (assigmentsLeft.isAll() && assigmentsRight.isAll()) {
+            if (assignmentsLeft.isAll() && assignmentsRight.isAll()) {
                 return false;
             }
 
             // If left xor right is all, assign base types of the other side as possible values.
-            if (assigmentsLeft.isAll()) {
-                assigmentsLeft = baseTypesRight;
+            if (assignmentsLeft.isAll()) {
+                assignmentsLeft = baseTypesRight;
                 return true;
             }
-            if (assigmentsRight.isAll()) {
-                assigmentsRight = baseTypesLeft;
+            if (assignmentsRight.isAll()) {
+                assignmentsRight = baseTypesLeft;
                 return true;
             }
 
             baseTypes = TypeSet::intersection(baseTypesLeft, baseTypesRight);
 
             // Allow types if they are subtypes of any of the common base types.
-            for (const Type& type : assigmentsLeft) {
+            for (const Type& type : assignmentsLeft) {
                 assert(!isA<AliasType>(type));
                 bool isSubtypeOfCommonBaseType = any_of(baseTypes.begin(), baseTypes.end(),
                         [&type](const Type& baseType) { return isSubtypeOf(type, baseType); });
@@ -186,7 +186,7 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
                 }
             }
 
-            for (const Type& type : assigmentsRight) {
+            for (const Type& type : assignmentsRight) {
                 assert(!isA<AliasType>(type));
                 bool isSubtypeOfCommonBaseType = any_of(baseTypes.begin(), baseTypes.end(),
                         [&type](const Type& baseType) { return isSubtypeOf(type, baseType); });
@@ -196,11 +196,11 @@ TypeConstraint subtypesOfTheSameBaseType(const TypeVar& left, const TypeVar& rig
             }
 
             // check whether there was a change
-            if (resultLeft == assigmentsLeft && resultRight == assigmentsRight) {
+            if (resultLeft == assignmentsLeft && resultRight == assignmentsRight) {
                 return false;
             }
-            assigmentsLeft = resultLeft;
-            assigmentsRight = resultRight;
+            assignmentsLeft = resultLeft;
+            assignmentsRight = resultRight;
             return true;
         }
         //
@@ -238,14 +238,14 @@ TypeConstraint satisfiesOverload(const TypeEnvironment& typeEnv, IntrinsicFuncto
                 : typeEnv(typeEnv), overloads(std::move(overloads)), result(std::move(result)),
                   args(std::move(args)), subtypeResult(subtypeResult) {}
 
-        bool update(Assignment<TypeVar>& assigment) const override {
+        bool update(Assignment<TypeVar>& assignment) const override {
             auto subtypesOf = [&](const TypeSet& src, TypeAttribute tyAttr) {
                 auto& ty = typeEnv.getConstantType(tyAttr);
                 return src.filter(TypeSet(true), [&](auto&& x) { return isSubtypeOf(x, ty); });
             };
 
             auto possible = [&](TypeAttribute ty, const TypeVar& var) {
-                auto& curr = assigment[var];
+                auto& curr = assignment[var];
                 return curr.isAll() || any_of(curr, [&](auto&& t) { return getTypeAttribute(t) == ty; });
             };
 
@@ -272,7 +272,7 @@ TypeConstraint satisfiesOverload(const TypeEnvironment& typeEnv, IntrinsicFuncto
                 if (overload.op != FunctorOp::ORD) {
                     for (std::size_t i = 0; i < args.size(); ++i) {
                         auto argTy = overload.params[overload.variadic ? 0 : i];
-                        auto& currArg = assigment[args[i]];
+                        auto& currArg = assignment[args[i]];
                         auto newArg = subtypesOf(currArg, argTy);
                         changed |= currArg != newArg;
                         // 2020-05-09: CI linter says to remove `std::move`, but clang-tidy-10 is happy.
@@ -281,7 +281,7 @@ TypeConstraint satisfiesOverload(const TypeEnvironment& typeEnv, IntrinsicFuncto
                 }
 
                 if (nonMonotonicUpdate || subtypeResult) {
-                    return subtypesOf(assigment[result], overload.result);
+                    return subtypesOf(assignment[result], overload.result);
                 } else {
                     nonMonotonicUpdate = true;
                     return TypeSet{typeEnv.getConstantType(overload.result)};
@@ -289,7 +289,7 @@ TypeConstraint satisfiesOverload(const TypeEnvironment& typeEnv, IntrinsicFuncto
             }();
 
             if (newResult) {
-                auto& curr = assigment[result];
+                auto& curr = assignment[result];
                 changed |= curr != *newResult;
                 // 2020-05-09: CI linter says to remove `std::move`, but clang-tidy-10 is happy.
                 curr = std::move(*newResult);  // NOLINT
@@ -316,9 +316,9 @@ TypeConstraint isSubtypeOfComponent(
     struct C : public Constraint<TypeVar> {
         TypeVar elementVariable;
         TypeVar recordVariable;
-        unsigned index;
+        std::size_t index;
 
-        C(TypeVar elementVariable, TypeVar recordVariable, int index)
+        C(TypeVar elementVariable, TypeVar recordVariable, std::size_t index)
                 : elementVariable(std::move(elementVariable)), recordVariable(std::move(recordVariable)),
                   index(index) {}
 
@@ -353,7 +353,7 @@ TypeConstraint isSubtypeOfComponent(
                 newRecordTypes.insert(type);
 
                 // and its corresponding field.
-                newElementTypes.insert(*typeAsRecord.getFields()[index]);
+                newElementTypes.insert(skipAliasesType(*typeAsRecord.getFields()[index]));
             }
 
             // combine with current types assigned to element

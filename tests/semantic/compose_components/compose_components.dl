@@ -1,0 +1,32 @@
+
+.comp Number {
+  .type T = number
+  .decl same(a:T, b:T, res:T) inline
+  same(a, b, a) :- a = b.
+}
+
+.comp Same<Dom> : Dom {
+  .decl in(a:T,b:T)
+  .decl out(same:T)
+  out(x) :- in(a, b), same(a,b,x).
+}
+
+.init SameNumber = Same<Number>
+SameNumber.in(1,1).
+SameNumber.in(1,3).
+SameNumber.in(2,2).
+.output SameNumber.out
+
+.comp Pair<Dom> {
+  .init D = Dom
+  .type T = [first:D.T, second:D.T]
+  .decl same(a:T, b:T, res:T) inline
+  same([a1,a2], [b1,b2], [x1,x2]) :- D.same(a1,b1,x1), D.same(a2,b2,x2).
+}
+
+.comp NumberPair : Pair<Number> {}
+.init SameNumberPair = Same<NumberPair>
+SameNumberPair.in([1,1],[1,1]).
+SameNumberPair.in([1,0],[0,1]).
+SameNumberPair.in([2,3],[2,3]).
+.output SameNumberPair.out

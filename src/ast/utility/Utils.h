@@ -146,7 +146,7 @@ bool isProposition(const Atom* atom);
  * @param clause clause to reorder atoms in
  * @param newOrder new order of atoms; atoms[i] = atoms[newOrder[i]]
  */
-Clause* reorderAtoms(const Clause* clause, const std::vector<unsigned int>& newOrder);
+Clause* reorderAtoms(const Clause* clause, const std::vector<std::size_t>& newOrder);
 
 /**
  * Reorders a vector of atoms to be in the given order.
@@ -154,7 +154,7 @@ Clause* reorderAtoms(const Clause* clause, const std::vector<unsigned int>& newO
  * @param atoms atoms to reorder
  * @param newOrder new order of atoms; atoms[i] = atoms[newOrder[i]]
  */
-std::vector<Atom*> reorderAtoms(const std::vector<Atom*>& atoms, const std::vector<unsigned int>& newOrder);
+std::vector<Atom*> reorderAtoms(const std::vector<Atom*>& atoms, const std::vector<std::size_t>& newOrder);
 
 /**
  * Negate an ast constraint

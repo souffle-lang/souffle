@@ -65,9 +65,11 @@ protected:
             }
 
 #if RAM_DOMAIN_SIZE == 64
-            if (sqlite3_bind_int64(insertStatement, i + 1, value) != SQLITE_OK) {
+            if (sqlite3_bind_int64(insertStatement, static_cast<int>(i + 1),
+                        static_cast<sqlite3_int64>(value)) != SQLITE_OK) {
 #else
-            if (sqlite3_bind_int(insertStatement, i + 1, value) != SQLITE_OK) {
+            if (sqlite3_bind_int(insertStatement, static_cast<int>(i + 1), static_cast<int>(value)) !=
+                    SQLITE_OK) {
 #endif
                 throwError("SQLite error in sqlite3_bind_text: ");
             }
@@ -102,7 +104,7 @@ private:
         throw std::invalid_argument(error.str());
     }
 
-    uint64_t getSymbolTableIDFromDB(int index) {
+    uint64_t getSymbolTableIDFromDB(std::size_t index) {
         if (sqlite3_bind_text(symbolSelectStatement, 1, symbolTable.decode(index).c_str(), -1,
                     SQLITE_TRANSIENT) != SQLITE_OK) {
             throwError("SQLite error in sqlite3_bind_text: ");
@@ -115,7 +117,7 @@ private:
         sqlite3_reset(symbolSelectStatement);
         return rowid;
     }
-    uint64_t getSymbolTableID(int index) {
+    uint64_t getSymbolTableID(std::size_t index) {
         if (dbSymbolTable.count(index) != 0) {
             return dbSymbolTable[index];
         }

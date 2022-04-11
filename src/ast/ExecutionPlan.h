@@ -40,10 +40,10 @@ public:
     using Node::Node;
 
     /** Set execution order for a given rule version */
-    void setOrderFor(int version, Own<ExecutionOrder> plan);
+    void setOrderFor(std::size_t version, Own<ExecutionOrder> plan);
 
     /** Get orders */
-    std::map<int, const ExecutionOrder*> getOrders() const;
+    std::map<std::size_t, const ExecutionOrder*> getOrders() const;
 
     void apply(const NodeMapper& map) override;
 
@@ -59,7 +59,7 @@ private:
 
 private:
     /** Mapping versions of clauses to execution orders */
-    std::map<int, Own<ExecutionOrder>> plans;
+    std::map<std::size_t, Own<ExecutionOrder>> plans;
 };
 
 }  // namespace souffle::ast

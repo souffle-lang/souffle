@@ -20,6 +20,7 @@
 #include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
 #include "souffle/profile/ProgramRun.h"
+#include "souffle/profile/Reader.h"
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -53,9 +54,21 @@ public:
     /** Return size of relation in the profile */
     std::size_t getRelationSize(const QualifiedName& rel) const;
 
+    bool hasAutoSchedulerStats() const;
+
+    std::size_t getNonRecursiveUniqueKeys(
+            const std::string& rel, const std::string& attributes, const std::string& constants) const;
+
+    std::size_t getRecursiveUniqueKeys(const std::string& rel, const std::string& attributes,
+            const std::string& constants, const std::string& iteration) const;
+
+    std::size_t getIterations(const std::string& rel) const;
+
 private:
     /** performance model of profile run */
     std::shared_ptr<profile::ProgramRun> programRun;
+
+    Own<profile::Reader> reader = nullptr;
 };
 
 }  // namespace analysis

@@ -56,135 +56,148 @@
 
 namespace souffle::ram::analysis {
 
-int LevelAnalysis::getLevel(const Node* node) const {
+std::optional<std::size_t> LevelAnalysis::getLevel(const Node* node) const {
     // visitor
-    class ValueLevelVisitor : public Visitor<int> {
-        using Visitor<int>::visit_;
+    using maybe_level = std::optional<std::size_t>;
+    class ValueLevelVisitor : public Visitor<maybe_level> {
+        using Visitor<maybe_level>::visit_;
+
+        static maybe_level max(const maybe_level& a, const maybe_level& b) {
+            if (a.has_value() && b.has_value()) {
+                return std::max(*a, *b);
+            } else if (a.has_value()) {
+                return a;
+            } else if (b.has_value()) {
+                return b;
+            } else {
+                return std::nullopt;
+            }
+        }
 
     public:
         // string constant
-        int visit_(type_identity<StringConstant>, const StringConstant&) override {
-            return -1;
+        maybe_level visit_(type_identity<StringConstant>, const StringConstant&) override {
+            return std::nullopt;
         }
 
         // number constant
-        int visit_(type_identity<NumericConstant>, const NumericConstant&) override {
-            return -1;
+        maybe_level visit_(type_identity<NumericConstant>, const NumericConstant&) override {
+            return std::nullopt;
         }
 
         // true
-        int visit_(type_identity<True>, const True&) override {
-            return -1;
+        maybe_level visit_(type_identity<True>, const True&) override {
+            return std::nullopt;
         }
 
         // false
-        int visit_(type_identity<False>, const False&) override {
-            return -1;
+        maybe_level visit_(type_identity<False>, const False&) override {
+            return std::nullopt;
         }
 
         // tuple element access
-        int visit_(type_identity<TupleElement>, const TupleElement& elem) override {
+        maybe_level visit_(type_identity<TupleElement>, const TupleElement& elem) override {
             return elem.getTupleId();
         }
 
         // scan
-        int visit_(type_identity<Scan>, const Scan&) override {
-            return -1;
+        maybe_level visit_(type_identity<Scan>, const Scan&) override {
+            return std::nullopt;
         }
 
         // index scan
-        int visit_(type_identity<IndexScan>, const IndexScan& indexScan) override {
-            int level = -1;
+        maybe_level visit_(type_identity<IndexScan>, const IndexScan& indexScan) override {
+            maybe_level level = std::nullopt;
             for (auto& index : indexScan.getRangePattern().first) {
-                level = std::max(level, dispatch(*index));
+                level = max(level, dispatch(*index));
             }
             for (auto& index : indexScan.getRangePattern().second) {
-                level = std::max(level, dispatch(*index));
+                level = max(level, dispatch(*index));
             }
             return level;
         }
 
         // choice
-        int visit_(type_identity<IfExists>, const IfExists& choice) override {
-            return std::max(-1, dispatch(choice.getCondition()));
+        maybe_level visit_(type_identity<IfExists>, const IfExists& choice) override {
+            return max(-1, dispatch(choice.getCondition()));
         }
 
         // index choice
-        int visit_(type_identity<IndexIfExists>, const IndexIfExists& indexIfExists) override {
-            int level = -1;
+        maybe_level visit_(type_identity<IndexIfExists>, const IndexIfExists& indexIfExists) override {
+            maybe_level level = std::nullopt;
             for (auto& index : indexIfExists.getRangePattern().first) {
-                level = std::max(level, dispatch(*index));
+                level = max(level, dispatch(*index));
             }
             for (auto& index : indexIfExists.getRangePattern().second) {
-                level = std::max(level, dispatch(*index));
+                level = max(level, dispatch(*index));
             }
-            return std::max(level, dispatch(indexIfExists.getCondition()));
+            return max(level, dispatch(indexIfExists.getCondition()));
         }
 
         // aggregate
-        int visit_(type_identity<Aggregate>, const Aggregate& aggregate) override {
-            return std::max(dispatch(aggregate.getExpression()), dispatch(aggregate.getCondition()));
+        maybe_level visit_(type_identity<Aggregate>, const Aggregate& aggregate) override {
+            return max(dispatch(aggregate.getExpression()), dispatch(aggregate.getCondition()));
         }
 
         // index aggregate
-        int visit_(type_identity<IndexAggregate>, const IndexAggregate& indexAggregate) override {
-            int level = -1;
+        maybe_level visit_(type_identity<IndexAggregate>, const IndexAggregate& indexAggregate) override {
+            maybe_level level = std::nullopt;
             for (auto& index : indexAggregate.getRangePattern().first) {
-                level = std::max(level, dispatch(*index));
+                level = max(level, dispatch(*index));
             }
             for (auto& index : indexAggregate.getRangePattern().second) {
-                level = std::max(level, dispatch(*index));
+                level = max(level, dispatch(*index));
             }
-            level = std::max(dispatch(indexAggregate.getExpression()), level);
-            return std::max(level, dispatch(indexAggregate.getCondition()));
+            level = max(dispatch(indexAggregate.getExpression()), level);
+            return max(level, dispatch(indexAggregate.getCondition()));
         }
 
         // unpack record
-        int visit_(type_identity<UnpackRecord>, const UnpackRecord& unpack) override {
+        maybe_level visit_(type_identity<UnpackRecord>, const UnpackRecord& unpack) override {
             return dispatch(unpack.getExpression());
         }
 
         // filter
-        int visit_(type_identity<Filter>, const Filter& filter) override {
+        maybe_level visit_(type_identity<Filter>, const Filter& filter) override {
             return dispatch(filter.getCondition());
         }
 
         // break
-        int visit_(type_identity<Break>, const Break& b) override {
+        maybe_level visit_(type_identity<Break>, const Break& b) override {
             return dispatch(b.getCondition());
         }
 
         // guarded insert
-        int visit_(type_identity<GuardedInsert>, const GuardedInsert& guardedInsert) override {
-            int level = -1;
+        maybe_level visit_(type_identity<GuardedInsert>, const GuardedInsert& guardedInsert) override {
+            maybe_level level = std::nullopt;
             for (auto& exp : guardedInsert.getValues()) {
-                level = std::max(level, dispatch(*exp));
+                level = max(level, dispatch(*exp));
             }
-            level = std::max(level, dispatch(*guardedInsert.getCondition()));
+            level = max(level, dispatch(*guardedInsert.getCondition()));
             return level;
         }
 
         // insert
-        int visit_(type_identity<Insert>, const Insert& insert) override {
-            int level = -1;
+        maybe_level visit_(type_identity<Insert>, const Insert& insert) override {
+            maybe_level level = std::nullopt;
             for (auto& exp : insert.getValues()) {
-                level = std::max(level, dispatch(*exp));
+                level = max(level, dispatch(*exp));
             }
             return level;
         }
 
         // return
-        int visit_(type_identity<SubroutineReturn>, const SubroutineReturn& ret) override {
-            int level = -1;
+        maybe_level visit_(type_identity<SubroutineReturn>, const SubroutineReturn& ret) override {
+            maybe_level level = std::nullopt;
             for (auto& exp : ret.getValues()) {
-                level = std::max(level, dispatch(*exp));
+                level = max(level, dispatch(*exp));
             }
             return level;
         }
 
         // auto increment
-        int visit_(type_identity<AutoIncrement>, const AutoIncrement&) override {
-            return -1;
+        maybe_level visit_(type_identity<AutoIncrement>, const AutoIncrement&) override {
+            return std::nullopt;
         }
 
         // auto increment
@@ -193,90 +206,95 @@ int LevelAnalysis::getLevel(const Node* node) const {
         }
 
         // undef value
-        int visit_(type_identity<UndefValue>, const UndefValue&) override {
-            return -1;
+        maybe_level visit_(type_identity<UndefValue>, const UndefValue&) override {
+            return std::nullopt;
         }
 
         // intrinsic functors
-        int visit_(type_identity<IntrinsicOperator>, const IntrinsicOperator& op) override {
-            int level = -1;
+        maybe_level visit_(type_identity<IntrinsicOperator>, const IntrinsicOperator& op) override {
+            maybe_level level = std::nullopt;
             for (const auto& arg : op.getArguments()) {
-                level = std::max(level, dispatch(*arg));
+                level = max(level, dispatch(*arg));
             }
             return level;
         }
 
         // pack operator
-        int visit_(type_identity<PackRecord>, const PackRecord& pack) override {
-            int level = -1;
+        maybe_level visit_(type_identity<PackRecord>, const PackRecord& pack) override {
+            maybe_level level = std::nullopt;
             for (const auto& arg : pack.getArguments()) {
-                level = std::max(level, dispatch(*arg));
+                level = max(level, dispatch(*arg));
             }
             return level;
         }
 
         // argument
-        int visit_(type_identity<SubroutineArgument>, const SubroutineArgument&) override {
-            return -1;
+        maybe_level visit_(type_identity<SubroutineArgument>, const SubroutineArgument&) override {
+            return std::nullopt;
         }
 
         // user defined operator
-        int visit_(type_identity<UserDefinedOperator>, const UserDefinedOperator& op) override {
-            int level = -1;
+        maybe_level visit_(type_identity<UserDefinedOperator>, const UserDefinedOperator& op) override {
+            maybe_level level = std::nullopt;
             for (const auto& arg : op.getArguments()) {
-                level = std::max(level, dispatch(*arg));
+                level = max(level, dispatch(*arg));
             }
             return level;
         }
 
         // conjunction
-        int visit_(type_identity<Conjunction>, const Conjunction& conj) override {
-            return std::max(dispatch(conj.getLHS()), dispatch(conj.getRHS()));
+        maybe_level visit_(type_identity<Conjunction>, const Conjunction& conj) override {
+            return max(dispatch(conj.getLHS()), dispatch(conj.getRHS()));
         }
 
         // negation
-        int visit_(type_identity<Negation>, const Negation& neg) override {
+        maybe_level visit_(type_identity<Negation>, const Negation& neg) override {
             return dispatch(neg.getOperand());
         }
 
         // constraint
-        int visit_(type_identity<Constraint>, const Constraint& binRel) override {
-            return std::max(dispatch(binRel.getLHS()), dispatch(binRel.getRHS()));
+        maybe_level visit_(type_identity<Constraint>, const Constraint& binRel) override {
+            return max(dispatch(binRel.getLHS()), dispatch(binRel.getRHS()));
         }
 
         // existence check
-        int visit_(type_identity<ExistenceCheck>, const ExistenceCheck& exists) override {
-            int level = -1;
+        maybe_level visit_(type_identity<ExistenceCheck>, const ExistenceCheck& exists) override {
+            maybe_level level = std::nullopt;
             for (const auto& cur : exists.getValues()) {
-                level = std::max(level, dispatch(*cur));
+                level = max(level, dispatch(*cur));
             }
             return level;
         }
 
         // provenance existence check
-        int visit_(type_identity<ProvenanceExistenceCheck>,
+        maybe_level visit_(type_identity<ProvenanceExistenceCheck>,
                 const ProvenanceExistenceCheck& provExists) override {
-            int level = -1;
+            maybe_level level = std::nullopt;
             for (const auto& cur : provExists.getValues()) {
-                level = std::max(level, dispatch(*cur));
+                level = max(level, dispatch(*cur));
             }
             return level;
         }
 
         // emptiness check
-        int visit_(type_identity<EmptinessCheck>, const EmptinessCheck&) override {
-            return -1;  // can be in the top level
+        maybe_level visit_(type_identity<EmptinessCheck>, const EmptinessCheck&) override {
+            return std::nullopt;  // can be in the top level
         }
 
         // default rule
-        int visit_(type_identity<Node>, const Node&) override {
+        maybe_level visit_(type_identity<Node>, const Node&) override {
             fatal("Node not implemented!");
         }
     };
 
     assert((isA<Expression>(node) || isA<Condition>(node) || isA<Operation>(node)) &&
             "not an expression/condition/operation");
-    return ValueLevelVisitor().dispatch(*node);
+    auto res = ValueLevelVisitor().dispatch(*node);
+    return res;
+}
+
+bool LevelAnalysis::hasLevel(const Node* value) const {
+    return getLevel(value).has_value();
 }
 
 }  // namespace souffle::ram::analysis

@@ -99,6 +99,7 @@ option(SOUFFLE_GENERATE_DOXYGEN "Generate Doxygen files (html;htmlhelp;man;rtf;x
 option(SOUFFLE_CODE_COVERAGE "Enable coverage reporting" OFF)
 option(SOUFFLE_BASH_COMPLETION "Enable/Disable bash completion" OFF)
 option(SOUFFLE_USE_LIBFFI "Enable/Disable use of libffi" ON)
+option(SOUFFLE_CUSTOM_GETOPTLONG "Enable/Disable custom getopt_long implementation" OFF)
 
 cmake_dependent_option(SOUFFLE_USE_LIBCPP "Link to libc++ instead of libstdc++" ON
     "CMAKE_CXX_COMPILER_ID STREQUAL Clang" OFF)
@@ -119,6 +120,24 @@ if (SOUFFLE_USE_LIBCPP)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -lc++abi")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lc++abi")
 endif()
+
+if (WIN32)
+  # Search libraries with and without 'lib' prefix.
+  set(CMAKE_FIND_LIBRARY_PREFIXES ";lib")
+
+  # Prefix all shared libraries with 'lib'.
+  set(CMAKE_SHARED_LIBRARY_PREFIX "lib")
+
+  # Prefix all static libraries with 'lib'.
+  set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
+
+  SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
+  SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
+  SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
+  SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
+  SET( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
+  SET( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
+endif ()
 
 # --------------------------------------------------
 # curses libraries for Provenance information
@@ -147,7 +166,7 @@ if (SOUFFLE_SWIG_PYTHON OR SOUFFLE_SWIG_JAVA)
     find_package(SWIG REQUIRED)
 
     if (SOUFFLE_SWIG_PYTHON)
-        find_package(Python "3.7" REQUIRED)
+        find_package(Python3 3.7 REQUIRED)
     endif()
 
     if (SOUFFLE_SWIG_JAVA)
@@ -218,7 +237,10 @@ endif()
 # libffi
 # --------------------------------------------------
 if (SOUFFLE_USE_LIBFFI)
-  find_package(LibFFI REQUIRED)
+  find_package(libffi CONFIG QUIET)
+  if (NOT libffi_FOUND)
+    find_package(LibFFI REQUIRED)
+  endif()
 endif()
 
 # --------------------------------------------------
@@ -232,11 +254,6 @@ find_package(Threads REQUIRED)
 # --------------------------------------------------
 if (SOUFFLE_USE_OPENMP)
   find_package(OpenMP)
-  if (OPENMP_FOUND)
-      set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-      set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-  endif()
 endif()
 
 # --------------------------------------------------
@@ -338,6 +355,7 @@ endif(SOUFFLE_CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 add_subdirectory(src)
 
 if (SOUFFLE_ENABLE_TESTING)
+    find_package(Python3 3.7 REQUIRED)
     add_subdirectory(src/tests)
     add_subdirectory(tests)
 endif()
@@ -367,6 +385,7 @@ IF (SOUFFLE_BASH_COMPLETION)
 endif()
 
 
+if (NOT WIN32)
 # --------------------------------------------------
 # CPack configuration
 # --------------------------------------------------
@@ -374,7 +393,7 @@ execute_process(COMMAND bash "${CMAKE_SOURCE_DIR}/sh/check_os.sh"
                 RESULT_VARIABLE CHECK_OS_RESULT
                 OUTPUT_VARIABLE CHECK_OS_OUTPUT)
 
-SET(CPACK_PACKAGE_CONTACT "Patrick H.")
+SET(CPACK_PACKAGE_CONTACT "Bernhard Scholz <bernhard.scholz@sydney.edu.au>")
 SET(CPACK_PACKAGE_DESCRIPTION "Souffle - A Datalog Compiler")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Datalog Compiler")
 
@@ -382,7 +401,7 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Datalog Compiler")
 SET(CPACK_THREADS 0)
 
 # Make sure changelog, bash-completion and other important files in debian directory also packaged
-SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/debian/changelog.in" "${CMAKE_SOURCE_DIR}/debian/souffle.bash-completion" "${CMAKE_SOURCE_DIR}/debian/copyright")
+SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/debian/changelog" "${CMAKE_SOURCE_DIR}/debian/souffle.bash-completion" "${CMAKE_SOURCE_DIR}/debian/copyright")
 
 # --------------------------------------------------
 # CPack configuration 
@@ -396,7 +415,7 @@ if (CHECK_OS_RESULT EQUAL 0)
         # --------------------------------------------------
 
         # Specifying runtime dependencies
-        set(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>= 8), libffi-dev, libncurses5-dev, libsqlite3-dev, mcpp, zlib1g-dev")
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>= 8), libffi-dev, libncurses5-dev, libsqlite3-dev, mcpp, zlib1g-dev, python3")
 
         # Auto-generate any runtime dependencies that are required
         SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -407,22 +426,23 @@ if (CHECK_OS_RESULT EQUAL 0)
     endif()
 
     if (CHECK_OS_OUTPUT MATCHES "FEDORA" OR CHECK_OS_OUTPUT MATCHES "CENTOS")
-        SET(CPACK_RPM_PACKAGE_GROUP "Unspecified")
-        SET(CPACK_RPM_PACKAGE_LICENSE "UPL-1.0 License")
-        SET(CPACK_RPM_PACKAGE_VENDOR "Souffle-lang")
+      SET(CPACK_RPM_PACKAGE_GROUP "Unspecified")
+      SET(CPACK_RPM_PACKAGE_LICENSE "UPL-1.0 License")
+      SET(CPACK_RPM_PACKAGE_VENDOR "Souffle-lang")
 
-		# Generate both DEB and RPM packages
-		SET(CPACK_GENERATOR "RPM")
+      # Generate both DEB and RPM packages
+      SET(CPACK_GENERATOR "RPM")
 
-		# --------------------------------------------------
-		# Variables relevent to RPM packages
-		# --------------------------------------------------
+      # --------------------------------------------------
+      # Variables relevent to RPM packages
+      # --------------------------------------------------
 
-		# Specifying runtime dependencies
-		set(CPACK_RPM_PACKAGE_REQUIRES "gcc-c++ >= 8, libffi, libffi-devel, ncurses-devel, sqlite-devel, mcpp, zlib-devel")
+      # Specifying runtime dependencies
+      set(CPACK_RPM_PACKAGE_REQUIRES "gcc-c++ >= 8, libffi, libffi-devel, ncurses-devel, sqlite-devel, mcpp, zlib-devel, python3")
 
-        # Note: By default automatic dependency detection is enabled by rpm generator.
-        # SET(CPACK_RPM_PACKAGE_AUTOREQPROV "no")
-        INCLUDE(CPack)
-	endif()
+      # Note: By default automatic dependency detection is enabled by rpm generator.
+      # SET(CPACK_RPM_PACKAGE_AUTOREQPROV "no")
+      INCLUDE(CPack)
+    endif()
+endif()
 endif()

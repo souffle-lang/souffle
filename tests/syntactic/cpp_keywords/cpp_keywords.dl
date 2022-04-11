@@ -212,12 +212,19 @@ line(1).
 error(1).
 .decl pragma(x:number)
 pragma(1).
+#ifndef _MSC_VER
 .decl _Pragma(x:number)
 _Pragma(1).
+#endif
 .decl worked(x:number)
 .output worked()
 worked(X) :- workaround([X]).
 // TODO (#467, #468): the following is a hack to disable stratification as over a hundred subprograms are produced for this test
 .type number_record = [ x:number ]
 .decl workaround(x:number_record)
-workaround([X]) :- alignas(X), alignof(X), asm(X), atomic_cancel(X), atomic_commit(X), atomic_noexcept(X), auto(X), bool(X), break(X), case(X), catch(X), char(X), char16_t(X), char32_t(X), class(X), concept(X), const(X), constexpr(X), const_cast(X), continue(X), decltype(X), default(X), delete(X), do(X), double(X), dynamic_cast(X), enum(X), explicit(X), export(X), extern(X), float(X), for(X), friend(X), goto(X), int(X), import(X), long(X), module(X), mutable(X), namespace(X), new(X), noexcept(X), nullptr(X), operator(X), or(X), private(X), protected(X), public(X), register(X), reinterpret_cast(X), requires(X), return(X), short(X), signed(X), sizeof(X), static(X), static_assert(X), static_cast(X), struct(X), switch(X), synchronized(X), template(X), this(X), thread_local(X), throw(X), try(X), typedef(X), typeid(X), typename(X), union(X), unsigned(X), using(X), virtual(X), void(X), volatile(X), wchar_t(X), while(X), xor(X), compl(X), bitor(X), bitand(X), and_eq(X), or_eq(X), xor_eq(X), not(X), and(X), not_eq(X), override(X), final(X), transaction_safe(X), transaction_safe_dynamic(X), if(X), elif(X), else(X), endif(X), defined(X), ifdef(X), ifndef(X), define(X), undef(X), include(X), line(X), error(X), pragma(X), _Pragma(X).
+workaround([X]) :- alignas(X), alignof(X), asm(X), atomic_cancel(X), atomic_commit(X), atomic_noexcept(X), auto(X), bool(X), break(X), case(X), catch(X), char(X), char16_t(X), char32_t(X), class(X), concept(X), const(X), constexpr(X), const_cast(X), continue(X), decltype(X), default(X), delete(X), do(X), double(X), dynamic_cast(X), enum(X), explicit(X), export(X), extern(X), float(X), for(X), friend(X), goto(X), int(X), import(X), long(X), module(X), mutable(X), namespace(X), new(X), noexcept(X), nullptr(X), operator(X), or(X), private(X), protected(X), public(X), register(X), reinterpret_cast(X), requires(X), return(X), short(X), signed(X), sizeof(X), static(X), static_assert(X), static_cast(X), struct(X), switch(X), synchronized(X), template(X), this(X), thread_local(X), throw(X), try(X), typedef(X), typeid(X), typename(X), union(X), unsigned(X), using(X), virtual(X), void(X), volatile(X), wchar_t(X), while(X), xor(X), compl(X), bitor(X), bitand(X), and_eq(X), or_eq(X), xor_eq(X), not(X), and(X), not_eq(X), override(X), final(X), transaction_safe(X), transaction_safe_dynamic(X), if(X), elif(X), else(X), endif(X), defined(X), ifdef(X), ifndef(X), define(X), undef(X), include(X), line(X), error(X), pragma(X)
+#ifndef _MSC_VER
+, _Pragma(X)
+#endif
+.
+

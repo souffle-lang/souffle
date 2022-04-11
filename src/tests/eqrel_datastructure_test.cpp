@@ -85,7 +85,7 @@ TEST(RandomInsertPiggyTest, ParallelInsert) {
 
 // insert in parallel (no element should be overridden, because this breaks the datastructure)
 #pragma omp parallel for
-    for (std::size_t i = 0; i < limit; ++i) {
+    for (int i = 0; i < static_cast<int>(limit); ++i) {
         pl.insertAt(i, i);
     }
 
@@ -221,7 +221,7 @@ TEST(PiggyTest, ParallelElementSpawning) {
     souffle::PiggyList<std::size_t> pl;
 
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         std::size_t pos = pl.createNode();
         pl.get(pos) = pos;
     }
@@ -237,7 +237,7 @@ TEST(PiggyTest, ParallelAppend) {
     souffle::PiggyList<std::size_t> pl;
 
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         pl.append(i);
     }
     EXPECT_EQ(N, pl.size());
@@ -309,7 +309,7 @@ TEST(DjTest, ParallelScaling) {
     constexpr std::size_t N = 10000;
 
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         ds.makeNode();
     }
     // check we didn't miss any
@@ -317,7 +317,7 @@ TEST(DjTest, ParallelScaling) {
 
 // union everything
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N - 1; ++i) {
+    for (int i = 0; i < static_cast<int>(N - 1); ++i) {
         ds.unionNodes(i, i + 1);
     }
     EXPECT_EQ(ds.size(), N);
@@ -399,7 +399,7 @@ TEST(SparseDjTest, ParallelDense) {
 
     // call toDense for a load of sparse values, and hope to god they're the same
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         std::size_t val = data_source[i];
         std::size_t a = sds.toDense(val);
         std::size_t b = sds.toDense(val);
@@ -435,7 +435,7 @@ TEST(SparseDjTest, ParallelScaling) {
     constexpr std::size_t N = 1000000;
 
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         // make things which are relatively sparse (hence why we mul by 50)
         sds.makeNode(i * 50);
     }
@@ -443,7 +443,7 @@ TEST(SparseDjTest, ParallelScaling) {
     EXPECT_EQ(sds.size(), N);
     // union everything
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N - 1; ++i) {
+    for (int i = 0; i < static_cast<int>(N - 1); ++i) {
         sds.unionNodes(i * 50, (i + 1) * 50);
     }
 
@@ -459,7 +459,7 @@ TEST(SparseDjTest, ParallelTest) {
     constexpr std::size_t N = 1000000;
 
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         sds.unionNodes(i, i);
     }
 
@@ -548,7 +548,7 @@ TEST(LambdaBTreeTest, ParallelInsert) {
         TestLambdaTree t;
 
 #pragma omp parallel for
-        for (std::size_t i = 0; i < N; ++i) {
+        for (int i = 0; i < static_cast<int>(N); ++i) {
             TestPair tp = {i, 123132};
             t.insert(tp, update_fn);
         }
@@ -588,7 +588,7 @@ TEST(LambdaBTreeTest, ParallelInsert) {
 
         TestLambdaTree t;
 #pragma omp parallel for
-        for (std::size_t i = 0; i < N2; ++i) {
+        for (int i = 0; i < static_cast<int>(N2); ++i) {
             TestPair tp = {i / num_threads, 213812309};
             // by doing this, we pretty much make the same insertion num_thread times, for the next num_thread
             // loops
@@ -644,7 +644,7 @@ TEST(LambdaBTree, ContendParallel) {
     std::shuffle(data_source.begin(), data_source.end(), std::random_device());
 
 #pragma omp parallel for
-    for (std::size_t i = 0; i < N; ++i) {
+    for (int i = 0; i < static_cast<int>(N); ++i) {
         std::size_t val = data_source[i];
         // two pairs, the second part of the pair is updated within the functor if it doesn't exist
         // in both cases, the now-existing value is returned.

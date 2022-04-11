@@ -84,6 +84,9 @@ inline Own<Condition> toCondition(const VecOwn<Condition>& conds) {
             result = mk<Conjunction>(std::move(result), clone(cur));
         }
     }
+    if (result == nullptr) {
+        result = mk<True>();
+    }
     return result;
 }
 

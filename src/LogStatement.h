@@ -69,7 +69,7 @@ public:
         return line.str();
     }
 
-    static const std::string tRecursiveRule(const std::string& relationName, const int version,
+    static const std::string tRecursiveRule(const std::string& relationName, const std::size_t version,
             const SrcLocation& srcLocation, const std::string& datalogText) {
         const char* messageType = "@t-recursive-rule";
         std::stringstream line;
@@ -78,7 +78,7 @@ public:
         return line.str();
     }
 
-    static const std::string nRecursiveRule(const std::string& relationName, const int version,
+    static const std::string nRecursiveRule(const std::string& relationName, const std::size_t version,
             const SrcLocation& srcLocation, const std::string& datalogText) {
         const char* messageType = "@n-recursive-rule";
         std::stringstream line;

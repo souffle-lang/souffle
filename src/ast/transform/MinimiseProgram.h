@@ -52,7 +52,7 @@ private:
 
     // Check whether a valid variable mapping exists for the given permutation.
     static bool isValidPermutation(const analysis::NormalisedClause& left,
-            const analysis::NormalisedClause& right, const std::vector<unsigned int>& permutation);
+            const analysis::NormalisedClause& right, const std::vector<std::size_t>& permutation);
 
     // Check whether two relations have the same qualifiers, representation and attribute types.
     static bool areEquivalentRelations(const Relation* firstRelation, const Relation* secondRelation);
@@ -60,7 +60,7 @@ private:
     // Checks whether a permutation encoded in the given matrix has a valid corresponding variable mapping.
     static bool existsValidPermutation(const analysis::NormalisedClause& left,
             const analysis::NormalisedClause& right,
-            const std::vector<std::vector<unsigned int>>& permutationMatrix);
+            const std::vector<std::vector<std::size_t>>& permutationMatrix);
 
     /** -- Sub-Transformations -- */
 

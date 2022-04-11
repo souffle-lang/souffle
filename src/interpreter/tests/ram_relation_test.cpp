@@ -54,8 +54,6 @@ using namespace ram;
 
 using json11::Json;
 
-#define RANDOM_TESTS 12
-
 const std::string testInterpreterStore(
         std::vector<std::string> attribs, std::vector<std::string> attribsTypes, VecOwn<Expression> exprs) {
     Global::config().set("jobs", "1");
@@ -121,15 +119,16 @@ test
 }
 
 TEST(IO_store, Signed) {
-    std::vector<RamDomain> randomNumbers = testutil::generateRandomVector<RamDomain>(RANDOM_TESTS);
+    std::vector<RamDomain> randomNumbers = testutil::generateValues<RamDomain>();
+    const std::size_t len = randomNumbers.size();
 
     // a0 a1 a2...
-    std::vector<std::string> attribs(RANDOM_TESTS, "a");
-    for (std::size_t i = 0; i < RANDOM_TESTS; ++i) {
+    std::vector<std::string> attribs(len, "a");
+    for (std::size_t i = 0; i < len; ++i) {
         attribs[i].append(std::to_string(i));
     }
 
-    std::vector<std::string> attribsTypes(RANDOM_TESTS, "i");
+    std::vector<std::string> attribsTypes(len, "i");
 
     VecOwn<Expression> exprs;
     for (RamDomain i : randomNumbers) {
@@ -145,7 +144,7 @@ TEST(IO_store, Signed) {
              << "\n"
              << randomNumbers[0];
 
-    for (std::size_t i = 1; i < randomNumbers.size(); ++i) {
+    for (std::size_t i = 1; i < len; ++i) {
         expected << "\t" << randomNumbers[i];
     }
     expected << "\n"
@@ -157,15 +156,16 @@ TEST(IO_store, Signed) {
 }
 
 TEST(IO_store, Float) {
-    std::vector<RamFloat> randomNumbers = testutil::generateRandomVector<RamFloat>(RANDOM_TESTS);
+    const std::vector<RamFloat> randomNumbers = testutil::generateValues<RamFloat>();
+    const std::size_t len = randomNumbers.size();
 
     // a0 a1 a2...
-    std::vector<std::string> attribs(RANDOM_TESTS, "a");
-    for (std::size_t i = 0; i < RANDOM_TESTS; ++i) {
+    std::vector<std::string> attribs(len, "a");
+    for (std::size_t i = 0; i < len; ++i) {
         attribs[i].append(std::to_string(i));
     }
 
-    std::vector<std::string> attribsTypes(RANDOM_TESTS, "f");
+    std::vector<std::string> attribsTypes(len, "f");
 
     VecOwn<Expression> exprs;
     for (RamFloat f : randomNumbers) {
@@ -195,15 +195,16 @@ TEST(IO_store, Float) {
 }
 
 TEST(IO_store, Unsigned) {
-    std::vector<RamUnsigned> randomNumbers = testutil::generateRandomVector<RamUnsigned>(RANDOM_TESTS);
+    const std::vector<RamUnsigned> randomNumbers = testutil::generateValues<RamUnsigned>();
+    const std::size_t len = randomNumbers.size();
 
     // a0 a1 a2...
-    std::vector<std::string> attribs(RANDOM_TESTS, "a");
-    for (std::size_t i = 0; i < RANDOM_TESTS; ++i) {
+    std::vector<std::string> attribs(len, "a");
+    for (std::size_t i = 0; i < len; ++i) {
         attribs[i].append(std::to_string(i));
     }
 
-    std::vector<std::string> attribsTypes(RANDOM_TESTS, "u");
+    std::vector<std::string> attribsTypes(len, "u");
 
     VecOwn<Expression> exprs;
     for (RamUnsigned u : randomNumbers) {
@@ -232,7 +233,8 @@ TEST(IO_store, Unsigned) {
 
 // Test (store) with different delimiter
 TEST(IO_store, SignedChangedDelimiter) {
-    std::vector<RamDomain> randomNumbers = testutil::generateRandomVector<RamDomain>(RANDOM_TESTS);
+    const std::vector<RamDomain> randomNumbers = testutil::generateValues<RamDomain>();
+    const std::size_t len = randomNumbers.size();
     const std::string delimiter{", "};
 
     Global::config().set("jobs", "1");
@@ -240,15 +242,15 @@ TEST(IO_store, SignedChangedDelimiter) {
     VecOwn<ram::Relation> rels;
 
     // a0 a1 a2...
-    std::vector<std::string> attribs(RANDOM_TESTS, "a");
-    for (std::size_t i = 0; i < RANDOM_TESTS; ++i) {
+    std::vector<std::string> attribs(len, "a");
+    for (std::size_t i = 0; i < len; ++i) {
         attribs[i].append(std::to_string(i));
     }
 
-    std::vector<std::string> attribsTypes(RANDOM_TESTS, "i");
+    std::vector<std::string> attribsTypes(len, "i");
 
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", RANDOM_TESTS, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", len, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},

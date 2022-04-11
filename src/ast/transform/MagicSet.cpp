@@ -160,13 +160,6 @@ std::set<QualifiedName> MagicSetTransformer::getWeaklyIgnoredRelations(const Tra
         });
     }
 
-    // - Any eqrel relation
-    for (auto* rel : program.getRelations()) {
-        if (rel->getRepresentation() == RelationRepresentation::EQREL) {
-            weaklyIgnoredRelations.insert(rel->getQualifiedName());
-        }
-    }
-
     // - Any relation with functional dependencies
     for (auto* rel : program.getRelations()) {
         if (!rel->getFunctionalDependencies().empty()) {
@@ -929,7 +922,8 @@ bool PositiveLabellingTransformer::transform(TranslationUnit& translationUnit) {
         }
 
         // Create the rules (from all previous strata) for the newly positive labelled literals
-        for (int preStratum = stratum - 1; preStratum >= 0; preStratum--) {
+        for (std::size_t pos = stratum; pos > 0; pos--) {
+            const std::size_t preStratum = pos - 1;
             if (contains(neglabelledStrata, preStratum)) continue;
             if (!contains(dependentStrata[preStratum], stratum)) continue;
 

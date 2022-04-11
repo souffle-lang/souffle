@@ -271,7 +271,9 @@ private:
 namespace souffle {
 template <typename F, typename>
 void visit(ast::Program& program, F&& go) {
+#ifndef NDEBUG
     program.clause_visit_in_progress++;
+#endif
     for ([[maybe_unused]] auto&& [k, info] : program.relations)
         for (auto&& cl : info.clauses) {
             assert(k == ast::getName(*cl));
@@ -280,12 +282,16 @@ void visit(ast::Program& program, F&& go) {
             // e.g. `visit(program, [](Atom&) {})`
             assert(k == ast::getName(*cl));
         }
+#ifndef NDEBUG
     program.clause_visit_in_progress--;
+#endif
 }
 
 template <typename F, typename>
 void visit(ast::Program const& program, F&& go) {
+#ifndef NDEBUG
     program.clause_visit_in_progress++;
+#endif
     for ([[maybe_unused]] auto&& [k, info] : program.relations)
         for (auto&& cl : info.clauses) {
             assert(k == ast::getName(*cl));
@@ -294,6 +300,8 @@ void visit(ast::Program const& program, F&& go) {
             // e.g. `visit(program, [](Atom&) {})`
             assert(k == ast::getName(*cl));
         }
+#ifndef NDEBUG
     program.clause_visit_in_progress--;
+#endif
 }
 }  // namespace souffle

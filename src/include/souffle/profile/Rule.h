@@ -49,7 +49,7 @@ protected:
     const std::string name;
     std::chrono::microseconds starttime{};
     std::chrono::microseconds endtime{};
-    long numTuples{0};
+    std::size_t numTuples{0};
     std::string identifier;
     std::string locator{};
     std::set<Atom> atoms;
@@ -80,7 +80,7 @@ public:
         return endtime;
     }
 
-    long size() {
+    std::size_t size() {
         return numTuples;
     }
 
@@ -92,7 +92,7 @@ public:
         endtime = time;
     }
 
-    void setNumTuples(long numTuples) {
+    void setNumTuples(std::size_t numTuples) {
         this->numTuples = numTuples;
     }
 

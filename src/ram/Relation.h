@@ -80,12 +80,12 @@ public:
     }
 
     /** @brief Get arity of relation */
-    unsigned getArity() const {
+    std::size_t getArity() const {
         return arity;
     }
 
     /** @brief Get number of auxiliary attributes */
-    unsigned getAuxiliaryArity() const {
+    std::size_t getAuxiliaryArity() const {
         return auxiliaryArity;
     }
 
@@ -103,7 +103,7 @@ protected:
         out << name;
         if (arity > 0) {
             out << "(" << attributeNames[0] << ":" << attributeTypes[0];
-            for (unsigned i = 1; i < arity; i++) {
+            for (std::size_t i = 1; i < arity; i++) {
                 out << ",";
                 out << attributeNames[i] << ":" << attributeTypes[i];
                 if (i >= arity - auxiliaryArity) {

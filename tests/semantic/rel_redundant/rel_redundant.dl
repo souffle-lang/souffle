@@ -56,7 +56,7 @@ lItv(e), anHG(dXn) :- wvhB(dXn), hnwC(e), !HhJv(_).
 .decl fX(A:number)
 .decl outX(A:number)
 
-cX(x)  :- aX(x), y=0.
+cX(x) :- aX(x), y=0.
 dX(q,V,O) :- bX(O,V), aX(q).
 fX(x) :- cX(x).
 outX(Y) :- dX(f,Y,f), fX(c), eX(a,b).

@@ -40,7 +40,7 @@ namespace souffle::interpreter {
  * component to be considered in sorting tuples.
  */
 class Order {
-    using Attribute = uint32_t;
+    using Attribute = std::size_t;
     using AttributeOrder = std::vector<Attribute>;
     AttributeOrder order;
 
@@ -69,8 +69,8 @@ public:
      */
     bool valid() const {
         // Check that all indices are in range.
-        for (int i : order) {
-            if (i < 0 || i >= int(order.size())) {
+        for (auto i : order) {
+            if (i >= order.size()) {
                 return false;
             }
         }
@@ -279,7 +279,7 @@ public:
     /**
      * Retruns a partitioned list of iterators for parallel computation
      */
-    std::vector<souffle::range<iterator>> partitionScan(int partitionCount) const {
+    std::vector<souffle::range<iterator>> partitionScan(std::size_t partitionCount) const {
         auto chunks = data.partition(partitionCount);
         std::vector<souffle::range<iterator>> res;
         res.reserve(chunks.size());
@@ -293,7 +293,7 @@ public:
      * Returns a partitioned list of iterators coving elements in range [low, high]
      */
     std::vector<souffle::range<iterator>> partitionRange(
-            const Tuple& low, const Tuple& high, int partitionCount) const {
+            const Tuple& low, const Tuple& high, std::size_t partitionCount) const {
         auto ranges = this->range(low, high);
         auto chunks = ranges.partition(partitionCount);
         std::vector<souffle::range<iterator>> res;
@@ -330,12 +330,20 @@ public:
     Index(Order /* order */) {}
 
     // Specialized iterator class for nullary.
-    class iterator : public std::iterator<std::forward_iterator_tag, Tuple> {
+    class iterator {
         bool value;
         const Tuple dummy{};
 
     public:
-        iterator(bool v = false) : value(v) {}
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = Tuple;
+        using difference_type = int64_t;
+        using pointer = Tuple*;
+        using reference = Tuple&;
+
+        iterator() : value(false) {}
+        iterator(bool v) : value(v) {}
+        iterator(const iterator& other) : value(other.value), dummy(other.dummy) {}
 
         const Tuple& operator*() {
             return dummy;
@@ -425,14 +433,14 @@ public:
         return {this->begin(), this->end()};
     }
 
-    std::vector<souffle::range<iterator>> partitionScan(int /* partitionCount */) const {
+    std::vector<souffle::range<iterator>> partitionScan(std::size_t /* partitionCount */) const {
         std::vector<souffle::range<iterator>> res;
         res.push_back(scan());
         return res;
     }
 
     std::vector<souffle::range<iterator>> partitionRange(
-            const Tuple& /* l */, const Tuple& /* h */, int /* partitionCount */) const {
+            const Tuple& /* l */, const Tuple& /* h */, std::size_t /* partitionCount */) const {
         return this->partitionScan(0);
     }
 

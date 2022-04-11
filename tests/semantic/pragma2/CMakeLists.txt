@@ -27,9 +27,22 @@ function(SOUFFLE_TEST_SEMANTIC_PRAGMA2_SETUP FILE SO_NAME)
         PROPERTIES
             OUTPUT_NAME "'${SO_NAME}'"
             CXX_EXTENSIONS OFF
+            WINDOWS_EXPORT_ALL_SYMBOLS ON
     )
 
-    target_compile_options(${FILE} PUBLIC "-Wall;-Wextra;-fwrapv")
+    if (NOT MSVC)
+        target_compile_options(${FILE} PUBLIC "-Wall;-Wextra;-fwrapv")
+      else ()
+        target_compile_options(${FILE} PUBLIC /W3 /WX)
+    endif()
+
+    if (WIN32)
+      # Prefix all shared libraries with 'lib'.
+      set(CMAKE_SHARED_LIBRARY_PREFIX "lib")
+
+      # Prefix all static libraries with 'lib'.
+      set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
+    endif ()
 
     if (SOUFFLE_DOMAIN_64BIT)
         target_compile_definitions(${FILE} PUBLIC RAM_DOMAIN_SIZE=64)

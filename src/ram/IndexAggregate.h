@@ -46,7 +46,7 @@ namespace souffle::ram {
 class IndexAggregate : public IndexOperation, public AbstractAggregate {
 public:
     IndexAggregate(Own<Operation> nested, AggregateOp fun, std::string rel, Own<Expression> expression,
-            Own<Condition> condition, RamPattern queryPattern, int ident)
+            Own<Condition> condition, RamPattern queryPattern, std::size_t ident)
             : IndexOperation(rel, ident, std::move(queryPattern), std::move(nested)),
               AbstractAggregate(fun, std::move(expression), std::move(condition)) {}
 

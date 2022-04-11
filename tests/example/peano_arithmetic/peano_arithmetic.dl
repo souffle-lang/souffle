@@ -16,7 +16,7 @@
 .decl A(x:SExpr)
 
 // this represents the expression 2 * (1 + 1)
-A($Mul($Succ($Succ($Zero)), $Add($Succ($Zero()),$Succ($Zero())))).
+A($Mul($Succ($Succ($Zero())), $Add($Succ($Zero()),$Succ($Zero())))).
 
 // Represents the symmetric reflexive transitive closure of the
 // reduction relation usign an equivalence relation in Souffle.

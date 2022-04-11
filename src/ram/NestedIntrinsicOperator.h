@@ -56,7 +56,8 @@ inline std::ostream& operator<<(std::ostream& os, NestedIntrinsicOp e) {
  */
 class NestedIntrinsicOperator : public TupleOperation {
 public:
-    NestedIntrinsicOperator(NestedIntrinsicOp op, VecOwn<Expression> args, Own<Operation> nested, int ident)
+    NestedIntrinsicOperator(
+            NestedIntrinsicOp op, VecOwn<Expression> args, Own<Operation> nested, std::size_t ident)
             : TupleOperation(ident, std::move(nested)), args(std::move(args)), op(op) {}
 
     NestedIntrinsicOp getFunction() const {

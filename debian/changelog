@@ -1,4 +1,5 @@
-souffle (2.2); urgency=low
+souffle (2.2-1) stable; urgency=low
+
   * Subsumption clauses, e.g., A(x1) <= A(x2) :- x1 <= x2 (@julienhenry, @b-scholz)
   * IR and build improvements (@OlivierHamel, @langston-barrett, @quentin, @b-scholz, @aeflores, @cmuellner, @broffra, @rahlk, @yihozhang, @trofi)
   * Refactoring of type analysis (@tytus-metrycki)
@@ -7,8 +8,10 @@ souffle (2.2); urgency=low
   * Type annotation printer (@hide-kawabata)
   * Performance improvements for eqrel (@langston-barrett, @kevzhumba)
 
-souffle (2.1); urgency=low
- 
+ -- Bernhard Scholz <Bernhard.Scholz@sydney.edu.au>  Mon, 17 Jan 2022 12:34:01 +1100
+
+souffle (2.1) stable; urgency=low
+
   * Choice domain (@XiaowenHu96)
   * Proper treatment of escape codes in symbol constants (@lyxell)
   * CSV output has rfc4180 flag for delimiters (@quentin)
@@ -31,7 +34,7 @@ souffle (2.1); urgency=low
   * General Fixes and improvements (@b-scholz, @csabahruska, @julienhenry, @langston-berrett, @mmcgr, @TomasPuverle, @quentin,@XiaowenHu96)
   * Add fuzzing scripts with AFL and Radamsa (@langston-barrett)
 
- -- Bernhard Scholz <Bernhard.Scholz@sydney.edu.au> Tue 17 Aug 2021 12:08:04 +1100
+ -- Bernhard Scholz <Bernhard.Scholz@sydney.edu.au>  Tue, 17 Aug 2021 12:08:04 +1100
 
 souffle (2.0.2); urgency=low
 
@@ -50,6 +53,7 @@ souffle (2.0.2); urgency=low
  -- Martin McGrane <mmcgrane@it.usyd.edu.au>  Fri, 25 Sep 2020 11:10:35 +1000
 
 souffle (2.0.1); urgency=low
+
   * Stop overmaterialising aggregate bodies (rdowavic)
   * Parallelise aggregate computation (rdowavic)
   * Add JSON IO (GaloisNeko)
@@ -64,6 +68,7 @@ souffle (2.0.1); urgency=low
  -- Martin McGrane <mmcgrane@it.usyd.edu.au>  Wed, 29 Jul 2020 11:54:01 +1100
 
 souffle (2.0.0); urgency=low
+
   * Added `--legacy` flag to allow use of legacy options (darth-tytus)
   * Added `--show [...]` flag to show various extra bits of information for
     debugging/optimising (lyndonhenry)
@@ -99,12 +104,14 @@ souffle (2.0.0); urgency=low
  -- Martin McGrane <mmcgrane@it.usyd.edu.au>  Thu, 11 Jun 2020 14:04:00 +1100
 
 souffle (1.7.1); urgency=low
+
   * Enhance program minimiser (azreika)
   * Fix re-ordering of conjunctive terms
 
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Wed, 04 Dec 2019 09:31:23 +1100
 
 souffle (1.7.0); urgency=low
+
   * Rewrote Interpreter for enhanced performance (XiaowenHu96,HerbertJordan)
   * Add SWIG interface (detljh,chadgavin,honghyw)
   * Improved C++ interface and documentation (detljh,chadgavin,honghyw)
@@ -121,16 +128,19 @@ souffle (1.7.0); urgency=low
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Thu, 28 Nov 2019 13:34:20 +1100
 
 souffle (1.6.2); urgency=low
+
   * Fix transformation of aggregates (b-scholz)
 
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Fri, 8 Aug 2019 16:44:31 +1100
 
 souffle (1.6.1); urgency=low
+
   * Fix builds from GitHub source releases (mmcgr)
 
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Fri, 2 Aug 2019 13:30:33 +1100
 
 souffle (1.6.0); urgency=low
+
   * Low Level Machine Interpreter for improved non-synthesised performance (XiaowenHu96,HerbertJordan)
   * Provenance support for negation and equivalence relations (taipan-snake)
   * New semantics for RAM (b-scholz)
@@ -157,6 +167,7 @@ souffle (1.6.0); urgency=low
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Tue, 23 Jul 2019 11:40:23 +1100
 
 souffle (1.5.1); urgency=low
+
   * Rewritten code generation (taipan-snake)
   * Improved Provenance via generated data structures (taipan-snake)
   * Profile cpu & memory usage (mmcgr)
@@ -176,6 +187,7 @@ souffle (1.5.1); urgency=low
  -- Kostyantyn Vorobyov <k.a.vorobyov@gmail.com>  Thu, 17 Jan 2019 09:40:23 +1100
 
 souffle (1.4.0); urgency=low
+
   * improved parallel performance (HerbertJordan)
   * improved operators hints in btree (HerbertJordan)
   * extended progress logging in verbose mode (mmcgr)

@@ -30,6 +30,7 @@
 #include "ast/SubsumptiveClause.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/analysis/Functor.h"
+#include "ast/utility/SipsMetric.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "ast2ram/utility/Location.h"
@@ -39,6 +40,7 @@
 #include "ram/Aggregate.h"
 #include "ram/Break.h"
 #include "ram/Constraint.h"
+#include "ram/CountUniqueKeys.h"
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
 #include "ram/ExistenceCheck.h"
@@ -60,6 +62,7 @@
 #include "ram/utility/Utils.h"
 #include "souffle/utility/StringUtil.h"
 #include <map>
+#include <unordered_set>
 #include <vector>
 
 namespace souffle::ast2ram::seminaive {
@@ -254,8 +257,8 @@ Own<ram::Operation> ClauseTranslator::createInsertion(const ast::Clause& clause)
     return mk<ram::Insert>(headRelationName, std::move(values));
 }
 
-Own<ram::Operation> ClauseTranslator::addAtomScan(
-        Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause, int curLevel) const {
+Own<ram::Operation> ClauseTranslator::addAtomScan(Own<ram::Operation> op, const ast::Atom* atom,
+        const ast::Clause& clause, std::size_t curLevel) const {
     const ast::Atom* head = clause.getHead();
 
     // add constraints
@@ -293,7 +296,7 @@ Own<ram::Operation> ClauseTranslator::addAtomScan(
 }
 
 Own<ram::Operation> ClauseTranslator::addRecordUnpack(
-        Own<ram::Operation> op, const ast::RecordInit* rec, int curLevel) const {
+        Own<ram::Operation> op, const ast::RecordInit* rec, std::size_t curLevel) const {
     // add constant constraints
     op = addConstantConstraints(curLevel, rec->getArguments(), std::move(op));
 
@@ -304,12 +307,12 @@ Own<ram::Operation> ClauseTranslator::addRecordUnpack(
 }
 
 Own<ram::Operation> ClauseTranslator::addAdtUnpack(
-        Own<ram::Operation> op, const ast::BranchInit* adt, int curLevel) const {
+        Own<ram::Operation> op, const ast::BranchInit* adt, std::size_t curLevel) const {
     assert(!context.isADTEnum(adt) && "ADT enums should not be unpacked");
 
     std::vector<ast::Argument*> branchArguments;
 
-    int branchLevel;
+    std::size_t branchLevel;
     // only for ADT with arity less than two (= simple)
     // add padding for branch id
     auto dummyArg = mk<ast::UnnamedVariable>();
@@ -349,7 +352,8 @@ Own<ram::Operation> ClauseTranslator::addAdtUnpack(
 
 Own<ram::Operation> ClauseTranslator::addVariableIntroductions(
         const ast::Clause& clause, Own<ram::Operation> op) {
-    for (int i = operators.size() - 1; i >= 0; i--) {
+    for (std::size_t p = operators.size(); p > 0; p--) {
+        std::size_t i = p - 1;
         const auto* curOp = operators.at(i);
         if (const auto* atom = as<ast::Atom>(curOp)) {
             // add atom arguments through a scan
@@ -363,7 +367,7 @@ Own<ram::Operation> ClauseTranslator::addVariableIntroductions(
             if (!context.isADTBranchSimple(adt)) {
                 // for non-simple ADTs (arity > 1), we introduced two
                 // nesting levels
-                i--;
+                p--;
             }
         } else {
             fatal("Unsupported AST node for creation of scan-level!");
@@ -372,8 +376,8 @@ Own<ram::Operation> ClauseTranslator::addVariableIntroductions(
     return op;
 }
 
-Own<ram::Operation> ClauseTranslator::instantiateAggregator(
-        Own<ram::Operation> op, const ast::Clause& clause, const ast::Aggregator* agg, int curLevel) const {
+Own<ram::Operation> ClauseTranslator::instantiateAggregator(Own<ram::Operation> op, const ast::Clause& clause,
+        const ast::Aggregator* agg, std::size_t curLevel) const {
     auto addAggEqCondition = [&](Own<ram::Condition> aggr, Own<ram::Expression> value, std::size_t pos) {
         if (isUndefValue(value.get())) return aggr;
 
@@ -407,7 +411,7 @@ Own<ram::Operation> ClauseTranslator::instantiateAggregator(
         // referential variable bindings
         if (auto* var = as<ast::Variable>(arg)) {
             for (auto&& loc : valueIndex->getVariableReferences(var->getName())) {
-                if (curLevel != loc.identifier || (int)i != loc.element) {
+                if (curLevel != loc.identifier || i != loc.element) {
                     aggCond = addAggEqCondition(std::move(aggCond), makeRamTupleElement(loc), i);
                     break;
                 }
@@ -430,7 +434,7 @@ Own<ram::Operation> ClauseTranslator::instantiateAggregator(
 }
 
 Own<ram::Operation> ClauseTranslator::instantiateMultiResultFunctor(
-        Own<ram::Operation> op, const ast::IntrinsicFunctor& inf, int curLevel) const {
+        Own<ram::Operation> op, const ast::IntrinsicFunctor& inf, std::size_t curLevel) const {
     VecOwn<ram::Expression> args;
     for (auto&& x : inf.getArguments()) {
         args.push_back(context.translateValue(*valueIndex, x));
@@ -689,39 +693,38 @@ Own<ram::Condition> ClauseTranslator::getFunctionalDependencies(const ast::Claus
 std::vector<ast::Atom*> ClauseTranslator::getAtomOrdering(const ast::Clause& clause) const {
     auto atoms = ast::getBodyLiterals<ast::Atom>(clause);
 
-    const auto& plan = clause.getExecutionPlan();
-    if (plan == nullptr) {
-        return atoms;
+    // stick to the plan if we have one set
+    auto* plan = clause.getExecutionPlan();
+    if (plan != nullptr) {
+        auto orders = plan->getOrders();
+        if (contains(orders, version)) {
+            // get the imposed order, and change it to start at zero
+            const auto& order = orders.at(version);
+            std::vector<std::size_t> newOrder(order->getOrder().size());
+            std::transform(order->getOrder().begin(), order->getOrder().end(), newOrder.begin(),
+                    [](std::size_t i) -> std::size_t { return i - 1; });
+            return reorderAtoms(atoms, newOrder);
+        }
     }
 
-    // check if there's a plan for the current version
-    auto orders = plan->getOrders();
-    if (!contains(orders, version)) {
-        return atoms;
-    }
-
-    // get the imposed order, and change it to start at zero
-    const auto& order = orders.at(version);
-    auto sz = order->getOrder().size();
-    std::vector<unsigned int> newOrder(sz);
-    std::transform(order->getOrder().begin(), order->getOrder().end(), newOrder.begin(),
-            [](unsigned int i) -> unsigned int { return i - 1; });
+    auto newOrder = context.getSipsMetric()->getReordering(&clause, version, mode);
     return reorderAtoms(atoms, newOrder);
 }
 
-int ClauseTranslator::addOperatorLevel(const ast::Node* node) {
-    int nodeLevel = operators.size() + generators.size();
+std::size_t ClauseTranslator::addOperatorLevel(const ast::Node* node) {
+    std::size_t nodeLevel = operators.size() + generators.size();
     operators.push_back(node);
     return nodeLevel;
 }
 
-int ClauseTranslator::addGeneratorLevel(const ast::Argument* arg) {
-    int generatorLevel = operators.size() + generators.size();
+std::size_t ClauseTranslator::addGeneratorLevel(const ast::Argument* arg) {
+    std::size_t generatorLevel = operators.size() + generators.size();
     generators.push_back(arg);
     return generatorLevel;
 }
 
-void ClauseTranslator::indexNodeArguments(int nodeLevel, const std::vector<ast::Argument*>& nodeArgs) {
+void ClauseTranslator::indexNodeArguments(
+        std::size_t nodeLevel, const std::vector<ast::Argument*>& nodeArgs) {
     for (std::size_t i = 0; i < nodeArgs.size(); i++) {
         const auto& arg = nodeArgs.at(i);
 
@@ -763,14 +766,14 @@ void ClauseTranslator::indexNodeArguments(int nodeLevel, const std::vector<ast::
 }
 
 void ClauseTranslator::indexGenerator(const ast::Argument& arg) {
-    int aggLoc = addGeneratorLevel(&arg);
+    std::size_t aggLoc = addGeneratorLevel(&arg);
     valueIndex->setGeneratorLoc(arg, Location({aggLoc, 0}));
 }
 
 void ClauseTranslator::indexAtoms(const ast::Clause& clause) {
     for (const auto* atom : getAtomOrdering(clause)) {
         // give the atom the current level
-        int scanLevel = addOperatorLevel(atom);
+        std::size_t scanLevel = addOperatorLevel(atom);
         indexNodeArguments(scanLevel, atom->getArguments());
     }
 }
@@ -789,7 +792,7 @@ void ClauseTranslator::indexAggregatorBody(const ast::Aggregator& agg) {
     for (std::size_t i = 0; i < aggAtomArgs.size(); i++) {
         const auto* arg = aggAtomArgs.at(i);
         if (const auto* var = as<ast::Variable>(arg)) {
-            valueIndex->addVarReference(var->getName(), aggLoc.identifier, (int)i);
+            valueIndex->addVarReference(var->getName(), aggLoc.identifier, i);
         }
     }
 }

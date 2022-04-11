@@ -48,7 +48,7 @@ namespace souffle::interpreter {
 class RelInterface : public souffle::Relation {
 public:
     RelInterface(RelationWrapper& r, SymbolTable& s, std::string n, std::vector<std::string> t,
-            std::vector<std::string> an, uint32_t i)
+            std::vector<std::string> an, std::size_t i)
             : relation(r), symTable(s), name(std::move(n)), types(std::move(t)), attrNames(std::move(an)),
               id(i) {}
     ~RelInterface() override = default;
@@ -121,7 +121,7 @@ protected:
      */
     class iterator_base : public souffle::Relation::iterator_base {
     public:
-        iterator_base(uint32_t arg_id, const RelInterface* r, RelationWrapper::Iterator i)
+        iterator_base(std::size_t arg_id, const RelInterface* r, RelationWrapper::Iterator i)
                 : Relation::iterator_base(arg_id), ramRelationInterface(r), it(i), tup(r) {}
         ~iterator_base() override = default;
 
@@ -196,7 +196,7 @@ private:
     std::vector<std::string> attrNames;
 
     /** Unique id for wrapper */
-    uint32_t id;
+    std::size_t id;
 };
 
 /**
@@ -207,7 +207,7 @@ public:
     explicit ProgInterface(Engine& interp)
             : prog(interp.getTranslationUnit().getProgram()), exec(interp), symTable(interp.getSymbolTable()),
               recordTable(interp.getRecordTable()) {
-        uint32_t id = 0;
+        std::size_t id = 0;
 
         // Retrieve AST Relations and store them in a map
         std::map<std::string, const ram::Relation*> map;

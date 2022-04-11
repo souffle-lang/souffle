@@ -72,7 +72,7 @@ public:
         return numTuples;
     }
 
-    void setNumTuples(long numTuples) {
+    void setNumTuples(std::size_t numTuples) {
         this->numTuples = numTuples;
     }
 

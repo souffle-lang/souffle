@@ -23,11 +23,10 @@
 namespace souffle::ast2ram {
 
 struct Location {
-    const int identifier;
-    const int element;
+    const std::size_t identifier;
+    const std::size_t element;
 
-    // TODO (azreika): change these to std::size_t
-    Location(int ident, int elem) : identifier(ident), element(elem) {}
+    Location(std::size_t ident, std::size_t elem) : identifier(ident), element(elem) {}
 
     Location(const Location& l) = default;
 

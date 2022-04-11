@@ -117,7 +117,7 @@ private:
     void checkConstant(const Argument& argument);
     void checkFact(const Clause& fact);
     void checkClause(const Clause& clause);
-    void checkComplexRule(std::set<const Clause*> multiRule);
+    void checkComplexRule(const std::set<const Clause*>& multiRule);
     void checkRelationDeclaration(const Relation& relation);
     void checkRelationFunctionalDependencies(const Relation& relation);
     void checkRelation(const Relation& relation);
@@ -503,27 +503,34 @@ void SemanticCheckerImpl::checkClause(const Clause& clause) {
     }
 }
 
-void SemanticCheckerImpl::checkComplexRule(std::set<const Clause*> multiRule) {
+void SemanticCheckerImpl::checkComplexRule(const std::set<const Clause*>& multiRule) {
     std::map<std::string, int> var_count;
     std::map<std::string, const ast::Variable*> var_pos;
+
+    auto count_var = [&](const ast::Variable& var) {
+        const auto& varName = var.getName();
+        if (0 == var_count[varName]++) {
+            var_pos[varName] = &var;
+        } else {
+            const auto& PrevLoc = var_pos[varName]->getSrcLoc();
+            const auto& Loc = var.getSrcLoc();
+            if (PrevLoc < Loc) {
+                var_pos[varName] = &var;
+            }
+        }
+    };
 
     // Count the variable occurrence for the body of a
     // complex rule only once.
     // TODO (b-scholz): for negation / disjunction this is not quite
     // right; we would need more semantic information here.
     for (auto literal : (*multiRule.begin())->getBodyLiterals()) {
-        visit(*literal, [&](const ast::Variable& var) {
-            var_count[var.getName()]++;
-            var_pos[var.getName()] = &var;
-        });
+        visit(*literal, count_var);
     }
 
     // Count variable occurrence for each head separately
     for (auto clause : multiRule) {
-        visit(*(clause->getHead()), [&](const ast::Variable& var) {
-            var_count[var.getName()]++;
-            var_pos[var.getName()] = &var;
-        });
+        visit(*(clause->getHead()), count_var);
     }
 
     // Check that a variables occurs more than once
@@ -865,8 +872,8 @@ void SemanticCheckerImpl::checkInlining() {
         cycle << "{" << cycleOrigin->getQualifiedName();
 
         // Print it backwards to preserve the initial cycle order
-        for (int i = result.size() - 2; i >= 0; i--) {
-            cycle << ", " << result[i];
+        for (std::size_t i = result.size() - 1; i >= 1; i--) {
+            cycle << ", " << result[i - 1];
         }
 
         cycle << "}";

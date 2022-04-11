@@ -59,7 +59,7 @@ private:
     std::map<std::string, const ram::Relation*> relationMap;
 
     /** Symbol map */
-    mutable std::map<std::string, unsigned> symbolMap;
+    mutable std::map<std::string, RamUnsigned> symbolMap;
 
     /** Symbol map */
     mutable std::vector<std::string> symbolIndex;
@@ -104,15 +104,15 @@ protected:
     }
 
     /** Lookup symbol index */
-    std::size_t convertSymbol2Idx(const std::string& symbol) const {
+    RamUnsigned convertSymbol2Idx(const std::string& symbol) const {
         auto it = symbolMap.find(symbol);
         if (it != symbolMap.end()) {
             return it->second;
         } else {
             symbolIndex.push_back(symbol);
             std::size_t idx = symbolMap.size();
-            symbolMap[symbol] = idx;
-            return idx;
+            symbolMap[symbol] = RamUnsigned(idx);
+            return RamUnsigned(idx);
         }
     }
 

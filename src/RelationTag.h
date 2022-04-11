@@ -59,6 +59,7 @@ enum class RelationRepresentation {
     BTREE_DELETE,  // use btree_delete data-structure
     EQREL,         // use union data-structure
     INCREMENTAL,   // use incremental version of btree data-structure
+    PROVENANCE,    // use custom btree data-structure with provenance extras
     INFO,          // info relation for provenance
 };
 
@@ -169,6 +170,7 @@ inline std::ostream& operator<<(std::ostream& os, RelationRepresentation represe
         case RelationRepresentation::BRIE: return os << "brie";
         case RelationRepresentation::EQREL: return os << "eqrel";
         case RelationRepresentation::INCREMENTAL: return os << "incremental";
+        case RelationRepresentation::PROVENANCE: return os << "provenance";
         case RelationRepresentation::INFO: return os << "info";
         case RelationRepresentation::DEFAULT: return os;
     }

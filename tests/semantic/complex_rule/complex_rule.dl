@@ -1,0 +1,8 @@
+.decl a(x:number)
+.decl f(x:number)
+.decl query(x:number)
+.output query()
+
+query(x) :- a(x), (f(x); a(y) ; f(y)).
+a(1).
+f(1).

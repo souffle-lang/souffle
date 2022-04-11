@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "Global.h"
+#include "ast/Clause.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/TranslationUnit.h"
@@ -49,7 +50,6 @@
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRedundantSums.h"
 #include "ast/transform/RemoveRelationCopies.h"
-#include "ast/transform/ReorderLiterals.h"
 #include "ast/transform/ReplaceSingletonVariables.h"
 #include "ast/transform/ResolveAliases.h"
 #include "ast/transform/ResolveAnonymousRecordAliases.h"
@@ -94,8 +94,10 @@
 #include "reports/ErrorReport.h"
 #include "souffle/RamTypes.h"
 #include "souffle/incremental/Incremental.h"
+#ifndef _MSC_VER
 #include "souffle/profile/Tui.h"
 #include "souffle/provenance/Explain.h"
+#endif
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FileUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -131,11 +133,27 @@ namespace souffle {
     std::map<char const*, std::string> env;
     if (Global::config().has("library-dir")) {
         auto escapeLdPath = [](auto&& xs) { return escape(xs, {':', ' '}, "\\"); };
-        auto ld_path = toString(join(map(Global::config().getMany("library-dir"), escapeLdPath), ":"));
+        auto ld_path = toString(join(
+                map(Global::config().getMany("library-dir"), escapeLdPath), std::string(1, PATHdelimiter)));
+#if defined(_MSC_VER)
+        std::size_t l;
+        std::wstring env_path(ld_path.length() + 1, L' ');
+        ::mbstowcs_s(&l, env_path.data(), env_path.size(), ld_path.data(), ld_path.size());
+        env_path.resize(l - 1);
 
-        env["LD_LIBRARY_PATH"] = ld_path;
-#ifdef __APPLE__
+        DWORD n = GetEnvironmentVariableW(L"PATH", nullptr, 0);
+        if (n > 0) {
+            // append path
+            std::unique_ptr<wchar_t[]> orig(new wchar_t[n]);
+            GetEnvironmentVariableW(L"PATH", orig.get(), n);
+            env_path = env_path + L";" + std::wstring(orig.get());
+        }
+        SetEnvironmentVariableW(L"PATH", env_path.c_str());
+
+#elif defined(__APPLE__)
         env["DYLD_LIBRARY_PATH"] = ld_path;
+#else
+        env["LD_LIBRARY_PATH"] = ld_path;
 #endif
     }
 
@@ -155,6 +173,9 @@ namespace souffle {
  */
 void compileToBinary(const std::string& command, std::string_view sourceFilename) {
     std::vector<std::string> argv;
+
+    argv.push_back(command);
+
     if (Global::config().has("swig")) {
         argv.push_back("-s");
         argv.push_back(Global::config().get("swig"));
@@ -177,8 +198,13 @@ void compileToBinary(const std::string& command, std::string_view sourceFilename
 
     argv.push_back(std::string(sourceFilename));
 
-    auto exit = execute(command, argv);
-    if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <%s>", command));
+#if defined(_MSC_VER)
+    const char* interpreter = "python";
+#else
+    const char* interpreter = "python3";
+#endif
+    auto exit = execute(interpreter, argv);
+    if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <python3 %s>", command));
     if (exit != 0)
         throw std::invalid_argument(tfm::format("failed to compile C++ source <%s>", sourceFilename));
 }
@@ -186,6 +212,8 @@ void compileToBinary(const std::string& command, std::string_view sourceFilename
 int main(int argc, char** argv) {
     /* Time taking for overall runtime */
     auto souffle_start = std::chrono::high_resolution_clock::now();
+
+    std::string versionFooter;
 
     /* have all to do with command line arguments in its own scope, as these are accessible through the global
      * configuration only */
@@ -201,15 +229,19 @@ int main(int argc, char** argv) {
         footer << "----------------------------------------------------------------------------" << std::endl;
         footer << "Version: " << PACKAGE_VERSION << "" << std::endl;
         footer << "----------------------------------------------------------------------------" << std::endl;
-        footer << "Copyright (c) 2016-21 The Souffle Developers." << std::endl;
+        footer << "Copyright (c) 2016-22 The Souffle Developers." << std::endl;
         footer << "Copyright (c) 2013-16 Oracle and/or its affiliates." << std::endl;
         footer << "All rights reserved." << std::endl;
         footer << "============================================================================" << std::endl;
+
+        versionFooter = footer.str();
 
         // command line options, the environment will be filled with the arguments passed to them, or
         // the empty string if they take none
         // main option, the datalog program itself, has an empty key
         std::vector<MainOption> options{{"", 0, "", "", false, ""},
+                {"auto-schedule", 'a', "FILE", "", false,
+                        "Use profile auto-schedule <FILE> for auto-scheduling."},
                 {"fact-dir", 'F', "DIR", ".", false, "Specify directory for fact files."},
                 {"include-dir", 'I', "DIR", ".", true, "Specify directory for include files."},
                 {"output-dir", 'D', "DIR", ".", false,
@@ -243,10 +275,9 @@ int main(int argc, char** argv) {
                 {"dl-program", 'o', "FILE", "", false,
                         "Generate C++ source code, written to <FILE>, and compile this to a "
                         "binary executable (without executing it)."},
+                {"index-stats", '\x9', "", "", false, "Enable collection of index statistics"},
                 {"live-profile", '\1', "", "", false, "Enable live profiling."},
                 {"profile", 'p', "FILE", "", false, "Enable profiling, and write profile data to <FILE>."},
-                {"profile-use", 'u', "FILE", "", false,
-                        "Use profile log-file <FILE> for profile-guided optimization."},
                 {"profile-frequency", '\2', "", "", false, "Enable the frequency counter in the profiler."},
                 {"debug-report", 'r', "FILE", "", false, "Write HTML debug report to <FILE>."},
                 {"pragma", 'P', "OPTIONS", "", true, "Set pragma options."},
@@ -270,8 +301,9 @@ int main(int argc, char** argv) {
                         "\ttype-analysis"},
                 {"parse-errors", '\5', "", "", false, "Show parsing errors, if any, then exit."},
                 {"help", 'h', "", "", false, "Display this help message."},
-                {"legacy", '\6', "", "", false, "Enable legacy support."}};
-        Global::config().processArgs(argc, argv, header.str(), footer.str(), options);
+                {"legacy", '\6', "", "", false, "Enable legacy support."},
+                {"preprocessor", '\7', "CMD", "", false, "C preprocessor to use."}};
+        Global::config().processArgs(argc, argv, header.str(), versionFooter, options);
 
         // ------ command line arguments -------------
 
@@ -294,11 +326,7 @@ int main(int argc, char** argv) {
 
         /* for the version option, if given print the version text then exit */
         if (Global::config().has("version")) {
-            std::cout << "Souffle: " << PACKAGE_VERSION;
-            std::cout << "(" << RAM_DOMAIN_SIZE << "bit Domains)";
-            std::cout << std::endl;
-            std::cout << "Copyright (c) 2016-19 The Souffle Developers." << std::endl;
-            std::cout << "Copyright (c) 2013-16 Oracle and/or its affiliates." << std::endl;
+            std::cout << versionFooter << std::endl;
             return 0;
         }
         Global::config().set("version", PACKAGE_VERSION);
@@ -373,6 +401,13 @@ int main(int argc, char** argv) {
         if (Global::config().has("live-profile") && !Global::config().has("profile")) {
             Global::config().set("profile");
         }
+
+        /* if index-stats is set then check that the profiler is also set */
+        if (Global::config().has("index-stats")) {
+            if (!Global::config().has("profile"))
+                throw std::runtime_error("must be profiling to collect index-stats");
+        }
+
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
@@ -387,28 +422,48 @@ int main(int argc, char** argv) {
 
     // ------ start souffle -------------
 
-    std::string souffleExecutable = which(argv[0]);
+    const std::string souffleExecutable = which(argv[0]);
 
     if (souffleExecutable.empty()) {
         throw std::runtime_error("failed to determine souffle executable path");
     }
 
     /* Create the pipe to establish a communication between cpp and souffle */
-    std::string cmd = which("mcpp");
 
-    if (!isExecutable(cmd)) {
-        throw std::runtime_error("failed to locate mcpp pre-processor");
+    std::string cmd;
+
+    if (Global::config().has("preprocessor")) {
+        cmd = Global::config().get("preprocessor");
+    } else {
+        cmd = which("mcpp");
+        if (isExecutable(cmd)) {
+            cmd += " -e utf8 -W0";
+        } else {
+            cmd = which("gcc");
+            if (isExecutable(cmd)) {
+                cmd += " -x c -E";
+            } else {
+                std::cerr << "failed to locate mcpp or gcc pre-processors\n";
+                throw std::runtime_error("failed to locate mcpp or gcc pre-processors");
+            }
+        }
     }
 
-    cmd += " -e utf8 -W0 ";
-    cmd += toString(join(Global::config().getMany("include-dir"), " ",
-            [&](auto&& os, auto&& dir) { tfm::format(os, "'-I%s'", dir); }));
+    cmd += " " + toString(join(Global::config().getMany("include-dir"), " ",
+                         [&](auto&& os, auto&& dir) { tfm::format(os, "-I \"%s\"", dir); }));
+
     if (Global::config().has("macro")) {
         cmd += " " + Global::config().get("macro");
     }
     // Add RamDomain size as a macro
     cmd += " -DRAM_DOMAIN_SIZE=" + std::to_string(RAM_DOMAIN_SIZE);
-    cmd += " '" + Global::config().get("") + "'";
+    cmd += " \"" + Global::config().get("") + "\"";
+#if defined(_MSC_VER)
+    // cl.exe prints the input file name on the standard error stream,
+    // we must silent it in order to preserve an empty error output
+    // because Souffle test-suite is sensible to error outputs.
+    cmd += " 2> nul";
+#endif
     FILE* in = popen(cmd.c_str(), "r");
 
     /* Time taking for parsing */
@@ -427,6 +482,10 @@ int main(int argc, char** argv) {
     if (preprocessor_status == -1) {
         perror(nullptr);
         throw std::runtime_error("failed to close pre-processor pipe");
+    } else if (preprocessor_status != 0) {
+        std::cerr << "Pre-processors command failed with code " << preprocessor_status << ": '" << cmd
+                  << "'\n";
+        throw std::runtime_error("Pre-processor command failed");
     }
 
     /* Report run-time of the parser if verbose flag is set */
@@ -446,7 +505,7 @@ int main(int argc, char** argv) {
         }
 
         std::cout << astTranslationUnit->getErrorReport();
-        return astTranslationUnit->getErrorReport().getNumErrors();
+        return static_cast<int>(astTranslationUnit->getErrorReport().getNumErrors());
     }
 
     // ------- check for parse errors -------------
@@ -475,7 +534,8 @@ int main(int argc, char** argv) {
                     mk<ast::transform::RemoveRedundantRelationsTransformer>());
 
     // Magic-Set pipeline
-    auto magicPipeline = mk<ast::transform::PipelineTransformer>(mk<ast::transform::MagicSetTransformer>(),
+    auto magicPipeline = mk<ast::transform::PipelineTransformer>(
+            mk<ast::transform::ExpandEqrelsTransformer>(), mk<ast::transform::MagicSetTransformer>(),
             mk<ast::transform::ResolveAliasesTransformer>(),
             mk<ast::transform::RemoveRelationCopiesTransformer>(),
             mk<ast::transform::RemoveEmptyRelationsTransformer>(),
@@ -525,11 +585,10 @@ int main(int argc, char** argv) {
                     mk<ast::transform::RemoveRedundantRelationsTransformer>())),
             mk<ast::transform::RemoveRelationCopiesTransformer>(), std::move(partitionPipeline),
             std::move(equivalencePipeline), mk<ast::transform::RemoveRelationCopiesTransformer>(),
-            std::move(magicPipeline), mk<ast::transform::ReorderLiteralsTransformer>(),
-            mk<ast::transform::RemoveEmptyRelationsTransformer>(),
+            std::move(magicPipeline), mk<ast::transform::RemoveEmptyRelationsTransformer>(),
             mk<ast::transform::AddNullariesToAtomlessAggregatesTransformer>(),
-            mk<ast::transform::ReorderLiteralsTransformer>(), mk<ast::transform::ExecutionPlanChecker>(),
-            std::move(provenancePipeline), mk<ast::transform::IOAttributesTransformer>());
+            mk<ast::transform::ExecutionPlanChecker>(), std::move(provenancePipeline),
+            mk<ast::transform::IOAttributesTransformer>());
 
     // Disable unwanted transformations
     if (Global::config().has("disable-transformers")) {
@@ -668,7 +727,7 @@ int main(int argc, char** argv) {
     const bool must_interpret =
             !execute_mode && !compile_mode && !generate_mode && !Global::config().has("swig");
     const bool must_execute = execute_mode;
-    const bool must_compile = must_execute || compile_mode;
+    const bool must_compile = must_execute || compile_mode || Global::config().has("swig");
 
     try {
         if (must_interpret) {
@@ -677,7 +736,11 @@ int main(int argc, char** argv) {
             std::thread profiler;
             // Start up profiler if needed
             if (Global::config().has("live-profile")) {
+#ifdef _MSC_VER
+                throw("No live-profile on Windows\n.");
+#else
                 profiler = std::thread([]() { profile::Tui().runProf(); });
+#endif
             }
 
             // configure and execute interpreter
@@ -688,6 +751,9 @@ int main(int argc, char** argv) {
                 profiler.join();
             }
             if (Global::config().has("provenance")) {
+#ifdef _MSC_VER
+                throw("No explain/explore provenance on Windows\n.");
+#else
                 // only run explain interface if interpreted
                 interpreter::ProgInterface interface(*interpreter);
                 if (Global::config().get("provenance") == "explain") {
@@ -695,6 +761,7 @@ int main(int argc, char** argv) {
                 } else if (Global::config().get("provenance") == "explore") {
                     explain(interface, true);
                 }
+#endif
             }
 
             if (Global::config().has("incremental")) {
@@ -738,6 +805,7 @@ int main(int argc, char** argv) {
             else {
                 std::ofstream os{sourceFilename};
                 synthesiser->generateCode(os, baseIdentifier, withSharedLibrary);
+                os.close();
             }
             if (Global::config().has("verbose")) {
                 auto synthesisEnd = std::chrono::high_resolution_clock::now();
@@ -756,12 +824,11 @@ int main(int argc, char** argv) {
 
             if (must_compile) {
                 /* Fail if a souffle-compile executable is not found */
-                auto souffle_compile = findTool("souffle-compile", souffleExecutable, ".");
-                if (!isExecutable(souffle_compile))
-                    throw std::runtime_error("failed to locate souffle-compile");
+                const auto souffle_compile = findTool("souffle-compile.py", souffleExecutable, ".");
+                if (!souffle_compile) throw std::runtime_error("failed to locate souffle-compile.py");
 
                 auto t_bgn = std::chrono::high_resolution_clock::now();
-                compileToBinary(souffle_compile, sourceFilename);
+                compileToBinary(*souffle_compile, sourceFilename);
                 auto t_end = std::chrono::high_resolution_clock::now();
 
                 if (Global::config().has("verbose")) {
@@ -772,7 +839,11 @@ int main(int argc, char** argv) {
 
             // run compiled C++ program if requested.
             if (must_execute) {
-                executeBinaryAndExit(baseFilename);
+                std::string binaryFilename = baseFilename;
+#if defined(_MSC_VER)
+                binaryFilename += ".exe";
+#endif
+                executeBinaryAndExit(binaryFilename);
             }
         }
     } catch (std::exception& e) {

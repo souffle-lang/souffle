@@ -149,11 +149,11 @@ bool isProposition(const Atom* atom) {
     return atom->getArguments().empty();
 }
 
-std::vector<Atom*> reorderAtoms(const std::vector<Atom*>& atoms, const std::vector<unsigned int>& newOrder) {
+std::vector<Atom*> reorderAtoms(const std::vector<Atom*>& atoms, const std::vector<std::size_t>& newOrder) {
     // Validate given order
     assert(newOrder.size() == atoms.size());
-    std::vector<unsigned int> nopOrder;
-    for (unsigned int i = 0; i < atoms.size(); i++) {
+    std::vector<std::size_t> nopOrder;
+    for (std::size_t i = 0; i < atoms.size(); i++) {
         nopOrder.push_back(i);
     }
     assert(std::is_permutation(nopOrder.begin(), nopOrder.end(), newOrder.begin()));
@@ -166,11 +166,11 @@ std::vector<Atom*> reorderAtoms(const std::vector<Atom*>& atoms, const std::vect
     return result;
 }
 
-Clause* reorderAtoms(const Clause* clause, const std::vector<unsigned int>& newOrder) {
+Clause* reorderAtoms(const Clause* clause, const std::vector<std::size_t>& newOrder) {
     // Find all atom positions
-    std::vector<unsigned int> atomPositions;
+    std::vector<std::size_t> atomPositions;
     std::vector<Literal*> bodyLiterals = clause->getBodyLiterals();
-    for (unsigned int i = 0; i < bodyLiterals.size(); i++) {
+    for (std::size_t i = 0; i < bodyLiterals.size(); i++) {
         if (isA<Atom>(bodyLiterals[i])) {
             atomPositions.push_back(i);
         }
@@ -178,16 +178,16 @@ Clause* reorderAtoms(const Clause* clause, const std::vector<unsigned int>& newO
 
     // Validate given order
     assert(newOrder.size() == atomPositions.size());
-    std::vector<unsigned int> nopOrder;
-    for (unsigned int i = 0; i < atomPositions.size(); i++) {
+    std::vector<std::size_t> nopOrder;
+    for (std::size_t i = 0; i < atomPositions.size(); i++) {
         nopOrder.push_back(i);
     }
     assert(std::is_permutation(nopOrder.begin(), nopOrder.end(), newOrder.begin()));
 
     // Create a new clause with the given atom order, leaving the rest unchanged
     auto newClause = Own<Clause>(clause->cloneHead());
-    unsigned int currentAtom = 0;
-    for (unsigned int currentLiteral = 0; currentLiteral < bodyLiterals.size(); currentLiteral++) {
+    std::size_t currentAtom = 0;
+    for (std::size_t currentLiteral = 0; currentLiteral < bodyLiterals.size(); currentLiteral++) {
         Literal* literalToAdd = bodyLiterals[currentLiteral];
         if (isA<Atom>(literalToAdd)) {
             // Atoms should be reordered

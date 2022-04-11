@@ -191,7 +191,7 @@ TEST(EqRelTest, Shuffled) {
 
     std::size_t N = 100;
     // test inserting data "out of order" keeps isolation
-    std::vector<int> data;
+    std::vector<std::size_t> data;
     for (std::size_t i = 0; i < N; i++) {
         data.push_back(i);
     }

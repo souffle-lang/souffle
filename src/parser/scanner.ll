@@ -24,17 +24,25 @@
 #endif
 
     #include <cstdio>
+    #ifndef _MSC_VER
     #include <libgen.h>
+    #endif
     #include <cctype>
     #include <sys/stat.h>
     #include <stack>
     #include <string>
     #include <sstream>
     #include <cassert>
+    #ifndef _MSC_VER
     #include <unistd.h>
+    #endif
     #include <cstring>
 
     #include "ast/Program.h"
+
+    #ifdef _MSC_VER
+    #define YY_NO_UNISTD_H
+    #endif
 
     #include "parser/parser.hh"
     #include "parser/SrcLocation.h"
@@ -134,8 +142,8 @@ WS [ \t\r\v\f]
 "_"                                   { return yy::parser::make_UNDERSCORE(yylloc); }
 "count"                               { return yy::parser::make_COUNT(yylloc); }
 "sum"                                 { return yy::parser::make_SUM(yylloc); }
-"true"                                { return yy::parser::make_TRUE(yylloc); }
-"false"                               { return yy::parser::make_FALSE(yylloc); }
+"true"                                { return yy::parser::make_TRUELIT(yylloc); }
+"false"                               { return yy::parser::make_FALSELIT(yylloc); }
 "to_float"                            { return yy::parser::make_TOFLOAT(yylloc); }
 "to_number"                           { return yy::parser::make_TONUMBER(yylloc); }
 "to_string"                           { return yy::parser::make_TOSTRING(yylloc); }
@@ -235,16 +243,42 @@ WS [ \t\r\v\f]
                                         return yy::parser::make_STRING(result, yylloc);
                                       }
 \#.*$                                 {
-                                        char fname[yyleng+1];
+                                        std::unique_ptr<char[]> fname_ptr = std::make_unique<char[]>(yyleng+1);
+                                        char* fname = fname_ptr.get();
                                         int lineno;
-                                        if(sscanf(yytext,"# %d \"%[^\"]",&lineno,fname)>=2) {
-                                          assert(strlen(fname) > 0 && "failed conversion");
-                                          fname[strlen(fname)]='\0';
-                                          yycolumn = 1; yylineno = lineno-1;
-                                          yyfilename = fname;
-                                        } else if(sscanf(yytext,"#line %d \"%[^\"]",&lineno,fname)>=2) {
-                                          assert(strlen(fname) > 0 && "failed conversion");
-                                          fname[strlen(fname)]='\0';
+                                        if ((sscanf(yytext,"# %d \"%[^\"]",&lineno,fname)>=2) || 
+                                            (sscanf(yytext,"#line %d \"%[^\"]",&lineno,fname)>=2)) {
+                                          std::size_t fnamelen = strlen(fname);
+                                          assert(fnamelen > 0 && "failed conversion");
+                                          fname[fnamelen]='\0';
+
+                                          // fname is a literal string with escape sequences
+                                          if (strchr(fname,'\\')) {
+                                            std::string filename;
+                                            std::size_t i;
+                                            for (i = 0; i < fnamelen; ++i) {
+                                              if (fname[i] == '\\' && (i + 1) < fnamelen) {
+                                                switch(fname[i+1]) {
+                                                    case '"':  filename += '"'; break;
+                                                    case '\'': filename += '\''; break;
+                                                    case '\\': filename += '\\'; break;
+                                                    case 'a':  filename += '\a'; break;
+                                                    case 'b':  filename += '\b'; break;
+                                                    case 'f':  filename += '\f'; break;
+                                                    case 'n':  filename += '\n'; break;
+                                                    case 'r':  filename += '\r'; break;
+                                                    case 't':  filename += '\t'; break;
+                                                    case 'v':  filename += '\v'; break;
+                                                }
+                                                ++i;
+                                              } else {
+                                                filename += fname[i];
+                                              }
+                                            }
+                                            std::copy(filename.begin(), filename.end(), fname);
+                                            fname[filename.size()] = '\0';
+                                          }
+
                                           yycolumn = 1; yylineno = lineno-1;
                                           yyfilename = fname;
                                         }
@@ -258,7 +292,7 @@ WS [ \t\r\v\f]
 \n                                    { }
 }
 \n                                    { yycolumn = 1; }
-{WS}*                                 { }
+{WS}+                                 { }
 <<EOF>>                               { return yy::parser::make_END(yylloc); }
 .                                     { driver.error(yylloc, std::string("unexpected ") + yytext); }
 %%

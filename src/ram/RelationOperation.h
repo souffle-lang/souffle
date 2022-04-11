@@ -36,7 +36,7 @@ namespace souffle::ram {
  */
 class RelationOperation : public TupleOperation {
 public:
-    RelationOperation(std::string rel, int ident, Own<Operation> nested, std::string profileText = "")
+    RelationOperation(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
             : TupleOperation(ident, std::move(nested), std::move(profileText)), relation(std::move(rel)) {}
 
     RelationOperation* cloning() const override = 0;

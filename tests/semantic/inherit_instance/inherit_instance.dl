@@ -1,0 +1,16 @@
+
+.comp A {
+  .decl a(x:symbol)
+  .output a
+  .comp AA {
+    a("AA").
+  }
+  .init aa = AA
+  a("A").
+}
+
+.comp B : A {
+}
+
+.init a = A
+.init b = B

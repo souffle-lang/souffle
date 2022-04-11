@@ -15,7 +15,7 @@
 
     // those are fine
     .init X = A
-    .init X = BB
+    .init X = BB // TODO X already used, is that ok ?
 }
 
 // also Fine
@@ -23,11 +23,11 @@
 
     // this is fine
     .init X = B<N>
+    .init Y = BB
 
     // this is not fine
     .init X = B
     .init X = B<N,N>
-    .init X = BB
 
 }
 

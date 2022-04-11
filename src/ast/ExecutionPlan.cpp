@@ -17,14 +17,14 @@
 namespace souffle::ast {
 
 /** Set execution order for a given rule version */
-void ExecutionPlan::setOrderFor(int version, Own<ExecutionOrder> plan) {
+void ExecutionPlan::setOrderFor(std::size_t version, Own<ExecutionOrder> plan) {
     assert(plan != nullptr);
     plans[version] = std::move(plan);
 }
 
 /** Get orders */
-std::map<int, const ExecutionOrder*> ExecutionPlan::getOrders() const {
-    std::map<int, const ExecutionOrder*> result;
+std::map<std::size_t, const ExecutionOrder*> ExecutionPlan::getOrders() const {
+    std::map<std::size_t, const ExecutionOrder*> result;
     for (auto& plan : plans) {
         result.insert(std::make_pair(plan.first, plan.second.get()));
     }

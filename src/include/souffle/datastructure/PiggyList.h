@@ -9,18 +9,14 @@
 #include <iterator>
 
 #ifdef _WIN32
+#include <intrin.h>
 /**
  * Some versions of MSVC do not provide a builtin for counting leading zeroes
  * like gcc, so we have to implement it ourselves.
  */
 #if defined(_MSC_VER)
-unsigned long __inline __builtin_clzll(unsigned long long value) {
-    unsigned long msb = 0;
-
-    if (_BitScanReverse64(&msb, value))
-        return 63 - msb;
-    else
-        return 64;
+int __inline __builtin_clzll(unsigned long long value) {
+    return static_cast<int>(__lzcnt64(value));
 }
 #endif  // _MSC_VER
 #endif  // _WIN32
@@ -112,7 +108,7 @@ public:
         numElements.store(0);
     }
     const std::size_t BLOCKBITS = 16ul;
-    const std::size_t INITIALBLOCKSIZE = (1ul << BLOCKBITS);
+    const std::size_t INITIALBLOCKSIZE = (((std::size_t)1ul) << BLOCKBITS);
 
     // number of elements currently stored within
     std::atomic<std::size_t> numElements{0};
@@ -252,11 +248,17 @@ public:
         container_size = 0;
     }
 
-    class iterator : std::iterator<std::forward_iterator_tag, T> {
+    class iterator {
         std::size_t cIndex = 0;
         PiggyList* bl;
 
     public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = T;
+        using difference_type = void;
+        using pointer = T*;
+        using reference = T&;
+
         // default ctor, to silence
         iterator() = default;
 
@@ -299,7 +301,7 @@ public:
         return iterator(this, size());
     }
     const std::size_t BLOCKBITS = 16ul;
-    const std::size_t BLOCKSIZE = (1ul << BLOCKBITS);
+    const std::size_t BLOCKSIZE = (((std::size_t)1ul) << BLOCKBITS);
 
     // number of inserted
     std::atomic<std::size_t> num_containers = 0;

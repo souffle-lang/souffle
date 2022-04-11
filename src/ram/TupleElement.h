@@ -37,8 +37,9 @@ namespace souffle::ram {
 class TupleElement : public Expression {
 public:
     TupleElement(std::size_t ident, std::size_t elem) : identifier(ident), element(elem) {}
+
     /** @brief Get identifier */
-    int getTupleId() const {
+    std::size_t getTupleId() const {
         return identifier;
     }
 

@@ -21,8 +21,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <getopt.h>
 #include <sys/stat.h>
+
+#ifdef USE_CUSTOM_GETOPTLONG
+#include "souffle/utility/GetOptLongImpl.h"
+#else
+#include <getopt.h>
+#endif
 
 namespace souffle {
 
@@ -217,8 +222,8 @@ private:
 #endif
         std::cerr << "    -h                           -- prints this help page.\n";
         std::cerr << "--------------------------------------------------------------------\n";
-        std::cout << " Copyright (c) 2016-20 The Souffle Developers." << std::endl;
-        std::cout << " Copyright (c) 2013-16 Oracle and/or its affiliates." << std::endl;
+        std::cerr << " Copyright (c) 2016-22 The Souffle Developers." << std::endl;
+        std::cerr << " Copyright (c) 2013-16 Oracle and/or its affiliates." << std::endl;
         std::cerr << " All rights reserved.\n";
         std::cerr << "====================================================================\n";
     }

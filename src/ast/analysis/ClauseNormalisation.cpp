@@ -49,7 +49,7 @@ NormalisedClause::NormalisedClause(const Clause* clause) {
     for (const auto* arg : clause->getHead()->getArguments()) {
         headVars.push_back(normaliseArgument(arg));
     }
-    clauseElements.push_back({.name = name, .params = headVars});
+    clauseElements.push_back({name, headVars});
 
     // body
     for (const auto* lit : clause->getBodyLiterals()) {
@@ -67,7 +67,7 @@ void NormalisedClause::addClauseAtom(
     for (const auto* arg : atom->getArguments()) {
         vars.push_back(normaliseArgument(arg));
     }
-    clauseElements.push_back({.name = name, .params = vars});
+    clauseElements.push_back({name, vars});
 }
 
 void NormalisedClause::addClauseBodyLiteral(const std::string& scopeID, const Literal* lit) {
@@ -82,7 +82,7 @@ void NormalisedClause::addClauseBodyLiteral(const std::string& scopeID, const Li
         vars.push_back(scopeID);
         vars.push_back(normaliseArgument(bc->getLHS()));
         vars.push_back(normaliseArgument(bc->getRHS()));
-        clauseElements.push_back({.name = name, .params = vars});
+        clauseElements.push_back({name, vars});
     } else {
         assert(lit != nullptr && "unexpected nullptr lit");
         fullyNormalised = false;
@@ -90,7 +90,7 @@ void NormalisedClause::addClauseBodyLiteral(const std::string& scopeID, const Li
         qualifier << "@min:unhandled:lit:" << scopeID;
         QualifiedName name(toString(*lit));
         name.prepend(qualifier.str());
-        clauseElements.push_back({.name = name, .params = std::vector<std::string>()});
+        clauseElements.push_back({name, std::vector<std::string>()});
     }
 }
 
@@ -142,7 +142,7 @@ std::string NormalisedClause::normaliseArgument(const Argument* arg) {
         }
 
         // Type signature is its own special atom
-        clauseElements.push_back({.name = aggrTypeSignature.str(), .params = aggrTypeSignatureComponents});
+        clauseElements.push_back({aggrTypeSignature.str(), aggrTypeSignatureComponents});
 
         // Add each contained normalised clause literal, tying it with the new scope ID
         for (const auto* literal : aggr->getBodyLiterals()) {

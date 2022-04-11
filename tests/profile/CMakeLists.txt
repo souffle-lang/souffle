@@ -87,7 +87,7 @@ function(SOUFFLE_RUN_PROF_TEST_HELPER)
                                  OUTPUT_DIR ${OUTPUT_DIR}
                                  FIXTURE_NAME ${FIXTURE_NAME}
                                  TEST_LABELS "${TEST_LABELS}"
-                                 SOUFFLE_PARAMS "-p '${OUTPUT_DIR}/${TEST_NAME}.prof'")
+                                 SOUFFLE_PARAMS "-p" "${OUTPUT_DIR}/${TEST_NAME}.prof")
 
     souffle_run_prof_test(TEST_NAME ${PARAM_TEST_NAME}
                          QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
@@ -118,5 +118,7 @@ function(SOUFFLE_POSITIVE_PROF_TEST TEST_NAME)
     souffle_run_prof_test_helper(TEST_NAME ${TEST_NAME} ${ARGN})
 endfunction()
 
+if (NOT MSVC)
 souffle_positive_prof_test(lrg_attr_id)
 souffle_positive_prof_test(recursive)
+endif ()

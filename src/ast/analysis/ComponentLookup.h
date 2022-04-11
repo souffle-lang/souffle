@@ -88,6 +88,14 @@ public:
     const Component* getComponent(
             const Component* scope, const std::string& name, const TypeBinding& activeBinding) const;
 
+    /**
+     * Return the component enclosing the given component.
+     *
+     * @param comp the enclosed component.
+     * @return a pointer to the enclosing component, or null if the component is in the global scope.
+     */
+    const Component* getEnclosingComponent(const Component* comp) const;
+
 private:
     // components defined outside of any components
     std::set<const Component*> globalScopeComponents;

@@ -1,0 +1,29 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2022, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Magic set transformations requires an explicit representation of
+// eqrel relations so that they can be properly specialized. See
+// issue #2190.
+//
+
+.pragma "magic-transform" "*"
+
+.decl notEqrel(x:number,y:number)
+.decl isEqrel(x:number, y:number) eqrel
+.decl a__(a:number)
+.decl b__(a:number)
+
+notEqrel(x, y) :- isEqrel(x, y).
+isEqrel(x, y) :- notEqrel(x, y).
+isEqrel(0,1).
+notEqrel(1,2).
+
+.output a__
+.output b__ // Output node
+
+a__(a) :- notEqrel(a, a).
+b__(c) :- !a__(b), a__(c), a__(b).
+b__(a) :- a__(a).

@@ -156,13 +156,13 @@ TEST(AstUtils, ReorderClauseAtoms) {
 
     // Check trivial permutation
     Own<Clause> reorderedClause0 =
-            Own<Clause>(reorderAtoms(clause, std::vector<unsigned int>({0, 1, 2, 3, 4})));
+            Own<Clause>(reorderAtoms(clause, std::vector<std::size_t>({0, 1, 2, 3, 4})));
     EXPECT_EQ("a(x) :- \n   b(x),\n   c(x),\n   1 != 2,\n   d(y),\n   !e(z),\n   c(z),\n   e(x).",
             toString(*reorderedClause0));
 
     // Check more complex permutation
     Own<Clause> reorderedClause1 =
-            Own<Clause>(reorderAtoms(clause, std::vector<unsigned int>({2, 3, 4, 1, 0})));
+            Own<Clause>(reorderAtoms(clause, std::vector<std::size_t>({2, 3, 4, 1, 0})));
     EXPECT_EQ("a(x) :- \n   d(y),\n   c(z),\n   1 != 2,\n   e(x),\n   !e(z),\n   c(x),\n   b(x).",
             toString(*reorderedClause1));
 }

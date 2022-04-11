@@ -15,6 +15,7 @@
  ***********************************************************************/
 
 #include "Global.h"
+#include "souffle/utility/FileUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <cassert>
@@ -25,8 +26,14 @@
 #include <set>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <utility>
+
+#ifdef USE_CUSTOM_GETOPTLONG
+#include "souffle/utility/GetOptLongImpl.h"
+#else
 #include <getopt.h>
+#endif
 
 namespace souffle {
 
@@ -129,7 +136,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
     // use the main options to define the global configuration
     {
         // array of long names for classic getopt processing
-        option longNames[mainOptions.size()];
+        std::unique_ptr<option[]> longNames = std::make_unique<option[]>(mainOptions.size());
         // string of short names for classic getopt processing
         std::string shortNames = "";
         // table to map the short name to its option
@@ -172,7 +179,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
         // use getopt to process the arguments given to the command line, with the parameters being the
         // short and long names from above
         int c;
-        while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames, nullptr)) != EOF) {
+        while ((c = getopt_long(argc, argv, shortNames.c_str(), longNames.get(), nullptr)) != -1) {
             // case for the unknown option
             if (c == '?') {
                 std::cerr << Global::config().help();
@@ -186,6 +193,12 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
             // define the value for the option in the global configuration as its argument or an empty string
             //  if no argument exists
             std::string arg = optarg != nullptr ? std::string(optarg) : std::string();
+
+            if (iter->second->argument == "FILE" || iter->second->argument == "DIR") {
+                // convert to prefered directory separator
+                makePreferred(arg);
+            }
+
             // if the option allows multiple arguments
             if (opt->takesMany) {
                 // set the value of the option in the global config to the concatenation of its previous
@@ -209,7 +222,7 @@ void MainConfig::processArgs(int argc, char** argv, const std::string& header, c
         // ensure that the optind is less than the total number of arguments
         if (argc > 1 && optind >= argc) {
             std::cerr << Global::config().help();
-            throw std::runtime_error("Error: Unknown command line option.");
+            throw std::runtime_error("Error: Missing source file path.");
         }
 
         if (mainOptions[0].longName.empty()) {

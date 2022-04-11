@@ -1,0 +1,58 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2022, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+
+//
+// Compute set of acyclic paths using subsumption
+//
+// See Example 2, Fixpoint Iteration with Subsumption in
+// Deductive Databases by G. Koestler et al.,
+// J. of Intelligent Information Systems,
+// 4, 123-148 (1995).
+//
+
+.type node <: symbol
+
+.type node_sequence = [x:node, p:node_sequence]
+
+.functor isSubsequence(node_sequence, node_sequence):number stateful
+
+//
+// Edge set of a directed graph
+//
+.decl Edge(x:node, y:node)
+
+Edge("n1","n2").
+Edge("n1","n3").
+Edge("n2","n4").
+Edge("n3","n4").
+Edge("n4","n1").
+Edge("n4","n5").
+
+//
+// Set of path sequences between node x and y represented as a
+// sequence of nodes of a given length.
+//
+
+.decl Path(x:node, y:node, seq:node_sequence)
+
+// Base case
+Path(x,y,[x,[y,nil]]) :-
+  Edge(x, y).
+
+// Inductive case
+Path(x,z,[x,s]) :-
+  Edge(x,y),
+  Path(y,z,s).
+
+// If the node-sequence of path s1 is a prefix of a
+// node-sequence of path s2, the path of
+// node-sequence s2 subsumes the path of
+// node sequence s1.
+Path(x, y, s1) <= Path (x, y, s2) :-
+ @isSubsequence(s2,s1) = 1.
+
+.output Path

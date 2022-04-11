@@ -1,0 +1,24 @@
+
+.comp A {
+  .decl a(x:symbol) overridable
+  .output a
+  .comp AA {
+    a("AA"). // It is not clear if we want this fact or not when instantiated from `B`
+  }
+  .init aa = AA // brings `a("AA")` in `A`.
+  a("A").
+}
+
+.comp B
+  : A // brings `a("AA")` in `B` by the evaluation of `.init aa = AA`
+{
+  .override a
+  .comp BB {
+    a("BB").
+  }
+  .init bb = BB
+  a("B").
+}
+
+.init a = A
+.init b = B

@@ -68,7 +68,9 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
 Own<ram::Relation> UnitTranslator::createRamRelation(
         const ast::Relation* baseRelation, std::string ramRelationName) const {
     auto arity = baseRelation->getArity();
-    auto representation = baseRelation->getRepresentation();
+
+    // All relations in a provenance program should have a provenance data structure
+    auto representation = RelationRepresentation::PROVENANCE;
 
     // Add in base relation information
     std::vector<std::string> attributeNames;
@@ -119,8 +121,9 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
         attributeTypeQualifiers.push_back("s:symbol");
 
         // (3) For all atoms + negs + bcs: rel_<i>:symbol
-        for (std::size_t i = 0; i < clause->getBodyLiterals().size(); i++) {
-            const auto* literal = clause->getBodyLiterals().at(i);
+        auto bodyLiterals = clause->getBodyLiterals();
+        for (std::size_t i = 0; i < bodyLiterals.size(); i++) {
+            const auto* literal = bodyLiterals.at(i);
             if (isA<ast::Atom>(literal) || isA<ast::Negation>(literal) ||
                     isA<ast::BinaryConstraint>(literal)) {
                 attributeNames.push_back("rel_" + std::to_string(i));
@@ -316,8 +319,8 @@ Own<ram::Statement> UnitTranslator::makeSubproofSubroutine(const ast::Clause& cl
     return SubproofGenerator(*context).translateNonRecursiveClause(clause);
 }
 
-Own<ram::ExistenceCheck> UnitTranslator::makeRamAtomExistenceCheck(
-        const ast::Atom* atom, const std::map<int, std::string>& idToVarName, ValueIndex& valueIndex) const {
+Own<ram::ExistenceCheck> UnitTranslator::makeRamAtomExistenceCheck(const ast::Atom* atom,
+        const std::map<std::size_t, std::string>& idToVarName, ValueIndex& valueIndex) const {
     auto relName = getConcreteRelationName(atom->getQualifiedName());
 
     // Construct a query
@@ -351,12 +354,13 @@ Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnFalse() const {
 }
 
 void UnitTranslator::transformVariablesToSubroutineArgs(
-        ram::Node* node, const std::map<int, std::string>& idToVarName) const {
+        ram::Node* node, const std::map<std::size_t, std::string>& idToVarName) const {
     // A mapper to replace variables with subroutine arguments
     struct VariablesToArguments : public ram::NodeMapper {
-        const std::map<int, std::string>& idToVarName;
+        const std::map<std::size_t, std::string>& idToVarName;
 
-        VariablesToArguments(const std::map<int, std::string>& idToVarName) : idToVarName(idToVarName) {}
+        VariablesToArguments(const std::map<std::size_t, std::string>& idToVarName)
+                : idToVarName(idToVarName) {}
 
         Own<ram::Node> operator()(Own<ram::Node> node) const override {
             if (const auto* tuple = as<ram::TupleElement>(node.get())) {
@@ -412,7 +416,7 @@ Own<ram::Statement> UnitTranslator::makeNegationSubproofSubroutine(const ast::Cl
 
     // Keep track of references in a dummy index
     std::size_t count = 0;
-    std::map<int, std::string> idToVarName;
+    std::map<std::size_t, std::string> idToVarName;
     auto dummyValueIndex = mk<ValueIndex>();
     visit(clause, [&](const ast::Variable& var) {
         if (dummyValueIndex->isDefined(var.getName()) || isPrefix("+underscore", var.getName())) {

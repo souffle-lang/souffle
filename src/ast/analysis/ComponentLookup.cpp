@@ -51,11 +51,32 @@ const Component* ComponentLookupAnalysis::getComponent(
     // search nested scopes bottom up
     const Component* searchScope = scope;
     while (searchScope != nullptr) {
+        // search in components declared in scope
         for (const Component* cur : searchScope->getComponents()) {
             if (cur->getComponentType()->getName() == toString(boundName)) {
                 return cur;
             }
         }
+
+        // also search in bases
+        for (const auto& baseType : searchScope->getBaseComponents()) {
+            const auto found = enclosingComponent.find(searchScope);
+            const Component* const scopeEnclosingComponent =
+                    (found == enclosingComponent.end() ? nullptr : found->second);
+            // search base component
+            const Component* const base =
+                    getComponent(scopeEnclosingComponent, baseType->getName(), activeBinding);
+            if (base == searchScope) {
+                return nullptr;
+            }
+            if (base != nullptr) {
+                const Component* const found = getComponent(base, name, activeBinding);
+                if (found) {
+                    return found;
+                }
+            }
+        }
+
         auto found = enclosingComponent.find(searchScope);
         if (found != enclosingComponent.end()) {
             searchScope = found->second;
@@ -74,6 +95,12 @@ const Component* ComponentLookupAnalysis::getComponent(
 
     // no such component in scope
     return nullptr;
+}
+
+const Component* ComponentLookupAnalysis::getEnclosingComponent(const Component* comp) const {
+    const auto found = enclosingComponent.find(comp);
+    const Component* const enclosing = (found == enclosingComponent.end() ? nullptr : found->second);
+    return enclosing;
 }
 
 }  // namespace souffle::ast::analysis

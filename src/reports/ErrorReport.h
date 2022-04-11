@@ -149,17 +149,17 @@ public:
 
     ErrorReport(const ErrorReport& other) = default;
 
-    unsigned getNumErrors() const {
+    std::size_t getNumErrors() const {
         return std::count_if(diagnostics.begin(), diagnostics.end(),
-                [](Diagnostic d) -> bool { return d.getType() == Diagnostic::Type::ERROR; });
+                [](const Diagnostic& d) -> bool { return d.getType() == Diagnostic::Type::ERROR; });
     }
 
-    unsigned getNumWarnings() const {
+    std::size_t getNumWarnings() const {
         return std::count_if(diagnostics.begin(), diagnostics.end(),
-                [](Diagnostic d) -> bool { return d.getType() == Diagnostic::Type::WARNING; });
+                [](const Diagnostic& d) -> bool { return d.getType() == Diagnostic::Type::WARNING; });
     }
 
-    unsigned getNumIssues() const {
+    std::size_t getNumIssues() const {
         return diagnostics.size();
     }
 

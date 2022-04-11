@@ -30,7 +30,7 @@ namespace souffle::ast {
  */
 class ExecutionOrder : public Node {
 public:
-    using ExecOrder = std::vector<unsigned int>;
+    using ExecOrder = std::vector<std::size_t>;
 
     ExecutionOrder(ExecOrder order = {}, SrcLocation loc = {});
 

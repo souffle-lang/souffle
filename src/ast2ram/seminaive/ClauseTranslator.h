@@ -91,7 +91,7 @@ protected:
     virtual void indexAtoms(const ast::Clause& clause);
     void indexAggregators(const ast::Clause& clause);
     void indexMultiResultFunctors(const ast::Clause& clause);
-    void indexNodeArguments(int nodeLevel, const std::vector<ast::Argument*>& nodeArgs);
+    void indexNodeArguments(std::size_t nodeLevel, const std::vector<ast::Argument*>& nodeArgs);
     void indexAggregatorBody(const ast::Aggregator& agg);
     void indexGenerator(const ast::Argument& arg);
 
@@ -104,11 +104,12 @@ protected:
     Own<ram::Operation> addEntryPoint(const ast::Clause& clause, Own<ram::Operation> op) const;
 
     /** Levelling methods */
-    virtual Own<ram::Operation> addAtomScan(
-            Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause, int curLevel) const;
+    virtual Own<ram::Operation> addAtomScan(Own<ram::Operation> op, const ast::Atom* atom,
+            const ast::Clause& clause, std::size_t curLevel) const;
     Own<ram::Operation> addRecordUnpack(
-            Own<ram::Operation> op, const ast::RecordInit* rec, int curLevel) const;
-    Own<ram::Operation> addAdtUnpack(Own<ram::Operation> op, const ast::BranchInit* adt, int curLevel) const;
+            Own<ram::Operation> op, const ast::RecordInit* rec, std::size_t curLevel) const;
+    Own<ram::Operation> addAdtUnpack(
+            Own<ram::Operation> op, const ast::BranchInit* adt, std::size_t curLevel) const;
 
     /** Helper methods */
     Own<ram::Operation> addConstantConstraints(
@@ -122,13 +123,13 @@ protected:
 
     /** Generator instantiation */
     Own<ram::Operation> instantiateAggregator(Own<ram::Operation> op, const ast::Clause& clause,
-            const ast::Aggregator* agg, int curLevel) const;
+            const ast::Aggregator* agg, std::size_t curLevel) const;
     Own<ram::Operation> instantiateMultiResultFunctor(
-            Own<ram::Operation> op, const ast::IntrinsicFunctor& inf, int curLevel) const;
+            Own<ram::Operation> op, const ast::IntrinsicFunctor& inf, std::size_t curLevel) const;
 
     /** Operation levelling */
-    int addGeneratorLevel(const ast::Argument* arg);
-    int addOperatorLevel(const ast::Node* node);
+    std::size_t addGeneratorLevel(const ast::Argument* arg);
+    std::size_t addOperatorLevel(const ast::Node* node);
 
 private:
     std::vector<const ast::Argument*> generators;

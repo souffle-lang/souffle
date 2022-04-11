@@ -31,18 +31,18 @@ namespace souffle::ram {
  */
 class TupleOperation : public NestedOperation {
 public:
-    TupleOperation(int ident, Own<Operation> nested, std::string profileText = "")
+    TupleOperation(std::size_t ident, Own<Operation> nested, std::string profileText = "")
             : NestedOperation(std::move(nested), std::move(profileText)), identifier(ident) {}
 
     TupleOperation* cloning() const override = 0;
 
     /** @brief Get identifier */
-    int getTupleId() const {
+    std::size_t getTupleId() const {
         return identifier;
     }
 
     /** @brief Set identifier */
-    void setTupleId(int id) {
+    void setTupleId(std::size_t id) {
         identifier = id;
     }
 
@@ -60,7 +60,7 @@ protected:
      * Identifier for the tuple, corresponding to
      * its position in the loop nest
      */
-    int identifier;
+    std::size_t identifier;
 };
 
 }  // namespace souffle::ram

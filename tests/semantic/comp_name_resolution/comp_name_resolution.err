@@ -1,15 +1,12 @@
 Error: Invalid number of type parameters for component A in file comp_name_resolution.dl at line 14
     .comp BC : A<symbol> {}         // not ok
 ----^-----------------------------------------
-Error: Invalid number of type parameters for component B in file comp_name_resolution.dl at line 28
+Error: Invalid number of type parameters for component B in file comp_name_resolution.dl at line 29
     .init X = B
 ----^-----------
-Error: Invalid number of type parameters for component B in file comp_name_resolution.dl at line 29
+Error: Invalid number of type parameters for component B in file comp_name_resolution.dl at line 30
     .init X = B<N,N>
 ----^----------------
-Error: Referencing undefined component BB in file comp_name_resolution.dl at line 30
-    .init X = BB
-----^------------
 Error: Invalid cycle in inheritance for component D in file comp_name_resolution.dl at line 35
 .comp D<M> : C<M,M>, B<M,M>, D, M {
 ^-----------------------------------
@@ -37,4 +34,4 @@ Error: Invalid number of type parameters for component B in file comp_name_resol
 Error: Referencing undefined component M in file comp_name_resolution.dl at line 62
 .init U = M
 ^-----------
-13 errors generated, evaluation aborted
+12 errors generated, evaluation aborted

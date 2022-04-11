@@ -37,7 +37,7 @@ using ::souffle::ram::analysis::SignatureOrderMap;
 
 TEST(Relation0, Construction) {
     // create a nullary relation
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection from no searches to a default index for arity 0
     SignatureOrderMap mapping;
@@ -59,7 +59,7 @@ TEST(Relation0, Construction) {
 
 TEST(Relation0, Iteration) {
     // create a nullary relation
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection from no searches to a default index for arity 0
     SignatureOrderMap mapping;
@@ -84,7 +84,7 @@ TEST(Relation0, Iteration) {
 
 TEST(Relation1, Construction) {
     // create a single attribute relation
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection for a relation with arity 1 with only an existence check
     SignatureOrderMap mapping;
@@ -113,7 +113,7 @@ TEST(Relation1, Construction) {
 
 TEST(Basic, Iteration) {
     // create a relation
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection for a relation with arity 1 with only an existence check
     SignatureOrderMap mapping;
@@ -148,7 +148,7 @@ TEST(Basic, Iteration) {
 
 TEST(Independence, Iteration) {
     // create a table
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection for a relation with arity 1 with only an existence check
     SignatureOrderMap mapping;
@@ -184,7 +184,7 @@ TEST(Independence, Iteration) {
 
 TEST(IndependentMoving, Iteration) {
     // create a table
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection for a relation with arity 1 with only an existence check
     SignatureOrderMap mapping;
@@ -215,7 +215,7 @@ TEST(IndependentMoving, Iteration) {
 
 TEST(IndependentCopying, Iteration) {
     // create a table
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection for a relation with arity 1 with only an existence check
     SignatureOrderMap mapping;
@@ -246,7 +246,7 @@ TEST(IndependentCopying, Iteration) {
 
 TEST(Reordering, Iteration) {
     // create a relation, with a non-default ordering.
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 
     // create an index selection for a relation with arity 1 with only an existence check
     SignatureOrderMap mapping;

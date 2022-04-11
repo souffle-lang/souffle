@@ -224,6 +224,47 @@ public:
 } nonRecursiveRuleNumberProcessor;
 
 /**
+ * Non-Recursive Count Unique Keys Profile Event Processor
+ */
+const class NonRecursiveCountUniqueKeysProcessor : public EventProcessor {
+public:
+    NonRecursiveCountUniqueKeysProcessor() {
+        EventProcessorSingleton::instance().registerEventProcessor("@non-recursive-count-unique-keys", this);
+    }
+    /** process event input */
+    void process(ProfileDatabase& db, const std::vector<std::string>& signature, va_list& args) override {
+        const std::string& relation = signature[1];
+        const std::string& attributes = signature[2];
+        const std::string& constants = signature[3];
+        std::size_t uniqueKeys = va_arg(args, std::size_t);
+        db.addSizeEntry({"program", "statistics", "relation", relation, "attributes", attributes, "constants",
+                                constants},
+                uniqueKeys);
+    }
+} nonRecursiveCountUniqueKeysProcessor;
+
+/**
+ * Recursive Count Unique Keys Profile Event Processor
+ */
+const class RecursiveCountUniqueKeysProcessor : public EventProcessor {
+public:
+    RecursiveCountUniqueKeysProcessor() {
+        EventProcessorSingleton::instance().registerEventProcessor("@recursive-count-unique-keys", this);
+    }
+    /** process event input */
+    void process(ProfileDatabase& db, const std::vector<std::string>& signature, va_list& args) override {
+        const std::string& relation = signature[1];
+        const std::string& attributes = signature[2];
+        const std::string& constants = signature[3];
+        std::size_t uniqueKeys = va_arg(args, std::size_t);
+        std::string iteration = std::to_string(va_arg(args, std::size_t));
+        db.addSizeEntry({"program", "statistics", "relation", relation, "iteration", iteration, "attributes",
+                                attributes, "constants", constants},
+                uniqueKeys);
+    }
+} recursiveCountUniqueKeysProcessor;
+
+/**
  * Recursive Rule Timing Profile Event Processor
  */
 const class RecursiveRuleTimingProcessor : public EventProcessor {

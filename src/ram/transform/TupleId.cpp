@@ -31,8 +31,8 @@ bool TupleIdTransformer::reorderOperations(Program& program) {
     bool changed = false;
     forEachQuery(program, [&](Query& query) {
         // Maps old tupleIds to new tupleIds
-        std::map<int, int> reorder;
-        int ctr = 0;
+        std::map<std::size_t, std::size_t> reorder;
+        std::size_t ctr = 0;
 
         visit(query, [&](TupleOperation& search) {
             if (ctr != search.getTupleId()) {

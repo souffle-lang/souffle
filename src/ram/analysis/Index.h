@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ram/AbstractExistenceCheck.h"
+#include "ram/CountUniqueKeys.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/IndexOperation.h"
 #include "ram/ProvenanceExistenceCheck.h"
@@ -98,10 +99,13 @@ public:
         return Iterator(const_cast<AttributeConstraint*>(constraints.data() + constraints.size()));
     }
 
-    class Iterator : public std::iterator<std::random_access_iterator_tag, AttributeConstraint> {
+    class Iterator {
     public:
-        using difference_type =
-                typename std::iterator<std::random_access_iterator_tag, AttributeConstraint>::difference_type;
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = AttributeConstraint;
+        using difference_type = int64_t;
+        using pointer = AttributeConstraint*;
+        using reference = AttributeConstraint&;
 
         Iterator() : it(nullptr) {}
         Iterator(AttributeConstraint* rhs) : it(rhs) {}
@@ -205,11 +209,11 @@ std::ostream& operator<<(std::ostream& out, const SearchSignature& signature);
  */
 class MaxMatching {
 public:
-    using Node = uint32_t;
+    using Node = std::size_t;
     /* The nodes of the bi-partite graph are index signatures of RAM operation */
     using Nodes = std::unordered_set<Node>;
     /* Distance between nodes */
-    using Distance = int;
+    using Distance = int64_t;
     /**
      * Matching represent a solution of the matching, i.e., which node in the bi-partite
      * graph maps to another node. If no map exist for a node, there is no adjacent edge
@@ -233,7 +237,7 @@ public:
      * @Brief get number of matches in the solution
      * @return number of matches
      */
-    int getNumMatchings() const {
+    std::size_t getNumMatchings() const {
         return match.size() / 2;
     }
 
@@ -299,7 +303,7 @@ private:
  *
  */
 
-using AttributeIndex = uint32_t;
+using AttributeIndex = std::size_t;
 using AttributeSet = std::unordered_set<AttributeIndex>;
 using SignatureMap = std::unordered_map<SearchSignature, SearchSignature, SearchSignature::Hasher>;
 using SearchNodeMap = std::unordered_map<SearchSignature, AttributeIndex, SearchSignature::Hasher>;
@@ -333,7 +337,7 @@ class IndexCluster;
  */
 class SearchBipartiteMap {
 public:
-    void addSearch(SearchSignature s) {
+    void addSearch(const SearchSignature& s) {
         // Map the signature to its node in the left and right bi-partitions
         signatureToNodeA.insert({s, currentIndex});
         signatureToNodeB.insert({s, currentIndex + 1});
@@ -343,15 +347,15 @@ public:
         currentIndex += 2;
     }
 
-    AttributeIndex getLeftNode(SearchSignature s) const {
+    AttributeIndex getLeftNode(const SearchSignature& s) const {
         return signatureToNodeA.at(s);
     }
 
-    AttributeIndex getRightNode(SearchSignature s) const {
+    AttributeIndex getRightNode(const SearchSignature& s) const {
         return signatureToNodeB.at(s);
     }
 
-    SearchSignature getSearch(AttributeIndex node) const {
+    const SearchSignature& getSearch(AttributeIndex node) const {
         return nodeToSignature.at(node);
     }
 
@@ -381,7 +385,7 @@ public:
 
 protected:
     /** @Brief maps a provided search to its corresponding lexicographical ordering **/
-    std::size_t map(SearchSignature cols, [[maybe_unused]] const OrderCollection& orders,
+    std::size_t map(const SearchSignature& cols, [[maybe_unused]] const OrderCollection& orders,
             const ChainOrderMap& chainToOrder) const {
         assert(orders.size() == chainToOrder.size() && "Order and Chain Sizes do not match!!");
 
@@ -400,7 +404,7 @@ protected:
     }
 
     /** @Brief insert an index based on the delta */
-    void insertIndex(LexOrder& ids, SearchSignature delta) const {
+    void insertIndex(LexOrder& ids, const SearchSignature& delta) const {
         LexOrder backlog;  // add inequalities at the end
         for (std::size_t pos = 0; pos < delta.arity(); pos++) {
             if (delta[pos] == AttributeConstraint::Equal) {
@@ -420,7 +424,7 @@ protected:
      * we follow it from set B until it cannot be matched from B
      * if not matched from B then umn is a chain.
      */
-    Chain getChain(const SearchSignature umn, const MaxMatching::Matchings& match,
+    Chain getChain(const SearchSignature& umn, const MaxMatching::Matchings& match,
             const SearchBipartiteMap& mapping) const;
 
     /** @Brief get all chains from the matching */
@@ -433,7 +437,7 @@ protected:
         SearchSet unmatched;
 
         // For all nodes n such that n is not in match
-        for (auto node : nodes) {
+        for (const auto& node : nodes) {
             if (match.find(mapping.getLeftNode(node)) == match.end()) {
                 unmatched.insert(node);
             }
@@ -459,17 +463,18 @@ public:
     const SearchCollection getSearches() const {
         return searches;
     }
-    const LexOrder getLexOrder(SearchSignature cols) const {
+    const LexOrder getLexOrder(const SearchSignature& cols) const {
         return indexSelection.at(cols);
     }
 
-    int getLexOrderNum(SearchSignature cols) const {
+    std::size_t getLexOrderNum(const SearchSignature& cols) const {
         // get the corresponding order
         auto order = getLexOrder(cols);
         // find the order in the collection
         auto it = std::find(orders.begin(), orders.end(), order);
+        assert(it != orders.end());
         // return its relative index
-        return std::distance(orders.begin(), it);
+        return static_cast<std::size_t>(std::distance(orders.begin(), it));
     }
 
 private:
@@ -495,6 +500,13 @@ public:
     const IndexCluster getIndexSelection(const std::string& relName) const {
         return indexCover.at(relName);
     }
+
+    /**
+     * @Brief Get index signature for an Ram CountUniqueKeys operation
+     * @param  CountUniqueKeys operation
+     * @result Index signature of operation
+     */
+    SearchSignature getSearchSignature(const CountUniqueKeys* count) const;
 
     /**
      * @Brief Get index signature for an Ram IndexOperation operation

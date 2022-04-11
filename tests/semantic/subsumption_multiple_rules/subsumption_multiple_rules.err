@@ -1,0 +1,12 @@
+Warning: Variable g only occurs once in file subsumption_multiple_rules.dl at line 103
+AF(b) :- G(g, b), !R(b, d), ES(d, a), ES(d, e).
+-----------^------------------------------------
+Warning: Variable a only occurs once in file subsumption_multiple_rules.dl at line 103
+AF(b) :- G(g, b), !R(b, d), ES(d, a), ES(d, e).
+----------------------------------^-------------
+Warning: Variable e only occurs once in file subsumption_multiple_rules.dl at line 103
+AF(b) :- G(g, b), !R(b, d), ES(d, a), ES(d, e).
+--------------------------------------------^---
+Warning: No rules/facts defined for relation my in file subsumption_multiple_rules.dl at line 106
+.decl my(x:number)
+------^------------

@@ -27,6 +27,8 @@
 #include "souffle/RamTypes.h"
 #include "souffle/RecordTable.h"
 #include "souffle/SymbolTable.h"
+#include "souffle/datastructure/RecordTableImpl.h"
+#include "souffle/datastructure/SymbolTableImpl.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <atomic>
 #include <cstddef>
@@ -91,7 +93,7 @@ private:
     /** @brief Reset iteration number */
     void resetIterationNumber();
     /** @brief Increment the counter */
-    int incCounter();
+    RamDomain incCounter();
     /** @brief Return the relation map. */
     VecOwn<RelationHandle>& getRelationMap();
     /** @brief Create and add relation into the runtime environment.  */
@@ -110,6 +112,10 @@ private:
     template <typename Rel>
     RamDomain evalParallelScan(
             const Rel& rel, const ram::ParallelScan& cur, const ParallelScan& shadow, Context& ctxt);
+
+    template <typename Rel>
+    RamDomain evalCountUniqueKeys(
+            const Rel& rel, const ram::CountUniqueKeys& cur, const CountUniqueKeys& shadow, Context& ctxt);
 
     template <typename Rel>
     RamDomain evalIndexScan(const ram::IndexScan& cur, const IndexScan& shadow, Context& ctxt);
@@ -191,7 +197,7 @@ private:
     /** Symbol table for relations */
     VecOwn<RelationHandle> relations;
     /** Symbol table */
-    SymbolTable symbolTable;
+    SymbolTableImpl symbolTable;
 };
 
 }  // namespace souffle::interpreter

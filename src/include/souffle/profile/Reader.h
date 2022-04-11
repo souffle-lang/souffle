@@ -27,7 +27,9 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#ifndef _MSC_VER
 #include <dirent.h>
+#endif
 #include <sys/stat.h>
 
 namespace souffle {
@@ -276,6 +278,9 @@ private:
     bool online{true};
 
     std::unordered_map<std::string, std::shared_ptr<Relation>> relationMap{};
+    std::unordered_map<std::string, std::unordered_map<std::string, std::size_t>>
+            countRecursiveUniqueKeysMap{};
+    std::unordered_map<std::string, std::size_t> countNonRecursiveUniqueKeysMap{};
     int rel_id{0};
 
 public:
@@ -311,6 +316,63 @@ public:
             online = false;
         }
 
+        auto prefix = as<DirectoryEntry>(db.lookupEntry({"program", "statistics", "relation"}));
+        if (prefix != nullptr) {
+            for (const auto& rel : prefix->getKeys()) {
+                auto prefixWithRel = as<DirectoryEntry>(
+                        db.lookupEntry({"program", "statistics", "relation", rel, "attributes"}));
+                if (prefixWithRel != nullptr) {
+                    for (const auto& attributes : prefixWithRel->getKeys()) {
+                        auto prefixWithAttributes = as<DirectoryEntry>(db.lookupEntry({"program",
+                                "statistics", "relation", rel, "attributes", attributes, "constants"}));
+                        if (prefixWithAttributes == nullptr) {
+                            continue;
+                        }
+                        for (const auto& constants : prefixWithAttributes->getKeys()) {
+                            auto fullKey = as<SizeEntry>(db.lookupEntry({"program", "statistics", "relation",
+                                    rel, "attributes", attributes, "constants", constants}));
+                            if (fullKey != nullptr) {
+                                std::size_t uniqueKeys = fullKey->getSize();
+                                std::string key = rel + " " + attributes + " " + constants;
+                                countNonRecursiveUniqueKeysMap[key] = uniqueKeys;
+                            }
+                        }
+                    }
+                }
+
+                auto prefixWithRecursiveRel = as<DirectoryEntry>(
+                        db.lookupEntry({"program", "statistics", "relation", rel, "iteration"}));
+                if (prefixWithRecursiveRel != nullptr) {
+                    for (const auto& iteration : prefixWithRecursiveRel->getKeys()) {
+                        auto prefixWithIteration = as<DirectoryEntry>(db.lookupEntry({"program", "statistics",
+                                "relation", rel, "iteration", iteration, "attributes"}));
+                        if (prefixWithIteration == nullptr) {
+                            continue;
+                        }
+
+                        for (const auto& attributes : prefixWithIteration->getKeys()) {
+                            auto prefixWithAttributes = as<DirectoryEntry>(
+                                    db.lookupEntry({"program", "statistics", "relation", rel, "iteration",
+                                            iteration, "attributes", attributes, "constants"}));
+                            if (prefixWithAttributes == nullptr) {
+                                continue;
+                            }
+                            for (const auto& constants : prefixWithAttributes->getKeys()) {
+                                auto fullKey = as<SizeEntry>(db.lookupEntry(
+                                        {"program", "statistics", "relation", rel, "iteration", iteration,
+                                                "attributes", attributes, "constants", constants}));
+                                std::size_t uniqueKeys = fullKey->getSize();
+                                if (fullKey != nullptr) {
+                                    std::string key = rel + " " + attributes + " " + constants;
+                                    countRecursiveUniqueKeysMap[key][iteration] = uniqueKeys;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         auto relations = as<DirectoryEntry>(db.lookupEntry({"program", "relation"}));
         if (relations == nullptr) {
             // Souffle hasn't generated any profiling information yet
@@ -337,6 +399,9 @@ public:
                         if (relationName.substr(0, 6) == "@delta") {
                             relationName = relationName.substr(7);
                         }
+                        if (relationName.substr(0, 4) == "@new") {
+                            relationName = relationName.substr(5);
+                        }
                         assert(relationMap.count(relationName) > 0 || "Relation name for atom not found");
                         relationMap[relationName]->addReads(atom.frequency);
                     }
@@ -351,6 +416,34 @@ public:
 
     inline bool isLive() {
         return online;
+    }
+
+    bool hasAutoSchedulerStats() {
+        return !countNonRecursiveUniqueKeysMap.empty() || !countRecursiveUniqueKeysMap.empty();
+    }
+
+    std::size_t getNonRecursiveCountUniqueKeys(
+            const std::string& rel, const std::string& attributes, const std::string& constants) {
+        auto key = rel + " " + attributes + " " + constants;
+        return countNonRecursiveUniqueKeysMap.at(key);
+    }
+
+    std::size_t getIterations(const std::string& rel) {
+        for (auto& [key, m] : countRecursiveUniqueKeysMap) {
+            std::string token = key.substr(0, key.find(" "));
+            if (token == rel) {
+                return m.size();
+            }
+        }
+        assert(false);
+        return 0;
+    }
+
+    std::size_t getRecursiveCountUniqueKeys(const std::string& rel, const std::string& attributes,
+            const std::string& constants, const std::string& iteration) {
+        auto key = rel + " " + attributes + " " + constants;
+        auto& m = countRecursiveUniqueKeysMap.at(key);
+        return static_cast<std::size_t>(m.at(iteration));
     }
 
     void addRelation(const DirectoryEntry& relation) {
