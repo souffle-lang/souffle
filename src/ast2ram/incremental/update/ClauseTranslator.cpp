@@ -253,6 +253,39 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         lastScanLevel++;
     }
 
+    // For some body tuples, we need to ensure the same tuple exists in both R
+    // and prev_R
+    std::size_t tupleExistsLevel = lastScanLevel;
+    for (std::size_t i = 0; i < diffVersion; i++) {
+        // TODO: check how getAtomOrdering works with diffVersions
+        const auto* atom = getAtomOrdering(clause)[i];
+
+        op = addEnsureExistsInRelationConstraint(std::move(op), atom, tupleExistsLevel);
+
+        tupleExistsLevel++;
+    }
+
+    lastScanLevel = tupleExistsLevel;
+
+    // For some body tuples, we need to ensure the tuple for the rule
+    // evaluation is the earliest one in its relation
+
+    // atomIdx keeps track of which atom we are creating a constraint for
+    std::size_t atomIdx = 0;
+
+    std::size_t iterCheckLevel = lastScanLevel;
+    for (const auto* atom : getAtomOrdering(clause)) {
+
+        op = addEnsureEarliestIterationConstraint(std::move(op), atom, iterCheckLevel, atomIdx);
+
+        atomIdx++;
+        iterCheckLevel++;
+    }
+
+    return op;
+}
+
+Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel) const {
     // For incremental update, ensure that some body tuples exist in both the
     // previous and current epochs to prevent double counting. For example,
     // consider the rule
@@ -266,142 +299,81 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     //
     // We need to ensure that for the second case, the tuple for prev_S also
     // exists in S, otherwise it would be double counting tuples in S that are
-    // removed. To achieve this, add an extra constraint:
+    // removed. To achieve this, add an extra existence check:
     //
     //   FOR t0 in prev_S:
     //     FOR t1 in diff_minus_T:
     //       IF EXISTS t0 in S WHERE t0.count > 0
     //         ...
 
-    std::size_t tupleExistsLevel = lastScanLevel;
-    for (std::size_t i = 0; i < diffVersion; i++) {
-        // TODO: check how getAtomOrdering works with diffVersions
-        const auto* atom = getAtomOrdering(clause)[i];
+    // First create a filter condition saying the count must be positive
+    Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
-        // First create a filter condition
-        Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(tupleExistsLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+    // Add a condition saying the iteration number must be earlier than current iter
+    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
 
-        // Add conditions to say the tuple must match
-        std::size_t argNum = 0;
-        for (auto* arg : atom->getArguments()) {
-            tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(tupleExistsLevel, argNum)));
-            argNum++;
-        }
-
-        // Create a filter
-        op = mk<ram::Filter>(std::move(tupleExistsCond), std::move(op));
-
-        // Create a scan
-        if (mode == IncrementalDiffPlus) {
-            op = mk<ram::Scan>(getPrevRelationName(atom->getQualifiedName()), tupleExistsLevel, std::move(op));
-        } else if (mode == IncrementalDiffMinus) {
-            op = mk<ram::Scan>(getConcreteRelationName(atom->getQualifiedName()), tupleExistsLevel, std::move(op));
-        }
-
-        tupleExistsLevel++;
+    // Add conditions to say the tuple must match
+    std::size_t argNum = 0;
+    for (auto* arg : atom->getArguments()) {
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        argNum++;
     }
 
-    lastScanLevel = tupleExistsLevel;
+    // Create a filter
+    op = mk<ram::Filter>(std::move(tupleExistsCond), std::move(op));
 
+    // Create a scan
+    if (mode == IncrementalDiffPlus) {
+        op = mk<ram::Scan>(getPrevRelationName(atom->getQualifiedName()), curLevel, std::move(op));
+    } else if (mode == IncrementalDiffMinus) {
+        op = mk<ram::Scan>(getConcreteRelationName(atom->getQualifiedName()), curLevel, std::move(op));
+    }
 
+    return op;
+}
+
+Own<ram::Operation> ClauseTranslator::addEnsureEarliestIterationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel, std::size_t atomIdx) const {
     // Ensure that we only compute using the earliest iteration for any given
     // tuple. For example, given a binary relation (x,y,@iter,@count), if we
     // have two tuples (1,2,3,1) and (1,2,5,1), we should only execute a rule
     // evaluation for the earliest tuple (1,2,3,1), otherwise incremental
     // evaluation double counts.
 
-    // atomIdx keeps track of which atom we are creating an aggregate for
-    std::size_t atomIdx = 0;
+    // Add a constraint saying that iter = ITERNUM() - 1 for the current
+    // version atom, simulating delta of semi-naive
+    if (isRecursive() && sccAtoms.at(version) == atom) {
+        VecOwn<ram::Expression> iterMinusOneArgs;
+        iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
+        iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
 
-    std::size_t iterCheckLevel = lastScanLevel;
-    for (const auto* atom : getAtomOrdering(clause)) {
+        auto iterMinusOne = mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
 
-        // Add a constraint saying that iter = ITERNUM() - 1 for the current
-        // version atom, simulating delta of semi-naive
-        if (isRecursive() && sccAtoms.at(version) == atom) {
-            VecOwn<ram::Expression> iterMinusOneArgs;
-            iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
-            iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
-
-            auto iterMinusOne = mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
-
-            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(atomIdx, atom->getArity()), std::move(iterMinusOne)), std::move(op));
-        }
-
-        // Make conditions
-        // Make count condition, i.e., c > 0 in above example
-        Own<ram::Condition> cond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
-
-        // Make iteration condition, i.e., iter < current iter
-        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(iterCheckLevel, atom->getArity()), mk<ram::TupleElement>(atomIdx, atom->getArity())));
-
-        // Add conditions such that X... inside ifnotexists is equal to outside
-        std::size_t argNum = 0;
-        for (auto* arg : atom->getArguments()) {
-            cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(iterCheckLevel, argNum)));
-            argNum++;
-        }
-
-        std::string relName;
-
-        if (mode == IncrementalDiffPlus) {
-            relName = getConcreteRelationName(atom->getQualifiedName());
-        } else if (mode == IncrementalDiffMinus) {
-            relName = getPrevRelationName(atom->getQualifiedName());
-        }
-
-        op = mk<ram::IfNotExists>(relName, iterCheckLevel, std::move(cond), std::move(op));
-
-        atomIdx++;
-        iterCheckLevel++;
+        op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(atomIdx, atom->getArity()), std::move(iterMinusOne)), std::move(op));
     }
 
+    // Make conditions
+    // Make count condition, i.e., c > 0 in above example
+    Own<ram::Condition> cond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
-    /*
-    // aggLevel denotes the current level for aggregation, it starts after all
-    // atoms in the rule
-    std::size_t aggLevel = lastScanLevel;
-    for (const auto* atom : getAtomOrdering(clause)) {
-        // For an atom A(X...,iter,count), generate an aggregate constraint
-        // iter = i : min(A(X...,i,c WHERE c > 0))
+    // Make iteration condition, i.e., iter < current iter
+    cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::TupleElement>(atomIdx, atom->getArity())));
 
-        std::string iterationNum = "@min_iteration_" + std::to_string(atomIdx);
-        valueIndex->addVarReference(iterationNum, aggLevel, atom->getArity());
-
-        // std::string iterationCountNum = "@min_iteration_count_" + std::to_string(atomIdx);
-        // valueIndex->addVarReference(iterationCountNum, aggLevel, atom->getArity() + 1);
-
-        // Make aggregate expression, i.e., i in the above example
-        auto aggExpr = mk<ram::TupleElement>(aggLevel, atom->getArity());
-
-        // Make aggregate condition, i.e., c > 0 in above example
-        Own<ram::Condition> aggCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(aggLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
-
-        // Add aggregate conditions such that X... inside aggregate is equal to outside
-        std::size_t argNum = 0;
-        for (auto* arg : atom->getArguments()) {
-            aggCond = addConjunctiveTerm(std::move(aggCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(aggLevel, argNum)));
-            argNum++;
-        }
-
-        auto iterationVariableLocation = valueIndex->getDefinitionPoint("@iteration_" + std::to_string(atomIdx));
-
-        op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ,
-                    mk<ram::TupleElement>(iterationVariableLocation.identifier, iterationVariableLocation.element),
-                    mk<ram::TupleElement>(aggLevel, 0)), std::move(op));
-
-        // Make aggregate, i.e., i : min(A(X...,i,c WHERE c > 0)) in above example
-        // This has to go after the filter, because the op is being built inside out
-        if (mode == IncrementalDiffPlus) {
-            op = mk<ram::Aggregate>(std::move(op), AggregateOp::MIN, getConcreteRelationName(atom->getQualifiedName()), std::move(aggExpr), std::move(aggCond), aggLevel);
-        } else if (mode == IncrementalDiffMinus) {
-            op = mk<ram::Aggregate>(std::move(op), AggregateOp::MIN, getPrevRelationName(atom->getQualifiedName()), std::move(aggExpr), std::move(aggCond), aggLevel);
-        }
-
-        atomIdx++;
-        aggLevel++;
+    // Add conditions such that X... inside ifnotexists is equal to outside
+    std::size_t argNum = 0;
+    for (auto* arg : atom->getArguments()) {
+        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        argNum++;
     }
-    */
+
+    std::string relName;
+
+    if (mode == IncrementalDiffPlus) {
+        relName = getConcreteRelationName(atom->getQualifiedName());
+    } else if (mode == IncrementalDiffMinus) {
+        relName = getPrevRelationName(atom->getQualifiedName());
+    }
+
+    op = mk<ram::IfNotExists>(relName, curLevel, std::move(cond), std::move(op));
 
     return op;
 }

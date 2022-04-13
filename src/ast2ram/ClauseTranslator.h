@@ -74,7 +74,13 @@ enum TranslationMode {
     IncrementalDiffPlus,
 
     // diff_minus versions for deletion
-    IncrementalDiffMinus
+    IncrementalDiffMinus,
+
+    // reversing an insertion that actually already existed
+    IncrementalUpdatedDiffPlus,
+
+    // reversing a deletion that actual still exists
+    IncrementalUpdatedDiffMinus
 };
 
 /* Abstract Clause Translator */
