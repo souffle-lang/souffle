@@ -132,6 +132,9 @@
 %token PRINTSIZE_QUALIFIER       "relation qualifier printsize"
 %token BRIE_QUALIFIER            "BRIE datastructure qualifier"
 %token BTREE_QUALIFIER           "BTREE datastructure qualifier"
+%token BTREE_MIN_QUALIFIER       "BTREE_MIN datastructure qualifier"
+%token BTREE_MAX_QUALIFIER       "BTREE_MAX datastructure qualifier"
+%token BTREE_SUM_QUALIFIER       "BTREE_SUM datastructure qualifier"
 %token BTREE_DELETE_QUALIFIER    "BTREE_DELETE datastructure qualifier"
 %token EQREL_QUALIFIER           "equivalence relation qualifier"
 %token OVERRIDABLE_QUALIFIER     "relation qualifier overidable"
@@ -566,6 +569,18 @@ relation_tags
   | relation_tags BTREE_QUALIFIER
     {
       $$ = driver.addReprTag(RelationTag::BTREE, @2, $1);
+    }
+  | relation_tags BTREE_MIN_QUALIFIER
+    {
+      $$ = driver.addReprTag(RelationTag::BTREE_MIN, @2, $1);
+    }
+  | relation_tags BTREE_MAX_QUALIFIER
+    {
+      $$ = driver.addReprTag(RelationTag::BTREE_MAX, @2, $1);
+    }
+  | relation_tags BTREE_SUM_QUALIFIER
+    {
+      $$ = driver.addReprTag(RelationTag::BTREE_SUM, @2, $1);
     }
   | relation_tags BTREE_DELETE_QUALIFIER
     {
