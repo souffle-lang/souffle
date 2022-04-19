@@ -221,6 +221,9 @@ VecOwn<ram::Statement> UnitTranslator::generateClauseVersions(
     for (std::size_t version = 0; version < sccAtoms.size(); version++) {
         appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalDiffMinus));
         appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalDiffPlus));
+
+        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalUpdatedDiffMinus));
+        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalUpdatedDiffPlus));
     }
 
     // Check that the correct number of versions have been created
@@ -560,11 +563,24 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
     op = mk<ram::Scan>(checkRelation, 1, std::move(op));
 
     // Create filter for iternum
-    op = mk<ram::Filter>(mk<ram::Constraint>(
-                BinaryConstraintOp::LT,
-                mk<ram::TupleElement>(0, rel->getArity()),
-                mk<ram::IterationNumber>()),
-            std::move(op));
+    Own<ram::Condition> toUpdateCond;
+    toUpdateCond = addConjunctiveTerm(std::move(toUpdateCond), mk<ram::Constraint>(
+            BinaryConstraintOp::LT,
+            mk<ram::TupleElement>(0, rel->getArity()),
+            mk<ram::IterationNumber>()));
+
+    // Filter for count
+    // TODO (DZ): this is a hack, but insertTupleCount < 0 indicates we are
+    // dealing with diff_plus, so should check for positive count,
+    // insertTupleCount > 0 indicates we are dealing with diff_minus, so
+    // should check for negative count
+    toUpdateCond = addConjunctiveTerm(std::move(toUpdateCond), mk<ram::Constraint>(
+            ((insertTupleCount < 0) ? BinaryConstraintOp::GT : BinaryConstraintOp::LT),
+            mk<ram::TupleElement>(0, rel->getArity() + 1),
+            mk<ram::SignedConstant>(0)));
+
+
+    op = mk<ram::Filter>(std::move(toUpdateCond), std::move(op));
 
     // Create outer scan
     auto stmt = mk<ram::Query>(mk<ram::Scan>(toUpdateRelation, 0, std::move(op)));
