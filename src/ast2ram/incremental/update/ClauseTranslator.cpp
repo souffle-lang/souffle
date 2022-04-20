@@ -264,6 +264,48 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         }
     }
 
+    // For recursion, ensure that atoms before position 'version' have iter <
+    // current iter, and atoms after have iter <= current iter
+    if (isRecursive()) {
+        for (std::size_t i = 0; i < getAtomOrdering(clause).size(); i++) {
+            const auto* atom = getAtomOrdering(clause)[i];
+
+            // check if atom is before or after version
+            // if atom is equal to version, or if it is non-recursive, before
+            // and after will both be false
+            bool before = false;
+            bool after = false;
+            for (std::size_t j = 0; j < sccAtoms.size(); j++) {
+                if (*sccAtoms[j] == *atom) {
+                    if (j < version) {
+                        before = true;
+                    } else if (j > version) {
+                        after = true;
+                    }
+                    break;
+                }
+            }
+
+            VecOwn<ram::Expression> iterMinusOneArgs;
+            iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
+            iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
+
+            auto iterMinusOne = mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
+
+            if (before) {
+                op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LT,
+                            mk<ram::TupleElement>(i, atom->getArity()),
+                            std::move(iterMinusOne)),
+                        std::move(op));
+            } else if (after) {
+                op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LE,
+                            mk<ram::TupleElement>(i, atom->getArity()),
+                            std::move(iterMinusOne)),
+                        std::move(op));
+            }
+        }
+    }
+
     std::size_t lastScanLevel = 0;
     while (valueIndex->isSomethingDefinedOn(lastScanLevel)) {
         lastScanLevel++;
