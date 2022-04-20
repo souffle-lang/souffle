@@ -49,13 +49,15 @@ Own<Relation> Relation::getSynthesiserRelation(
 
     // Handle the qualifier in souffle code
     if (ramRel.getRepresentation() == RelationRepresentation::PROVENANCE) {
-        rel = new DirectRelation(ramRel, indexSelection, true, false);
+        rel = new DirectRelation(ramRel, indexSelection, true, false, false);
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, false);
+    } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_MIN) {
+        rel = new DirectRelation(ramRel, indexSelection, false, false, true);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, true);
+        rel = new DirectRelation(ramRel, indexSelection, false, true, false);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -67,7 +69,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, false, false);
+            rel = new DirectRelation(ramRel, indexSelection, false, false, false);
         }
     }
 
@@ -134,7 +136,7 @@ void DirectRelation::computeIndices() {
         // we must expand all search orders to be full indices,
         // since weak/strong comparators and updaters need this,
         // and also add provenance annotations to the indices
-        if (isProvenance || hasErase) {
+        if (isProvenance || hasErase || isAggregate) {
             // expand index to be full
             for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
                 if (curIndexElems.find(i) == curIndexElems.end()) {
@@ -158,6 +160,18 @@ void DirectRelation::computeIndices() {
                 ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
                 ind.push_back(getArity() - relation.getAuxiliaryArity());
             }
+
+            if (isAggregate) {
+                // remove any aggregate attribute already in the index order
+
+                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
+                    ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
+                }
+
+                // add aggregate attribute to the index, but in reverse order
+                ind.push_back(getArity() - relation.getAuxiliaryArity());
+            }
+
             masterIndex = 0;
         } else if (ind.size() == getArity()) {
             masterIndex = index_nr;
@@ -215,6 +229,19 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
 
     // generate an updater class for provenance
     if (isProvenance) {
+        out << "struct updater_" << getTypeName() << " {\n";
+        out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
+
+        for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
+            out << "old_t[" << i << "] = new_t[" << i << "];\n";
+        }
+
+        out << "}\n";
+        out << "};\n";
+    }
+
+    // generate an updater class for aggregates
+    if (isAggregate) {
         out << "struct updater_" << getTypeName() << " {\n";
         out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
 

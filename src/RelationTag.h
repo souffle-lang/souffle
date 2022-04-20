@@ -127,7 +127,7 @@ inline RelationRepresentation getRelationRepresentationFromTag(const RelationTag
     switch (tag) {
         case RelationTag::BRIE: return RelationRepresentation::BRIE;
         case RelationTag::BTREE: return RelationRepresentation::BTREE;
-        case RelationTag::BTREE_MIN: return RelationRepresentation::BTREE;
+        case RelationTag::BTREE_MIN: return RelationRepresentation::BTREE_MIN;
         case RelationTag::BTREE_MAX: return RelationRepresentation::BTREE;
         case RelationTag::BTREE_SUM: return RelationRepresentation::BTREE;
         case RelationTag::BTREE_DELETE: return RelationRepresentation::BTREE_DELETE;
