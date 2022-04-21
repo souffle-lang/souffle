@@ -71,7 +71,9 @@ protected:
 
     /** Low-level stratum translation */
     Own<ram::Statement> generateStratumPreamble(const std::set<const ast::Relation*>& scc) const override;
+    Own<ram::Statement> generateStratumPostamble(const std::set<const ast::Relation*>& scc) const override;
     Own<ram::Statement> generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const override;
+
     Own<ram::Statement> generateMergeRelations(const ast::Relation* rel, const std::string& destRelation,
             const std::string& srcRelation) const override;
     Own<ram::Statement> generateMergeRelationsWithFilter(const ast::Relation* rel,

@@ -291,6 +291,19 @@ Own<ram::Statement> UnitTranslator::generateStratumPreamble(const std::set<const
     return mk<ram::Sequence>(std::move(preamble));
 }
 
+Own<ram::Statement> UnitTranslator::generateStratumPostamble(
+        const std::set<const ast::Relation*>& scc) const {
+    VecOwn<ram::Statement> postamble;
+    for (const ast::Relation* rel : scc) {
+        // Drop temporary tables after recursion
+        appendStmt(postamble, mk<ram::Clear>(getNewDiffPlusRelationName(rel->getQualifiedName())));
+        appendStmt(postamble, mk<ram::Clear>(getNewDiffMinusRelationName(rel->getQualifiedName())));
+        appendStmt(postamble, mk<ram::Clear>(getUpdatedDiffPlusRelationName(rel->getQualifiedName())));
+        appendStmt(postamble, mk<ram::Clear>(getUpdatedDiffMinusRelationName(rel->getQualifiedName())));
+    }
+    return mk<ram::Sequence>(std::move(postamble));
+}
+
 Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const {
     VecOwn<ram::Statement> updateTable;
 
@@ -653,7 +666,6 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
 Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<std::size_t>& sccOrdering) const {
     VecOwn<ram::Statement> cleanupSequence;
     for (const auto& scc : sccOrdering) {
-        bool isRecursive = context->isRecursiveSCC(scc);
         for (const auto& rel : context->getRelationsInSCC(scc)) {
             appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffMinusRelationName(rel->getQualifiedName())));
             appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffPlusRelationName(rel->getQualifiedName())));
@@ -662,32 +674,10 @@ Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<std:
             appendStmt(cleanupSequence, mk<ram::Clear>(getDiffPlusRelationName(rel->getQualifiedName())));
             appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
             appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
-
-            if (isRecursive) {
-                appendStmt(cleanupSequence, mk<ram::Clear>(getUpdatedDiffMinusRelationName(rel->getQualifiedName())));
-                appendStmt(cleanupSequence, mk<ram::Clear>(getUpdatedDiffPlusRelationName(rel->getQualifiedName())));
-            }
         }
     }
     return mk<ram::Sequence>(std::move(cleanupSequence));
 }
-
-/*
-Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<ast::Relation*>& rels) const {
-    VecOwn<ram::Statement> cleanupSequence;
-    for (auto rel : rels) {
-        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffMinusRelationName(rel->getQualifiedName())));
-        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffPlusRelationName(rel->getQualifiedName())));
-
-        appendStmt(cleanupSequence, mk<ram::Clear>(getDiffMinusRelationName(rel->getQualifiedName())));
-        appendStmt(cleanupSequence, mk<ram::Clear>(getDiffPlusRelationName(rel->getQualifiedName())));
-        appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
-        appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
-
-    }
-    return mk<ram::Sequence>(std::move(cleanupSequence));
-}
-*/
 
 Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnTrue() const {
     VecOwn<ram::Expression> returnTrue;

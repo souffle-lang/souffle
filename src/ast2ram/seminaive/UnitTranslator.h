@@ -77,7 +77,7 @@ protected:
     Own<ram::Statement> generateStratum(std::size_t scc) const;
     virtual Own<ram::Statement> generateStratumPreamble(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateNonRecursiveDelete(const std::set<const ast::Relation*>& scc) const;
-    Own<ram::Statement> generateStratumPostamble(const std::set<const ast::Relation*>& scc) const;
+    virtual Own<ram::Statement> generateStratumPostamble(const std::set<const ast::Relation*>& scc) const;
     Own<ram::Statement> generateStratumLoopBody(const std::set<const ast::Relation*>& scc) const;
     virtual Own<ram::Statement> generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const;
     virtual Own<ram::Statement> generateStratumExitSequence(const std::set<const ast::Relation*>& scc) const;
