@@ -195,6 +195,8 @@ std::string DirectRelation::getTypeName() {
     std::stringstream res;
     if (hasErase) {
         res << "t_btree_delete_";
+    } else if (isAggregate) {
+        res << "t_btree_min_";
     } else {
         res << "t_btree_";
     }
@@ -246,7 +248,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
         out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
 
         for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
-            out << "old_t[" << i << "] = new_t[" << i << "];\n";
+            out << "old_t[" << i << "] = std::min(new_t[" << i << "], old_t[" << i << "]);\n";
         }
 
         out << "}\n";
@@ -341,6 +343,14 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 // index for top down phase
                 comparator_aux = comparator;
             }
+            out << "using t_ind_" << i << " = btree_set<t_tuple," << comparator
+                << ",std::allocator<t_tuple>,256,typename "
+                   "souffle::detail::default_strategy<t_tuple>::type,"
+                << comparator_aux << ",updater_" << getTypeName() << ">;\n";
+        } else if (isAggregate) {
+            std::string comparator_aux;
+            comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
+            genstruct(comparator_aux, ind.size() - auxiliaryArity);
             out << "using t_ind_" << i << " = btree_set<t_tuple," << comparator
                 << ",std::allocator<t_tuple>,256,typename "
                    "souffle::detail::default_strategy<t_tuple>::type,"
