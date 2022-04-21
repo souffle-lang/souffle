@@ -110,7 +110,7 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     }
 
     // Add cleanup merges at the end of the epoch
-    appendStmt(res, generateCleanupMerges(context->getProgram()->getRelations()));
+    appendStmt(res, generateCleanupMerges(sccOrdering));
 
     // Program translated!
     return mk<ram::Sequence>(std::move(res));
@@ -177,6 +177,10 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
             appendStmt(result, mk<ram::LogSize>(mainRelation, logSizeStatement));
         }
     }
+
+    // TODO (DZ): More correctly, this section should go into
+    // generateStratumPreamble, BUT, this also needs to apply after IO strata -
+    // therefore this should be refactored into its own method?
 
     // Generate merges from diff_plus/diff_minus into main relation
     appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()), getDiffMinusRelationName(rel.getQualifiedName())));
@@ -263,6 +267,29 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
             ramRelationName, arity + 2, 2, attributeNames, attributeTypeQualifiers, representation);
 }
 
+Own<ram::Statement> UnitTranslator::generateStratumPreamble(const std::set<const ast::Relation*>& scc) const {
+    VecOwn<ram::Statement> preamble;
+
+    // Generate code for non-recursive rules
+    for (const ast::Relation* rel : scc) {
+        std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
+        std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
+        appendStmt(preamble, generateNonRecursiveRelation(*rel));
+    }
+
+    // Generate non recursive delete sequences for subsumptive rules
+    appendStmt(preamble, generateNonRecursiveDelete(scc));
+
+    /*
+    // Generate code for priming relation
+    for (const ast::Relation* rel : scc) {
+        std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
+        std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
+        appendStmt(preamble, generateMergeRelations(rel, deltaRelation, mainRelation));
+    }
+    */
+    return mk<ram::Sequence>(std::move(preamble));
+}
 
 Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const {
     VecOwn<ram::Statement> updateTable;
@@ -622,6 +649,30 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
     return mk<ram::Sequence>(std::move(exitConditions));
 }
 
+
+Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<std::size_t>& sccOrdering) const {
+    VecOwn<ram::Statement> cleanupSequence;
+    for (const auto& scc : sccOrdering) {
+        bool isRecursive = context->isRecursiveSCC(scc);
+        for (const auto& rel : context->getRelationsInSCC(scc)) {
+            appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffMinusRelationName(rel->getQualifiedName())));
+            appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffPlusRelationName(rel->getQualifiedName())));
+
+            appendStmt(cleanupSequence, mk<ram::Clear>(getDiffMinusRelationName(rel->getQualifiedName())));
+            appendStmt(cleanupSequence, mk<ram::Clear>(getDiffPlusRelationName(rel->getQualifiedName())));
+            appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
+            appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
+
+            if (isRecursive) {
+                appendStmt(cleanupSequence, mk<ram::Clear>(getUpdatedDiffMinusRelationName(rel->getQualifiedName())));
+                appendStmt(cleanupSequence, mk<ram::Clear>(getUpdatedDiffPlusRelationName(rel->getQualifiedName())));
+            }
+        }
+    }
+    return mk<ram::Sequence>(std::move(cleanupSequence));
+}
+
+/*
 Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<ast::Relation*>& rels) const {
     VecOwn<ram::Statement> cleanupSequence;
     for (auto rel : rels) {
@@ -632,9 +683,11 @@ Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<ast:
         appendStmt(cleanupSequence, mk<ram::Clear>(getDiffPlusRelationName(rel->getQualifiedName())));
         appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
         appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
+
     }
     return mk<ram::Sequence>(std::move(cleanupSequence));
 }
+*/
 
 Own<ram::SubroutineReturn> UnitTranslator::makeRamReturnTrue() const {
     VecOwn<ram::Expression> returnTrue;

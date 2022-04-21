@@ -72,6 +72,8 @@ Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Cla
 
 Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
         const ast::Clause& clause, const std::set<const ast::Relation*>& scc, std::size_t version) {
+    sccAtoms = filter(ast::getBodyLiterals<ast::Atom>(clause),
+            [&](auto* atom) { return contains(scc, context.getProgram()->getRelation(*atom)); });
 
     VecOwn<ram::Statement> result;
 
@@ -83,8 +85,8 @@ Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
 
         if (mode == IncrementalUpdatedDiffMinus || mode == IncrementalUpdatedDiffPlus) {
             // Only translated updated diff_minus/diff_plus for recursive body atoms
-            if (contains(scc, context.getProgram()->getRelation(*bodyLiterals[diffVersion]))) {
-                std::cout << "making updated rule version for " << *(bodyLiterals[diffVersion]) << std::endl;
+            if (contains(scc, context.getProgram()->getRelation(*bodyLiterals[diffVersion])) &&
+                    sccAtoms.at(version) == ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion)) {
                 appendStmt(result, seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version));
             }
         } else {
@@ -98,7 +100,8 @@ Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
-        Own<ram::Operation> op, const ast::Atom* atom) const {
+        Own<ram::Operation> op, const ast::Atom* /* atom */) const {
+    /*
     std::size_t arity = atom->getArity();
     std::string name = getDeltaRelationName(atom->getQualifiedName());
 
@@ -118,6 +121,9 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
 
     return mk<ram::Filter>(
             mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+            */
+
+    return op;
 
     // For incremental evaluation, the delta check is enforced during merge time so does not need to be checked during rule evaluation
     // return nullptr;
@@ -245,6 +251,16 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
 Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         const ast::Clause& clause, Own<ram::Operation> op) const {
 
+    // Not sure why the list constructor for IntrinsicOperator doesn't work,
+    // this is a workaround
+    auto mkIterMinusOne = []() {
+        VecOwn<ram::Expression> iterMinusOneArgs;
+        iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
+        iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
+
+        return mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
+    };
+
     op = ast2ram::seminaive::ClauseTranslator::addBodyLiteralConstraints(clause, std::move(op));
 
     // For incremental update, ensure that all tuples are correctly existing/not-existing
@@ -270,6 +286,11 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         for (std::size_t i = 0; i < getAtomOrdering(clause).size(); i++) {
             const auto* atom = getAtomOrdering(clause)[i];
 
+            if (sccAtoms.at(version) == atom) {
+                // this is delta, so add an equality constraint
+                op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(i, atom->getArity()), mkIterMinusOne()), std::move(op));
+            }
+
             // check if atom is before or after version
             // if atom is equal to version, or if it is non-recursive, before
             // and after will both be false
@@ -277,7 +298,7 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
             bool after = false;
             for (std::size_t j = 0; j < sccAtoms.size(); j++) {
                 if (*sccAtoms[j] == *atom) {
-                    if (j < version) {
+                    if (j < version /* || (j > version && (mode == IncrementalUpdatedDiffPlus || mode == IncrementalUpdatedDiffMinus)) */) {
                         before = true;
                     } else if (j > version) {
                         after = true;
@@ -286,21 +307,15 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
                 }
             }
 
-            VecOwn<ram::Expression> iterMinusOneArgs;
-            iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
-            iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
-
-            auto iterMinusOne = mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
-
             if (before) {
                 op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LT,
                             mk<ram::TupleElement>(i, atom->getArity()),
-                            std::move(iterMinusOne)),
+                            mkIterMinusOne()),
                         std::move(op));
             } else if (after) {
                 op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LE,
                             mk<ram::TupleElement>(i, atom->getArity()),
-                            std::move(iterMinusOne)),
+                            mkIterMinusOne()),
                         std::move(op));
             }
         }
@@ -311,27 +326,59 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         lastScanLevel++;
     }
 
-    // For some body tuples, we need to ensure the same tuple exists in both R
-    // and prev_R
-    std::size_t tupleExistsLevel = lastScanLevel;
-    for (std::size_t i = 0; i < diffVersion; i++) {
-        // TODO: check how getAtomOrdering works with diffVersions
-        const auto* atom = getAtomOrdering(clause)[i];
+    if (mode == IncrementalDiffPlus || mode == IncrementalDiffMinus) {
+        // For some body tuples, we need to ensure the same tuple exists in both R
+        // and prev_R
+        std::size_t tupleExistsLevel = lastScanLevel;
+        for (std::size_t i = 0; i < diffVersion; i++) {
+            // TODO: check how getAtomOrdering works with diffVersions
+            const auto* atom = getAtomOrdering(clause)[i];
 
-        std::string checkRelation;
+            std::string checkRelation;
+            int checkNum;
 
-        if (mode == IncrementalDiffPlus || mode == IncrementalUpdatedDiffMinus) {
-            checkRelation = getPrevRelationName(atom->getQualifiedName());
-        } else if (mode == IncrementalDiffMinus || mode == IncrementalUpdatedDiffPlus) {
-            checkRelation = getConcreteRelationName(atom->getQualifiedName());
+            if (mode == IncrementalDiffPlus) {
+                checkRelation = getActualDiffPlusRelationName(atom->getQualifiedName());
+                checkNum = 1;
+            } else if (mode == IncrementalDiffMinus) {
+                checkRelation = getActualDiffMinusRelationName(atom->getQualifiedName());
+                checkNum = -1;
+            }
+
+            op = addEnsureNotExistsInDiffRelationConstraint(std::move(op), atom, checkRelation, checkNum, tupleExistsLevel);
+
+            tupleExistsLevel++;
         }
 
-        op = addEnsureExistsInRelationConstraint(std::move(op), atom, checkRelation, tupleExistsLevel);
-
-        tupleExistsLevel++;
+        lastScanLevel = tupleExistsLevel;
     }
 
-    lastScanLevel = tupleExistsLevel;
+    if (mode == IncrementalUpdatedDiffMinus || mode == IncrementalUpdatedDiffPlus) {
+
+        // For some body tuples, we need to ensure the same tuple exists in both R
+        // and prev_R
+        std::size_t tupleExistsLevel = lastScanLevel;
+        for (std::size_t i = 0; i < getAtomOrdering(clause).size(); i++) {
+            if (i == diffVersion) {
+                continue;
+            }
+
+            const auto* atom = getAtomOrdering(clause)[i];
+
+            std::string checkRelation;
+
+            if (mode == IncrementalUpdatedDiffMinus) {
+                checkRelation = getPrevRelationName(atom->getQualifiedName());
+            } else if (mode == IncrementalUpdatedDiffPlus) {
+                checkRelation = getConcreteRelationName(atom->getQualifiedName());
+            }
+
+            op = addEnsureExistsInRelationConstraint(std::move(op), atom, checkRelation, tupleExistsLevel);
+            tupleExistsLevel++;
+        }
+
+        lastScanLevel = tupleExistsLevel;
+    }
 
     // For some body tuples, we need to ensure the tuple for the rule
     // evaluation is the earliest one in its relation
@@ -342,14 +389,15 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     std::size_t iterCheckLevel = lastScanLevel;
     for (const auto* atom : getAtomOrdering(clause)) {
         if (atomIdx == diffVersion && (mode == IncrementalUpdatedDiffPlus || mode == IncrementalUpdatedDiffMinus)) {
+            atomIdx++;
             continue;
         }
 
         std::string checkRelation;
 
-        if (mode == IncrementalDiffPlus || mode == IncrementalUpdatedDiffPlus) {
+        if (mode == IncrementalDiffPlus || mode == IncrementalUpdatedDiffMinus) {
             checkRelation = getConcreteRelationName(atom->getQualifiedName());
-        } else if (mode == IncrementalDiffMinus || mode == IncrementalUpdatedDiffMinus) {
+        } else if (mode == IncrementalDiffMinus || mode == IncrementalUpdatedDiffPlus) {
             checkRelation = getPrevRelationName(atom->getQualifiedName());
         }
 
@@ -369,7 +417,62 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     return op;
 }
 
+Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, int checkCount, std::size_t curLevel) const {
+    // For incremental update, ensure that some body tuples exist in both the
+    // previous and current epochs to prevent double counting. For example,
+    // consider the rule
+    //
+    //   R :- S, T.
+    //
+    // This generates two diff versions
+    //
+    //   diff_minus_R :- diff_minus_S, prev_T.
+    //   diff_minus_R :- prev_S, diff_minus_T.
+    //
+    // We need to ensure that for the second case, the tuple for prev_S also
+    // exists in S, otherwise it would be double counting tuples in S that are
+    // removed. To achieve this, add an extra existence check:
+    //
+    //   FOR t0 in prev_S:
+    //     FOR t1 in diff_minus_T:
+    //       IF EXISTS t0 in S WHERE t0.count > 0
+    //         ...
+
+    Own<ram::Condition> tupleExistsCond;
+
+    // First create a filter condition saying the count must be positive or negative
+    if (checkCount < 0) {
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
+    } else {
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
+    }
+
+    // Add a condition saying the iteration number must be earlier than current iter
+    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
+
+    // Add conditions to say the tuple must match
+    std::size_t argNum = 0;
+    for (auto* arg : atom->getArguments()) {
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        argNum++;
+    }
+
+    op = mk<ram::IfNotExists>(checkRelation, curLevel, std::move(tupleExistsCond), std::move(op));
+
+    return op;
+}
+
 Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, std::size_t curLevel) const {
+    // Not sure why the list constructor for IntrinsicOperator doesn't work,
+    // this is a workaround
+    auto mkIterMinusOne = []() {
+        VecOwn<ram::Expression> iterMinusOneArgs;
+        iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
+        iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
+
+        return mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
+    };
+
     // For incremental update, ensure that some body tuples exist in both the
     // previous and current epochs to prevent double counting. For example,
     // consider the rule
@@ -394,7 +497,7 @@ Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ra
     Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
     // Add a condition saying the iteration number must be earlier than current iter
-    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
+    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()), mkIterMinusOne()));
 
     // Add conditions to say the tuple must match
     std::size_t argNum = 0;
@@ -418,18 +521,6 @@ Own<ram::Operation> ClauseTranslator::addEnsureEarliestIterationConstraint(Own<r
     // have two tuples (1,2,3,1) and (1,2,5,1), we should only execute a rule
     // evaluation for the earliest tuple (1,2,3,1), otherwise incremental
     // evaluation double counts.
-
-    // Add a constraint saying that iter = ITERNUM() - 1 for the current
-    // version atom, simulating delta of semi-naive
-    if (isRecursive() && sccAtoms.at(version) == atom) {
-        VecOwn<ram::Expression> iterMinusOneArgs;
-        iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
-        iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
-
-        auto iterMinusOne = mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
-
-        op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(atomIdx, atom->getArity()), std::move(iterMinusOne)), std::move(op));
-    }
 
     // Make conditions
     // Make count condition, i.e., c > 0 in above example
