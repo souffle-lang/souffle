@@ -21,7 +21,7 @@ makedepends=('git' 'cmake>=3.15' 'bison>=3.0.4' 'flex' 'libffi' 'ncurses' 'zlib'
 optdepends=('bash-completion')
 provides=('souffle')
 conflicts=('souffle-git')
-source=(souffle-${RELEASE_TAG}.tar.gz::https://github.com/souffle-lang/souffle/archive/${RELEASE_TAG}.tar.gz)
+source=(souffle-${RELEASE_TAG}.tar.gz::https://github.com/${REPO_OWNER}/souffle/archive/${RELEASE_TAG}.tar.gz)
 md5sums=('SKIP')
 
 build() {

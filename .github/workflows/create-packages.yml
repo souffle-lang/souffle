@@ -12,10 +12,7 @@ jobs:
           - release: ubuntu-2004
             extension: ".deb"
             OS-name: "ubuntu/focal"
-          - release: ubuntu-2104
-            extension: ".deb"
-            OS-name: "ubuntu/hirsute"
-          - release: centos-8
+          - release: oraclelinux-8
             extension: ".rpm"
             OS-name: "el/8"
           - release: fedora-34
@@ -32,9 +29,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
-      - name: Packagecloud CLI
-        run: sudo apt-get -y install ruby-full && sudo gem install package_cloud
 
       - name: Build Container
         run: docker build . -f ./.github/images/${{ matrix.release }}/Dockerfile  -t package_builder
@@ -59,11 +53,6 @@ jobs:
           name: ${{ steps.extract_pkg.outputs.artifact_name }}
           path: build/${{ steps.extract_pkg.outputs.artifact_name }}
       
-      - name: Packaging
-        run: |-
-          cd build && 
-          PACKAGECLOUD_TOKEN=${{ secrets.PACKAGECLOUD_TOKEN }} package_cloud push souffle-lang/souffle/${{ matrix.OS-name }} ${{ steps.extract_pkg.outputs.pkg_name }}
-      
   Arch-Package-Build:
     runs-on: ubuntu-latest
     steps:
@@ -83,7 +72,8 @@ jobs:
       - name: Packaging
         run: >
           docker run 
-          -e RELEASE_TAG=${{ steps.prepare.outputs.release_tag }} 
+          -e RELEASE_TAG=${{ steps.prepare.outputs.release_tag }}
+          -e REPO_OWNER=${{ github.repository_owner }}
           --name container
           -t package_builder
 
@@ -114,6 +104,7 @@ jobs:
 
   Upload-Release-Assests:
     needs: CPack-Package-Build
+    if: ${{ always() }}
 
     runs-on: ubuntu-latest
     steps:
@@ -134,3 +125,32 @@ jobs:
         with:
           files: |
             result/*
+
+  Upload-Repo-Files:
+    needs: CPack-Package-Build
+    if: ${{ always() }}
+
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          clean: false
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ./downloads
+
+      - name: Configure GPG Key
+        run: |-
+          .github/scripts/config_gpg.sh
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+
+      - name: Upload Repo Files
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        run : |-
+          .github/scripts/updatePPA.sh

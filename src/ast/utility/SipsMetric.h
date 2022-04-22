@@ -51,6 +51,8 @@ using PowerSet = std::vector<std::vector<std::size_t>>;
  */
 class SipsMetric {
 public:
+    SipsMetric(const TranslationUnit& tu);
+
     virtual ~SipsMetric() = default;
 
     /**
@@ -63,6 +65,14 @@ public:
 
     /** Create a SIPS metric based on a given heuristic. */
     static std::unique_ptr<SipsMetric> create(const std::string& heuristic, const TranslationUnit& tu);
+
+    std::string getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom,
+            const std::vector<ast::Atom*>& sccAtoms, std::size_t version,
+            ast2ram::TranslationMode mode) const;
+
+protected:
+    const ast::Program& program;
+    const ast::analysis::SCCGraphAnalysis* sccGraph = nullptr;
 };
 
 class SelingerProfileSipsMetric : public SipsMetric {
@@ -80,20 +90,18 @@ private:
     };
 
     const PowerSet& getSubsets(std::size_t N, std::size_t K) const;
-    std::string getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom,
-            const std::vector<ast::Atom*>& sccAtoms, std::size_t version,
-            ast2ram::TranslationMode mode) const;
+
     Own<ram::Expression> translateConstant(const ast::Constant& constant) const;
 
-    const ast::analysis::SCCGraphAnalysis* sccGraph = nullptr;
     const ast::analysis::PolymorphicObjectsAnalysis* polyAnalysis = nullptr;
     const ast::analysis::ProfileUseAnalysis* profileUseAnalysis = nullptr;
-    ast::Program* program = nullptr;
     mutable std::map<std::pair<std::size_t, std::size_t>, PowerSet> cache;
 };
 
 class StaticSipsMetric : public SipsMetric {
 public:
+    StaticSipsMetric(const TranslationUnit& tu) : SipsMetric(tu) {}
+
     std::vector<std::size_t> getReordering(
             const Clause* clause, std::size_t version, ast2ram::TranslationMode mode) const override;
 
@@ -103,92 +111,110 @@ protected:
      * @param atoms atoms to choose from; may be nullptr
      * @param bindingStore the variables already bound to a value
      */
-    virtual std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const = 0;
+    virtual std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const = 0;
 };
 
 /** Goal: Always choose the left-most atom */
 class StrictSips : public StaticSipsMetric {
 public:
-    StrictSips() = default;
+    StrictSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: Prioritise atoms with all arguments bound */
 class AllBoundSips : public StaticSipsMetric {
 public:
-    AllBoundSips() = default;
+    AllBoundSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: Prioritise (1) all bound, then (2) atoms with at least one bound argument, then (3) left-most */
 class NaiveSips : public StaticSipsMetric {
 public:
-    NaiveSips() = default;
+    NaiveSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: prioritise (1) all-bound, then (2) max number of bound vars, then (3) left-most */
 class MaxBoundSips : public StaticSipsMetric {
 public:
-    MaxBoundSips() = default;
+    MaxBoundSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
+};
+
+/** Goal: prioritise (1) delta, (2) all-bound, then (3) max number of bound vars, then (4) left-most */
+class DeltaMaxBoundSips : public StaticSipsMetric {
+public:
+    DeltaMaxBoundSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
+
+protected:
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: prioritise max ratio of bound args */
 class MaxRatioSips : public StaticSipsMetric {
 public:
-    MaxRatioSips() = default;
+    MaxRatioSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: choose the atom with the least number of unbound arguments */
 class LeastFreeSips : public StaticSipsMetric {
 public:
-    LeastFreeSips() = default;
+    LeastFreeSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: choose the atom with the least amount of unbound variables */
 class LeastFreeVarsSips : public StaticSipsMetric {
 public:
-    LeastFreeVarsSips() = default;
+    LeastFreeVarsSips(const TranslationUnit& tu) : StaticSipsMetric(tu) {}
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 };
 
 /** Goal: prioritise (1) all-bound, then (2) input, and then (3) left-most */
 class InputSips : public StaticSipsMetric {
 public:
-    InputSips(const Program& program, const analysis::IOTypeAnalysis& ioTypes)
-            : program(program), ioTypes(ioTypes) {}
+    InputSips(const TranslationUnit& tu);
 
 protected:
-    std::vector<double> evaluateCosts(
-            const std::vector<Atom*> atoms, const BindingStore& bindingStore) const override;
+    std::vector<double> evaluateCosts(const Clause* clause, const std::vector<ast::Atom*>& sccAtoms,
+            const std::vector<Atom*> atoms, const BindingStore& bindingStore, std::size_t version,
+            ast2ram::TranslationMode mode) const override;
 
 private:
-    const Program& program;
     const analysis::IOTypeAnalysis& ioTypes;
 };
 

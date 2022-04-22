@@ -3,6 +3,7 @@ FROM archlinux:latest
 RUN pacman -Syu --noconfirm
 
 RUN pacman -Sy --noconfirm \
+    python \
     git \
     base-devel \
     cmake \
