@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast2ram/incremental/update/UnitTranslator.h"
-#include "ast2ram/incremental/Utils.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "ast/BinaryConstraint.h"
@@ -22,13 +21,14 @@
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
+#include "ast2ram/incremental/Utils.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
 #include "ram/Call.h"
 #include "ram/Clear.h"
-#include "ram/Constraint.h"
 #include "ram/Conjunction.h"
+#include "ram/Constraint.h"
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
 #include "ram/ExistenceCheck.h"
@@ -38,8 +38,8 @@
 #include "ram/IfNotExists.h"
 #include "ram/Insert.h"
 #include "ram/IterationNumber.h"
-#include "ram/LogSize.h"
 #include "ram/LogRelationTimer.h"
+#include "ram/LogSize.h"
 #include "ram/LogTimer.h"
 #include "ram/MergeExtend.h"
 #include "ram/Negation.h"
@@ -117,14 +117,16 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
 }
 
 Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Relation& rel) const {
-    auto addProfiling = [](const ast::Relation& rel, const ast::Clause* clause, Own<ram::Statement> stmt) -> Own<ram::Statement> {
+    auto addProfiling = [](const ast::Relation& rel, const ast::Clause* clause,
+                                Own<ram::Statement> stmt) -> Own<ram::Statement> {
         if (Global::config().has("profile")) {
             const std::string& relationName = toString(rel.getQualifiedName());
             const auto& srcLocation = clause->getSrcLoc();
             const std::string clauseText = stringify(toString(*clause));
-            const std::string logTimerStatement = LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
-            return mk<ram::LogRelationTimer>(std::move(stmt), logTimerStatement,
-                    getConcreteRelationName(rel.getQualifiedName()));
+            const std::string logTimerStatement =
+                    LogStatement::tNonrecursiveRule(relationName, srcLocation, clauseText);
+            return mk<ram::LogRelationTimer>(
+                    std::move(stmt), logTimerStatement, getConcreteRelationName(rel.getQualifiedName()));
         }
         return stmt;
     };
@@ -183,38 +185,38 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
     // therefore this should be refactored into its own method?
 
     // Generate merges from diff_plus/diff_minus into main relation
-    appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()), getDiffMinusRelationName(rel.getQualifiedName())));
-    appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()), getDiffPlusRelationName(rel.getQualifiedName())));
+    appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()),
+                               getDiffMinusRelationName(rel.getQualifiedName())));
+    appendStmt(result, generateMergeRelations(&rel, getConcreteRelationName(rel.getQualifiedName()),
+                               getDiffPlusRelationName(rel.getQualifiedName())));
 
     // Generate checked merges
-    appendStmt(result, generateMergeRelationsActualDiff(&rel,
-                getActualDiffMinusRelationName(rel.getQualifiedName()),
-                getDiffMinusRelationName(rel.getQualifiedName()),
-                getConcreteRelationName(rel.getQualifiedName()),
-                -1));
+    appendStmt(result,
+            generateMergeRelationsActualDiff(&rel, getActualDiffMinusRelationName(rel.getQualifiedName()),
+                    getDiffMinusRelationName(rel.getQualifiedName()),
+                    getConcreteRelationName(rel.getQualifiedName()), -1));
 
-    appendStmt(result, generateMergeRelationsActualDiff(&rel,
-                getActualDiffPlusRelationName(rel.getQualifiedName()),
-                getDiffPlusRelationName(rel.getQualifiedName()),
-                getPrevRelationName(rel.getQualifiedName()),
-                1));
-
+    appendStmt(result,
+            generateMergeRelationsActualDiff(&rel, getActualDiffPlusRelationName(rel.getQualifiedName()),
+                    getDiffPlusRelationName(rel.getQualifiedName()),
+                    getPrevRelationName(rel.getQualifiedName()), 1));
 
     return mk<ram::Sequence>(std::move(result));
 }
 
-VecOwn<ram::Statement> UnitTranslator::translateNonRecursiveClauseDiffVersions(const ast::Clause& clause) const {
+VecOwn<ram::Statement> UnitTranslator::translateNonRecursiveClauseDiffVersions(
+        const ast::Clause& clause) const {
     // Generate diff versions
     VecOwn<ram::Statement> clauseDiffVersions;
 
-    // for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size(); diffVersion++) {
+    // for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size();
+    // diffVersion++) {
     appendStmt(clauseDiffVersions, context->translateNonRecursiveClause(clause, IncrementalDiffMinus));
     appendStmt(clauseDiffVersions, context->translateNonRecursiveClause(clause, IncrementalDiffPlus));
     // }
 
     return clauseDiffVersions;
 }
-
 
 VecOwn<ram::Statement> UnitTranslator::generateClauseVersions(
         const ast::Clause* clause, const std::set<const ast::Relation*>& scc) const {
@@ -223,11 +225,15 @@ VecOwn<ram::Statement> UnitTranslator::generateClauseVersions(
     // Create each version
     VecOwn<ram::Statement> clauseVersions;
     for (std::size_t version = 0; version < sccAtoms.size(); version++) {
-        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalDiffMinus));
-        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalDiffPlus));
+        appendStmt(clauseVersions,
+                context->translateRecursiveClause(*clause, scc, version, IncrementalDiffMinus));
+        appendStmt(clauseVersions,
+                context->translateRecursiveClause(*clause, scc, version, IncrementalDiffPlus));
 
-        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalUpdatedDiffMinus));
-        appendStmt(clauseVersions, context->translateRecursiveClause(*clause, scc, version, IncrementalUpdatedDiffPlus));
+        appendStmt(clauseVersions,
+                context->translateRecursiveClause(*clause, scc, version, IncrementalUpdatedDiffMinus));
+        appendStmt(clauseVersions,
+                context->translateRecursiveClause(*clause, scc, version, IncrementalUpdatedDiffPlus));
     }
 
     // Check that the correct number of versions have been created
@@ -305,7 +311,8 @@ Own<ram::Statement> UnitTranslator::generateStratumPostamble(
     return mk<ram::Sequence>(std::move(postamble));
 }
 
-Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const std::set<const ast::Relation*>& scc) const {
+Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(
+        const std::set<const ast::Relation*>& scc) const {
     VecOwn<ram::Statement> updateTable;
 
     for (const ast::Relation* rel : scc) {
@@ -348,19 +355,15 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const std::set<c
         appendStmt(updateStmts, generateMergeRelations(rel, mainRelation, newDiffPlusRelation));
 
         // Generate correct actual_diff_minus/plus and updated_diff_minus/plus
-        appendStmt(updateStmts, generateMergeRelationsActualDiff(rel, actualDiffMinusRelation, newDiffMinusRelation, mainRelation, -1));
-        appendStmt(updateStmts, generateMergeRelationsActualDiffUpdated(rel,
-                    actualDiffMinusRelation,
-                    mainRelation,
-                    updatedMinusRelation,
-                    1));
+        appendStmt(updateStmts, generateMergeRelationsActualDiff(rel, actualDiffMinusRelation,
+                                        newDiffMinusRelation, mainRelation, -1));
+        appendStmt(updateStmts, generateMergeRelationsActualDiffUpdated(
+                                        rel, actualDiffMinusRelation, mainRelation, updatedMinusRelation, 1));
 
-        appendStmt(updateStmts, generateMergeRelationsActualDiff(rel, actualDiffPlusRelation, newDiffPlusRelation, prevRelation, 1));
-        appendStmt(updateStmts, generateMergeRelationsActualDiffUpdated(rel,
-                    actualDiffPlusRelation,
-                    prevRelation,
-                    updatedPlusRelation,
-                    -1));
+        appendStmt(updateStmts, generateMergeRelationsActualDiff(
+                                        rel, actualDiffPlusRelation, newDiffPlusRelation, prevRelation, 1));
+        appendStmt(updateStmts, generateMergeRelationsActualDiffUpdated(
+                                        rel, actualDiffPlusRelation, prevRelation, updatedPlusRelation, -1));
 
         appendStmt(updateStmts, mk<ram::Clear>(newDiffMinusRelation));
         appendStmt(updateStmts, mk<ram::Clear>(newDiffPlusRelation));
@@ -379,7 +382,6 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const std::set<c
     appendStmt(updateTable, mk<ram::Clear>(getNotExitRelationName()));
 
     return mk<ram::Sequence>(std::move(updateTable));
-
 }
 
 VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::size_t>& sccOrdering) const {
@@ -494,15 +496,15 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsWithFilter(const ast::
     return stmt;
 }
 
-Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
-        const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation,
-        const std::string& checkRelation, int insertTupleCount) const {
-
+Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(const ast::Relation* rel,
+        const std::string& destRelation, const std::string& srcRelation, const std::string& checkRelation,
+        int insertTupleCount) const {
     // For some relation R, this method generates a merge that is as follows:
     //
     // FOR t0 IN srcRelation:
     //   IF t0.iter = iternum():
-    //     IF NOT EXISTS t1 IN checkRelation WHERE t1.0 = t0.0 AND t1.1 = t0.1 AND ... AND t1.iter <= iternum() AND t1.count > 0:
+    //     IF NOT EXISTS t1 IN checkRelation WHERE t1.0 = t0.0 AND t1.1 = t0.1 AND ... AND t1.iter <=
+    //     iternum() AND t1.count > 0:
     //       INSERT t0.0, t0.1, ..., insertTupleCount INTO destRelation
 
     // Create insertion
@@ -518,29 +520,24 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
     // Create filter for checking in checkRelation
     Own<ram::Condition> existenceCond;
     for (size_t i = 0; i < rel->getArity(); i++) {
-        existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
-                    BinaryConstraintOp::EQ,
-                    mk<ram::TupleElement>(0, i),
-                    mk<ram::TupleElement>(1, i)));
+        existenceCond = addConjunctiveTerm(
+                std::move(existenceCond), mk<ram::Constraint>(BinaryConstraintOp::EQ,
+                                                  mk<ram::TupleElement>(0, i), mk<ram::TupleElement>(1, i)));
     }
 
-    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
-                BinaryConstraintOp::LE,
-                mk<ram::TupleElement>(1, rel->getArity()),
-                mk<ram::IterationNumber>()));
+    existenceCond = addConjunctiveTerm(std::move(existenceCond),
+            mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(1, rel->getArity()),
+                    mk<ram::IterationNumber>()));
 
-    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
-                BinaryConstraintOp::GT,
-                mk<ram::TupleElement>(1, rel->getArity() + 1),
-                mk<ram::SignedConstant>(0)));
+    existenceCond = addConjunctiveTerm(std::move(existenceCond),
+            mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(1, rel->getArity() + 1),
+                    mk<ram::SignedConstant>(0)));
 
     op = mk<ram::IfNotExists>(checkRelation, 1, std::move(existenceCond), std::move(op));
 
     // Create filter for iternum
-    op = mk<ram::Filter>(mk<ram::Constraint>(
-                BinaryConstraintOp::EQ,
-                mk<ram::TupleElement>(0, rel->getArity()),
-                mk<ram::IterationNumber>()),
+    op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ,
+                                 mk<ram::TupleElement>(0, rel->getArity()), mk<ram::IterationNumber>()),
             std::move(op));
 
     // Create outer scan
@@ -549,10 +546,9 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiff(
     return stmt;
 }
 
-Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
-        const ast::Relation* rel, const std::string& toUpdateRelation,
-        const std::string& checkRelation, const std::string& updatedRelation, int insertTupleCount) const {
-
+Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(const ast::Relation* rel,
+        const std::string& toUpdateRelation, const std::string& checkRelation,
+        const std::string& updatedRelation, int insertTupleCount) const {
     // For some relation R, this method generates a merge that is as follows:
     //
     // FOR t0 IN toUpdateRelation:
@@ -577,28 +573,25 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
     updatedValues.push_back(mk<ram::IterationNumber>());
     updatedValues.push_back(mk<ram::SignedConstant>(1));
 
-    Own<ram::Operation> op = mk<ram::OperationSequence>(
-            mk<ram::Insert>(toUpdateRelation, std::move(toUpdateValues)),
-            mk<ram::Insert>(updatedRelation, std::move(updatedValues)));
+    Own<ram::Operation> op =
+            mk<ram::OperationSequence>(mk<ram::Insert>(toUpdateRelation, std::move(toUpdateValues)),
+                    mk<ram::Insert>(updatedRelation, std::move(updatedValues)));
 
     // Create filter for checking in checkRelation
     Own<ram::Condition> existenceCond;
     for (size_t i = 0; i < rel->getArity(); i++) {
-        existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
-                    BinaryConstraintOp::EQ,
-                    mk<ram::TupleElement>(0, i),
-                    mk<ram::TupleElement>(1, i)));
+        existenceCond = addConjunctiveTerm(
+                std::move(existenceCond), mk<ram::Constraint>(BinaryConstraintOp::EQ,
+                                                  mk<ram::TupleElement>(0, i), mk<ram::TupleElement>(1, i)));
     }
 
-    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
-                BinaryConstraintOp::EQ,
-                mk<ram::TupleElement>(1, rel->getArity()),
-                mk<ram::IterationNumber>()));
+    existenceCond = addConjunctiveTerm(std::move(existenceCond),
+            mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(1, rel->getArity()),
+                    mk<ram::IterationNumber>()));
 
-    existenceCond = addConjunctiveTerm(std::move(existenceCond), mk<ram::Constraint>(
-                BinaryConstraintOp::GT,
-                mk<ram::TupleElement>(1, rel->getArity() + 1),
-                mk<ram::SignedConstant>(0)));
+    existenceCond = addConjunctiveTerm(std::move(existenceCond),
+            mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(1, rel->getArity() + 1),
+                    mk<ram::SignedConstant>(0)));
 
     op = mk<ram::Filter>(std::move(existenceCond), std::move(op));
 
@@ -607,21 +600,18 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsActualDiffUpdated(
 
     // Create filter for iternum
     Own<ram::Condition> toUpdateCond;
-    toUpdateCond = addConjunctiveTerm(std::move(toUpdateCond), mk<ram::Constraint>(
-            BinaryConstraintOp::LT,
-            mk<ram::TupleElement>(0, rel->getArity()),
-            mk<ram::IterationNumber>()));
+    toUpdateCond = addConjunctiveTerm(std::move(toUpdateCond),
+            mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(0, rel->getArity()),
+                    mk<ram::IterationNumber>()));
 
     // Filter for count
     // TODO (DZ): this is a hack, but insertTupleCount < 0 indicates we are
     // dealing with diff_plus, so should check for positive count,
     // insertTupleCount > 0 indicates we are dealing with diff_minus, so
     // should check for negative count
-    toUpdateCond = addConjunctiveTerm(std::move(toUpdateCond), mk<ram::Constraint>(
-            ((insertTupleCount < 0) ? BinaryConstraintOp::GT : BinaryConstraintOp::LT),
-            mk<ram::TupleElement>(0, rel->getArity() + 1),
-            mk<ram::SignedConstant>(0)));
-
+    toUpdateCond = addConjunctiveTerm(std::move(toUpdateCond),
+            mk<ram::Constraint>(((insertTupleCount < 0) ? BinaryConstraintOp::GT : BinaryConstraintOp::LT),
+                    mk<ram::TupleElement>(0, rel->getArity() + 1), mk<ram::SignedConstant>(0)));
 
     op = mk<ram::Filter>(std::move(toUpdateCond), std::move(op));
 
@@ -648,8 +638,12 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
         // Create conditions
         Own<ram::Condition> cond;
 
-        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::GE, mk<ram::TupleElement>(0, rel->getArity()), mk<ram::IterationNumber>()));
-        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(0, rel->getArity() + 1), mk<ram::SignedConstant>(0)));
+        cond = addConjunctiveTerm(std::move(cond),
+                mk<ram::Constraint>(BinaryConstraintOp::GE, mk<ram::TupleElement>(0, rel->getArity()),
+                        mk<ram::IterationNumber>()));
+        cond = addConjunctiveTerm(std::move(cond),
+                mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(0, rel->getArity() + 1),
+                        mk<ram::SignedConstant>(0)));
 
         op = mk<ram::Filter>(std::move(cond), std::move(op));
 
@@ -665,8 +659,8 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
     for (const ast::Relation* rel : scc) {
         addCondition(
                 emptinessCheck, mk<ram::EmptinessCheck>(getNewDiffPlusRelationName(rel->getQualifiedName())));
-        addCondition(
-                emptinessCheck, mk<ram::EmptinessCheck>(getNewDiffMinusRelationName(rel->getQualifiedName())));
+        addCondition(emptinessCheck,
+                mk<ram::EmptinessCheck>(getNewDiffMinusRelationName(rel->getQualifiedName())));
     }
     addCondition(emptinessCheck, mk<ram::EmptinessCheck>(getNotExitRelationName()));
 
@@ -687,18 +681,23 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
     return mk<ram::Sequence>(std::move(exitConditions));
 }
 
-
 Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<std::size_t>& sccOrdering) const {
     VecOwn<ram::Statement> cleanupSequence;
     for (const auto& scc : sccOrdering) {
         for (const auto& rel : context->getRelationsInSCC(scc)) {
-            appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffMinusRelationName(rel->getQualifiedName())));
-            appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getDiffPlusRelationName(rel->getQualifiedName())));
+            appendStmt(
+                    cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()),
+                                             getDiffMinusRelationName(rel->getQualifiedName())));
+            appendStmt(
+                    cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()),
+                                             getDiffPlusRelationName(rel->getQualifiedName())));
 
             appendStmt(cleanupSequence, mk<ram::Clear>(getDiffMinusRelationName(rel->getQualifiedName())));
             appendStmt(cleanupSequence, mk<ram::Clear>(getDiffPlusRelationName(rel->getQualifiedName())));
-            appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
-            appendStmt(cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
+            appendStmt(
+                    cleanupSequence, mk<ram::Clear>(getActualDiffMinusRelationName(rel->getQualifiedName())));
+            appendStmt(
+                    cleanupSequence, mk<ram::Clear>(getActualDiffPlusRelationName(rel->getQualifiedName())));
         }
     }
     return mk<ram::Sequence>(std::move(cleanupSequence));

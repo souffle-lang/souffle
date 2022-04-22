@@ -324,8 +324,8 @@ using Provenance = btree_set<t_tuple<Arity>, prov_comparator<Arity>, std::alloca
 
 // Alias for Incremental
 template <std::size_t Arity>
-using Incremental = btree_set<t_tuple<Arity>, incremental_comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
-        typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - 1>,
+using Incremental = btree_set<t_tuple<Arity>, incremental_comparator<Arity>, std::allocator<t_tuple<Arity>>,
+        256, typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - 1>,
         IncrementalUpdater<Arity>>;
 
 // Alias for Eqrel

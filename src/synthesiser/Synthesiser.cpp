@@ -499,7 +499,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
         // -- control flow statements --
 
-        void visit_(type_identity<OperationSequence>, const OperationSequence& opers, std::ostream& out) override {
+        void visit_(type_identity<OperationSequence>, const OperationSequence& opers,
+                std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
             for (const auto& cur : opers.getOperations()) {
                 out << "{";
@@ -2203,7 +2204,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             PRINT_END_COMMENT(out);
         }
 
-        void visit_(type_identity<IterationNumber>, const IterationNumber& /*inc*/, std::ostream& out) override {
+        void visit_(
+                type_identity<IterationNumber>, const IterationNumber& /*inc*/, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
             out << "(RamUnsigned(iter))";
             PRINT_END_COMMENT(out);

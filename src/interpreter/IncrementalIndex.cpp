@@ -18,9 +18,9 @@
 
 namespace souffle::interpreter {
 
-#define CREATE_INCREMENTAL_REL(Structure, Arity, ...)                   \
+#define CREATE_INCREMENTAL_REL(Structure, Arity, ...)                  \
     case (Arity): {                                                    \
-        return mk<Relation<Arity, interpreter::Incremental>>(           \
+        return mk<Relation<Arity, interpreter::Incremental>>(          \
                 id.getAuxiliaryArity(), id.getName(), indexSelection); \
     }
 

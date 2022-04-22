@@ -255,7 +255,8 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
         out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
 
         /*
-        if (relation.getName().find("applied@") != std::string::npos || relation.getName().find("@") == std::string::npos) {
+        if (relation.getName().find("applied@") != std::string::npos || relation.getName().find("@") ==
+        std::string::npos) {
             // out << "if (new_t[" << arity - 1 << "] == 0 && new_t[" << arity - 2 << "] == 0) {\n";
             out << "if (new_t[" << arity - 1 << "] == 0) {\n";
             // out << "old_t[" << arity - 2 << "] = 0;\n";

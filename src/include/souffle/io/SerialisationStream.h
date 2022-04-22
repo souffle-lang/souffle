@@ -57,7 +57,6 @@ protected:
     SerialisationStream(RO<SymbolTable>& symTab, RO<RecordTable>& recTab,
             const std::map<std::string, std::string>& rwOperation)
             : symbolTable(symTab), recordTable(recTab) {
-
         std::string parseErrors;
         types = Json::parse(rwOperation.at("types"), parseErrors);
         assert(parseErrors.size() == 0 && "Internal JSON parsing failed.");

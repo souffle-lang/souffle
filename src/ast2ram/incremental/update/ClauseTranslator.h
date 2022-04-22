@@ -43,9 +43,8 @@ public:
 
     /** Entry points */
     Own<ram::Statement> translateNonRecursiveClause(const ast::Clause& clause) override;
-    Own<ram::Statement> translateRecursiveClause(
-            const ast::Clause& clause, const std::set<const ast::Relation*>& scc,
-            std::size_t version) override;
+    Own<ram::Statement> translateRecursiveClause(const ast::Clause& clause,
+            const std::set<const ast::Relation*>& scc, std::size_t version) override;
 
 protected:
     std::string getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom) const override;
@@ -70,10 +69,14 @@ private:
     Own<ram::Expression> getLevelNumber(const ast::Clause& clause) const;
 
     /** Utility functions for body constraints for incremental update */
-    Own<ram::Operation> addEnsureNotExistsInDiffRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, int checkCount, std::size_t curLevel) const;
-    Own<ram::Operation> addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, std::size_t curLevel) const;
-    Own<ram::Operation> addEnsureEarliestIterationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel, std::string checkRelation, std::size_t atomIdx) const;
-    Own<ram::Operation> addEnsureExistsForDeletionConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel) const;
+    Own<ram::Operation> addEnsureNotExistsInDiffRelationConstraint(Own<ram::Operation> op,
+            const ast::Atom* atom, std::string checkRelation, int checkCount, std::size_t curLevel) const;
+    Own<ram::Operation> addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom,
+            std::string checkRelation, std::size_t curLevel) const;
+    Own<ram::Operation> addEnsureEarliestIterationConstraint(Own<ram::Operation> op, const ast::Atom* atom,
+            std::size_t curLevel, std::string checkRelation, std::size_t atomIdx) const;
+    Own<ram::Operation> addEnsureExistsForDeletionConstraint(
+            Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel) const;
 
     Own<ram::Expression> mkIterMinusOne() const;
     bool isRecursiveAtom(const ast::Atom* atom) const;

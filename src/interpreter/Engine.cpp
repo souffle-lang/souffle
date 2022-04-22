@@ -1141,10 +1141,10 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(IFEXISTS)
 #undef IFEXISTS
 
-#define IFNOTEXISTS(Structure, Arity, ...)                                 \
-    CASE(IfNotExists, Structure, Arity)                                    \
+#define IFNOTEXISTS(Structure, Arity, ...)                              \
+    CASE(IfNotExists, Structure, Arity)                                 \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
-        return evalIfNotExists(rel, cur, shadow, ctxt);                    \
+        return evalIfNotExists(rel, cur, shadow, ctxt);                 \
     ESAC(IfNotExists)
 
         FOR_EACH(IFNOTEXISTS)

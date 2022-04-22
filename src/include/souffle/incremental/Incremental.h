@@ -145,8 +145,8 @@ private:
     void commit() {
         // if (opt.isProfiling()) {
         //     // std::cout << "profile filename: " << opt.getProfileName() << std::endl;
-        //     ProfileEventSingleton::instance().setOutputFile(opt.getProfileName() + std::to_string(currentEpoch));
-        //     ProfileEventSingleton::instance().clear();
+        //     ProfileEventSingleton::instance().setOutputFile(opt.getProfileName() +
+        //     std::to_string(currentEpoch)); ProfileEventSingleton::instance().clear();
         // }
 
         // TODO: investigate what needs to be done for profiling
@@ -220,7 +220,8 @@ private:
         // regex for matching tuples
         // values matches numbers or strings enclosed in quotation marks
         std::regex relRegex(
-                "([a-zA-Z0-9_.-]*)[[:blank:]]*\\(([[:blank:]]*([0-9]+|\"[^\"]*\")([[:blank:]]*,[[:blank:]]*(-?["
+                "([a-zA-Z0-9_.-]*)[[:blank:]]*\\(([[:blank:]]*([0-9]+|\"[^\"]*\")([[:blank:]]*,[[:blank:]]*(-"
+                "?["
                 "0-"
                 "9]+|\"[^\"]*\"))*)?\\)",
                 std::regex_constants::extended);
@@ -271,7 +272,6 @@ private:
 
         return v;
     }
-
 };
 
 inline void startIncremental(SouffleProgram& prog /*, CmdOptions& opt */) {

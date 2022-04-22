@@ -64,7 +64,7 @@ enum TranslationMode {
     // Incremental update clauses
     //
     //   R(x0) :- R1(x1), R2(x2).
-    // 
+    //
     // are translated into various versions, each involving various combinations
     // of diff_plus and diff_minus.
     //

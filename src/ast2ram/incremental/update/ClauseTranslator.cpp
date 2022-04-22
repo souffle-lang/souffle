@@ -19,12 +19,12 @@
 #include "ast/Clause.h"
 #include "ast/Variable.h"
 #include "ast/utility/Utils.h"
+#include "ast2ram/incremental/Utils.h"
+#include "ast2ram/seminaive/ClauseTranslator.h"
 #include "ast2ram/utility/Location.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
-#include "ast2ram/incremental/Utils.h"
-#include "ast2ram/seminaive/ClauseTranslator.h"
 #include "ram/Aggregate.h"
 #include "ram/Constraint.h"
 #include "ram/EmptinessCheck.h"
@@ -55,10 +55,10 @@ void ClauseTranslator::setDiffVersion(std::size_t diffVersion) {
 */
 
 Own<ram::Statement> ClauseTranslator::translateNonRecursiveClause(const ast::Clause& clause) {
-
     VecOwn<ram::Statement> result;
 
-    for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size(); diffVersion++) {
+    for (std::size_t diffVersion = 0; diffVersion < ast::getBodyLiterals<ast::Atom>(clause).size();
+            diffVersion++) {
         // Update diffVersion config
         this->diffVersion = diffVersion;
 
@@ -87,7 +87,8 @@ Own<ram::Statement> ClauseTranslator::translateRecursiveClause(
             // Only translated updated diff_minus/diff_plus for recursive body atoms
             if (contains(scc, context.getProgram()->getRelation(*bodyLiterals[diffVersion])) &&
                     sccAtoms.at(version) == ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion)) {
-                appendStmt(result, seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version));
+                appendStmt(
+                        result, seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version));
             }
         } else {
             appendStmt(result, seminaive::ClauseTranslator::translateRecursiveClause(clause, scc, version));
@@ -125,8 +126,8 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
 
     return op;
 
-    // For incremental evaluation, the delta check is enforced during merge time so does not need to be checked during rule evaluation
-    // return nullptr;
+    // For incremental evaluation, the delta check is enforced during merge time so does not need to be
+    // checked during rule evaluation return nullptr;
 }
 
 std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const ast::Atom* atom) const {
@@ -169,7 +170,8 @@ std::string ClauseTranslator::getClauseAtomName(const ast::Clause& clause, const
     */
 
     if (!isRecursive()) {
-        assert(mode != IncrementalUpdatedDiffMinus && mode != IncrementalUpdatedDiffPlus && "mode shouldn't be IncrementalUpdated for non-recursive rules");
+        assert(mode != IncrementalUpdatedDiffMinus && mode != IncrementalUpdatedDiffPlus &&
+                "mode shouldn't be IncrementalUpdated for non-recursive rules");
 
         if (ast::getBodyLiterals<ast::Atom>(clause).at(diffVersion) == atom) {
             if (mode == IncrementalDiffPlus) {
@@ -250,7 +252,6 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
 
 Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         const ast::Clause& clause, Own<ram::Operation> op) const {
-
     op = ast2ram::seminaive::ClauseTranslator::addBodyLiteralConstraints(clause, std::move(op));
 
     // For incremental update, ensure that all tuples are correctly existing/not-existing
@@ -258,14 +259,14 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         const auto* atom = getAtomOrdering(clause)[i];
 
         if (mode == IncrementalDiffMinus && i == diffVersion) {
-            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LT,
-                        mk<ram::TupleElement>(i, atom->getArity() + 1),
-                        mk<ram::SignedConstant>(0)),
+            op = mk<ram::Filter>(
+                    mk<ram::Constraint>(BinaryConstraintOp::LT,
+                            mk<ram::TupleElement>(i, atom->getArity() + 1), mk<ram::SignedConstant>(0)),
                     std::move(op));
         } else {
-            op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::GT,
-                        mk<ram::TupleElement>(i, atom->getArity() + 1),
-                        mk<ram::SignedConstant>(0)),
+            op = mk<ram::Filter>(
+                    mk<ram::Constraint>(BinaryConstraintOp::GT,
+                            mk<ram::TupleElement>(i, atom->getArity() + 1), mk<ram::SignedConstant>(0)),
                     std::move(op));
         }
     }
@@ -278,7 +279,9 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
 
             if (sccAtoms.at(version) == atom) {
                 // this is delta, so add an equality constraint
-                op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(i, atom->getArity()), mkIterMinusOne()), std::move(op));
+                op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ,
+                                             mk<ram::TupleElement>(i, atom->getArity()), mkIterMinusOne()),
+                        std::move(op));
             }
 
             // check if atom is before or after version
@@ -299,13 +302,11 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
 
             if (before) {
                 op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LT,
-                            mk<ram::TupleElement>(i, atom->getArity()),
-                            mkIterMinusOne()),
+                                             mk<ram::TupleElement>(i, atom->getArity()), mkIterMinusOne()),
                         std::move(op));
             } else if (after) {
                 op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::LE,
-                            mk<ram::TupleElement>(i, atom->getArity()),
-                            mkIterMinusOne()),
+                                             mk<ram::TupleElement>(i, atom->getArity()), mkIterMinusOne()),
                         std::move(op));
             }
         }
@@ -335,7 +336,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
                 checkNum = -1;
             }
 
-            op = addEnsureNotExistsInDiffRelationConstraint(std::move(op), atom, checkRelation, checkNum, tupleExistsLevel);
+            op = addEnsureNotExistsInDiffRelationConstraint(
+                    std::move(op), atom, checkRelation, checkNum, tupleExistsLevel);
 
             tupleExistsLevel++;
         }
@@ -377,7 +379,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
 
     std::size_t iterCheckLevel = lastScanLevel;
     for (const auto* atom : getAtomOrdering(clause)) {
-        if (atomIdx == diffVersion && (mode == IncrementalUpdatedDiffPlus || mode == IncrementalUpdatedDiffMinus)) {
+        if (atomIdx == diffVersion &&
+                (mode == IncrementalUpdatedDiffPlus || mode == IncrementalUpdatedDiffMinus)) {
             atomIdx++;
             continue;
         }
@@ -390,7 +393,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
             checkRelation = getPrevRelationName(atom->getQualifiedName());
         }
 
-        op = addEnsureEarliestIterationConstraint(std::move(op), atom, iterCheckLevel, checkRelation, atomIdx);
+        op = addEnsureEarliestIterationConstraint(
+                std::move(op), atom, iterCheckLevel, checkRelation, atomIdx);
 
         atomIdx++;
         iterCheckLevel++;
@@ -406,7 +410,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     return op;
 }
 
-Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, int checkCount, std::size_t curLevel) const {
+Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint(Own<ram::Operation> op,
+        const ast::Atom* atom, std::string checkRelation, int checkCount, std::size_t curLevel) const {
     // For incremental update, ensure that some body tuples exist in both the
     // previous and current epochs to prevent double counting. For example,
     // consider the rule
@@ -431,20 +436,28 @@ Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint
 
     // First create a filter condition saying the count must be positive or negative
     if (checkCount < 0) {
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::LT,
+                        mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
     } else {
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::GT,
+                        mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
     }
 
     if (isRecursiveAtom(atom)) {
         // Add a condition saying the iteration number must be earlier than current iter
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()),
+                        mk<ram::IterationNumber>()));
     }
 
     // Add conditions to say the tuple must match
     std::size_t argNum = 0;
     for (auto* arg : atom->getArguments()) {
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg),
+                        mk<ram::TupleElement>(curLevel, argNum)));
         argNum++;
     }
 
@@ -453,8 +466,8 @@ Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint
     return op;
 }
 
-
-Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, std::size_t curLevel) const {
+Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ram::Operation> op,
+        const ast::Atom* atom, std::string checkRelation, std::size_t curLevel) const {
     // For incremental update, ensure that some body tuples exist in both the
     // previous and current epochs to prevent double counting. For example,
     // consider the rule
@@ -476,17 +489,22 @@ Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ra
     //         ...
 
     // First create a filter condition saying the count must be positive
-    Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+    Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT,
+            mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
     if (isRecursiveAtom(atom)) {
         // Add a condition saying the iteration number must be earlier than current iter
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()), mkIterMinusOne()));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()),
+                        mkIterMinusOne()));
     }
 
     // Add conditions to say the tuple must match
     std::size_t argNum = 0;
     for (auto* arg : atom->getArguments()) {
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg),
+                        mk<ram::TupleElement>(curLevel, argNum)));
         argNum++;
     }
 
@@ -499,7 +517,8 @@ Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ra
     return op;
 }
 
-Own<ram::Operation> ClauseTranslator::addEnsureEarliestIterationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel, std::string checkRelation, std::size_t atomIdx) const {
+Own<ram::Operation> ClauseTranslator::addEnsureEarliestIterationConstraint(Own<ram::Operation> op,
+        const ast::Atom* atom, std::size_t curLevel, std::string checkRelation, std::size_t atomIdx) const {
     // Ensure that we only compute using the earliest iteration for any given
     // tuple. For example, given a binary relation (x,y,@iter,@count), if we
     // have two tuples (1,2,3,1) and (1,2,5,1), we should only execute a rule
@@ -508,15 +527,20 @@ Own<ram::Operation> ClauseTranslator::addEnsureEarliestIterationConstraint(Own<r
 
     // Make conditions
     // Make count condition, i.e., c > 0 in above example
-    Own<ram::Condition> cond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+    Own<ram::Condition> cond = mk<ram::Constraint>(BinaryConstraintOp::GT,
+            mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
     // Make iteration condition, i.e., iter < current iter
-    cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::TupleElement>(atomIdx, atom->getArity())));
+    cond = addConjunctiveTerm(std::move(cond),
+            mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()),
+                    mk<ram::TupleElement>(atomIdx, atom->getArity())));
 
     // Add conditions such that X... inside ifnotexists is equal to outside
     std::size_t argNum = 0;
     for (auto* arg : atom->getArguments()) {
-        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        cond = addConjunctiveTerm(std::move(cond),
+                mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg),
+                        mk<ram::TupleElement>(curLevel, argNum)));
         argNum++;
     }
 
@@ -527,21 +551,27 @@ Own<ram::Operation> ClauseTranslator::addEnsureEarliestIterationConstraint(Own<r
     return op;
 }
 
-Own<ram::Operation> ClauseTranslator::addEnsureExistsForDeletionConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel) const {
+Own<ram::Operation> ClauseTranslator::addEnsureExistsForDeletionConstraint(
+        Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel) const {
     // For incremental update, when an incremental deletion occurs, we must
     // ensure that the corresponding tuple actually exists in the relation so
     // we can delete it.
 
     // First create a filter condition saying the count must be positive
-    Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+    Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT,
+            mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
     // Add a condition saying the iteration number must be equal to current iter
-    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
+    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+            mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(curLevel, atom->getArity()),
+                    mk<ram::IterationNumber>()));
 
     // Add conditions to say the tuple must match
     std::size_t argNum = 0;
     for (auto* arg : atom->getArguments()) {
-        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(curLevel, argNum)));
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond),
+                mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg),
+                        mk<ram::TupleElement>(curLevel, argNum)));
         argNum++;
     }
 
@@ -595,8 +625,8 @@ Own<ram::Expression> ClauseTranslator::getLevelNumber(const ast::Clause& clause)
     return mk<ram::IntrinsicOperator>(FunctorOp::ADD, std::move(addArgs));
 }
 
-Own<ram::Operation> ClauseTranslator::addAtomScan(
-        Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause, std::size_t curLevel) const {
+Own<ram::Operation> ClauseTranslator::addAtomScan(Own<ram::Operation> op, const ast::Atom* atom,
+        const ast::Clause& clause, std::size_t curLevel) const {
     // add constraints
     op = addConstantConstraints(curLevel, atom->getArguments(), std::move(op));
 
@@ -640,7 +670,9 @@ Own<ram::Operation> ClauseTranslator::createInsertion(const ast::Clause& clause)
         } else if (mode == IncrementalDiffMinus || mode == IncrementalUpdatedDiffPlus) {
             values.push_back(mk<ram::SignedConstant>(-1));
         } else {
-            std::cerr << "incremental update translate mode should be either diff_plus or diff_minus, never default" << std::endl;
+            std::cerr << "incremental update translate mode should be either diff_plus or diff_minus, never "
+                         "default"
+                      << std::endl;
             values.push_back(mk<ram::SignedConstant>(1));
         }
     }

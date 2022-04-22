@@ -13,9 +13,6 @@
  ***********************************************************************/
 
 #include "ast2ram/incremental/bootstrap/UnitTranslator.h"
-#include "ast2ram/incremental/update/TranslationStrategy.h"
-#include "ast2ram/incremental/update/UnitTranslator.h"
-#include "ast2ram/incremental/Utils.h"
 #include "Global.h"
 #include "LogStatement.h"
 #include "ast/BinaryConstraint.h"
@@ -24,6 +21,9 @@
 #include "ast/Relation.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
+#include "ast2ram/incremental/Utils.h"
+#include "ast2ram/incremental/update/TranslationStrategy.h"
+#include "ast2ram/incremental/update/UnitTranslator.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
@@ -63,7 +63,8 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     ramProgram = mk<ram::Sequence>(std::move(ramProgram), std::move(cleanupMerges));
 
     // Add an update subroutine for incremental updates
-    auto updateTranslatorStrategy = mk<ast2ram::TranslationStrategy, incremental::update::TranslationStrategy>();
+    auto updateTranslatorStrategy =
+            mk<ast2ram::TranslationStrategy, incremental::update::TranslationStrategy>();
     auto updateTranslator = Own<ast2ram::UnitTranslator>(updateTranslatorStrategy->createUnitTranslator());
 
     if (auto* updateUnitTranslator = as<incremental::update::UnitTranslator>(updateTranslator)) {
@@ -180,7 +181,8 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
     }
 
     // Create auxiliary nullary relation used for checking exit conditions
-    ramRelations.push_back(mk<ram::Relation>(getNotExitRelationName(), 0, 0, std::vector<std::string>(), std::vector<std::string>(), RelationRepresentation::BTREE));
+    ramRelations.push_back(mk<ram::Relation>(getNotExitRelationName(), 0, 0, std::vector<std::string>(),
+            std::vector<std::string>(), RelationRepresentation::BTREE));
 
     return ramRelations;
 }
@@ -212,13 +214,12 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(
         if (!context->hasSubsumptiveClause(rel->getQualifiedName())) {
             updateRelTable = mk<ram::Sequence>(mk<ram::Clear>(deltaRelation),
                     generateMergeRelationsWithFilter(rel, deltaRelation, newRelation, mainRelation),
-                    generateMergeRelations(rel, mainRelation, newRelation),
-                    mk<ram::Clear>(newRelation));
+                    generateMergeRelations(rel, mainRelation, newRelation), mk<ram::Clear>(newRelation));
 
-        /* TODO: Handle subsumptive clauses correctly
-        } else {
-            updateRelTable = generateMergeRelations(rel, mainRelation, deltaRelation);
-            */
+            /* TODO: Handle subsumptive clauses correctly
+            } else {
+                updateRelTable = generateMergeRelations(rel, mainRelation, deltaRelation);
+                */
         }
 
         // Measure update time
@@ -273,7 +274,8 @@ Own<ram::Statement> UnitTranslator::generateMergeRelationsWithFilter(const ast::
 Own<ram::Statement> UnitTranslator::generateCleanupMerges(const std::vector<ast::Relation*>& rels) const {
     VecOwn<ram::Statement> cleanupSequence;
     for (auto rel : rels) {
-        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()), getRelationName(rel->getQualifiedName())));
+        appendStmt(cleanupSequence, generateMergeRelations(rel, getPrevRelationName(rel->getQualifiedName()),
+                                            getRelationName(rel->getQualifiedName())));
     }
     return mk<ram::Sequence>(std::move(cleanupSequence));
 }

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "souffle/utility/ContainerUtil.h"
 #include "ast2ram/utility/Utils.h"
+#include "souffle/utility/ContainerUtil.h"
 #include <string>
 
 namespace souffle::ast {
@@ -45,7 +45,8 @@ std::string getUpdatedDiffMinusRelationName(const ast::QualifiedName& name);
 std::string getNewDiffPlusRelationName(const ast::QualifiedName& name);
 std::string getNewDiffMinusRelationName(const ast::QualifiedName& name);
 
-/** Get the corresponding prev relation name, storing the state of the relation before an incremental update */
+/** Get the corresponding prev relation name, storing the state of the relation before an incremental update
+ */
 std::string getPrevRelationName(const ast::QualifiedName& name);
 // std::string getDeltaPrevRelationName(const ast::QualifiedName& name);
 std::string getNewPrevRelationName(const ast::QualifiedName& name);

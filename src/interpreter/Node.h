@@ -724,9 +724,9 @@ class ParallelIndexIfExists : public IndexIfExists, public AbstractParallel {
  * @class IfNotExists
  */
 class IfNotExists : public Node,
-                 public ConditionalOperation,
-                 public NestedOperation,
-                 public RelationalOperation {
+                    public ConditionalOperation,
+                    public NestedOperation,
+                    public RelationalOperation {
 public:
     IfNotExists(enum NodeType ty, const ram::Node* sdw, RelationHandle* relHandle, Own<Node> cond,
             Own<Node> nested)

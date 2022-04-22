@@ -65,8 +65,8 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
     return mk<ram::Filter>(
             mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
 
-    // For incremental evaluation, the delta check is enforced during merge time so does not need to be checked during rule evaluation
-    // return nullptr;
+    // For incremental evaluation, the delta check is enforced during merge time so does not need to be
+    // checked during rule evaluation return nullptr;
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedAtom(
@@ -96,7 +96,6 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
 
 Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         const ast::Clause& clause, Own<ram::Operation> op) const {
-
     op = ast2ram::seminaive::ClauseTranslator::addBodyLiteralConstraints(clause, std::move(op));
 
     std::size_t firstAggregateLevel = 0;
@@ -130,24 +129,31 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         auto aggExpr = mk<ram::TupleElement>(aggLevel, atom->getArity());
 
         // Make aggregate condition, i.e., c > 0 in above example
-        Own<ram::Condition> aggCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(aggLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
+        Own<ram::Condition> aggCond = mk<ram::Constraint>(BinaryConstraintOp::GT,
+                mk<ram::TupleElement>(aggLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
         // Add aggregate conditions such that X... inside aggregate is equal to outside
         std::size_t argNum = 0;
         for (auto* arg : atom->getArguments()) {
-            aggCond = addConjunctiveTerm(std::move(aggCond), mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg), mk<ram::TupleElement>(aggLevel, argNum)));
+            aggCond = addConjunctiveTerm(std::move(aggCond),
+                    mk<ram::Constraint>(BinaryConstraintOp::EQ, context.translateValue(*valueIndex, arg),
+                            mk<ram::TupleElement>(aggLevel, argNum)));
             argNum++;
         }
 
-        auto iterationVariableLocation = valueIndex->getDefinitionPoint("@iteration_" + std::to_string(atomIdx));
+        auto iterationVariableLocation =
+                valueIndex->getDefinitionPoint("@iteration_" + std::to_string(atomIdx));
 
         op = mk<ram::Filter>(mk<ram::Constraint>(BinaryConstraintOp::EQ,
-                    mk<ram::TupleElement>(iterationVariableLocation.identifier, iterationVariableLocation.element),
-                    mk<ram::TupleElement>(aggLevel, 0)), std::move(op));
+                                     mk<ram::TupleElement>(iterationVariableLocation.identifier,
+                                             iterationVariableLocation.element),
+                                     mk<ram::TupleElement>(aggLevel, 0)),
+                std::move(op));
 
         // Make aggregate, i.e., i : min(A(X...,i,c WHERE c > 0)) in above example
         // This has to go after the filter, because the op is being built inside out
-        op = mk<ram::Aggregate>(std::move(op), AggregateOp::MIN, ast::getName(*atom).toString(), std::move(aggExpr), std::move(aggCond), aggLevel);
+        op = mk<ram::Aggregate>(std::move(op), AggregateOp::MIN, ast::getName(*atom).toString(),
+                std::move(aggExpr), std::move(aggCond), aggLevel);
 
         atomIdx++;
         aggLevel++;
@@ -197,8 +203,8 @@ Own<ram::Expression> ClauseTranslator::getLevelNumber(const ast::Clause& clause)
     return mk<ram::IntrinsicOperator>(FunctorOp::ADD, std::move(addArgs));
 }
 
-Own<ram::Operation> ClauseTranslator::addAtomScan(
-        Own<ram::Operation> op, const ast::Atom* atom, const ast::Clause& clause, std::size_t curLevel) const {
+Own<ram::Operation> ClauseTranslator::addAtomScan(Own<ram::Operation> op, const ast::Atom* atom,
+        const ast::Clause& clause, std::size_t curLevel) const {
     // add constraints
     op = addConstantConstraints(curLevel, atom->getArguments(), std::move(op));
 

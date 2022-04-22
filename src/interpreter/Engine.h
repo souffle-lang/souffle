@@ -128,7 +128,8 @@ private:
     RamDomain evalIfExists(const Rel& rel, const ram::IfExists& cur, const IfExists& shadow, Context& ctxt);
 
     template <typename Rel>
-    RamDomain evalIfNotExists(const Rel& rel, const ram::IfNotExists& cur, const IfNotExists& shadow, Context& ctxt);
+    RamDomain evalIfNotExists(
+            const Rel& rel, const ram::IfNotExists& cur, const IfNotExists& shadow, Context& ctxt);
 
     template <typename Rel>
     RamDomain evalParallelIfExists(
