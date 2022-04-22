@@ -65,4 +65,8 @@ std::string getNewPrevRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@new_prev_");
 }
 
+std::string getNotExitRelationName() {
+    return "@notExit";
+}
+
 }  // namespace souffle::ast2ram::incremental

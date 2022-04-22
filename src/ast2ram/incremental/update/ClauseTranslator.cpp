@@ -251,16 +251,6 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
 Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         const ast::Clause& clause, Own<ram::Operation> op) const {
 
-    // Not sure why the list constructor for IntrinsicOperator doesn't work,
-    // this is a workaround
-    auto mkIterMinusOne = []() {
-        VecOwn<ram::Expression> iterMinusOneArgs;
-        iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
-        iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
-
-        return mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
-    };
-
     op = ast2ram::seminaive::ClauseTranslator::addBodyLiteralConstraints(clause, std::move(op));
 
     // For incremental update, ensure that all tuples are correctly existing/not-existing
@@ -327,8 +317,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     }
 
     if (mode == IncrementalDiffPlus || mode == IncrementalDiffMinus) {
-        // For some body tuples, we need to ensure the same tuple exists in both R
-        // and prev_R
+        // For some body tuples, we need to ensure the tuple is not newly
+        // inserted or deleted, i.e., it existed both previously and currently
         std::size_t tupleExistsLevel = lastScanLevel;
         for (std::size_t i = 0; i < diffVersion; i++) {
             // TODO: check how getAtomOrdering works with diffVersions
@@ -354,9 +344,8 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
     }
 
     if (mode == IncrementalUpdatedDiffMinus || mode == IncrementalUpdatedDiffPlus) {
-
-        // For some body tuples, we need to ensure the same tuple exists in both R
-        // and prev_R
+        // For the updated rules, some body tuples need to exist in both R and
+        // prev_R
         std::size_t tupleExistsLevel = lastScanLevel;
         for (std::size_t i = 0; i < getAtomOrdering(clause).size(); i++) {
             if (i == diffVersion) {
@@ -380,7 +369,7 @@ Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
         lastScanLevel = tupleExistsLevel;
     }
 
-    // For some body tuples, we need to ensure the tuple for the rule
+    // For all body tuples, we need to ensure the tuple for the rule
     // evaluation is the earliest one in its relation
 
     // atomIdx keeps track of which atom we are creating a constraint for
@@ -431,11 +420,11 @@ Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint
     //
     // We need to ensure that for the second case, the tuple for prev_S also
     // exists in S, otherwise it would be double counting tuples in S that are
-    // removed. To achieve this, add an extra existence check:
+    // removed. To achieve this, check that the tuple is not deleted:
     //
     //   FOR t0 in prev_S:
     //     FOR t1 in diff_minus_T:
-    //       IF EXISTS t0 in S WHERE t0.count > 0
+    //       IF NOT EXISTS t2 in actual_diff_minus_S WHERE t2 = t0 AND t2.count < 0
     //         ...
 
     Own<ram::Condition> tupleExistsCond;
@@ -447,8 +436,10 @@ Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint
         tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0)));
     }
 
-    // Add a condition saying the iteration number must be earlier than current iter
-    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
+    if (isRecursiveAtom(atom)) {
+        // Add a condition saying the iteration number must be earlier than current iter
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LE, mk<ram::TupleElement>(curLevel, atom->getArity()), mk<ram::IterationNumber>()));
+    }
 
     // Add conditions to say the tuple must match
     std::size_t argNum = 0;
@@ -462,17 +453,8 @@ Own<ram::Operation> ClauseTranslator::addEnsureNotExistsInDiffRelationConstraint
     return op;
 }
 
+
 Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, std::size_t curLevel) const {
-    // Not sure why the list constructor for IntrinsicOperator doesn't work,
-    // this is a workaround
-    auto mkIterMinusOne = []() {
-        VecOwn<ram::Expression> iterMinusOneArgs;
-        iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
-        iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
-
-        return mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
-    };
-
     // For incremental update, ensure that some body tuples exist in both the
     // previous and current epochs to prevent double counting. For example,
     // consider the rule
@@ -496,8 +478,10 @@ Own<ram::Operation> ClauseTranslator::addEnsureExistsInRelationConstraint(Own<ra
     // First create a filter condition saying the count must be positive
     Own<ram::Condition> tupleExistsCond = mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(curLevel, atom->getArity() + 1), mk<ram::SignedConstant>(0));
 
-    // Add a condition saying the iteration number must be earlier than current iter
-    tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()), mkIterMinusOne()));
+    if (isRecursiveAtom(atom)) {
+        // Add a condition saying the iteration number must be earlier than current iter
+        tupleExistsCond = addConjunctiveTerm(std::move(tupleExistsCond), mk<ram::Constraint>(BinaryConstraintOp::LT, mk<ram::TupleElement>(curLevel, atom->getArity()), mkIterMinusOne()));
+    }
 
     // Add conditions to say the tuple must match
     std::size_t argNum = 0;
@@ -668,6 +652,28 @@ Own<ram::Operation> ClauseTranslator::createInsertion(const ast::Clause& clause)
 
     // Everything else
     return mk<ram::Insert>(headRelationName, std::move(values));
+}
+
+Own<ram::Expression> ClauseTranslator::mkIterMinusOne() const {
+    // Not sure why the list constructor for IntrinsicOperator doesn't work,
+    // this is a workaround
+    VecOwn<ram::Expression> iterMinusOneArgs;
+    iterMinusOneArgs.push_back(mk<ram::IterationNumber>());
+    iterMinusOneArgs.push_back(mk<ram::SignedConstant>(1));
+
+    return mk<ram::IntrinsicOperator>(FunctorOp::SUB, std::move(iterMinusOneArgs));
+}
+
+bool ClauseTranslator::isRecursiveAtom(const ast::Atom* atom) const {
+    bool recursiveAtom = false;
+    for (auto* a : sccAtoms) {
+        if (*a == *atom) {
+            recursiveAtom = true;
+            break;
+        }
+    }
+
+    return recursiveAtom;
 }
 
 }  // namespace souffle::ast2ram::incremental::update

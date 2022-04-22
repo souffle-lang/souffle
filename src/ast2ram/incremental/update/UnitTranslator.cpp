@@ -301,6 +301,7 @@ Own<ram::Statement> UnitTranslator::generateStratumPostamble(
         appendStmt(postamble, mk<ram::Clear>(getUpdatedDiffPlusRelationName(rel->getQualifiedName())));
         appendStmt(postamble, mk<ram::Clear>(getUpdatedDiffMinusRelationName(rel->getQualifiedName())));
     }
+    appendStmt(postamble, mk<ram::Clear>(getNotExitRelationName()));
     return mk<ram::Sequence>(std::move(postamble));
 }
 
@@ -375,6 +376,8 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const std::set<c
 
         appendStmt(updateTable, std::move(updateRelTable));
     }
+    appendStmt(updateTable, mk<ram::Clear>(getNotExitRelationName()));
+
     return mk<ram::Sequence>(std::move(updateTable));
 
 }
@@ -637,6 +640,26 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
 
     VecOwn<ram::Statement> exitConditions;
 
+    // Create a sequence which checks for tuples in previous epoch with current or higher iteration number
+    for (const ast::Relation* rel : scc) {
+        // Create insert
+        Own<ram::Operation> op = mk<ram::Insert>(getNotExitRelationName(), VecOwn<ram::Expression>());
+
+        // Create conditions
+        Own<ram::Condition> cond;
+
+        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::GE, mk<ram::TupleElement>(0, rel->getArity()), mk<ram::IterationNumber>()));
+        cond = addConjunctiveTerm(std::move(cond), mk<ram::Constraint>(BinaryConstraintOp::GT, mk<ram::TupleElement>(0, rel->getArity() + 1), mk<ram::SignedConstant>(0)));
+
+        op = mk<ram::Filter>(std::move(cond), std::move(op));
+
+        // Create scan
+        op = mk<ram::Scan>(getPrevRelationName(rel->getQualifiedName()), 0, std::move(op));
+
+        // Add to exit condition check
+        appendStmt(exitConditions, mk<ram::Query>(std::move(op)));
+    }
+
     // (1) if all relations in the scc are empty
     Own<ram::Condition> emptinessCheck;
     for (const ast::Relation* rel : scc) {
@@ -645,6 +668,8 @@ Own<ram::Statement> UnitTranslator::generateStratumExitSequence(
         addCondition(
                 emptinessCheck, mk<ram::EmptinessCheck>(getNewDiffMinusRelationName(rel->getQualifiedName())));
     }
+    addCondition(emptinessCheck, mk<ram::EmptinessCheck>(getNotExitRelationName()));
+
     appendStmt(exitConditions, mk<ram::Exit>(std::move(emptinessCheck)));
 
     // (2) if the size limit has been reached for any limitsize relations

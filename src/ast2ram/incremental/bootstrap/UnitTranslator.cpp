@@ -179,6 +179,9 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
         }
     }
 
+    // Create auxiliary nullary relation used for checking exit conditions
+    ramRelations.push_back(mk<ram::Relation>(getNotExitRelationName(), 0, 0, std::vector<std::string>(), std::vector<std::string>(), RelationRepresentation::BTREE));
+
     return ramRelations;
 }
 

@@ -74,6 +74,9 @@ private:
     Own<ram::Operation> addEnsureExistsInRelationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::string checkRelation, std::size_t curLevel) const;
     Own<ram::Operation> addEnsureEarliestIterationConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel, std::string checkRelation, std::size_t atomIdx) const;
     Own<ram::Operation> addEnsureExistsForDeletionConstraint(Own<ram::Operation> op, const ast::Atom* atom, std::size_t curLevel) const;
+
+    Own<ram::Expression> mkIterMinusOne() const;
+    bool isRecursiveAtom(const ast::Atom* atom) const;
 };
 
 }  // namespace souffle::ast2ram::incremental::update

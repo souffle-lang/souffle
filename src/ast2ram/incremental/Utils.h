@@ -50,4 +50,9 @@ std::string getPrevRelationName(const ast::QualifiedName& name);
 // std::string getDeltaPrevRelationName(const ast::QualifiedName& name);
 std::string getNewPrevRelationName(const ast::QualifiedName& name);
 
+// Special nullary relation that specifies whether we can exit out of a loop -
+// this is part of implementing the semantics where a fixpoint loop should not
+// exit if there are tuples in a later iteration in a previous epoch
+std::string getNotExitRelationName();
+
 }  // namespace souffle::ast2ram::incremental
