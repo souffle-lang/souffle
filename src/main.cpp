@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
                 {"pragma", 'P', "OPTIONS", "", true, "Set pragma options."},
                 {"provenance", 't', "[ none | explain | explore ]", "", false,
                         "Enable provenance instrumentation and interaction."},
-                {"incremental", 'i', "", "", false, "Enable incremental evaluation."},
+                {"incremental", 'i', "", "", false, "Enable incremental evaluation (EXPERIMENTAL)."},
                 {"verbose", 'v', "", "", false, "Verbose output."},
                 {"version", '\3', "", "", false, "Version."},
                 {"show", '\4', "[ <see-list> ]", "", true,
