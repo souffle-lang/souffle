@@ -157,31 +157,34 @@ public:
             auto it = this->sds.sparseToDenseMap.begin();
             auto end = this->sds.sparseToDenseMap.end();
             value_type el;
+            value_type thisRep;
             for (; it != end; ++it) {
-                std::tie(el, std::ignore) = *it;
+                std::tie(el, thisRep) = *it;
                 if (other.containsElement(el)) {
                     value_type rep = other.sds.findNode(el);
                     if (repsCovered.count(rep) == 0) {
                         repsCovered.emplace(rep);
                     }
                 }
-                toInsert.emplace_back(el, this->sds.findNode(el));
+                toInsert.emplace_back(el, thisRep);
             }
         }
         assert(size >= 0);
         assert(toInsert.size() == (std::size_t)size);
 
+        // No changes have been made since the last time
+        // other.genAllDisjointSetLists was called, meaning we can iterate over
+        // its partitions without the overhead of constructing them, making the
+        // following loop faster than iterating over the whole of
+        // other.sds.sparseToDenseMap.
+        assert(!other.statesMapStale.load(std::memory_order_acquire));
+
         // add the intersecting dj sets into this one
-        {
-            value_type el;
-            value_type rep;
-            auto it = other.sds.sparseToDenseMap.begin();
-            auto end = other.sds.sparseToDenseMap.end();
-            for (; it != end; ++it) {
-                std::tie(el, std::ignore) = *it;
-                rep = other.sds.findNode(el);
-                if (repsCovered.count(rep) != 0) {
-                    this->insert(el, rep);
+        for (auto&& [rep, pl] : other.equivalencePartition) {
+            if (repsCovered.count(rep) != 0) {
+                const std::size_t ksize = pl->size();
+                for (std::size_t i = 0; i < ksize; ++i) {
+                    this->insert(pl->get(i), rep);
                 }
             }
         }
