@@ -128,8 +128,8 @@ inline RelationRepresentation getRelationRepresentationFromTag(const RelationTag
         case RelationTag::BRIE: return RelationRepresentation::BRIE;
         case RelationTag::BTREE: return RelationRepresentation::BTREE;
         case RelationTag::BTREE_MIN: return RelationRepresentation::BTREE_MIN;
-        case RelationTag::BTREE_MAX: return RelationRepresentation::BTREE;
-        case RelationTag::BTREE_SUM: return RelationRepresentation::BTREE;
+        case RelationTag::BTREE_MAX: return RelationRepresentation::BTREE_MAX;
+        case RelationTag::BTREE_SUM: return RelationRepresentation::BTREE_SUM;
         case RelationTag::BTREE_DELETE: return RelationRepresentation::BTREE_DELETE;
         case RelationTag::EQREL: return RelationRepresentation::EQREL;
         default: fatal("invalid relation tag");

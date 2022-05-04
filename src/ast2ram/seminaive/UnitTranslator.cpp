@@ -646,7 +646,11 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     auto representation = baseRelation->getRepresentation();
     if (representation == RelationRepresentation::BTREE_DELETE && ramRelationName[0] == '@') {
         representation = RelationRepresentation::DEFAULT;
-    } else if (representation == RelationRepresentation::BTREE_MIN) {
+    } else if (
+        representation == RelationRepresentation::BTREE_MIN 
+        || representation == RelationRepresentation::BTREE_MAX 
+        || representation == RelationRepresentation::BTREE_SUM 
+    ) {
         auxArity = 1;
     }
 

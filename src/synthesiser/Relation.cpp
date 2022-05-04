@@ -49,15 +49,19 @@ Own<Relation> Relation::getSynthesiserRelation(
 
     // Handle the qualifier in souffle code
     if (ramRel.getRepresentation() == RelationRepresentation::PROVENANCE) {
-        rel = new DirectRelation(ramRel, indexSelection, true, false, false);
+        rel = new DirectRelation(ramRel, indexSelection, true, false, false, "");
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false, false);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, false, "");
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_MIN) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false, true);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, true, "min");
+    } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_MAX) {
+        rel = new DirectRelation(ramRel, indexSelection, false, false, true, "max");
+    } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_SUM) {
+        rel = new DirectRelation(ramRel, indexSelection, false, false, true, "sum");
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, true, false);
+        rel = new DirectRelation(ramRel, indexSelection, false, true, false, "");
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -69,7 +73,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, false, false, false);
+            rel = new DirectRelation(ramRel, indexSelection, false, false, false, "");
         }
     }
 
@@ -196,7 +200,7 @@ std::string DirectRelation::getTypeName() {
     if (hasErase) {
         res << "t_btree_delete_";
     } else if (isAggregate) {
-        res << "t_btree_min_";
+        res << "t_btree_" << aggregateOp << "_";
     } else {
         res << "t_btree_";
     }
@@ -248,7 +252,11 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
         out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
 
         for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
-            out << "old_t[" << i << "] = std::min(new_t[" << i << "], old_t[" << i << "]);\n";
+            if (aggregateOp == "sum") {
+                out << "old_t[" << i << "] = new_t[" << i << "] + old_t[" << i << "];\n";
+            } else {
+                out << "old_t[" << i << "] = std::" << aggregateOp << "(new_t[" << i << "], old_t[" << i << "]);\n";
+            }
         }
 
         out << "}\n";
