@@ -21,6 +21,7 @@
 #include "ram/ExistenceCheck.h"
 #include "ram/IndexOperation.h"
 #include "ram/ProvenanceExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/TranslationUnit.h"
 #include "ram/analysis/Relation.h"
@@ -521,6 +522,13 @@ public:
      * @result index signature of existence check
      */
     SearchSignature getSearchSignature(const ExistenceCheck* existCheck) const;
+
+    /**
+     * @Brief Get the index signature for a aggregate existence check
+     * @param Aggregate-existence check
+     * @result index signature of aggregate-existence check
+     */
+    SearchSignature getSearchSignature(const AggregateExistenceCheck* existCheck) const;
 
     /**
      * @Brief Get the index signature for a provenance existence check

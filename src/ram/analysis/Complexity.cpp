@@ -23,6 +23,7 @@
 #include "ram/Negation.h"
 #include "ram/Node.h"
 #include "ram/ProvenanceExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/utility/Visitor.h"
 #include <cassert>
@@ -54,6 +55,11 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
 
         // provenance existence check
         int visit_(type_identity<ProvenanceExistenceCheck>, const ProvenanceExistenceCheck&) override {
+            return 2;
+        }
+
+        // aggregate existence check
+        int visit_(type_identity<AggregateExistenceCheck>, const AggregateExistenceCheck&) override {
             return 2;
         }
 

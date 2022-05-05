@@ -402,6 +402,8 @@ void IndexAnalysis::run(const TranslationUnit& translationUnit) {
             relationToSearches[exists->getRelation()].insert(getSearchSignature(exists));
         } else if (const auto* provExists = as<ProvenanceExistenceCheck>(node)) {
             relationToSearches[provExists->getRelation()].insert(getSearchSignature(provExists));
+        } else if (const auto* aggExists = as<AggregateExistenceCheck>(node)) {
+            relationToSearches[aggExists->getRelation()].insert(getSearchSignature(aggExists));
         } else if (const auto* ramRel = as<Relation>(node)) {
             relationToSearches[ramRel->getName()].insert(getSearchSignature(ramRel));
         }
@@ -522,6 +524,28 @@ SearchSignature IndexAnalysis::getSearchSignature(const IndexOperation* search) 
             keys[i] = AttributeConstraint::Inequal;
         }
     }
+    return keys;
+}
+
+SearchSignature IndexAnalysis::getSearchSignature(const AggregateExistenceCheck* aggExistCheck) const {
+    const auto values = aggExistCheck->getValues();
+    const Relation* rel = &relAnalysis->lookup(aggExistCheck->getRelation());
+    auto auxiliaryArity = rel->getAuxiliaryArity();
+
+    SearchSignature keys(values.size());
+
+    // all payload attributes should be equalities
+    for (std::size_t i = 0; i < values.size() - auxiliaryArity; i++) {
+        if (!isUndefValue(values[i])) {
+            keys[i] = AttributeConstraint::Equal;
+        }
+    }
+
+    // all auxiliary attributes should be free
+    for (std::size_t i = values.size() - auxiliaryArity; i < values.size(); i++) {
+        keys[i] = AttributeConstraint::None;
+    }
+
     return keys;
 }
 

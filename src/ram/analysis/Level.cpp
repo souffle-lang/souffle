@@ -38,6 +38,7 @@
 #include "ram/Operation.h"
 #include "ram/PackRecord.h"
 #include "ram/ProvenanceExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Scan.h"
 #include "ram/StringConstant.h"
 #include "ram/SubroutineArgument.h"
@@ -266,6 +267,16 @@ std::optional<std::size_t> LevelAnalysis::getLevel(const Node* node) const {
                 const ProvenanceExistenceCheck& provExists) override {
             maybe_level level = std::nullopt;
             for (const auto& cur : provExists.getValues()) {
+                level = max(level, dispatch(*cur));
+            }
+            return level;
+        }
+
+        // aggregate existence check
+        maybe_level visit_(type_identity<AggregateExistenceCheck>,
+                const AggregateExistenceCheck& aggExists) override {
+            maybe_level level = std::nullopt;
+            for (const auto& cur : aggExists.getValues()) {
                 level = max(level, dispatch(*cur));
             }
             return level;

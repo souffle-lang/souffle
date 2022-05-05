@@ -25,6 +25,7 @@
 #include "ram/False.h"
 #include "ram/Negation.h"
 #include "ram/ProvenanceExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Relation.h"
 #include "ram/SignedConstant.h"
 #include "ram/True.h"

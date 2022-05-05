@@ -64,6 +64,7 @@
 #include "ram/ParallelScan.h"
 #include "ram/Program.h"
 #include "ram/ProvenanceExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Query.h"
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
@@ -214,6 +215,8 @@ std::set<const ram::Relation*> Synthesiser::getReferencedRelations(const Operati
             res.insert(lookup(exists->getRelation()));
         } else if (auto provExists = as<ProvenanceExistenceCheck>(node)) {
             res.insert(lookup(provExists->getRelation()));
+        } else if (auto aggExists = as<AggregateExistenceCheck>(node)) {
+            res.insert(lookup(aggExists->getRelation()));
         } else if (auto insert = as<Insert>(node)) {
             res.insert(lookup(insert->getRelation()));
         }
@@ -402,6 +405,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                     bool needContext = false;
                     visit(*cur, [&](const ExistenceCheck&) { needContext = true; });
                     visit(*cur, [&](const ProvenanceExistenceCheck&) { needContext = true; });
+                    visit(*cur, [&](const AggregateExistenceCheck&) { needContext = true; });
                     if (needContext) {
                         requireCtx.push_back(clone(cur));
                     } else {
@@ -2113,6 +2117,61 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 << arity - auxiliaryArity + 1 << "] <= ";
 
             dispatch(*(provExists.getValues()[arity - auxiliaryArity + 1]), out);
+            out << ")";
+            out << ";}()\n";
+            PRINT_END_COMMENT(out);
+        }
+
+        void visit_(type_identity<AggregateExistenceCheck>, const AggregateExistenceCheck& aggExists,
+                std::ostream& out) override {
+            PRINT_BEGIN_COMMENT(out);
+            // get some details
+            const auto* rel = synthesiser.lookup(aggExists.getRelation());
+            auto relName = synthesiser.getRelationName(rel);
+            auto ctxName = "READ_OP_CONTEXT(" + synthesiser.getOpContextName(*rel) + ")";
+            auto arity = rel->getArity();
+            auto auxiliaryArity = rel->getAuxiliaryArity();
+
+            // provenance not exists is never total, conduct a range query
+            out << "[&]() -> bool {\n";
+            out << "auto existenceCheck = " << relName << "->"
+                << "lowerUpperRange";
+            out << "_" << isa->getSearchSignature(&aggExists);
+
+            // parts refers to payload
+            std::size_t parts = arity - auxiliaryArity;
+
+            // make a copy of provExists.getValues() so we can be sure that vals is always the same vector
+            // since provExists.getValues() creates a new vector on the stack each time
+            auto vals = aggExists.getValues();
+
+            // sanity check to ensure that all payload values are specified
+            for (std::size_t i = 0; i < arity - auxiliaryArity; i++) {
+                assert(!isUndefValue(vals[i]) &&
+                        "AggregateExistenceCheck should always be specified for payload");
+            }
+
+            auto valsCopy = std::vector<Expression*>(vals.begin(), vals.begin() + parts);
+            auto rangeBounds = getPaddedRangeBounds(*rel, valsCopy, valsCopy);
+
+            // remove the ending }} from both strings
+            rangeBounds.first.seekp(-2, std::ios_base::end);
+            rangeBounds.second.seekp(-2, std::ios_base::end);
+
+            // extra bounds for provenance height annotations
+            // for (std::size_t i = 0; i < auxiliaryArity - 2; i++) {
+            //     rangeBounds.first << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)";
+            //     rangeBounds.second << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)";
+            // }
+            rangeBounds.first << ",ramBitCast<RamDomain, RamSigned>(MIN_RAM_SIGNED)}}";
+            rangeBounds.second << ",ramBitCast<RamDomain, RamSigned>(MAX_RAM_SIGNED)}}";
+
+            out << "(" << rangeBounds.first.str() << "," << rangeBounds.second.str() << "," << ctxName
+                << ");\n";
+            out << "if (existenceCheck.empty()) return false; else return ((*existenceCheck.begin())["
+                << arity - auxiliaryArity + 1 << "] <= ";
+
+            dispatch(*(aggExists.getValues()[arity - auxiliaryArity]), out);
             out << ")";
             out << ";}()\n";
             PRINT_END_COMMENT(out);

@@ -70,6 +70,7 @@
 #include "ram/ParallelScan.h"
 #include "ram/Program.h"
 #include "ram/ProvenanceExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Query.h"
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
@@ -135,6 +136,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(False);
         SOUFFLE_VISITOR_FORWARD(EmptinessCheck);
         SOUFFLE_VISITOR_FORWARD(ProvenanceExistenceCheck);
+        SOUFFLE_VISITOR_FORWARD(AggregateExistenceCheck);
         SOUFFLE_VISITOR_FORWARD(ExistenceCheck);
         SOUFFLE_VISITOR_FORWARD(Conjunction);
         SOUFFLE_VISITOR_FORWARD(Negation);
@@ -249,6 +251,7 @@ protected:
     SOUFFLE_VISITOR_LINK(Negation, Condition);
     SOUFFLE_VISITOR_LINK(Constraint, Condition);
     SOUFFLE_VISITOR_LINK(ProvenanceExistenceCheck, AbstractExistenceCheck);
+    SOUFFLE_VISITOR_LINK(AggregateExistenceCheck, AbstractExistenceCheck);
     SOUFFLE_VISITOR_LINK(ExistenceCheck, AbstractExistenceCheck);
     SOUFFLE_VISITOR_LINK(EmptinessCheck, Condition);
     SOUFFLE_VISITOR_LINK(AbstractExistenceCheck, Condition);

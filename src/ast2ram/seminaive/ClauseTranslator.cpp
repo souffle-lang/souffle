@@ -17,6 +17,7 @@
 #include "ast2ram/seminaive/ClauseTranslator.h"
 #include "Global.h"
 #include "LogStatement.h"
+#include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/BranchInit.h"
 #include "ast/Clause.h"
@@ -44,6 +45,7 @@
 #include "ram/DebugInfo.h"
 #include "ram/EmptinessCheck.h"
 #include "ram/ExistenceCheck.h"
+#include "ram/AggregateExistenceCheck.h"
 #include "ram/Filter.h"
 #include "ram/FloatConstant.h"
 #include "ram/GuardedInsert.h"
@@ -502,12 +504,12 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
         values.push_back(context.translateValue(*valueIndex, args[i]));
     }
 
-    return mk<ram::Filter>(
-            mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+        return mk<ram::Filter>(
+                mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedAtom(
-        Own<ram::Operation> op, const ast::Clause& /* clause */, const ast::Atom* atom) const {
+        Own<ram::Operation> op, const ast::Clause& clause, const ast::Atom* atom) const {
     std::size_t arity = atom->getArity();
     std::string name = getConcreteRelationName(atom->getQualifiedName());
 
@@ -522,8 +524,16 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
     for (std::size_t i = 0; i < arity; i++) {
         values.push_back(context.translateValue(*valueIndex, args[i]));
     }
-    return mk<ram::Filter>(
-            mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+    
+    const ast::Atom* head = clause.getHead();
+    const auto* relation = context.getProgram()->getRelation(*head);
+    if (relation->getRepresentation() == RelationRepresentation::BTREE_MIN) {
+        return mk<ram::Filter>(
+                mk<ram::Negation>(mk<ram::AggregateExistenceCheck>(name, std::move(values))), std::move(op));
+    } else {
+        return mk<ram::Filter>(
+                mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+    }
 }
 
 Own<ram::Operation> ClauseTranslator::addBodyLiteralConstraints(
