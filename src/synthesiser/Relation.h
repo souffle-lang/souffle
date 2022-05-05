@@ -115,7 +115,8 @@ class DirectRelation : public Relation {
 public:
     DirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection,
             bool isProvenance, bool hasErase, bool isAggregate, std::string aggregateOp)
-            : Relation(ramRel, indexSelection), isProvenance(isProvenance), hasErase(hasErase), isAggregate(isAggregate), aggregateOp(aggregateOp) {}
+            : Relation(ramRel, indexSelection), isProvenance(isProvenance), hasErase(hasErase),
+              isAggregate(isAggregate), aggregateOp(aggregateOp) {}
 
     void computeIndices() override;
     std::string getTypeName() override;

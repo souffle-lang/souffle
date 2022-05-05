@@ -23,17 +23,17 @@ namespace souffle {
 
 /** Space of user-chosen tags that a relation can have */
 enum class RelationTag {
-    INPUT,         // relation read from csv
-    OUTPUT,        // relation written to csv
-    PRINTSIZE,     // number of tuples written to stdout
-    OVERRIDABLE,   // rules defined in component can be overwritten by sub-component
-    INLINE,        // inlined
-    NO_INLINE,     // never inline
-    MAGIC,         // enable magic-set on this relation
-    NO_MAGIC,      // never magic-set on this relation
-    SUPPRESSED,    // warnings suppressed
-    BRIE,          // use brie data-structure
-    BTREE,         // use btree data-structure
+    INPUT,        // relation read from csv
+    OUTPUT,       // relation written to csv
+    PRINTSIZE,    // number of tuples written to stdout
+    OVERRIDABLE,  // rules defined in component can be overwritten by sub-component
+    INLINE,       // inlined
+    NO_INLINE,    // never inline
+    MAGIC,        // enable magic-set on this relation
+    NO_MAGIC,     // never magic-set on this relation
+    SUPPRESSED,   // warnings suppressed
+    BRIE,         // use brie data-structure
+    BTREE,        // use btree data-structure
     BTREE_MIN,
     BTREE_MAX,
     BTREE_SUM,
@@ -56,9 +56,9 @@ enum class RelationQualifier {
 
 /** Space of internal representations that a relation can have */
 enum class RelationRepresentation {
-    DEFAULT,       // use default data-structure
-    BRIE,          // use brie data-structure
-    BTREE,         // use btree data-structure
+    DEFAULT,  // use default data-structure
+    BRIE,     // use brie data-structure
+    BTREE,    // use btree data-structure
     BTREE_MIN,
     BTREE_MAX,
     BTREE_SUM,
