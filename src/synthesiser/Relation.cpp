@@ -289,7 +289,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             std::function<void(std::size_t)> gencmp = [&](std::size_t i) {
                 std::string lt;
                 std::string gt;
-                if (i + 2 == bound && isAggregate && aggregateOp == "max") {
+                if (i + 2 == bound && isAggregate && (aggregateOp == "max" || aggregateOp == "sum")) {
                     lt = ">";
                     gt = "<";
                 } else {
@@ -317,8 +317,12 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 std::size_t attrib = ind[i];
                 const auto& typecast = typecasts[attrib];
                 std::string lt;
-                if (i + 1 == bound && isAggregate && aggregateOp == "max") {
-                    lt = ">";
+                if (i + 1 == bound && isAggregate) {
+                    if (aggregateOp == "max") {
+                        lt = ">";
+                    } else if (aggregateOp == "sum") {
+                        lt = "!=";
+                    }
                 } else {
                     lt = "<";
                 }
