@@ -287,11 +287,20 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             out << " int operator()(const t_tuple& a, const t_tuple& b) const {\n";
             out << "  return ";
             std::function<void(std::size_t)> gencmp = [&](std::size_t i) {
+                std::string lt;
+                std::string gt;
+                if (i + 2 == bound && isAggregate && aggregateOp == "max") {
+                    lt = ">";
+                    gt = "<";
+                } else {
+                    lt = "<";
+                    gt = ">";
+                }
                 std::size_t attrib = ind[i];
                 const auto& typecast = typecasts[attrib];
 
-                out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib
-                    << "])) ? -1 : (" << typecast << "(a[" << attrib << "]) > " << typecast << "(b[" << attrib
+                out << "(" << typecast << "(a[" << attrib << "])" << lt << typecast << "(b[" << attrib
+                    << "])) ? -1 : (" << typecast << "(a[" << attrib << "])" << gt << typecast << "(b[" << attrib
                     << "])) ? 1 :(";
                 if (i + 1 < bound) {
                     gencmp(i + 1);
@@ -307,8 +316,14 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             std::function<void(std::size_t)> genless = [&](std::size_t i) {
                 std::size_t attrib = ind[i];
                 const auto& typecast = typecasts[attrib];
+                std::string lt;
+                if (i + 1 == bound && isAggregate && aggregateOp == "max") {
+                    lt = ">";
+                } else {
+                    lt = "<";
+                }
 
-                out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib << "]))";
+                out << "(" << typecast << "(a[" << attrib << "])" << lt << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {
                     out << "|| ((" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib
                         << "])) && (";

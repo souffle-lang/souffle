@@ -504,8 +504,8 @@ Own<ram::Operation> ClauseTranslator::addNegatedDeltaAtom(
         values.push_back(context.translateValue(*valueIndex, args[i]));
     }
 
-        return mk<ram::Filter>(
-                mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+    return mk<ram::Filter>(
+            mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
 }
 
 Own<ram::Operation> ClauseTranslator::addNegatedAtom(
@@ -527,7 +527,10 @@ Own<ram::Operation> ClauseTranslator::addNegatedAtom(
     
     const ast::Atom* head = clause.getHead();
     const auto* relation = context.getProgram()->getRelation(*head);
-    if (relation->getRepresentation() == RelationRepresentation::BTREE_MIN) {
+    if (
+        relation->getRepresentation() == RelationRepresentation::BTREE_MIN || 
+        relation->getRepresentation() == RelationRepresentation::BTREE_MAX
+    ) {
         return mk<ram::Filter>(
                 mk<ram::Negation>(mk<ram::AggregateExistenceCheck>(name, std::move(values))), std::move(op));
     } else {
