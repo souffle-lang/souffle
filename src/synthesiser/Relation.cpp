@@ -317,17 +317,16 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 std::size_t attrib = ind[i];
                 const auto& typecast = typecasts[attrib];
                 std::string lt;
-                if (i + 1 == bound && isAggregate) {
-                    if (aggregateOp == "max") {
+                if (i + 1 == bound && isAggregate && aggregateOp == "max") {
                         lt = ">";
-                    } else if (aggregateOp == "sum") {
-                        lt = "!=";
-                    }
                 } else {
                     lt = "<";
                 }
-
-                out << "(" << typecast << "(a[" << attrib << "])" << lt << typecast << "(b[" << attrib << "]))";
+                if (i + 1 == bound && aggregateOp == "sum") {
+                    out << "true";
+                } else {
+                    out << "(" << typecast << "(a[" << attrib << "])" << lt << typecast << "(b[" << attrib << "]))";
+                }
                 if (i + 1 < bound) {
                     out << "|| ((" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib
                         << "])) && (";

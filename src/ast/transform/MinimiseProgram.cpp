@@ -267,6 +267,12 @@ bool MinimiseProgramTransformer::reduceLocallyEquivalentClauses(TranslationUnit&
         for (auto&& cl : program.getClauses(*rel)) {
             auto* clause = &*cl;
             bool added = false;
+            const auto* head = clause->getHead();
+            const auto* relation = program.getRelation(*head);
+            // keep duplicate clauses for btree_sum
+            if (relation->getRepresentation() == RelationRepresentation::BTREE_SUM) {
+                continue;
+            }
 
             for (std::vector<Clause*>& eqClass : equivalenceClasses) {
                 const auto& normedRep = normalisations.getNormalisation(eqClass[0]);
@@ -353,6 +359,10 @@ bool MinimiseProgramTransformer::removeRedundantClauses(TranslationUnit& transla
             return false;
         }
         const auto* head = clause->getHead();
+        const auto* relation = program.getRelation(*head);
+        if (relation->getRepresentation() == RelationRepresentation::BTREE_SUM) {
+            return false;
+        }
         for (const auto* lit : clause->getBodyLiterals()) {
             if (*head == *lit) {
                 return true;
