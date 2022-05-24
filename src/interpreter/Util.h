@@ -259,9 +259,18 @@ using Brie = Trie<Arity>;
 // Updater for Provenance
 template <std::size_t Arity>
 struct ProvenanceUpdater {
-    void update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
-        old_t[Arity - 2] = new_t[Arity - 2];
-        old_t[Arity - 1] = new_t[Arity - 1];
+    bool update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
+        bool changed = false;
+        if  (old_t[Arity - 2] > new_t[Arity - 2]) {
+            old_t[Arity - 2] = new_t[Arity - 2];
+            changed = true;
+        }
+        if (old_t[Arity - 1] > new_t[Arity - 1]) {
+            old_t[Arity - 1] = new_t[Arity - 1];
+            changed = true;
+        }
+        
+        return changed;
     }
 };
 

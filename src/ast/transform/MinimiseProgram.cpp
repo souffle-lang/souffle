@@ -360,6 +360,7 @@ bool MinimiseProgramTransformer::removeRedundantClauses(TranslationUnit& transla
         }
         const auto* head = clause->getHead();
         const auto* relation = program.getRelation(*head);
+        // Keep duplicate clauses for btree_sum
         if (relation->getRepresentation() == RelationRepresentation::BTREE_SUM) {
             return false;
         }

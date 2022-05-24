@@ -236,12 +236,15 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
     // generate an updater class for provenance
     if (isProvenance) {
         out << "struct updater_" << getTypeName() << " {\n";
-        out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
-
+        out << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
+        out << "bool changed = false;\n";
         for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
+            out << "if (old_t[" << i << "] > new_t[" << i << "]) {\n";
             out << "old_t[" << i << "] = new_t[" << i << "];\n";
+            out << "changed = true;\n";
+            out << "}\n";
         }
-
+        out << "return changed;\n";
         out << "}\n";
         out << "};\n";
     }
@@ -249,16 +252,25 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
     // generate an updater class for aggregates
     if (isAggregate) {
         out << "struct updater_" << getTypeName() << " {\n";
-        out << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
-
+        out << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
+        out << "bool changed = false;\n";
         for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
             if (aggregateOp == "sum") {
                 out << "old_t[" << i << "] = new_t[" << i << "] + old_t[" << i << "];\n";
-            } else {
-                out << "old_t[" << i << "] = std::" << aggregateOp << "(new_t[" << i << "], old_t[" << i << "]);\n";
+                out << "changed = true;\n";
+            } else if (aggregateOp == "min") {
+                out << "if (old_t[" << i << "] > new_t[" << i << "]) {\n";
+                out << "old_t[" << i << "] = std::min(new_t[" << i << "], old_t[" << i << "]);\n";
+                out << "changed = true;\n";
+                out << "}\n";
+            } else { // (aggregateOp == "max")
+                out << "if (old_t[" << i << "] < new_t[" << i << "]) {\n";
+                out << "old_t[" << i << "] = std::min(new_t[" << i << "], old_t[" << i << "]);\n";
+                out << "changed = true;\n";
+                out << "}\n";
             }
         }
-
+        out << "return changed;\n";
         out << "}\n";
         out << "};\n";
     }

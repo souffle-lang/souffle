@@ -215,7 +215,9 @@ struct default_strategy<std::tuple<Ts...>> : public linear {};
  */
 template <typename T>
 struct updater {
-    void update(T& /* old_t */, const T& /* new_t */) {}
+    bool update(T& /* old_t */, const T& /* new_t */) {
+        return false;
+    }
 };
 
 }  // end of namespace detail
