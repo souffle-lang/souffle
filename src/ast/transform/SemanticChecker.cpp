@@ -629,6 +629,25 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
                     "Equivalence relation " + toString(relation.getQualifiedName()) + " is not binary",
                     relation.getSrcLoc());
         }
+    } 
+    else if (relation.getRepresentation() == RelationRepresentation::BTREE_MIN
+                || relation.getRepresentation() == RelationRepresentation::BTREE_MAX
+                || relation.getRepresentation() == RelationRepresentation::BTREE_SUM) {
+        if (relation.getArity() < 2) {
+            report.addError(
+                    "Aggregate relation " + toString(relation.getQualifiedName()) + " needs at least 2 attributes",
+                    relation.getSrcLoc());
+        }
+        // TODO: check SUM is only over numbers (unsigned, signed & float)
+        // else if (relation.getRepresentation() == RelationRepresentation::BTREE_SUM) {
+        //     const auto& attributes = relation.getAttributes();
+        //     auto&& attr = attributes[relation.getArity()-1];
+        //     auto&& typeName = attr->getTypeName();
+        //     if (!typeEnv.isPrimitiveType(typeName)) {
+        //         report.addError(
+        //                 "Summing over " + toString(typeName) + " is not supported", relation.getSrcLoc());
+        //     }
+        // }
     }
 
     // check subsumption relations
@@ -647,7 +666,7 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
     if (relation.getRepresentation() == RelationRepresentation::BTREE_DELETE && relation.getArity() == 0) {
         report.addError("Subsumptive relation \"" + toString(relation.getQualifiedName()) +
                                 "\"  must not be a nullary relation",
-                relation.getSrcLoc());
+                        relation.getSrcLoc());
     }
 
     // start with declaration

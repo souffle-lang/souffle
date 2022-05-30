@@ -265,7 +265,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 out << "}\n";
             } else { // (aggregateOp == "max")
                 out << "if (old_t[" << i << "] < new_t[" << i << "]) {\n";
-                out << "old_t[" << i << "] = std::min(new_t[" << i << "], old_t[" << i << "]);\n";
+                out << "old_t[" << i << "] = std::max(new_t[" << i << "], old_t[" << i << "]);\n";
                 out << "changed = true;\n";
                 out << "}\n";
             }
