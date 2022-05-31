@@ -113,20 +113,42 @@ public:
 
 class DirectRelation : public Relation {
 public:
-    DirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection,
-            bool isProvenance, bool hasErase, bool isAggregate, std::string aggregateOp)
-            : Relation(ramRel, indexSelection), isProvenance(isProvenance), hasErase(hasErase),
-              isAggregate(isAggregate), aggregateOp(aggregateOp) {}
+    DirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection)
+            : Relation(ramRel, indexSelection) {}
 
     void computeIndices() override;
     std::string getTypeName() override;
     void generateTypeStruct(std::ostream& out) override;
+    virtual void generateUpdater(std::ostream& /* out */, std::vector<std::string> /* typecasts */) {};
+};
 
-private:
-    const bool isProvenance;
-    const bool hasErase;
-    const bool isAggregate;
+class ProvenanceRelation : public DirectRelation {
+public:
+    ProvenanceRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection) 
+            : DirectRelation(ramRel, indexSelection) {}
+
+    void computeIndices() override;
+    void generateUpdater(std::ostream& out, std::vector<std::string> typecasts) override;
+};
+
+class AggregateRelation : public DirectRelation {
+public:
+    AggregateRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection, std::string aggregateOp) 
+            : DirectRelation(ramRel, indexSelection), aggregateOp(aggregateOp) {}
+
+    void computeIndices() override;
+    std::string getTypeName() override;
+    void generateUpdater(std::ostream& out, std::vector<std::string> typecasts) override;
     const std::string aggregateOp;
+};
+
+class EraseRelation : public DirectRelation {
+public:
+    EraseRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection) 
+            : DirectRelation(ramRel, indexSelection) {}
+
+    void computeIndices() override;
+    std::string getTypeName() override;
 };
 
 class IndirectRelation : public Relation {

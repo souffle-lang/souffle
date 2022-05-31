@@ -49,19 +49,20 @@ Own<Relation> Relation::getSynthesiserRelation(
 
     // Handle the qualifier in souffle code
     if (ramRel.getRepresentation() == RelationRepresentation::PROVENANCE) {
-        rel = new DirectRelation(ramRel, indexSelection, true, false, false, "");
+        rel = new ProvenanceRelation(ramRel, indexSelection);
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false, false, "");
+        rel = new DirectRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_MIN) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false, true, "min");
+        // rel = new DirectRelation(ramRel, indexSelection, false, false, true, "min");
+        rel = new AggregateRelation(ramRel, indexSelection, "min");
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_MAX) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false, true, "max");
+        rel = new AggregateRelation(ramRel, indexSelection, "max");
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_SUM) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false, true, "sum");
+        rel = new AggregateRelation(ramRel, indexSelection, "sum");
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, true, false, "");
+        rel = new EraseRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -73,7 +74,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, false, false, false, "");
+            rel = new DirectRelation(ramRel, indexSelection);
         }
     }
 
@@ -135,51 +136,121 @@ void DirectRelation::computeIndices() {
     for (auto& ind : inds) {
         // use a set as a cache for fast lookup
         std::set<std::size_t> curIndexElems(ind.begin(), ind.end());
+        if (ind.size() == getArity()) {
+            masterIndex = index_nr;
+        }
+        index_nr++;
+    }
+    assert(masterIndex < inds.size() && "no full index in relation");
+    computedIndices = inds;
+}
 
-        // If this relation is used with provenance,
+void AggregateRelation::computeIndices() {
+    // Generate and set indices
+    auto inds = indexSelection.getAllOrders();
+
+    // generate a full index if no indices exist
+    assert(!inds.empty() && "no full index in relation");
+
+    std::size_t index_nr = 0;
+    // expand all search orders to be full
+    for (auto& ind : inds) {
+        // use a set as a cache for fast lookup
+        std::set<std::size_t> curIndexElems(ind.begin(), ind.end());
+
         // we must expand all search orders to be full indices,
         // since weak/strong comparators and updaters need this,
         // and also add provenance annotations to the indices
-        if (isProvenance || hasErase || isAggregate) {
-            // expand index to be full
-            for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
-                if (curIndexElems.find(i) == curIndexElems.end()) {
-                    ind.push_back(i);
-                }
+        // expand index to be full
+        for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
+            if (curIndexElems.find(i) == curIndexElems.end()) {
+                ind.push_back(i);
             }
-
-            if (isProvenance) {
-                // remove any provenance annotations already in the index order
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity() + 1) !=
-                        curIndexElems.end()) {
-                    ind.erase(
-                            std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity() + 1));
-                }
-
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
-                    ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
-                }
-
-                // add provenance annotations to the index, but in reverse order
-                ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
-                ind.push_back(getArity() - relation.getAuxiliaryArity());
-            }
-
-            if (isAggregate) {
-                // remove any aggregate attribute already in the index order
-
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
-                    ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
-                }
-
-                // add aggregate attribute to the index, but in reverse order
-                ind.push_back(getArity() - relation.getAuxiliaryArity());
-            }
-
-            masterIndex = 0;
-        } else if (ind.size() == getArity()) {
-            masterIndex = index_nr;
         }
+
+        // remove any aggregate attribute already in the index order
+        if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
+            ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
+        }
+
+        // add aggregate attribute to the index, but in reverse order
+        ind.push_back(getArity() - relation.getAuxiliaryArity());
+
+        masterIndex = 0;
+        index_nr++;
+    }
+    assert(masterIndex < inds.size() && "no full index in relation");
+    computedIndices = inds;
+}
+
+void ProvenanceRelation::computeIndices() {
+    // Generate and set indices
+    auto inds = indexSelection.getAllOrders();
+
+    // generate a full index if no indices exist
+    assert(!inds.empty() && "no full index in relation");
+
+    std::size_t index_nr = 0;
+    // expand all search orders to be full
+    for (auto& ind : inds) {
+        // use a set as a cache for fast lookup
+        std::set<std::size_t> curIndexElems(ind.begin(), ind.end());
+
+        // we must expand all search orders to be full indices,
+        // since weak/strong comparators and updaters need this,
+        // and also add provenance annotations to the indices
+        // expand index to be full
+        for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
+            if (curIndexElems.find(i) == curIndexElems.end()) {
+                ind.push_back(i);
+            }
+        }
+
+        // remove any provenance annotations already in the index order
+        if (curIndexElems.find(getArity() - relation.getAuxiliaryArity() + 1) !=
+                curIndexElems.end()) {
+            ind.erase(
+                    std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity() + 1));
+        }
+
+        if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
+            ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
+        }
+
+        // add provenance annotations to the index, but in reverse order
+        ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
+        ind.push_back(getArity() - relation.getAuxiliaryArity());
+        
+        masterIndex = 0;
+        index_nr++;
+    }
+    assert(masterIndex < inds.size() && "no full index in relation");
+    computedIndices = inds;
+}
+
+void EraseRelation::computeIndices() {
+    // Generate and set indices
+    auto inds = indexSelection.getAllOrders();
+
+    // generate a full index if no indices exist
+    assert(!inds.empty() && "no full index in relation");
+
+    std::size_t index_nr = 0;
+    // expand all search orders to be full
+    for (auto& ind : inds) {
+        // use a set as a cache for fast lookup
+        std::set<std::size_t> curIndexElems(ind.begin(), ind.end());
+
+        // we must expand all search orders to be full indices,
+        // since weak/strong comparators and updaters need this,
+        // and also add provenance annotations to the indices
+        // expand index to be full
+        for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
+            if (curIndexElems.find(i) == curIndexElems.end()) {
+                ind.push_back(i);
+            }
+        }
+        masterIndex = 0;
         index_nr++;
     }
     assert(masterIndex < inds.size() && "no full index in relation");
@@ -197,13 +268,7 @@ std::string DirectRelation::getTypeName() {
     }
 
     std::stringstream res;
-    if (hasErase) {
-        res << "t_btree_delete_";
-    } else if (isAggregate) {
-        res << "t_btree_" << aggregateOp << "_";
-    } else {
-        res << "t_btree_";
-    }
+    res << "t_btree_";
     res << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
 
     for (auto& ind : getIndices()) {
@@ -215,6 +280,100 @@ std::string DirectRelation::getTypeName() {
     }
 
     return res.str();
+}
+
+std::string EraseRelation::getTypeName() {
+    std::unordered_set<std::size_t> attributesUsed;
+    for (auto& ind : getIndices()) {
+        for (auto& attr : ind) {
+            attributesUsed.insert(attr);
+        }
+    }
+
+    std::stringstream res;
+    res << "t_btree_delete_";
+    res << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
+
+    for (auto& ind : getIndices()) {
+        res << "__" << join(ind, "_");
+    }
+
+    for (auto& search : indexSelection.getSearches()) {
+        res << "__" << search;
+    }
+
+    return res.str();
+}
+
+std::string AggregateRelation::getTypeName() {
+    std::unordered_set<std::size_t> attributesUsed;
+    for (auto& ind : getIndices()) {
+        for (auto& attr : ind) {
+            attributesUsed.insert(attr);
+        }
+    }
+
+    std::stringstream res;
+    res << "t_btree_" << aggregateOp << "_";
+    res << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
+
+    for (auto& ind : getIndices()) {
+        res << "__" << join(ind, "_");
+    }
+
+    for (auto& search : indexSelection.getSearches()) {
+        res << "__" << search;
+    }
+
+    return res.str();
+}
+
+void ProvenanceRelation::generateUpdater(std::ostream& out, std::vector<std::string> /* typecasts */) {
+    std::size_t arity = getArity();
+    std::size_t auxiliaryArity = relation.getAuxiliaryArity();
+    assert(auxiliaryArity == 2 && "provenance assumes 2 aux attributes");
+    out << "struct updater_" << getTypeName() << " {\n";
+    out << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
+
+    out << "if (old_t[" << arity-2 << "] > new_t[" << arity-2 << "]) {\n";
+    out << "old_t[" << arity-2 << "] = new_t[" << arity-2 << "];\n";
+    out << "old_t[" << arity-1 << "] = new_t[" << arity-1 << "];\n";
+    out << "return true;\n";
+    out << "}\n";
+
+    out << "return false;\n";
+    out << "}\n";
+    out << "};\n";
+}
+
+void AggregateRelation::generateUpdater(std::ostream& out, std::vector<std::string> typecasts) {
+    std::size_t arity = getArity();
+    std::size_t auxiliaryArity = relation.getAuxiliaryArity();
+    assert(auxiliaryArity == 1 && "aggregate assumes 1 aux attributes");
+    out << "struct updater_" << getTypeName() << " {\n";
+    out << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
+
+    auto i = arity-1;
+
+    if (aggregateOp == "sum") {
+        out << "old_t[" << i << "] = ramBitCast<RamDomain>(" << typecasts[i] << "(old_t[" << i << "]) + " << typecasts[i] << "(new_t[" << i << "]));\n";
+        out << "return true;\n";
+    } else if (aggregateOp == "min") {
+        out << "if (" << typecasts[i] << "(old_t[" << i << "]) > " << typecasts[i] << "(new_t[" << i << "])) {\n";
+        out << "old_t[" << i << "] = new_t[" << i << "];\n";
+        out << "return true;\n";
+        out << "}\n";
+        out << "return false;\n";
+    } else {
+        assert(aggregateOp == "max" && "aggregate op must be max");
+        out << "if (" << typecasts[i] <<" (old_t[" << i << "]) < " << typecasts[i] << "(new_t[" << i << "])) {\n";
+        out << "old_t[" << i << "] = new_t[" << i << "];\n";
+        out << "return true;\n";
+        out << "}\n";
+        out << "return false;\n";
+    }
+    out << "}\n";
+    out << "};\n";
 }
 
 /** Generate type struct of a direct indexed relation */
@@ -233,47 +392,19 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
     // stored tuple type
     out << "using t_tuple = Tuple<RamDomain, " << arity << ">;\n";
 
-    // generate an updater class for provenance
-    if (isProvenance) {
-        out << "struct updater_" << getTypeName() << " {\n";
-        out << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
-        out << "bool changed = false;\n";
-        for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
-            out << "if (old_t[" << i << "] > new_t[" << i << "]) {\n";
-            out << "old_t[" << i << "] = new_t[" << i << "];\n";
-            out << "changed = true;\n";
-            out << "}\n";
+    std::vector<std::string> typecasts;
+    typecasts.reserve(types.size());
+
+    for (auto type : types) {
+        switch (type[0]) {
+            case 'f': typecasts.push_back("ramBitCast<RamFloat>"); break;
+            case 'u': typecasts.push_back("ramBitCast<RamUnsigned>"); break;
+            default: typecasts.push_back("ramBitCast<RamSigned>");
         }
-        out << "return changed;\n";
-        out << "}\n";
-        out << "};\n";
     }
 
-    // generate an updater class for aggregates
-    if (isAggregate) {
-        out << "struct updater_" << getTypeName() << " {\n";
-        out << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
-        out << "bool changed = false;\n";
-        for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
-            if (aggregateOp == "sum") {
-                out << "old_t[" << i << "] = new_t[" << i << "] + old_t[" << i << "];\n";
-                out << "changed = true;\n";
-            } else if (aggregateOp == "min") {
-                out << "if (old_t[" << i << "] > new_t[" << i << "]) {\n";
-                out << "old_t[" << i << "] = std::min(new_t[" << i << "], old_t[" << i << "]);\n";
-                out << "changed = true;\n";
-                out << "}\n";
-            } else { // (aggregateOp == "max")
-                out << "if (old_t[" << i << "] < new_t[" << i << "]) {\n";
-                out << "old_t[" << i << "] = std::max(new_t[" << i << "], old_t[" << i << "]);\n";
-                out << "changed = true;\n";
-                out << "}\n";
-            }
-        }
-        out << "return changed;\n";
-        out << "}\n";
-        out << "};\n";
-    }
+    // generate an updater class for provenance
+    this->generateUpdater(out, typecasts);
 
     // generate the btree type for each relation
     for (std::size_t i = 0; i < inds.size(); i++) {
@@ -283,30 +414,19 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             indexToNumMap[indexSelection.getAllOrders()[i]] = i;
         }
 
-        std::vector<std::string> typecasts;
-        typecasts.reserve(types.size());
-
-        for (auto type : types) {
-            switch (type[0]) {
-                case 'f': typecasts.push_back("ramBitCast<RamFloat>"); break;
-                case 'u': typecasts.push_back("ramBitCast<RamUnsigned>"); break;
-                default: typecasts.push_back("ramBitCast<RamSigned>");
-            }
-        }
-
         auto genstruct = [&](std::string name, std::size_t bound) {
             out << "struct " << name << "{\n";
             out << " int operator()(const t_tuple& a, const t_tuple& b) const {\n";
             out << "  return ";
             std::function<void(std::size_t)> gencmp = [&](std::size_t i) {
-                std::string lt;
-                std::string gt;
-                if (i + 2 == bound && isAggregate && (aggregateOp == "max" || aggregateOp == "sum")) {
-                    lt = ">";
-                    gt = "<";
-                } else {
-                    lt = "<";
-                    gt = ">";
+                std::string lt = "<";
+                std::string gt = ">";
+                if (i + 2 == bound && isA<AggregateRelation>(this)) {
+                    const auto rel = asAssert<AggregateRelation>(*this);
+                    if (rel.aggregateOp == "max") {
+                        lt = ">";
+                        gt = "<";
+                    }
                 }
                 std::size_t attrib = ind[i];
                 const auto& typecast = typecasts[attrib];
@@ -328,17 +448,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
             std::function<void(std::size_t)> genless = [&](std::size_t i) {
                 std::size_t attrib = ind[i];
                 const auto& typecast = typecasts[attrib];
-                std::string lt;
-                if (i + 1 == bound && isAggregate && aggregateOp == "max") {
-                        lt = ">";
-                } else {
-                    lt = "<";
-                }
-                if (i + 1 == bound && aggregateOp == "sum") {
-                    out << "true";
-                } else {
-                    out << "(" << typecast << "(a[" << attrib << "])" << lt << typecast << "(b[" << attrib << "]))";
-                }
+                out << "(" << typecast << "(a[" << attrib << "]) < " << typecast << "(b[" << attrib << "]))";
                 if (i + 1 < bound) {
                     out << "|| ((" << typecast << "(a[" << attrib << "]) == " << typecast << "(b[" << attrib
                         << "])) && (";
@@ -371,7 +481,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
         // for provenance, all indices must be full so we use btree_set
         // also strong/weak comparators and updater methods
 
-        if (isProvenance) {
+        if (isA<ProvenanceRelation>(this)) {
             std::string comparator_aux;
             if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
                 // index for bottom up phase
@@ -385,7 +495,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 << ",std::allocator<t_tuple>,256,typename "
                    "souffle::detail::default_strategy<t_tuple>::type,"
                 << comparator_aux << ",updater_" << getTypeName() << ">;\n";
-        } else if (isAggregate) {
+        } else if (isA<AggregateRelation>(this)) {
             std::string comparator_aux;
             comparator_aux = "t_comparator_" + std::to_string(i) + "_aux";
             genstruct(comparator_aux, ind.size() - auxiliaryArity);
@@ -395,7 +505,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
                 << comparator_aux << ",updater_" << getTypeName() << ">;\n";
         } else {
             std::string btree_name = "btree";
-            if (hasErase) {
+            if (isA<EraseRelation>(this)) {
                 btree_name = "btree_delete";
             }
             if (ind.size() == arity) {
@@ -424,7 +534,7 @@ void DirectRelation::generateTypeStruct(std::ostream& out) {
     out << "context createContext() { return context(); }\n";
 
     // erase method
-    if (hasErase) {
+    if (isA<EraseRelation>(this)) {
         out << "bool erase(const t_tuple& t) {\n";
 
         out << "if (ind_" << masterIndex << ".erase(t) > 0) {\n";
