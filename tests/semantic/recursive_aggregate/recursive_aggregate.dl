@@ -1,0 +1,35 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2016, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl dag(x:symbol, y:symbol, c:number)
+.input dag
+
+.decl max_path(x:symbol, y:symbol, c:number) btree_max
+.output max_path
+
+max_path(x, y, c) :- dag(x, y, c).
+max_path(x, y, c1+c2) :- max_path(x, z, c1), dag(z, y, c2).
+
+.decl min_path(x:symbol, y:symbol, c:number) btree_min
+.output min_path
+
+min_path(x, y, c) :- dag(x, y, c).
+min_path(x, y, c1+c2) :- min_path(x, z, c1), dag(z, y, c2).
+
+.decl sum_path(x:symbol, y:symbol, c:number) btree_sum
+.output sum_path
+
+sum_path(x, y, c) :- dag(x, y, c).
+sum_path(x, y, c1+c2) :- sum_path(x, z, c1), dag(z, y, c2).
+
+.decl graph(x:symbol, y:symbol, c:number)
+.input graph
+
+.decl min_path_c(x:symbol, y:symbol, c:number) btree_min
+.output min_path_c
+
+min_path_c(x, y, c) :- graph(x, y, c).
+min_path_c(x, y, c1+c2) :- min_path_c(x, z, c1), graph(z, y, c2).
