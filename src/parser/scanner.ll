@@ -148,6 +148,8 @@ WS [ \t\r\v\f]
                                       }
 ".once"                               {
                                         if (!driver.canEnterOnce(yylloc)) {
+                                          //yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
+                                          //yy_switch_to_buffer(yyinfo.popScannerBuffer(), yyscanner);
                                           yypop_buffer_state(yyscanner);
                                           yyinfo.pop();
                                           if (!YY_CURRENT_BUFFER) {
@@ -368,15 +370,28 @@ WS [ \t\r\v\f]
                                         std::string path = lexString(driver, yylloc, yytext);
                                         std::optional<std::filesystem::path> maybePath = driver.searchIncludePath(path, yylloc);
                                         yyin = nullptr;
-                                        if (maybePath) {
-                                          yyin = fopen(maybePath->string().c_str(), "r");
-                                        }
-                                        if (!yyin) {
+
+                                        if (!maybePath) {
                                           driver.error(yylloc, std::string("cannot find include file ") + yytext);
                                           return yy::parser::make_END(yylloc);
                                         } else {
-                                          yyinfo.push(maybePath->string(), yyinfo.LastIncludeDirectiveLoc);
-                                          yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+                                          std::error_code ec;
+                                          auto code = driver.readFile(*maybePath, ec);
+
+                                          if (ec) {
+                                            driver.error(yylloc, std::string("cannot read file ") + maybePath->u8string());
+                                            return yy::parser::make_END(yylloc);
+                                          }
+
+                                          //yyinfo.pushScannerBuffer(YY_CURRENT_BUFFER);
+                                          auto state = yy_create_buffer(nullptr, 32768, yyscanner);
+                                          yypush_buffer_state(state, yyscanner);
+                                          yy_scan_string(code->c_str(), yyscanner);
+                                          yylineno = 1;
+                                          yycolumn = 1;
+
+                                          yyinfo.holdInputBuffer(std::move(code));
+                                          yyinfo.push(*maybePath, yyinfo.LastIncludeDirectiveLoc);
                                         }
                                         BEGIN(INITIAL);
                                       }
@@ -385,6 +400,8 @@ WS [ \t\r\v\f]
 \n                                    { yycolumn = 1; }
 {WS}+                                 { }
 <<EOF>>                               {
+                                        //yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
+                                        //yy_switch_to_buffer(yyinfo.popScannerBuffer(), yyscanner);
                                         yypop_buffer_state(yyscanner);
                                         yyinfo.pop();
                                         if (!YY_CURRENT_BUFFER) {

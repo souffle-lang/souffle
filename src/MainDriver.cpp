@@ -853,7 +853,7 @@ int main(Global& glb, const char* souffle_executable) {
 
     DebugReport debugReport(glb);
     Own<ast::TranslationUnit> astTranslationUnit = ParserDriver::parseTranslationUnit(
-            glb, InputPath.string(), Input->getInputStream(), errReport, debugReport);
+            glb, InputPath.u8string(), Input->getInputStream(), errReport, debugReport);
     Input->endInput();
 
     /* Report run-time of the parser if verbose flag is set */

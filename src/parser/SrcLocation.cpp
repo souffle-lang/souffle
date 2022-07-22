@@ -134,8 +134,9 @@ void SrcLocation::print(std::ostream& out) const {
     out << getReportedFilename() << " [" << start << "-" << end << "]";
 }
 
-void ScannerInfo::push(const std::string& Physical, const SrcLocation& IncludeLoc) {
-    yyfilename = std::make_shared<IncludeStack>(yyfilename, IncludeLoc.start, Physical, Physical);
+void ScannerInfo::push(
+        const std::filesystem::path& Physical, const SrcLocation& IncludeLoc) {
+    yyfilename = std::make_shared<IncludeStack>(yyfilename, IncludeLoc.start, Physical, Physical.u8string());
 }
 
 void ScannerInfo::pop() {
@@ -149,6 +150,23 @@ void ScannerInfo::setReported(const std::string& Reported) {
         yyfilename = std::make_shared<IncludeStack>(
                 yyfilename->ParentStack, yyfilename->IncludePos, yyfilename->Physical, Reported);
     }
+}
+
+void ScannerInfo::pushScannerBuffer(YY_BUFFER_STATE St) {
+    ScannerBuffers.push(St);
+}
+
+YY_BUFFER_STATE ScannerInfo::popScannerBuffer() {
+    if (ScannerBuffers.empty()) {
+        return nullptr;
+    }
+    YY_BUFFER_STATE St = ScannerBuffers.top();
+    ScannerBuffers.pop();
+    return St;
+}
+
+void ScannerInfo::holdInputBuffer(std::unique_ptr<std::string> Buffer) {
+  InputBuffers.push_back(std::move(Buffer));
 }
 
 }  // end of namespace souffle
