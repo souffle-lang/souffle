@@ -169,7 +169,7 @@ flex_target(scanner parser/scanner.ll ${CMAKE_CURRENT_BINARY_DIR}/parser/scanner
   COMPILE_FLAGS "${SCANNER_COMPILE_FLAGS} -d")
 
 bison_target(parser parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser/parser.cc
-             COMPILE_FLAGS "-Wall -Werror -Wno-error=deprecated -Wno-error=other -v -d")
+             COMPILE_FLAGS "-Wall -Wno-error=deprecated -Wno-error=other -v -d")
 add_flex_bison_dependency(scanner parser)
 
 
@@ -220,7 +220,7 @@ set_target_properties(libsouffle PROPERTIES CXX_EXTENSIONS OFF)
 set_target_properties(compiled PROPERTIES CXX_EXTENSIONS OFF)
 
 if (NOT MSVC)
-  target_compile_options(libsouffle PUBLIC -Wall -Wextra -Werror -fwrapv)
+  target_compile_options(libsouffle PUBLIC -Wall -Wextra -fwrapv)
 else ()
   target_compile_options(libsouffle PUBLIC /W3 /WX)
 endif ()
