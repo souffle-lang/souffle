@@ -61,8 +61,10 @@ struct Point {
 /** A recursive include stack. */
 struct IncludeStack {
     explicit IncludeStack(std::shared_ptr<IncludeStack> parent, Point includePos,
-            const std::filesystem::path& physical, const std::string& reported)
-            : ParentStack(parent), IncludePos(includePos), Physical(physical), Reported(reported) {}
+            const std::filesystem::path& physical, const std::string& reported,
+            bool reducedConsecutiveNonLeadingWhitespaces = false)
+            : ParentStack(parent), IncludePos(includePos), Physical(physical), Reported(reported),
+              ReducedConsecutiveNonLeadingWhitespaces(reducedConsecutiveNonLeadingWhitespaces) {}
 
     /** The parent file. */
     const std::shared_ptr<IncludeStack> ParentStack;
@@ -75,19 +77,25 @@ struct IncludeStack {
 
     /** The reported path for this file in UTF-8 encoding. */
     const std::string Reported;
+
+    /** Indicate if this input had consecutive non-leading whitespace
+     * characters replaced by a single space. */
+    const bool ReducedConsecutiveNonLeadingWhitespaces;
 };
 
 /** A class describing a range in an input file */
 class SrcLocation {
 public:
-    /** The file referred to */
+
+    /** Include stack of scanned files, top is the current scanned file. It's
+     * not necessarily reflecting the actual input buffers stack. */
     std::shared_ptr<IncludeStack> file;
 
     /** The start location */
-    Point start = {};
+    Point start = {1,1};
 
     /** The End location */
-    Point end = {};
+    Point end = {1,1};
 
     /** Return the shortened reported file name */
     std::string getReportedFilename() const;
@@ -124,15 +132,14 @@ struct ScannerInfo {
     /** Scanner's current location */
     SrcLocation yylloc;
 
-    /** Include stack of scanned files, top is the current scanned file. It's
-     * not necessarily reflecting the actual input buffers stack. */
-    std::shared_ptr<IncludeStack> yyfilename;
+    /** Stack of source location cursors for each of the currently opened
+     * physical input sources. */
+    std::stack<SrcLocation> Frames;
 
     /** Hold the input buffers for the lifetime of the scanner. */
     std::list<std::shared_ptr<std::string>> InputBuffers;
 
-    std::stack<YY_BUFFER_STATE> ScannerBuffers;
-
+    /** File system abstraction for this parser. */
     std::shared_ptr<FileSystem> FS;
 
     /** Location of last .include directive */
@@ -145,17 +152,13 @@ struct ScannerInfo {
     std::stringstream CommentContent;
 
     /** Push a file on the include stack */
-    void push(const std::filesystem::path& PhysicalPath, const SrcLocation& IncludeLoc);
+    void push(const std::filesystem::path& PhysicalPath, const SrcLocation& IncludeLoc, bool reducedWhitespaces = false);
 
     /** Pop a file from the include stack */
     void pop();
 
     /** Set the reported path for the top of the include stack (current file) */
     void setReported(const std::string& Reported);
-
-    void pushScannerBuffer(YY_BUFFER_STATE);
-
-    YY_BUFFER_STATE popScannerBuffer();
 
     /** Hold the given input buffer for the lifetime of the scanner. */
     void holdInputBuffer(std::unique_ptr<std::string> Buffer);

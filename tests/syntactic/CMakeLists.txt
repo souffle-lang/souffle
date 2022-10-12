@@ -92,3 +92,39 @@ souffle_run_test(
   INCLUDE_DIRS q1 q2
   NO_PREPROCESSOR
   )
+souffle_run_test(
+  TEST_NAME sourceloc1
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc2
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc3
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc4
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc5
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME unterminated_comment
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )

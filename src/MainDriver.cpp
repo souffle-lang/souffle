@@ -226,6 +226,7 @@ public:
     virtual ~InputProvider() {}
     virtual FILE* getInputStream() = 0;
     virtual bool endInput() = 0;
+    virtual bool reducedConsecutiveNonLeadingWhitespaces() const = 0;
 };
 
 class FileInput : public InputProvider {
@@ -255,6 +256,10 @@ public:
             Stream = nullptr;
             return true;
         }
+    }
+
+    bool reducedConsecutiveNonLeadingWhitespaces() const override {
+      return false;
     }
 
 private:
@@ -331,6 +336,10 @@ public:
         return true;
     }
 
+    virtual bool reducedConsecutiveNonLeadingWhitespaces() const override {
+        return true;
+    }
+
     static bool available(const std::string& Exec) {
         return !which(Exec).empty();
     }
@@ -355,6 +364,10 @@ public:
     static bool available() {
         return PreprocInput::available("gcc");
     }
+
+    bool reducedConsecutiveNonLeadingWhitespaces() const override {
+      return true;
+    }
 };
 
 class MCPPPreprocInput : public PreprocInput {
@@ -366,6 +379,10 @@ public:
 
     static bool available() {
         return PreprocInput::available("mcpp");
+    }
+
+    bool reducedConsecutiveNonLeadingWhitespaces() const override {
+      return true;
     }
 };
 
@@ -852,8 +869,9 @@ int main(Global& glb, const char* souffle_executable) {
     ErrorReport errReport(process_warn_opts(glb));
 
     DebugReport debugReport(glb);
-    Own<ast::TranslationUnit> astTranslationUnit = ParserDriver::parseTranslationUnit(
-            glb, InputPath.u8string(), Input->getInputStream(), errReport, debugReport);
+    Own<ast::TranslationUnit> astTranslationUnit =
+            ParserDriver::parseTranslationUnit(glb, InputPath.u8string(), Input->getInputStream(),
+                    Input->reducedConsecutiveNonLeadingWhitespaces(), errReport, debugReport);
     Input->endInput();
 
     /* Report run-time of the parser if verbose flag is set */

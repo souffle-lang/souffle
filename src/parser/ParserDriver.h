@@ -69,15 +69,16 @@ public:
 
     Own<ast::Counter> addDeprecatedCounter(SrcLocation tagLoc);
 
-    Own<ast::TranslationUnit> parse(
-            const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport);
+    Own<ast::TranslationUnit> parse(const std::string& filename, FILE* in,
+            bool reducedConsecutiveNonLeadingWhitespaces, ErrorReport& errorReport, DebugReport& debugReport);
     Own<ast::TranslationUnit> parse(
             const std::string& code, ErrorReport& errorReport, DebugReport& debugReport);
     Own<ast::TranslationUnit> parseFromFS(
             const std::filesystem::path& path, ErrorReport& errorReport, DebugReport& debugReport);
 
     static Own<ast::TranslationUnit> parseTranslationUnit(Global& glb, const std::string& filename, FILE* in,
-            ErrorReport& errorReport, DebugReport& debugReport, std::shared_ptr<FileSystem> vfs = nullptr);
+            bool reducedConsecutiveNonLeadingWhitespaces, ErrorReport& errorReport, DebugReport& debugReport,
+            std::shared_ptr<FileSystem> vfs = nullptr);
     static Own<ast::TranslationUnit> parseTranslationUnit(Global& glb, const std::string& code,
             ErrorReport& errorReport, DebugReport& debugReport, std::shared_ptr<FileSystem> vfs = nullptr);
     static Own<ast::TranslationUnit> parseTranslationUnitFromFS(Global& glb,

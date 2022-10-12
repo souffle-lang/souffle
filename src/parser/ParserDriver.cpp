@@ -67,7 +67,9 @@ ParserDriver::ParserDriver(Global& g, std::shared_ptr<FileSystem> fs) : glb(g) {
 }
 
 Own<ast::TranslationUnit> ParserDriver::parse(
-        const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport) {
+        const std::string& filename, FILE* in,
+        bool reducedConsecutiveNonLeadingWhitespaces,
+        ErrorReport& errorReport, DebugReport& debugReport) {
     translationUnit = mk<ast::TranslationUnit>(glb, mk<ast::Program>(), errorReport, debugReport);
     yyscan_t scanner;
     ScannerInfo data(vfs);
@@ -78,13 +80,13 @@ Own<ast::TranslationUnit> ParserDriver::parse(
       std::error_code ec;
       filePath = vfs->canonical(filename, ec);
     }
-    data.push(filePath, emptyLoc);
+    data.push(filePath, emptyLoc, reducedConsecutiveNonLeadingWhitespaces);
 
     yylex_init_extra(&data, &scanner);
     yyset_debug(0, scanner);
 
     auto state = yy_create_buffer(in, 32768, scanner);
-    yypush_buffer_state(state, scanner);
+    yy_switch_to_buffer(state, scanner);
 
     yy::parser parser(*this, scanner);
     parser.parse();
@@ -124,6 +126,7 @@ Own<ast::TranslationUnit> ParserDriver::parseFromFS(
     yy_scan_string(code->c_str(), scanner);
 
     yy::parser parser(*this, scanner);
+
     parser.parse();
 
     yylex_destroy(scanner);
@@ -157,10 +160,12 @@ Own<ast::TranslationUnit> ParserDriver::parse(
 }
 
 Own<ast::TranslationUnit> ParserDriver::parseTranslationUnit(Global& glb, const std::string& filename,
-        FILE* in, ErrorReport& errorReport, DebugReport& debugReport,
+        FILE* in, 
+bool reducedConsecutiveNonLeadingWhitespaces,
+        ErrorReport& errorReport, DebugReport& debugReport,
         std::shared_ptr<FileSystem> vfs) {
     ParserDriver parser(glb, vfs);
-    return parser.parse(filename, in, errorReport, debugReport);
+    return parser.parse(filename, in, reducedConsecutiveNonLeadingWhitespaces, errorReport, debugReport);
 }
 
 Own<ast::TranslationUnit> ParserDriver::parseTranslationUnitFromFS(Global& glb,
