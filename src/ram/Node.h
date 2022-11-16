@@ -24,7 +24,6 @@
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <typeinfo>
 #include <utility>
 #include <vector>
 
@@ -205,6 +204,7 @@ private:
 
 public:
     explicit Node(NodeKind K);
+    Node() = delete;
     virtual ~Node() = default;
     Node(Node const&) = delete;
     Node& operator=(Node const&) = delete;

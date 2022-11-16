@@ -2099,7 +2099,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
             PRINT_BEGIN_COMMENT(out);
 
-// clang-format off
+            // clang-format off
 #define UNARY_OP(opcode, ty, op)                \
     case FunctorOp::opcode: {                   \
         out << "(" #op "(ramBitCast<" #ty ">("; \
@@ -2560,6 +2560,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         db.addGlobalInclude("\"souffle/profile/Tui.h\"");
     }
 
+    db.addGlobalInclude("\"souffle/utility/MiscUtil.h\"");
     if (glb.config().has("profile") || glb.config().has("live-profile")) {
         db.addGlobalInclude("\"souffle/profile/Logger.h\"");
         db.addGlobalInclude("\"souffle/profile/ProfileEvent.h\"");

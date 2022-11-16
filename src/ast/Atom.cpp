@@ -53,6 +53,7 @@ Node::NodeVec Atom::getChildren() const {
 }
 
 void Atom::print(std::ostream& os) const {
+    printAnnotations(os);
     os << getQualifiedName() << "(" << join(arguments) << ")";
 }
 

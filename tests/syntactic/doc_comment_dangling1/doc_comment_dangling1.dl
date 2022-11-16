@@ -1,0 +1,5 @@
+.decl foo()
+foo().
+/// useless doc comment before include
+.include "inc.dl"
+/// useless at end of file

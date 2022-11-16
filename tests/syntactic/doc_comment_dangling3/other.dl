@@ -1,0 +1,3 @@
+
+.decl no_doc_comment()
+no_doc_comment().

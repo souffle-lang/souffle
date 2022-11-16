@@ -34,6 +34,7 @@ void SubsumptiveClause::addToBodyFront(Own<Literal> literal) {
 }
 
 void SubsumptiveClause::print(std::ostream& os) const {
+    printAnnotations(os);
     os << *bodyLiterals[0];
     os << " <= ";
     os << *bodyLiterals[1];
@@ -51,7 +52,8 @@ void SubsumptiveClause::print(std::ostream& os) const {
 }
 
 SubsumptiveClause* SubsumptiveClause::cloning() const {
-    return new SubsumptiveClause(clone(head), clone(bodyLiterals), clone(plan), getSrcLoc());
+    auto cl = new SubsumptiveClause(clone(head), clone(bodyLiterals), clone(plan), getSrcLoc());
+    return cl;
 }
 
 Clause* SubsumptiveClause::cloneHead() const {
@@ -59,6 +61,7 @@ Clause* SubsumptiveClause::cloneHead() const {
     if (getExecutionPlan() != nullptr) {
         myClone->setExecutionPlan(clone(getExecutionPlan()));
     }
+    myClone->setAnnotationsFrom(*this);
     return myClone;
 }
 

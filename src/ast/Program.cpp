@@ -259,7 +259,7 @@ void Program::addFunctorDeclaration(Own<FunctorDeclaration> f) {
     functors.push_back(std::move(f));
 }
 
-std::vector<ComponentInit*> Program::getComponentInstantiations() const {
+std::vector<ComponentInit*> Program::getInstantiations() const {
     return toPtrVector(instantiations);
 }
 
@@ -334,6 +334,11 @@ Program* Program::cloning() const {
 
 bool Program::classof(const Node* n) {
     return n->getKind() == NK_Program;
+}
+
+bool Program::equal(const Node&) const {
+    assert("never needed" && false);
+    throw("not implemented");
 }
 
 }  // namespace souffle::ast

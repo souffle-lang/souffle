@@ -124,8 +124,13 @@
 
 %}
 
-%x COMMENT
+%x BLOCK_COMMENT
+%x INLINE_COMMENT_START
+%x INLINE_COMMENT_CONT
+%x INNER_DOC_COMMENT
+%x OUTER_DOC_COMMENT
 %x INCLUDE
+%x REALEND
 
 WS [ \t\r\v\f]
 
@@ -154,7 +159,7 @@ WS [ \t\r\v\f]
                                       }
 ".once"                               {
                                         if (!driver.canEnterOnce(yylloc)) {
-                                          auto loc = yylloc;
+                                          const auto loc = yylloc;
                                           yypop_buffer_state(yyscanner);
                                           yyinfo.pop();
                                           if (!YY_CURRENT_BUFFER) {
@@ -179,7 +184,6 @@ WS [ \t\r\v\f]
 "mean"                                { return yy::parser::make_MEAN(yylloc); }
 "cat"                                 { return yy::parser::make_CAT(yylloc); }
 "ord"                                 { return yy::parser::make_ORD(yylloc); }
-"fold"                                { return yy::parser::make_FOLD(yylloc); }
 "range"                               { return yy::parser::make_RANGE(yylloc); }
 "strlen"                              { return yy::parser::make_STRLEN(yylloc); }
 "substr"                              { return yy::parser::make_SUBSTR(yylloc); }
@@ -246,6 +250,7 @@ WS [ \t\r\v\f]
 "("                                   { return yy::parser::make_LPAREN(yylloc); }
 ")"                                   { return yy::parser::make_RPAREN(yylloc); }
 ","                                   { return yy::parser::make_COMMA(yylloc); }
+"::"                                  { return yy::parser::make_DOUBLECOLON(yylloc); }
 ":"                                   { return yy::parser::make_COLON(yylloc); }
 ";"                                   { return yy::parser::make_SEMICOLON(yylloc); }
 "."                                   { return yy::parser::make_DOT(yylloc); }
@@ -256,7 +261,6 @@ WS [ \t\r\v\f]
 "="                                   { return yy::parser::make_EQUALS(yylloc); }
 "!"                                   { return yy::parser::make_EXCLAMATION(yylloc); }
 "*"                                   { return yy::parser::make_STAR(yylloc); }
-"@"                                   { return yy::parser::make_AT(yylloc); }
 "/"                                   { return yy::parser::make_SLASH(yylloc); }
 "^"                                   { return yy::parser::make_CARET(yylloc); }
 "%"                                   { return yy::parser::make_PERCENT(yylloc); }
@@ -265,6 +269,8 @@ WS [ \t\r\v\f]
 "<"                                   { return yy::parser::make_LT(yylloc); }
 ">"                                   { return yy::parser::make_GT(yylloc); }
 ":-"                                  { return yy::parser::make_IF(yylloc); }
+"@!"                                  { return yy::parser::make_ATNOT(yylloc); }
+"@"                                   { return yy::parser::make_AT(yylloc); }
 [0-9]+"."[0-9]+"."[0-9]+"."[0-9]+     {
                                         try {
                                         char *token = std::strtok(yytext, ".");
@@ -342,24 +348,99 @@ WS [ \t\r\v\f]
                                           }
                                         }
                                       }
-"//".*$                               {
-                                        yyinfo.CommentExtent = yylloc;
-                                        yyinfo.CommentContent.str(yytext);
-                                        driver.addComment(yyinfo.CommentExtent, yyinfo.CommentContent);
-                                        yyinfo.CommentContent.str("");
+"//"                                  {
+                                          yyinfo.CommentContent.str("");
+                                          yyinfo.CommentExtent = yylloc;
+                                          yyinfo.commentKind = CommentKind::Inline;
+                                          yyinfo.CommentContent << yytext;
+                                          BEGIN(INLINE_COMMENT_START);
                                       }
 "/*"                                  {
-                                        yyinfo.CommentContent.str("");
-                                        yyinfo.CommentExtent = yylloc;
-                                        yyinfo.CommentContent << yytext;
-                                        BEGIN(COMMENT);
+                                          yyinfo.CommentContent.str("");
+                                          yyinfo.CommentExtent = yylloc;
+                                          yyinfo.commentKind = CommentKind::Block;
+                                          yyinfo.CommentContent << yytext;
+                                          BEGIN(BLOCK_COMMENT);
                                       }
-<COMMENT>{
+<INLINE_COMMENT_START>{
+"/"                                   {
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent.str("");
+                                          yyinfo.commentKind = CommentKind::DocOuter;
+                                          BEGIN(OUTER_DOC_COMMENT);
+                                      }
+"!"                                   {
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent.str("");
+                                          yyinfo.commentKind = CommentKind::DocInner;
+                                          BEGIN(INNER_DOC_COMMENT);
+                                      }
+[^/!\r\n]                             {
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << yytext;
+                                          BEGIN(INLINE_COMMENT_CONT);
+                                      }
+\r?\n                                 {
+                                          driver.addComment(yyinfo.CommentExtent, yyinfo.commentKind, yyinfo.CommentContent);
+                                          yyinfo.CommentContent.str("");
+                                          BEGIN(INITIAL);
+                                      }
+}
+<INLINE_COMMENT_CONT>{
+[^\r\n]+                              {
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << yytext;
+                                      }
+\r?\n{WS}*"//!"                       { // continuation of the doc comment at next line
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << "\n";
+                                      }
+\r?\n                                 {
+                                          driver.addComment(yyinfo.CommentExtent, yyinfo.commentKind, yyinfo.CommentContent);
+                                          yyinfo.CommentContent.str("");
+                                          BEGIN(INITIAL);
+                                      }
+}
+<OUTER_DOC_COMMENT>{
+[^\r\n]+                              {
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << yytext;
+                                      }
+\r?\n{WS}*"///"                       { // continuation of the doc comment at next line
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << "\n";
+                                      }
+\r?\n                                 { // end of doc comment at this line
+                                          driver.addComment(yyinfo.CommentExtent, yyinfo.commentKind, yyinfo.CommentContent);
+                                          auto token = yy::parser::make_OUTER_DOC_COMMENT(
+                                                  yyinfo.CommentContent.str(), yyinfo.CommentExtent);
+                                          BEGIN(INITIAL);
+                                          return token;
+                                      }
+}
+<INNER_DOC_COMMENT>{
+[^\r\n]+                              {
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << yytext;
+                                      }
+\r?\n{WS}*"//!"                       { // continuation of the doc comment at next line
+                                          yyinfo.CommentExtent += yylloc;
+                                          yyinfo.CommentContent << "\n";
+                                      }
+\r?\n                                 { // end of doc comment at this line
+                                          driver.addComment(yyinfo.CommentExtent, yyinfo.commentKind, yyinfo.CommentContent);
+                                          auto token = yy::parser::make_INNER_DOC_COMMENT(
+                                                        yyinfo.CommentContent.str(), yyinfo.CommentExtent);
+                                          yyinfo.CommentContent.str("");
+                                          BEGIN(INITIAL);
+                                          return token;
+                                      }
+}
+<BLOCK_COMMENT>{
 "*/"                                  {
                                         yyinfo.CommentExtent += yylloc;
-                                        std::string X(yytext);
-                                        yyinfo.CommentContent << X;
-                                        driver.addComment(yyinfo.CommentExtent, yyinfo.CommentContent);
+                                        yyinfo.CommentContent << yytext;
+                                        driver.addComment(yyinfo.CommentExtent, yyinfo.commentKind, yyinfo.CommentContent);
                                         yyinfo.CommentContent.str("");
                                         BEGIN(INITIAL);
                                       }
@@ -367,13 +448,13 @@ WS [ \t\r\v\f]
 "*"                                   { yyinfo.CommentExtent += yylloc; yyinfo.CommentContent << yytext; }
 \n                                    { yyinfo.CommentExtent += yylloc; yyinfo.CommentContent << yytext; }
 <<EOF>>                               { /* unterminated comment */
-                                          yyinfo.CommentExtent += yylloc;
-                                          std::string X(yytext);
-                                          yyinfo.CommentContent << X;
-                                          driver.addComment(yyinfo.CommentExtent, yyinfo.CommentContent);
+                                          const auto loc = yylloc;
+                                          yyinfo.CommentExtent += loc;
+                                          yyinfo.CommentContent << yytext;
+                                          driver.addComment(yyinfo.CommentExtent, yyinfo.commentKind, yyinfo.CommentContent);
                                           yyinfo.CommentContent.str("");
 
-                                          driver.error(yyinfo.CommentExtent, std::string("unterminated comment block"));
+                                          driver.error(yyinfo.CommentExtent, std::string("unterminated comment block, missing '*/'"));
                                           BEGIN(INITIAL);
                                       }
 }
@@ -384,16 +465,17 @@ WS [ \t\r\v\f]
                                         std::optional<std::filesystem::path> maybePath = driver.searchIncludePath(path, yylloc);
                                         yyin = nullptr;
 
+                                        const auto loc = yylloc;
                                         if (!maybePath) {
-                                          driver.error(yylloc, std::string("cannot find include file ") + yytext);
-                                          return yy::parser::make_END(yylloc);
+                                          driver.error(loc, std::string("cannot find include file ") + yytext);
+                                          return yy::parser::make_END(loc);
                                         } else {
                                           std::error_code ec;
                                           auto code = driver.readFile(*maybePath, ec);
 
                                           if (ec) {
                                             driver.error(yylloc, std::string("cannot read file ") + maybePath->u8string());
-                                            return yy::parser::make_END(yylloc);
+                                            return yy::parser::make_END(loc);
                                           }
 
                                           auto state = yy_create_buffer(nullptr, 32768, yyscanner);
@@ -408,19 +490,40 @@ WS [ \t\r\v\f]
                                                   false);
                                         }
                                         BEGIN(INITIAL);
+                                        // emit a token to re-synchronize source location information
+                                        // in the parser.
+                                        return yy::parser::make_ENTER(yylloc);
                                       }
-.                                     { driver.error(yylloc, std::string("unexpected ") + yytext); }
+.                                     {
+                                        driver.error(yylloc, std::string("unexpected ") + yytext);
+                                        return yy::parser::make_YYUNDEF(yylloc);
+                                      }
 }
 \n                                    { }
 {WS}+                                 { }
+<REALEND>{
 <<EOF>>                               {
-                                        auto loc = yylloc;
+                                        const auto loc = yylloc;
                                         yypop_buffer_state(yyscanner);
                                         yyinfo.pop();
-                                        if (!YY_CURRENT_BUFFER) {
-                                          return yy::parser::make_END(loc);
+                                        return yy::parser::make_END(loc);
+                                      }
+}
+<<EOF>>                               {
+                                        if (yyinfo.inInputFile()) {
+                                          BEGIN(REALEND);
+                                          return yy::parser::make_ENDFILE(yylloc);
+                                        } else {
+                                          yypop_buffer_state(yyscanner);
+                                          yyinfo.pop();
+                                          // emit a token to re-synchronize source location information
+                                          // in the parser.
+                                          return yy::parser::make_LEAVE(yylloc);
                                         }
                                       }
-.                                     { driver.error(yylloc, std::string("unexpected ") + yytext); }
+.                                     {
+                                        driver.error(yylloc, std::string("unexpected ") + yytext);
+                                        return yy::parser::make_YYUNDEF(yylloc);
+                                      }
 %%
 // vim: filetype=lex

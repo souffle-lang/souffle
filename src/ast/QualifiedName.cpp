@@ -92,6 +92,17 @@ void QualifiedName::prepend(const std::string& segment) {
     *this = Interner.intern(segment + "." + data().qualified);
 }
 
+void QualifiedName::append(const QualifiedName& rhs) {
+    if (rhs.empty()) {
+        return;
+    }
+    if (empty()) {
+        index = rhs.index;
+        return;
+    }
+    *this = Interner.intern(toString() + "." + rhs.toString());
+}
+
 /** convert to a string separated by fullstop */
 const std::string& QualifiedName::toString() const {
     return data().qualified;
@@ -127,6 +138,24 @@ uint32_t QualifiedName::getIndex() const {
 
 bool QualifiedName::empty() const {
     return index == 0;
+}
+
+QualifiedName QualifiedName::head() const {
+    if (empty()) {
+        return QualifiedName();
+    }
+    return fromString(data().segments.front());
+}
+
+QualifiedName QualifiedName::tail() const {
+    const QualifiedNameData& qdata = data();
+    if (qdata.segments.size() < 2) {
+        return QualifiedName();
+    } else {
+        std::stringstream ss;
+        ss << join(qdata.segments.begin() + 1, qdata.segments.end(), "");
+        return fromString(ss.str());
+    }
 }
 
 bool QualifiedNameData::lexicalLess(const QualifiedNameData& other) const {

@@ -74,6 +74,7 @@ Node::NodeVec Clause::getChildren() const {
 }
 
 void Clause::print(std::ostream& os) const {
+    printAnnotations(os);
     os << *head;
     if (!bodyLiterals.empty()) {
         os << " :- \n   " << join(bodyLiterals, ",\n   ");
@@ -84,6 +85,14 @@ void Clause::print(std::ostream& os) const {
     }
 }
 
+void Clause::printForDebugInfo(std::ostream& os) const {
+    os << *head;
+    if (!bodyLiterals.empty()) {
+        os << " :- \n   " << join(bodyLiterals, ",\n   ");
+    }
+    os << ".";
+}
+
 bool Clause::equal(const Node& node) const {
     const auto& other = asAssert<Clause>(node);
     return equal_ptr(head, other.head) && equal_targets(bodyLiterals, other.bodyLiterals) &&
@@ -91,7 +100,8 @@ bool Clause::equal(const Node& node) const {
 }
 
 Clause* Clause::cloning() const {
-    return new Clause(clone(head), clone(bodyLiterals), clone(plan), getSrcLoc());
+    auto* cl = new Clause(clone(head), clone(bodyLiterals), clone(plan), getSrcLoc());
+    return cl;
 }
 
 Clause* Clause::cloneHead() const {
@@ -99,6 +109,7 @@ Clause* Clause::cloneHead() const {
     if (getExecutionPlan() != nullptr) {
         myClone->setExecutionPlan(clone(getExecutionPlan()));
     }
+    myClone->setAnnotationsFrom(*this);
     return myClone;
 }
 

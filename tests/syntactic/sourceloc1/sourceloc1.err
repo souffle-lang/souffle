@@ -1,4 +1,4 @@
-Error: syntax error, unexpected ., expecting end of file in file sourceloc1.dl at line 1
+Error: syntax error, unexpected . in file sourceloc1.dl at line 1
 .bad
 ^----
 1 errors generated, evaluation aborted

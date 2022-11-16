@@ -1,0 +1,9 @@
+Warning: doc comment found before '.include', not attached to anything in file doc_comment_dangling1.dl at line 3
+/// useless doc comment before include
+^--------------------------------------
+Warning: doc comment found at end of file, not attached to anything in file doc_comment_dangling1.dl at line 5
+/// useless at end of file
+^--------------------------
+Warning: doc comment found at end of included file, not attached to anything in file inc.dl at line 1
+/// useless comment at the end of included file
+^-----------------------------------------------

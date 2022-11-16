@@ -37,6 +37,7 @@ void Directive::addParameter(const std::string& key, std::string value) {
 }
 
 void Directive::print(std::ostream& os) const {
+    printAnnotations(os);
     os << "." << type << " " << name;
     if (!parameters.empty()) {
         os << "(" << join(parameters, ",", [](std::ostream& out, const auto& arg) {

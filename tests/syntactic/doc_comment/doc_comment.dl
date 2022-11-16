@@ -1,0 +1,37 @@
+/// Comp outer
+    /// Comp outer continued
+.comp Comp {///! Comp inner
+  ///! Comp inner continued
+
+  /// foo outer
+  .decl foo(
+    /// x's comment
+    x:number)
+
+  /// foo(1) atom comment
+  foo(1).
+
+  /// foo(i) atom
+  foo(i),
+  /// foo(i+1) atom
+  foo(i+1) :-
+    i = 3.
+}
+
+/// T outer
+.type T =
+    A
+    {//! A's inner
+     /// A.z
+     z:symbol
+    }
+  | /// B outter
+    B { //! B's inner
+    }
+
+/// init C
+.init C = Comp
+
+/// output C.foo
+.output C.foo
+

@@ -20,6 +20,7 @@
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
 #include "ast/Directive.h"
+#include "ast/ItemContainer.h"
 #include "ast/Lattice.h"
 #include "ast/Node.h"
 #include "ast/Relation.h"
@@ -43,7 +44,7 @@ namespace souffle::ast {
  *
  * Component consists of type declaration, relations, rules, etc.
  */
-class Component : public Node {
+class Component : public Node, public ItemContainer {
 public:
     Component(SrcLocation loc = {});
 
@@ -62,48 +63,48 @@ public:
     void addBaseComponent(Own<ComponentType> component);
 
     /** Add type */
-    void addType(Own<Type> t);
+    void addType(Own<Type> t) override;
 
     /** Get types */
-    std::vector<Type*> getTypes() const;
+    std::vector<Type*> getTypes() const override;
 
     /** Add lattice */
-    void addLattice(Own<Lattice> lat);
+    void addLattice(Own<Lattice> lat) override;
 
-    std::vector<Lattice*> getLattices() const;
+    std::vector<Lattice*> getLattices() const override;
 
     /** Copy base components */
     void copyBaseComponents(const Component& other);
 
     /** Add relation */
-    void addRelation(Own<Relation> r);
+    void addRelation(Own<Relation> r) override;
 
     /** Get relations */
-    std::vector<Relation*> getRelations() const;
+    std::vector<Relation*> getRelations() const override;
 
     /** Add clause */
-    void addClause(Own<Clause> c);
+    void addClause(Own<Clause> c) override;
 
     /** Get clauses */
-    std::vector<Clause*> getClauses() const;
+    std::vector<Clause*> getClauses() const override;
 
     /** Add directive */
-    void addDirective(Own<Directive> directive);
+    void addDirective(Own<Directive> directive) override;
 
     /** Get directive statements */
-    std::vector<Directive*> getDirectives() const;
+    std::vector<Directive*> getDirectives() const override;
 
     /** Add components */
-    void addComponent(Own<Component> c);
+    void addComponent(Own<Component> c) override;
 
     /** Get components */
-    std::vector<Component*> getComponents() const;
+    std::vector<Component*> getComponents() const override;
 
     /** Add instantiation */
-    void addInstantiation(Own<ComponentInit> i);
+    void addInstantiation(Own<ComponentInit> i) override;
 
     /** Get instantiation */
-    std::vector<ComponentInit*> getInstantiations() const;
+    std::vector<ComponentInit*> getInstantiations() const override;
 
     /** Add override */
     void addOverride(const std::string& name) {

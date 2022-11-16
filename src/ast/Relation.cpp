@@ -63,6 +63,7 @@ Node::NodeVec Relation::getChildren() const {
 }
 
 void Relation::print(std::ostream& os) const {
+    printAnnotations(os);
     os << ".decl " << getQualifiedName() << "(" << join(attributes, ", ") << ")" << join(qualifiers, " ")
        << " " << representation;
     if (!functionalDependencies.empty()) {

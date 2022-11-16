@@ -19,7 +19,6 @@
 #include <cassert>
 #include <functional>
 #include <memory>
-#include <typeinfo>
 #include <utility>
 #include <vector>
 

@@ -1,0 +1,157 @@
+// note: all annotations are fake in this file
+
+/// doc comment for `R`
+.type R = [
+  /// a
+  @[type]
+  @[decl]
+  @[as]
+  @[btree]
+  @[choice-domain]
+  @[min]
+  @[true]
+  a:number,
+  /// b
+  @[form = b c d]
+  @[form = {}]
+  @[form = []]
+  @[form = ()]
+  @[form = {=}]
+  @[form = [=]]
+  @[form = (=)]
+  @[form {=}]
+  @[form [=]]
+  @[form (=)]
+  b:number
+]
+
+/// doc comment for `Pos`
+.type Pos <: number
+
+/// doc comment for `Neg`
+.type Neg = number
+
+/// doc comment for `PosNeg`
+.type PosNeg =
+    // no doc comment for members of union type
+    // because they are not `Node` of the AST
+    Pos | Neg
+
+// annotation of a type
+@[xtype(T)]
+/// doc comment for `T`
+.type T =
+    @[xbranch(One)]
+    /// branch `One`
+    One{
+      //! inner branch `One`
+    }
+  | /// branch `Two`
+    @[xbranch(Two)]
+    Two{
+      //! inner branch `Two`
+      /// attribute v
+      @[xattr(v)]
+      v: symbol
+    }
+
+/// lub for lattice T<>
+@[xlub]
+.functor lub(a:T, b:T): T stateful
+
+/// glub for lattice T<>
+@[xglb]
+.functor glb(a:T, b:T): T stateful
+
+/// Lattice on T
+@[xlattice(T)]
+.lattice T<> {
+  Bottom -> $One(),
+  Lub -> @lub(_,_),
+  Glb -> @glb(_,_)
+}
+
+/// annotation of a component declaration
+@[xcomp {
+  // annotations can contain any token, so why not even datalog
+    .comp _C {
+      //! inner doc comment
+      //! for component `_C`
+
+      /// annotation of a relation declaration
+      @[xdecl(q1())]
+      .decl q1(
+          @[t]
+          @[doc = "doc for t"]
+          /// doc
+          t:T)
+
+      /// annotation of a fact rule
+      @[xrule(q1($One()).)]
+      q1($One()).
+    }
+}]
+/// outer doc comment for
+/// component `_C`.
+.comp _C {
+  //! inner doc comment
+  //! for component `_C`
+
+  /// annotation of a relation declaration
+  @[xdecl(q1())]
+  .decl q1(
+      @[t]
+      @[doc = "doc for t"]
+      /// doc
+      t:T)
+
+  /// annotation of a fact rule
+  @[xrule(q1($One()).)]
+  q1($One()).
+}
+
+/// annotation of a component initialisation
+@[xinit(.init C = _C)]
+.init C = _C
+
+/// annotation of an output directive
+@[xoutput [C.q1()]]
+.output C.q1()
+
+@[xdecl(M)]
+@[xdecl]
+.decl M(
+  /// attribute `i`
+  @[xattr(i)]
+  i: number
+)
+
+.decl J(i:number)
+.output J()
+.output M()
+
+/// functor annotations (fake)
+@[stateful]
+@[xffi_impl
+{
+  souffle::RamDomain foo(souffle::SymbolTable* symbolTable, souffle::RecordTable* recordTable, souffle::RamDomain s) {
+    return symbolTable.decode(s).size();
+  }
+}]
+.functor foo(
+  /// doc for `s`
+  @[xattr{s = symbol}]
+  s:symbol) : unsigned
+
+/// each head have its own annotation(s)
+@[x(M)] @[y()]
+/// and its own doc
+/// comments
+M(i),
+@[x(J)]
+/// doc for rule `J(i)`
+J(i)
+  :-
+  //! inner annotation for this rule
+  @![doc = "inner doc"]
+  i = range(0,4).

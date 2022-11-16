@@ -81,6 +81,7 @@ Own<ast::TranslationUnit> ParserDriver::parse(const std::string& filename, const
 
     yy_scan_string(code.c_str(), scanner);
     yy::parser parser(*this, scanner);
+    parser.set_debug_level(0);
     parser.parse();
 
     yylex_destroy(scanner);
@@ -116,6 +117,7 @@ Own<ast::TranslationUnit> ParserDriver::parseFromFS(
     yy_scan_string(code->c_str(), scanner);
 
     yy::parser parser(*this, scanner);
+    parser.set_debug_level(0);
 
     parser.parse();
 
@@ -139,6 +141,7 @@ Own<ast::TranslationUnit> ParserDriver::parse(
 
     yy_scan_string(code.c_str(), scanner);
     yy::parser parser(*this, scanner);
+    parser.set_debug_level(0);
     parser.parse();
 
     yylex_destroy(scanner);
@@ -405,8 +408,20 @@ bool ParserDriver::canEnterOnce(const SrcLocation& onceLoc) {
     return Inserted.second;
 }
 
-void ParserDriver::addComment(const SrcLocation& Loc, const std::stringstream& Content) {
-    ScannedComments.emplace_back(Loc, Content.str());
+void ParserDriver::addComment(const SrcLocation& Loc, CommentKind Kind, const std::stringstream& Content) {
+    ScannedComments.emplace_back(Loc, Kind, Content.str());
+}
+
+void ParserDriver::uselessAnnotations(const ast::AnnotationList& Annotations, const std::string& context) {
+    for (const auto& Ann : Annotations) {
+        if (Ann.getKind() == ast::Annotation::Kind::DocComment) {
+            warning(WarnType::UselessDocComment, Ann.getSrcLoc(),
+                    "doc comment found " + context + ", not attached to anything");
+        } else {
+            warning(WarnType::UselessAnnotation, Ann.getSrcLoc(),
+                    "annotation found " + context + ", not attached to anything");
+        }
+    }
 }
 
 }  // end of namespace souffle

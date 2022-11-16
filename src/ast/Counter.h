@@ -37,6 +37,8 @@ protected:
     void print(std::ostream& os) const override;
 
 private:
+    bool equal(const Node&) const override;
+
     Counter* cloning() const override;
 };
 

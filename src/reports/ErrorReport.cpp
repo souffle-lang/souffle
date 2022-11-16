@@ -31,6 +31,10 @@ std::optional<WarnType> WarnSet::warnTypeFromString(const std::string& s) {
         return std::optional<WarnType>(WarnType::NoSubsumptiveRule);
     } else if (s == "var-appears-once") {
         return std::optional<WarnType>(WarnType::VarAppearsOnce);
+    } else if (s == "useless-doc-comment") {
+        return {WarnType::UselessDocComment};
+    } else if (s == "useless-annotation") {
+        return {WarnType::UselessAnnotation};
     }
     return std::optional<WarnType>(std::nullopt);
 }

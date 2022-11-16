@@ -130,3 +130,28 @@ souffle_run_test(
   NO_PREPROCESSOR
   NEGATIVE
   )
+souffle_run_test(
+  TEST_NAME annotations
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  POSITIVE
+  )
+souffle_run_test( TEST_NAME doc_comment CATEGORY syntactic NO_PREPROCESSOR POSITIVE)
+souffle_run_test(
+  TEST_NAME doc_comment_dangling1
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  POSITIVE
+  )
+souffle_run_test(
+  TEST_NAME doc_comment_dangling2
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  POSITIVE
+  )
+souffle_run_test(
+  TEST_NAME doc_comment_dangling3
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )

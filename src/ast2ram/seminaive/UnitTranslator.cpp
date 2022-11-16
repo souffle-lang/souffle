@@ -133,7 +133,8 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveRelation(const ast::Rela
 
         // Add debug info
         std::ostringstream ds;
-        ds << toString(*clause) << "\nin file ";
+        clause->printForDebugInfo(ds);
+        ds << "\nin file ";
         ds << clause->getSrcLoc();
         rule = mk<ram::DebugInfo>(std::move(rule), ds.str());
 

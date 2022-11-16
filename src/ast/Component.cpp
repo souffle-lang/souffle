@@ -130,6 +130,7 @@ void Component::print(std::ostream& os) const {
         os << prefix << join(xs, sep) << "\n";
     };
 
+    printAnnotations(os);
     os << ".comp " << *componentType << " ";
     show(baseComponents, ",", ": ");
     os << "{\n";

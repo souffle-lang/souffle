@@ -1,0 +1,6 @@
+Warning: doc comment found at end of the component, not attached to anything in file doc_comment_dangling2.dl at line 2
+  /// dangling at end of component
+--^--------------------------------
+Warning: doc comment found at end of file, not attached to anything in file doc_comment_dangling2.dl at line 4
+/// dangling at end of intput file
+^----------------------------------

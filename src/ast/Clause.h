@@ -84,6 +84,9 @@ public:
 
     void apply(const NodeMapper& map) override;
 
+    /** Print this clause for `ram::DebugInfo` without annotations */
+    void printForDebugInfo(std::ostream& os) const;
+
     static bool classof(const Node*);
 
 protected:

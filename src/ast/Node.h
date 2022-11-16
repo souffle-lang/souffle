@@ -16,13 +16,18 @@
 
 #pragma once
 
+#include "Annotation.h"
+#include "QualifiedName.h"
+#include "TokenTree.h"
 #include "parser/SrcLocation.h"
 #include "souffle/utility/Iteration.h"
 #include "souffle/utility/NodeMapperFwd.h"
 #include "souffle/utility/Types.h"
 #include "souffle/utility/VisitorFwd.h"
+
 #include <functional>
 #include <iosfwd>
+#include <list>
 #include <string>
 #include <vector>
 
@@ -164,10 +169,16 @@ public:
     /** Return source location of the syntactic element */
     std::string extloc() const;
 
-    /** Equivalence check for two AST nodes */
+    /** Equivalence check for two AST nodes
+     *
+     * Annotations are ignored.
+     */
     bool operator==(const Node& other) const;
 
-    /** Inequality check for two AST nodes */
+    /** Inequality check for two AST nodes
+     *
+     * Annotations are ignored.
+     */
     bool operator!=(const Node& other) const;
 
     /** Create a clone (i.e. deep copy) of this node */
@@ -189,6 +200,63 @@ public:
     using ChildNodes = OwningTransformRange<NodeVec, detail::ConstCaster>;
     ChildNodes getChildNodes();
 
+    /** Add an annotation to this object. */
+    void addAnnotation(Annotation);
+
+    /** Add a list of annotations to this object. */
+    void addAnnotations(AnnotationList);
+
+    void prependAnnotation(Annotation);
+
+    void prependAnnotations(AnnotationList);
+
+    /** Reset annotations using annotations from the other object */
+    void setAnnotationsFrom(const Node& other);
+
+    /** Reset annotations using the given list */
+    void setAnnotations(AnnotationList);
+
+    /** Reset annotations using the given list */
+    void setAnnotations(std::unique_ptr<AnnotationList>);
+
+    /// Replace this node annotations with annotations stollen from other node.
+    void stealAnnotationsFrom(Node& other);
+
+    /** Enumerate annotations attached to this object */
+    void eachAnnotation(const std::function<void(const Annotation&)>& f) const;
+
+    /** Enumerate annotations attached to this object that have the given annotation */
+    void eachAnnotation(const QualifiedName& label, const std::function<void(const TokenStream&)>& f) const;
+
+    /** Enumerate annotations attached to this object that have the given annotation */
+    void eachAnnotation(const QualifiedName& label, const std::function<void(const Annotation&)>& f) const;
+
+    /** Enumerate annotations attached to this object */
+    void eachAnnotation(const std::function<void(const QualifiedName&, const TokenStream&)>& f) const;
+
+    /** Return the number of attached annotations that have the given label */
+    std::size_t countAnnotations(const QualifiedName& label) const;
+
+    /** Return a pointer to the list of annotations or nullptr */
+    AnnotationList* getAnnotations();
+
+    /** Return a pointer to the list of annotations or nullptr */
+    const AnnotationList* getAnnotations() const;
+
+    /**
+     * Return the first attached annotation that have the given label.
+     *
+     * Throws an exception if no such annotation exists.
+     */
+    const Annotation& getAnnotation(const QualifiedName& label) const;
+
+    /**
+     * Print annotations, except doc comments
+     *
+     * Inner annotations are printed like outer annotations
+     */
+    void printAnnotations(std::ostream& os) const;
+
     /** Print node onto an output stream */
     friend std::ostream& operator<<(std::ostream& out, const Node& node);
 
@@ -200,13 +268,19 @@ protected:
 
 private:
     /** Abstract equality check for two AST nodes */
-    virtual bool equal(const Node& /* other */) const;
+    virtual bool equal(const Node& /* other */) const = 0;
 
     virtual Node* cloning() const = 0;
+
+    /** Ensure that this node has an annotations list and return it by reference. */
+    AnnotationList& ensureAnnotations();
 
 private:
     /** Source location of a syntactic element */
     SrcLocation location;
+
+    /** The attached annotations */
+    std::unique_ptr<AnnotationList> annotations;
 };
 
 }  // namespace souffle::ast
