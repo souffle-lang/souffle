@@ -96,6 +96,7 @@ set(SOUFFLE_SOURCES
     ast/transform/PragmaChecker.cpp
     ast/transform/ReduceExistentials.cpp
     ast/transform/RemoveBooleanConstraints.cpp
+    ast/transform/RemoveConstantBinaryConstraints.cpp
     ast/transform/RemoveEmptyRelations.cpp
     ast/transform/RemoveRedundantRelations.cpp
     ast/transform/RemoveRedundantSums.cpp

@@ -47,6 +47,7 @@
 #include "ast/transform/PragmaChecker.h"
 #include "ast/transform/ReduceExistentials.h"
 #include "ast/transform/RemoveBooleanConstraints.h"
+#include "ast/transform/RemoveConstantBinaryConstraints.h"
 #include "ast/transform/RemoveEmptyRelations.h"
 #include "ast/transform/RemoveRedundantRelations.h"
 #include "ast/transform/RemoveRedundantSums.h"
@@ -455,6 +456,7 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
             mk<ast::transform::InlineUnmarkExcludedTransform>(),
             mk<ast::transform::InlineRelationsTransformer>(), mk<ast::transform::GroundedTermsChecker>(),
             mk<ast::transform::ResolveAliasesTransformer>(),
+            mk<ast::transform::RemoveConstantBinaryConstraintsTransformer>(),
             mk<ast::transform::RemoveRedundantRelationsTransformer>(),
             mk<ast::transform::RemoveRelationCopiesTransformer>(),
             mk<ast::transform::RemoveEmptyRelationsTransformer>(),
@@ -1127,4 +1129,3 @@ int main(Global& glb, const char* souffle_executable) {
 }
 
 }  // end of namespace souffle
-
