@@ -394,6 +394,7 @@ WS [ \t\r\v\f]
                                           auto state = yy_create_buffer(nullptr, 32768, yyscanner);
                                           yypush_buffer_state(state, yyscanner);
                                           yy_scan_string(code->c_str(), yyscanner);
+                                          yy_delete_buffer(state, yyscanner);
 
                                           yyinfo.holdInputBuffer(std::move(code));
                                           yyinfo.push(*maybePath, yyinfo.LastIncludeDirectiveLoc,

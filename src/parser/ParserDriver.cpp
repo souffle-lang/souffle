@@ -119,8 +119,6 @@ Own<ast::TranslationUnit> ParserDriver::parseFromFS(
 
     data.push(filePath, emptyLoc);
 
-    auto state = yy_create_buffer(nullptr, 32768, scanner);
-    yypush_buffer_state(state, scanner);
     yy_scan_string(code->c_str(), scanner);
 
     yy::parser parser(*this, scanner);
@@ -145,8 +143,6 @@ Own<ast::TranslationUnit> ParserDriver::parse(
     yylex_init_extra(&data, &scanner);
     yyset_debug(0, scanner);
 
-    auto state = yy_create_buffer(nullptr, 32768, scanner);
-    yypush_buffer_state(state, scanner);
     yy_scan_string(code.c_str(), scanner);
 
     yy::parser parser(*this, scanner);
