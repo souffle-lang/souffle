@@ -86,16 +86,15 @@ struct IncludeStack {
 /** A class describing a range in an input file */
 class SrcLocation {
 public:
-
     /** Include stack of scanned files, top is the current scanned file. It's
      * not necessarily reflecting the actual input buffers stack. */
     std::shared_ptr<IncludeStack> file;
 
     /** The start location */
-    Point start = {1,1};
+    Point start = {1, 1};
 
     /** The End location */
-    Point end = {1,1};
+    Point end = {1, 1};
 
     /** Return the shortened reported file name */
     std::string getReportedFilename() const;
@@ -152,7 +151,8 @@ struct ScannerInfo {
     std::stringstream CommentContent;
 
     /** Push a file on the include stack */
-    void push(const std::filesystem::path& PhysicalPath, const SrcLocation& IncludeLoc, bool reducedWhitespaces = false);
+    void push(const std::filesystem::path& PhysicalPath, const SrcLocation& IncludeLoc,
+            bool reducedWhitespaces = false);
 
     /** Pop a file from the include stack */
     void pop();

@@ -55,21 +55,19 @@ extern void yyset_debug(int, yyscan_t scanner);
 namespace souffle {
 
 ParserDriver::ParserDriver(Global& g) : glb(g) {
-  vfs = std::make_shared<RealFileSystem>();
+    vfs = std::make_shared<RealFileSystem>();
 }
 
 ParserDriver::ParserDriver(Global& g, std::shared_ptr<FileSystem> fs) : glb(g) {
-  if (fs) {
-    vfs = fs;
-  } else {
-    vfs = std::make_shared<RealFileSystem>();
-  }
+    if (fs) {
+        vfs = fs;
+    } else {
+        vfs = std::make_shared<RealFileSystem>();
+    }
 }
 
-Own<ast::TranslationUnit> ParserDriver::parse(
-        const std::string& filename, FILE* in,
-        bool reducedConsecutiveNonLeadingWhitespaces,
-        ErrorReport& errorReport, DebugReport& debugReport) {
+Own<ast::TranslationUnit> ParserDriver::parse(const std::string& filename, FILE* in,
+        bool reducedConsecutiveNonLeadingWhitespaces, ErrorReport& errorReport, DebugReport& debugReport) {
     translationUnit = mk<ast::TranslationUnit>(glb, mk<ast::Program>(), errorReport, debugReport);
     yyscan_t scanner;
     ScannerInfo data(vfs);
@@ -77,8 +75,8 @@ Own<ast::TranslationUnit> ParserDriver::parse(
 
     std::filesystem::path filePath(filename);
     if (vfs->exists(filename)) {
-      std::error_code ec;
-      filePath = vfs->canonical(filename, ec);
+        std::error_code ec;
+        filePath = vfs->canonical(filename, ec);
     }
     data.push(filePath, emptyLoc, reducedConsecutiveNonLeadingWhitespaces);
 
@@ -105,7 +103,7 @@ Own<ast::TranslationUnit> ParserDriver::parseFromFS(
 
     std::filesystem::path filePath(path);
     if (!vfs->exists(filePath)) {
-      throw std::runtime_error(std::string("File does not exist: ") + filePath.string());
+        throw std::runtime_error(std::string("File does not exist: ") + filePath.string());
     }
 
     std::error_code ec;
@@ -116,7 +114,7 @@ Own<ast::TranslationUnit> ParserDriver::parseFromFS(
 
     auto code = readFile(filePath, ec);
     if (ec) {
-      throw std::runtime_error(std::string("Cannot read file: ") + filePath.string());
+        throw std::runtime_error(std::string("Cannot read file: ") + filePath.string());
     }
 
     data.push(filePath, emptyLoc);
@@ -160,10 +158,8 @@ Own<ast::TranslationUnit> ParserDriver::parse(
 }
 
 Own<ast::TranslationUnit> ParserDriver::parseTranslationUnit(Global& glb, const std::string& filename,
-        FILE* in, 
-bool reducedConsecutiveNonLeadingWhitespaces,
-        ErrorReport& errorReport, DebugReport& debugReport,
-        std::shared_ptr<FileSystem> vfs) {
+        FILE* in, bool reducedConsecutiveNonLeadingWhitespaces, ErrorReport& errorReport,
+        DebugReport& debugReport, std::shared_ptr<FileSystem> vfs) {
     ParserDriver parser(glb, vfs);
     return parser.parse(filename, in, reducedConsecutiveNonLeadingWhitespaces, errorReport, debugReport);
 }
@@ -344,7 +340,7 @@ void ParserDriver::error(const std::string& msg) {
 }
 
 std::unique_ptr<std::string> ParserDriver::readFile(const std::filesystem::path& path, std::error_code& ec) {
-  return std::make_unique<std::string>(vfs->readFile(path, ec));
+    return std::make_unique<std::string>(vfs->readFile(path, ec));
 }
 
 std::optional<std::filesystem::path> ParserDriver::searchIncludePath(
@@ -371,8 +367,8 @@ std::optional<std::filesystem::path> ParserDriver::searchIncludePath(
     // writes out of bound and corrupt memory.
     char* cwd = ::getcwd(nullptr, 0);
     if (cwd == nullptr) {
-      std::cerr << "Error: cannot get current working directory.\n";
-      return std::nullopt;
+        std::cerr << "Error: cannot get current working directory.\n";
+        return std::nullopt;
     }
     const std::filesystem::path CurrentWD = std::string(cwd);
     free(cwd);

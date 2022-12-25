@@ -259,7 +259,7 @@ public:
     }
 
     bool reducedConsecutiveNonLeadingWhitespaces() const override {
-      return false;
+        return false;
     }
 
 private:
@@ -366,7 +366,7 @@ public:
     }
 
     bool reducedConsecutiveNonLeadingWhitespaces() const override {
-      return true;
+        return true;
     }
 };
 
@@ -382,7 +382,7 @@ public:
     }
 
     bool reducedConsecutiveNonLeadingWhitespaces() const override {
-      return true;
+        return true;
     }
 };
 

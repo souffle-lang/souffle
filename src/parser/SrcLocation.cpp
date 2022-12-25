@@ -137,10 +137,11 @@ void SrcLocation::print(std::ostream& out) const {
 
 void ScannerInfo::push(
         const std::filesystem::path& Physical, const SrcLocation& IncludeLoc, bool reducedWhitespaces) {
-    auto NewFile = std::make_shared<IncludeStack>(yylloc.file, IncludeLoc.start, Physical, Physical.u8string(), reducedWhitespaces);
+    auto NewFile = std::make_shared<IncludeStack>(
+            yylloc.file, IncludeLoc.start, Physical, Physical.u8string(), reducedWhitespaces);
     Frames.push(yylloc);
     yylloc.file = NewFile;
-    yylloc.start = yylloc.end = {1,1};
+    yylloc.start = yylloc.end = {1, 1};
 }
 
 void ScannerInfo::pop() {
@@ -158,7 +159,7 @@ void ScannerInfo::setReported(const std::string& Reported) {
 }
 
 void ScannerInfo::holdInputBuffer(std::unique_ptr<std::string> Buffer) {
-  InputBuffers.push_back(std::move(Buffer));
+    InputBuffers.push_back(std::move(Buffer));
 }
 
 }  // end of namespace souffle
