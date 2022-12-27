@@ -135,13 +135,16 @@ void DebugReport::addSection(DebugReportSection section) {
     buf.emplace_back(std::move(section));
 }
 
-static std::string CDATA(const std::string_view code) {
-    return "<![CDATA[" + replaceAll(code, "]]>", "]]]]><![CDATA[>") + "]]>";
+static std::string codeToHtml(const std::string_view code) {
+    return replaceAll(
+            replaceAll(replaceAll(replaceAll(replaceAll(code, "&", "&nbsp;"), "<", "&lt;"), ">", "&gt;"),
+                    "\"", "&quot;"),
+            "'", "&lsquo");
 }
 
 void DebugReport::addSection(std::string id, std::string title, const std::string_view code) {
-    addSection(
-            DebugReportSection(std::move(id), std::move(title), tfm::format("<pre>%s</pre>", CDATA(code))));
+    addSection(DebugReportSection(
+            std::move(id), std::move(title), tfm::format("<pre>%s</pre>", codeToHtml(code))));
 }
 
 void DebugReport::addCodeSection(std::string id, std::string title, std::string_view language,
@@ -149,10 +152,10 @@ void DebugReport::addCodeSection(std::string id, std::string title, std::string_
     const std::string diff = (prev.empty() ? std::string(curr) : generateDiff(prev, curr));
     auto divId = nextUniqueId++;
     auto html = R"(
-        <div id="code-id-%d" class="diff-%s">%s></div>
+        <div id="code-id-%d" class="diff-%s">%s</div>
     )";
     addSection(DebugReportSection(
-            std::move(id), std::move(title), tfm::format(html, divId, language, CDATA(diff))));
+            std::move(id), std::move(title), tfm::format(html, divId, language, codeToHtml(diff))));
 }
 
 void DebugReport::endSection(std::string currentSectionName, std::string currentSectionTitle) {
@@ -165,12 +168,10 @@ void DebugReport::endSection(std::string currentSectionName, std::string current
 
 void DebugReport::print(std::ostream& out) const {
     out << R"--html--(
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-AU">
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf8">
 <head>
-<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
 <title>Souffle Debug Report ()--html--";
     out << *programName << R"--html--()</title>
 <style>
@@ -188,15 +189,14 @@ void DebugReport::print(std::ostream& out) const {
 </style>
 
 <link rel="stylesheet" href=
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/styles/default.min.css">
+  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/default.min.css">
 <script src=
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
 
-<!-- must use 3.4.10 until https://github.com/rtfpessoa/diff2html/issues/437 is resolved -->
 <link rel="stylesheet" type="text/css" href=
-    "https://cdn.jsdelivr.net/npm/diff2html@3.4.10/bundles/css/diff2html.min.css" />
+    "https://cdn.jsdelivr.net/npm/diff2html@3.4.22/bundles/css/diff2html.min.css" />
 <script type="text/javascript" src=
-    "https://cdn.jsdelivr.net/npm/diff2html@3.4.10/bundles/js/diff2html-ui-base.min.js"></script>
+    "https://cdn.jsdelivr.net/npm/diff2html@3.4.22/bundles/js/diff2html-ui-base.min.js"></script>
 
 <script>
   function toggleVisibility(id) {
@@ -216,15 +216,15 @@ void DebugReport::print(std::ostream& out) const {
       ]
 
       let KEYWORDS = {
-        $pattern: '\\.?\\w+',
+        $pattern: /\.?\w+/,
         literal: 'true false',
-        keyword: '.pragma .functor .component .decl .input .output .type ' +
-          'ord strlen strsub range matches land lor lxor lnot bwand bwor bwxor bwnot bshl bshr bshru',
+        keyword: '.pragma .functor .comp .init .override .decl .input .output .type .plan .include .once ' +
+          'ord strlen strsub range matches land lor lxor lnot bwand bwor bwxor bwnot bshl bshr bshru inline btree btree_delete override unsigned number float symbol',
       }
 
       let STRING = hljs.QUOTE_STRING_MODE
       let NUMBERS = {
-        className: 'number', relevance: 0, variants: [
+        scope: 'number', relevance: 0, variants: [
           { begin: /\b0b[01]+/ },
           { begin: /\b\d+\.\d+/ }, // float
           { begin: /\b\d+\.\d+.\d+.\d+/ }, // IPv4 literal
@@ -234,7 +234,7 @@ void DebugReport::print(std::ostream& out) const {
       }
 
       let PREPROCESSOR = {
-        className: 'meta',
+        scope: 'meta',
         begin: /#\s*[a-z]+\b/,
         end: /$/,
         keyword: {
@@ -242,33 +242,24 @@ void DebugReport::print(std::ostream& out) const {
         },
         contains: [
           { begin: /\\\n/, relevance: 0 },
-          hljs.inherit(STRING, { className: 'meta-string' }),
+          hljs.inherit(STRING, { scope: 'meta-string' }),
         ].concat(COMMENT_MODES)
       };
 
-      let ATOM = { begin: /[a-z][A-Za-z0-9_]*/, relevance: 0 }
-      let VAR = {
-        className: 'symbol', relevance: 0, variants: [
-          { begin: /[A-Z][a-zA-Z0-9_]*/ },
-          { begin: /_[A-Za-z0-9_]*/ },
-        ]
-      }
-      let PARENTED = { begin: /\(/, end: /\)/, relevance: 0 }
-      let LIST = { begin: /\[/, end: /\]/ }
-      let PRED_OP = { begin: /:\-/ } // relevance booster
+      let PRED_OP = { begin: /:\-/, scope: 'keyword' } // relevance booster
+
+      let RELATION_DISPATCH = {
+          scope: 'title.function',
+          relevance: 0,
+          begin: hljs.regex.concat(hljs.IDENT_RE, hljs.regex.lookahead(/\s*\(/))
+      };
 
       let INNER = [
-        ATOM,
-        VAR,
-        PARENTED,
+        RELATION_DISPATCH,
         PRED_OP,
-        LIST,
         STRING,
         NUMBERS,
       ].concat(COMMENT_MODES)
-
-      PARENTED.contains = INNER;
-      LIST.contains = INNER;
 
       return {
         name: 'souffle',
@@ -326,7 +317,7 @@ void DebugReport::print(std::ostream& out) const {
       const STRING = hljs.QUOTE_STRING_MODE;
 
       const INDEX = {
-        className: 'variable',
+        scope: 'variable',
         begin: /\bt\d+(\.\d+)?/
       }
 
@@ -360,6 +351,9 @@ void DebugReport::print(std::ostream& out) const {
 +++ ${ram_file}
 @@ -1 +1 @@
 `
+      let extLang = new Map();
+      extLang.set('souffle', 'souffle');
+      extLang.set('ram', 'ram');
 
       document.addEventListener('DOMContentLoaded', function() {
           var els = document.getElementsByClassName("diff-souffle");
@@ -370,7 +364,7 @@ void DebugReport::print(std::ostream& out) const {
                   matching: 'none',
                   outputFormat: 'side-by-side',
                   synchronisedScroll: true,
-                  highlightLanguage: 'souffle'
+                  highlightLanguages: extLang
               }, hljs);
               diff2htmlUi.draw();
           });
@@ -382,7 +376,7 @@ void DebugReport::print(std::ostream& out) const {
                   matching: 'none',
                   outputFormat: 'side-by-side',
                   synchronisedScroll: true,
-                  highlightLanguage: 'ram'
+                  highlightLanguages: extLang
               }, hljs);
               diff2htmlUi.draw();
           });

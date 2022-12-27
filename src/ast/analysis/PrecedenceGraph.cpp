@@ -27,6 +27,7 @@
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/utility/Visitor.h"
+#include "souffle/utility/StringUtil.h"
 #include <set>
 #include <string>
 #include <vector>

@@ -22,10 +22,9 @@ void TranslationUnit::logAnalysis(Analysis& analysis) const {
 
     std::string name = analysis.getName();
     if (as<analysis::PrecedenceGraphAnalysis>(analysis) || as<analysis::SCCGraphAnalysis>(analysis)) {
-        debugReport.addSection(
-                DebugReportSection(name, "Ast Analysis [" + name + "]", {}, toString(analysis)));
+        debugReport.addSection(DebugReportSection(name, "Ast Analysis [" + name + "]", {}, toHtml(analysis)));
     } else {
-        debugReport.addSection(name, "Ast Analysis [" + name + "]", toString(analysis));
+        debugReport.addSection(name, "Ast Analysis [" + name + "]", toHtml(analysis));
     }
 }
 
