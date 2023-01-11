@@ -226,6 +226,30 @@ class InputProvider {
 public:
     virtual ~InputProvider() {}
     virtual FILE* getInputStream() = 0;
+    virtual bool readInput(std::string& Buf) {
+        FILE* Stream = getInputStream();
+        if (Stream == nullptr) {
+            return false;
+        }
+        const size_t ChunkSize = 4096;
+        size_t TotalBytesRead = 0;
+        bool Success = false;
+        while (1) {
+            Buf.resize(TotalBytesRead + ChunkSize);
+            size_t ReadSize = fread(&Buf.data()[TotalBytesRead], 1, ChunkSize, Stream);
+            if (ReadSize < ChunkSize) {
+                Buf.resize(TotalBytesRead + ReadSize);
+                if (feof(Stream)) {
+                    Success = true;
+                    break;
+                } else if (ferror(Stream)) {
+                    break;
+                }
+            }
+            TotalBytesRead += ReadSize;
+        }
+        return Success && endInput();
+    }
     virtual bool endInput() = 0;
     virtual bool reducedConsecutiveNonLeadingWhitespaces() const = 0;
 };
@@ -329,10 +353,11 @@ public:
         Stream = nullptr;
         if (Status == -1) {
             perror(nullptr);
-            throw std::runtime_error("failed to close pre-processor pipe");
+            std::cerr << "Failed to close pre-processor pipe\n";
+            return false;
         } else if (Status != 0) {
             std::cerr << "Pre-processors command failed with code " << Status << ": '" << Cmd.str() << "'\n";
-            throw std::runtime_error("Pre-processor command failed");
+            return false;
         }
         return true;
     }
@@ -870,12 +895,15 @@ int main(Global& glb, const char* souffle_executable) {
 
     // parse file
     ErrorReport errReport(process_warn_opts(glb));
-
     DebugReport debugReport(glb);
+    std::string sourceBuffer;
+    if (!Input->readInput(sourceBuffer)) {
+        throw std::runtime_error("Failed to read input");
+    }
+
     Own<ast::TranslationUnit> astTranslationUnit =
-            ParserDriver::parseTranslationUnit(glb, InputPath.u8string(), Input->getInputStream(),
+            ParserDriver::parseTranslationUnit(glb, InputPath.u8string(), sourceBuffer,
                     Input->reducedConsecutiveNonLeadingWhitespaces(), errReport, debugReport);
-    Input->endInput();
 
     /* Report run-time of the parser if verbose flag is set */
     if (glb.config().has("verbose")) {
