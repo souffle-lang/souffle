@@ -8,7 +8,7 @@
 
 /************************************************************************
  *
- * @file RemoveConstantBinaryConstraints.h
+ * @file SimplifyConstantBinaryConstraints.h
  *
  ***********************************************************************/
 
@@ -21,17 +21,17 @@
 namespace souffle::ast::transform {
 
 /**
- * Eliminate clauses containing unsatisfiable constant binary constraints
+ * Rewrites constant binary constraints into boolean constraints
  */
-class RemoveConstantBinaryConstraintsTransformer : public Transformer {
+class SimplifyConstantBinaryConstraintsTransformer : public Transformer {
 public:
     std::string getName() const override {
-        return "RemoveConstantBinaryConstraintsTransformer";
+        return "SimplifyConstantBinaryConstraintsTransformer";
     }
 
 private:
-    RemoveConstantBinaryConstraintsTransformer* cloning() const override {
-        return new RemoveConstantBinaryConstraintsTransformer();
+    SimplifyConstantBinaryConstraintsTransformer* cloning() const override {
+        return new SimplifyConstantBinaryConstraintsTransformer();
     }
 
     bool transform(TranslationUnit& translationUnit) override;

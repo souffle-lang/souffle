@@ -96,7 +96,6 @@ set(SOUFFLE_SOURCES
     ast/transform/PragmaChecker.cpp
     ast/transform/ReduceExistentials.cpp
     ast/transform/RemoveBooleanConstraints.cpp
-    ast/transform/RemoveConstantBinaryConstraints.cpp
     ast/transform/RemoveEmptyRelations.cpp
     ast/transform/RemoveRedundantRelations.cpp
     ast/transform/RemoveRedundantSums.cpp
@@ -105,6 +104,7 @@ set(SOUFFLE_SOURCES
     ast/transform/ResolveAliases.cpp
     ast/transform/ResolveAnonymousRecordAliases.cpp
     ast/transform/SemanticChecker.cpp
+    ast/transform/SimplifyConstantBinaryConstraints.cpp
     ast/transform/SubsumptionQualifier.cpp
     ast/transform/SimplifyAggregateTargetExpression.cpp
     ast/transform/Transformer.cpp
