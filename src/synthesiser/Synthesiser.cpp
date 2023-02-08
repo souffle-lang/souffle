@@ -486,9 +486,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             PRINT_BEGIN_COMMENT(out);
 
             auto Relation = synthesiser.lookup(clear.getRelation());
-            bool isIntermediate = !contains(synthesiser.loadRelations, Relation->getName()) &&
-                                  !contains(synthesiser.storeRelations, Relation->getName()) &&
-                                  !Relation->isTemp();
+            bool isIntermediate =
+                    !contains(synthesiser.storeRelations, Relation->getName()) && !Relation->isTemp();
 
             if (isIntermediate) {
                 out << "if (pruneImdtRels) ";
@@ -2618,6 +2617,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         db.usesDatastructure(mainClass, typeName);
     }
 
+    std::set<std::string> loadRelations;
     std::set<const IO*> loadIOs;
     std::set<const IO*> storeIOs;
 
