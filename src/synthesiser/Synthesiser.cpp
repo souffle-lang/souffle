@@ -379,6 +379,10 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 out << R"_(if (!outputDirectory.empty()) {)_";
                 out << R"_(directiveMap["output-dir"] = outputDirectory;)_";
                 out << "}\n";
+                // @todo maybe this is needed
+                out << R"_(if (useStdout) {)_";
+                out << R"_(directiveMap["IO"] = "stdout";)_";
+                out << "}\n";
                 out << "IOSystem::getInstance().getWriter(";
                 out << "directiveMap, symTable, recordTable";
                 out << ")->writeAll(*" << synthesiser.getRelationName(synthesiser.lookup(io.getRelation()))
@@ -2665,6 +2669,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         args.push_back(std::make_tuple(Reference, "ctr", "std::atomic<RamDomain>"));
         args.push_back(std::make_tuple(Reference, "inputDirectory", "std::string"));
         args.push_back(std::make_tuple(Reference, "outputDirectory", "std::string"));
+        args.push_back(std::make_tuple(Reference, "useStdout", "bool"));
         for (std::string rel : accessedRels) {
             std::string name = getRelationName(lookup(rel));
             std::string tyname = relationTypes[name];
@@ -2889,6 +2894,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
     // makes GVN and register alloc very expensive, even if the call is inlined.
     mainClass.addField("std::string", "inputDirectory", Visibility::Private);
     mainClass.addField("std::string", "outputDirectory", Visibility::Private);
+    mainClass.addField("bool", "useStdout", Visibility::Private);
     mainClass.addField("SignalHandler*", "signalHandler", Visibility::Private, "{SignalHandler::instance()}");
     mainClass.addField("std::atomic<RamDomain>", "ctr", Visibility::Private, "{}");
     mainClass.addField("std::atomic<std::size_t>", "iter", Visibility::Private, "{}");
@@ -2897,12 +2903,14 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
     runFunction.setRetType("void");
     runFunction.setNextArg("std::string", "inputDirectoryArg");
     runFunction.setNextArg("std::string", "outputDirectoryArg");
+    runFunction.setNextArg("bool", "useStdoutArg");
     runFunction.setNextArg("bool", "performIOArg");
     runFunction.setNextArg("bool", "pruneImdtRelsArg");
 
     runFunction.body() << R"_(
     this->inputDirectory  = std::move(inputDirectoryArg);
     this->outputDirectory = std::move(outputDirectoryArg);
+    this->useStdout       = useStdoutArg;
     this->performIO       = performIOArg;
     this->pruneImdtRels   = pruneImdtRelsArg;
 
@@ -2967,19 +2975,21 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
     GenFunction& run = mainClass.addFunction("run", Visibility::Public);
     run.setOverride();
     run.setRetType("void");
-    run.body() << "runFunction(\"\", \"\", false, false);\n";
+    run.body() << "runFunction(\"\", \"\", false, false, false);\n";
 
     GenFunction& runAll = mainClass.addFunction("runAll", Visibility::Public);
     runAll.setOverride();
     runAll.setRetType("void");
     runAll.setNextArg("std::string", "inputDirectoryArg", std::make_optional("\"\""));
     runAll.setNextArg("std::string", "outputDirectoryArg", std::make_optional("\"\""));
+    runAll.setNextArg("bool", "useStdoutArg", std::make_optional("false"));
     runAll.setNextArg("bool", "performIOArg", std::make_optional("true"));
     runAll.setNextArg("bool", "pruneImdtRelsArg", std::make_optional("true"));
     if (glb.config().has("live-profile")) {
         runAll.body() << "std::thread profiler([]() { profile::Tui().runProf(); });\n";
     }
-    runAll.body() << "runFunction(inputDirectoryArg, outputDirectoryArg, performIOArg, pruneImdtRelsArg);\n";
+    runAll.body() << "runFunction(inputDirectoryArg, outputDirectoryArg, useStdoutArg, performIOArg, "
+                     "pruneImdtRelsArg);\n";
     if (glb.config().has("live-profile")) {
         runAll.body() << "if (profiler.joinable()) { profiler.join(); }\n";
     }
@@ -2988,7 +2998,9 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
     GenFunction& printAll = mainClass.addFunction("printAll", Visibility::Public);
     printAll.setOverride();
     printAll.setRetType("void");
+    // @todo -D- see if this is needed
     printAll.setNextArg("[[maybe_unused]] std::string", "outputDirectoryArg", std::make_optional("\"\""));
+    printAll.setNextArg("[[maybe_unused]] bool", "useStdoutArg", std::make_optional("false"));
 
     // print directives as C++ initializers
     auto printDirectives = [&](std::ostream& o, const std::map<std::string, std::string>& registry) {
@@ -3012,6 +3024,10 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         printAll.body() << ");\n";
         printAll.body() << R"_(if (!outputDirectoryArg.empty()) {)_";
         printAll.body() << R"_(directiveMap["output-dir"] = outputDirectoryArg;)_";
+        printAll.body() << "}\n";
+        // @todo is this correct?
+        printAll.body() << R"_(if (useStdoutArg) {)_";
+        printAll.body() << R"_(directiveMap["IO"] = "stdout";)_";
         printAll.body() << "}\n";
         printAll.body() << "IOSystem::getInstance().getWriter(";
         printAll.body() << "directiveMap, symTable, recordTable";
@@ -3217,7 +3233,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         hook << R"_(souffle::ProfileEventSingleton::instance().makeConfigRecord("version", ")_"
              << glb.config().get("version") << R"_(");)_" << '\n';
     }
-    hook << "obj.runAll(opt.getInputFileDir(), opt.getOutputFileDir());\n";
+    hook << "obj.runAll(opt.getInputFileDir(), opt.getOutputFileDir(), opt.getUseStdout());\n";
 
     if (glb.config().get("provenance") == "explain") {
         hook << "explain(obj, false);\n";

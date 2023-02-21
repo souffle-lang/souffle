@@ -258,13 +258,13 @@ public:
     void run() override {}
 
     /** Load data, run program instance, store data: not implemented */
-    void runAll(std::string, std::string, bool, bool) override {}
+    void runAll(std::string, std::string, bool, bool, bool) override {}
 
     /** Load input data: not implemented */
     void loadAll(std::string) override {}
 
     /** Print output data: not implemented */
-    void printAll(std::string) override {}
+    void printAll(std::string, bool) override {}
 
     /** Dump inputs: not implemented */
     void dumpInputs() override {}

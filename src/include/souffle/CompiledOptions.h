@@ -52,6 +52,8 @@ protected:
      */
     std::string output_dir;
 
+    bool use_stdout = false;
+
     /**
      * profiling flag
      */
@@ -93,6 +95,10 @@ public:
         return output_dir;
     }
 
+    bool getUseStdout() const {
+        return use_stdout;
+    }
+
     /**
      * is profiling switched on
      */
@@ -128,6 +134,7 @@ public:
         // local options
         std::string fact_dir = input_dir;
         std::string out_dir = output_dir;
+        bool use_stdout = this->use_stdout;
 
         // long options
         option longOptions[] = {{"facts", true, nullptr, 'F'}, {"output", true, nullptr, 'D'},
@@ -151,11 +158,16 @@ public:
                     break;
                 /* Output directory for resulting .csv files */
                 case 'D':
-                    if (*optarg && !existDir(optarg)) {
-                        printf("Output directory %s does not exists!\n", optarg);
-                        ok = false;
+                    if (*optarg) {
+                        if (dirIsStdout(optarg)) {
+                            use_stdout = true;
+                        } else if (existDir(optarg)) {
+                            out_dir = optarg;
+                        } else {
+                            printf("Output directory %s does not exists!\n", optarg);
+                            ok = false;
+                        }
                     }
-                    out_dir = optarg;
                     break;
                 case 'p':
                     if (!profiling) {
@@ -189,6 +201,7 @@ public:
         // update member fields
         input_dir = fact_dir;
         output_dir = out_dir;
+        this->use_stdout = use_stdout;
 
         // return success state
         return ok;
@@ -257,6 +270,10 @@ private:
             }
         }
         return false;
+    }
+
+    bool dirIsStdout(const std::string& name) const {
+        return name == "-";
     }
 };
 

@@ -793,7 +793,7 @@ public:
      * @param pruneImdtRels Prune intermediate relations
      */
     virtual void runAll(std::string inputDirectory = "", std::string outputDirectory = "",
-            bool performIO = false, bool pruneImdtRels = true) = 0;
+            bool useStdout = false, bool performIO = false, bool pruneImdtRels = true) = 0;
 
     /**
      * Read all input relations.
@@ -809,7 +809,7 @@ public:
      * File IO types can use the given directory to find their input file.
      * @param outputDirectory If non-empty, specifies the output directory
      */
-    virtual void printAll(std::string outputDirectory = "") = 0;
+    virtual void printAll(std::string outputDirectory = "", bool useStdout = false) = 0;
 
     /**
      * Output all the input relations in stdout, without generating any files. (for debug purposes).
