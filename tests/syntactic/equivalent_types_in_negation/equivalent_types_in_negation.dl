@@ -6,7 +6,6 @@ list_decl(["D", ["E", ["F", nil]]]).
 .type Alias = List
 
 .decl flatten_list(l:List)
-.output flatten_list
 flatten_list(l) :- list_decl(l).
 flatten_list(l) :- flatten_list([_, l]).
 
@@ -18,7 +17,6 @@ alias_map(l, l) :-
 alias(a) :- alias_map(a, _).
 
 .decl parent(a: Alias, p: Alias)
-.output parent
 parent(a, p) :-
     alias_map(a, [_, parent]),
     alias_map(p, parent).
