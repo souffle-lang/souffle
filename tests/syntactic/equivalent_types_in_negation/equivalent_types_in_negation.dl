@@ -3,11 +3,7 @@
 list_decl(["A", ["B", ["C", nil]]]).
 list_decl(["D", ["E", ["F", nil]]]).
 
-#ifdef USE_ALIAS
 .type Alias = List
-#else
-.type Alias <: number
-#endif
 
 .decl flatten_list(l:List)
 .output flatten_list
@@ -15,11 +11,7 @@ flatten_list(l) :- list_decl(l).
 flatten_list(l) :- flatten_list([_, l]).
 
 .decl alias_map(a: Alias, l:List)
-#ifdef USE_ALIAS
 alias_map(l, l) :-
-#else
-alias_map(as(autoinc(), Alias), l) :-
-#endif
     flatten_list(l).
 
 .decl alias(a: Alias)
