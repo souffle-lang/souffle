@@ -52,6 +52,9 @@ protected:
      */
     std::string output_dir;
 
+    /**
+     * true if output is stdout
+     */
     bool use_stdout = false;
 
     /**
@@ -95,6 +98,9 @@ public:
         return output_dir;
     }
 
+    /**
+     * get use stdout switch
+     */
     bool getUseStdout() const {
         return use_stdout;
     }
