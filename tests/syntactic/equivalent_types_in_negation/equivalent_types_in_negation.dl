@@ -1,0 +1,36 @@
+.type List = [name: symbol, rest: List]
+.decl list_decl(l:List)
+list_decl(["A", ["B", ["C", nil]]]).
+list_decl(["D", ["E", ["F", nil]]]).
+
+#ifdef USE_ALIAS
+.type Alias = List
+#else
+.type Alias <: number
+#endif
+
+.decl flatten_list(l:List)
+.output flatten_list
+flatten_list(l) :- list_decl(l).
+flatten_list(l) :- flatten_list([_, l]).
+
+.decl alias_map(a: Alias, l:List)
+#ifdef USE_ALIAS
+alias_map(l, l) :-
+#else
+alias_map(as(autoinc(), Alias), l) :-
+#endif
+    flatten_list(l).
+
+.decl alias(a: Alias)
+alias(a) :- alias_map(a, _).
+
+.decl parent(a: Alias, p: Alias)
+.output parent
+parent(a, p) :-
+    alias_map(a, [_, parent]),
+    alias_map(p, parent).
+
+.decl has_no_parent(a: Alias)
+has_no_parent(a) :-
+    alias(a), !parent(a, _).   // No more error here

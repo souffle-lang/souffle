@@ -383,10 +383,12 @@ void TypeCheckerImpl::visit_(type_identity<Atom>, const Atom& atom) {
             // Declared attribute and deduced type agree if:
             // They are the same type, or
             // They are derived from the same constant type.
+            // They are equivalent types.
             bool validAttribute = all_of(argTypes, [&](const analysis::Type& type) {
-                return type == attributeType || any_of(typeEnv.getConstantTypes(), [&](auto& constantType) {
-                    return isSubtypeOf(attributeType, constantType) && isSubtypeOf(type, constantType);
-                });
+                return type == attributeType || areEquivalentTypes(type, attributeType) ||
+                       any_of(typeEnv.getConstantTypes(), [&](auto& constantType) {
+                           return isSubtypeOf(attributeType, constantType) && isSubtypeOf(type, constantType);
+                       });
             });
 
             if (!validAttribute) {
