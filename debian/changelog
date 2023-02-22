@@ -9,7 +9,7 @@ souffle (2.4) stable; urgency=low
  * Performance improvements for regex matching (strRM)
  * Expose main driver interface (quentin)
  * Allow linking against multiple compiled Souffle programs (ruricolist, quentin)
- * Misc fixes and refactoring (adamjseitz, ruricolist, quentin, b-scholz, mingodad, bmeck, strRM, fgauthie, julienhenry, SamArch27, luc-tielen, XiaowenHu96)
+ * Misc fixes and refactoring (adamjseitz, ruricolist, quentin, b-scholz, mingodad, bmeck, strRM, fgauthie, julienhenry, SamArch27, luc-tielen, XiaowenHu96, Gueckmooh)
 
  -- Quentin Sabah <quentin.sabah@gmail.com>  Sat, 18 Feb 2023 11:00:00 +0100
 
