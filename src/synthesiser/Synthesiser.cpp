@@ -376,7 +376,10 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 out << "std::map<std::string, std::string> directiveMap(";
                 printDirectives(directives);
                 out << ");\n";
-                out << R"_(if (!outputDirectory.empty()) {)_";
+                out << R"_(if (outputDirectory == "-"){)_";
+                out << R"_(directiveMap["IO"] = "stdout"; directiveMap["headers"] = "true";)_";
+                out << "}\n";
+                out << R"_(else if (!outputDirectory.empty()) {)_";
                 out << R"_(directiveMap["output-dir"] = outputDirectory;)_";
                 out << "}\n";
                 out << "IOSystem::getInstance().getWriter(";
