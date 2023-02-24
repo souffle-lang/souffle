@@ -144,7 +144,7 @@ function(SOUFFLE_RUN_TEST_HELPER)
 #Usually just "facts" but can be different when running multi - tests
     cmake_parse_arguments(
         PARAM
-        "COMPILED;COMPILED_SPLITTED;FUNCTORS;NEGATIVE;MULTI_TEST;NO_PREPROCESSOR" # Options
+        "COMPILED;COMPILED_SPLITTED;FUNCTORS;NEGATIVE;MULTI_TEST;NO_PREPROCESSOR;OUTPUT_STDOUT" # Options
         "TEST_NAME;CATEGORY;FACTS_DIR_NAME;EXTRA_DATA" #Single valued options
         "INCLUDE_DIRS" # Multi-valued options
         ${ARGV}
@@ -226,7 +226,11 @@ function(SOUFFLE_RUN_TEST_HELPER)
                                        FIXTURE_NAME ${FIXTURE_NAME}
                                        TEST_LABELS ${TEST_LABELS})
 
-    set(SOUFFLE_PARAMS "-D" "." "-F" "${FACTS_DIR}")
+    if(PARAM_OUTPUT_STDOUT)
+      set(SOUFFLE_PARAMS "-D-" "-F" "${FACTS_DIR}")
+    else()
+      set(SOUFFLE_PARAMS "-D" "." "-F" "${FACTS_DIR}")
+    endif()
     list(PREPEND SOUFFLE_PARAMS ${EXTRA_FLAGS})
 
     if (OPENMP_FOUND)
