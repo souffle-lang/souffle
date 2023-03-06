@@ -64,7 +64,7 @@ jobs:
       - name: Prepare
         id: prepare
         run: |-
-          echo "release_tag=$(git describe --tags --always | sed \"s/-.*$//\")" >> $GITHUB_OUTPUT
+          echo "release_tag=$(git describe --tags --always | sed "s/-.*$//")" >> $GITHUB_OUTPUT
 
       - name: Build Container
         run: docker build ./.github/images/arch-linux/ -t package_builder
