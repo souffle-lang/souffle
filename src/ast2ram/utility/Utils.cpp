@@ -72,6 +72,8 @@ std::string getAtomName(const ast::Clause& clause, const ast::Atom* atom,
                 return getDeltaRelationName(atom->getQualifiedName());
             }
         }
+
+        return getConcreteRelationName(atom->getQualifiedName());
     }
 
     if (!isRecursive) {
