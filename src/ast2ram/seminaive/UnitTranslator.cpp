@@ -330,8 +330,9 @@ Own<ram::Statement> UnitTranslator::translateSubsumptiveRecursiveClauses(
         const auto& sccAtoms = getSccAtoms(clause, scc);
         std::size_t sz = sccAtoms.size();
         for (std::size_t version = 0; version < sz; version++) {
-            appendStmt(code, context->translateRecursiveClause(*clause, scc, version,
-                                     (version >= 1) ? SubsumeDeleteCurrentCurrent : SubsumeDeleteCurrentDelta));
+            appendStmt(
+                    code, context->translateRecursiveClause(*clause, scc, version,
+                                  (version >= 1) ? SubsumeDeleteCurrentCurrent : SubsumeDeleteCurrentDelta));
         }
         appendStmt(code, generateEraseTuples(rel, mainRelation, deleteRelation));
         appendStmt(code, mk<ram::Clear>(deleteRelation));
