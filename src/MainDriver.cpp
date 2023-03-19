@@ -219,7 +219,7 @@ void compileToBinary(
 #endif
     auto exit = execute(interpreter, argv);
     if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <python3 %s>", command));
-    if (exit != 0) throw std::invalid_argument("failed to compile C++ sources");
+    if (*exit != 0) throw std::invalid_argument("failed to compile C++ sources");
 }
 
 class InputProvider {
@@ -356,7 +356,7 @@ public:
             std::cerr << "Failed to close pre-processor pipe\n";
             return false;
         } else if (Status != 0) {
-            std::cerr << "Pre-processors command failed with code " << Status << ": '" << Cmd.str() << "'\n";
+            std::cerr << "Pre-processor command failed with code " << Status << ": '" << Cmd.str() << "'\n";
             return false;
         }
         return true;

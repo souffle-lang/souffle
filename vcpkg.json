@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "souffle",
+  "dependencies": [
+    "zlib",
+    "libffi",
+    "sqlite3"
+  ],
+  "overrides": [
+    {
+      "name": "sqlite3",
+      "version": "3.40.1"
+    }
+  ],
+  "builtin-baseline": "a7b6122f6b6504d16d96117336a0562693579933"
+}

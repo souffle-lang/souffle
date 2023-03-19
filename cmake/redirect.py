@@ -45,5 +45,4 @@ if status.returncode != 0 and args.err_file:
     with open(args.err_file, "r") as f:
         os.sys.stderr.write(f.read())
 
-
 os.sys.exit(status.returncode)
