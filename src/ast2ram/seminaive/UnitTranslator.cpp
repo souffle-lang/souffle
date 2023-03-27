@@ -308,15 +308,11 @@ Own<ram::Statement> UnitTranslator::translateSubsumptiveRecursiveClauses(
             continue;
         }
 
-        const auto& sccAtoms = getSccAtoms(clause, scc);
-        for (std::size_t version = 0; version < sccAtoms.size(); version++) {
-            // find dominated tuples in the newR by tuples in newR  and store them in rejectR
-            appendStmt(code, context->translateRecursiveClause(*clause, scc, version, SubsumeRejectNewNew));
-
-            // find dominated tuples in the newR by tuples in R and store them in rejectR
-            appendStmt(
-                    code, context->translateRecursiveClause(*clause, scc, version, SubsumeRejectNewCurrent));
-        }
+        const std::size_t version = 0;
+        // find dominated tuples in the newR by tuples in newR  and store them in rejectR
+        appendStmt(code, context->translateRecursiveClause(*clause, scc, version, SubsumeRejectNewNew));
+        // find dominated tuples in the newR by tuples in R and store them in rejectR
+        appendStmt(code, context->translateRecursiveClause(*clause, scc, version, SubsumeRejectNewCurrent));
     }
 
     // compute new delta set, i.e., deltaR = newR \ rejectR
@@ -334,8 +330,9 @@ Own<ram::Statement> UnitTranslator::translateSubsumptiveRecursiveClauses(
         const auto& sccAtoms = getSccAtoms(clause, scc);
         std::size_t sz = sccAtoms.size();
         for (std::size_t version = 0; version < sz; version++) {
-            appendStmt(code, context->translateRecursiveClause(*clause, scc, version,
-                                     (sz > 1) ? SubsumeDeleteCurrentCurrent : SubsumeDeleteCurrentDelta));
+            appendStmt(
+                    code, context->translateRecursiveClause(*clause, scc, version,
+                                  (version >= 1) ? SubsumeDeleteCurrentCurrent : SubsumeDeleteCurrentDelta));
         }
         appendStmt(code, generateEraseTuples(rel, mainRelation, deleteRelation));
         appendStmt(code, mk<ram::Clear>(deleteRelation));
