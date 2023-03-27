@@ -29,19 +29,18 @@ jobs:
     - name: Binary Dependencies (Chocolatey)
       run: |
         choco config set cacheLocation ${{ env.CHOCO_CACHE_DIR }}
-        choco install choco-packages.config --no-progress --installargs 'ADD_CMAKE_TO_PATH=""System""'
+        choco install choco-packages.config --no-progress --installargs 'ADD_CMAKE_TO_PATH=System'
 
     # Use vcpkg to install devel library dependencies.
     - name: Library Dependencies (vcpkg)
-      uses: lukka/run-vcpkg@v7
+      uses: lukka/run-vcpkg@v10
       with:
-        vcpkgGitCommitId: '94ce0dab56f4d8ba6bd631ba59ed682b02d45c46'
-        vcpkgTriplet: x64-windows
-        vcpkgArguments: 'sqlite3 zlib libffi'
+        vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
 
     - name: Create Build Directory
       working-directory: ${{github.workspace}}
-      run: mkdir build
+      run: |
+        mkdir build
 
     - name: Configure Build
       working-directory: ${{github.workspace}}
@@ -49,7 +48,7 @@ jobs:
         $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
         Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
         refreshenv
-        cmake -S . -B build -G "Visual Studio 16 2019" -A x64 "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=/bigobj -DSOUFFLE_DOMAIN_64BIT=ON -DCMAKE_FIND_LIBRARY_PREFIXES=";lib" -DCMAKE_FIND_LIBRARY_SUFFIXES=".lib;.dll" -DSOUFFLE_USE_CURSES=OFF -DSOUFFLE_USE_ZLIB=ON -DCMAKE_FIND_DEBUG_MODE=FALSE -DSOUFFLE_BASH_COMPLETION=OFF
+        cmake -S . -B build -G "Visual Studio 16 2019" -A x64 "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=/bigobj -DSOUFFLE_DOMAIN_64BIT=ON -DCMAKE_FIND_LIBRARY_PREFIXES=";lib" -DCMAKE_FIND_LIBRARY_SUFFIXES=".lib;.dll" -DSOUFFLE_USE_CURSES=OFF -DSOUFFLE_USE_ZLIB=ON -DSOUFFLE_USE_SQLITE=ON -DCMAKE_FIND_DEBUG_MODE=FALSE -DSOUFFLE_BASH_COMPLETION=OFF
 
     - name: Build
       working-directory: ${{github.workspace}}

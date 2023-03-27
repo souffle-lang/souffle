@@ -63,6 +63,14 @@ function(SOUFFLE_RUN_INTEGRATION_TEST)
       FIXTURES_SETUP ${PARAM_FIXTURE_NAME}_run_souffle
       FIXTURES_REQUIRED ${PARAM_FIXTURE_NAME}_setup)
 
+    if (WIN32)
+      string(REPLACE ";" "\\;" escaped_path "$ENV{PATH}")
+      cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH CL_DIR)
+      set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_souffle PROPERTIES
+        ENVIRONMENT "PATH=${CL_DIR}\\;$<SHELL_PATH:$<TARGET_FILE_DIR:souffle>>\\;${escaped_path}"
+      )
+    endif()
+
     if (PARAM_NEGATIVE)
       #Mark the souffle run as "will fail" for negative tests
       set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_run_souffle PROPERTIES WILL_FAIL TRUE)
@@ -83,12 +91,21 @@ function(SOUFFLE_COMPARE_STD_OUTPUTS)
       COMMAND
         ${Python3_EXECUTABLE} "${PROJECT_SOURCE_DIR}/cmake/check_std_outputs.py"
         "${PARAM_TEST_NAME}"
-        "${PARAM_EXTRA_DATA}")
+        "${PARAM_EXTRA_DATA}"
+    )
 
     set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_compare_std_outputs PROPERTIES
-                         WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
-                         LABELS "${PARAM_TEST_LABELS}"
-                         FIXTURES_REQUIRED ${PARAM_RUN_AFTER_FIXTURE})
+      WORKING_DIRECTORY "${PARAM_OUTPUT_DIR}"
+      LABELS "${PARAM_TEST_LABELS}"
+      FIXTURES_REQUIRED ${PARAM_RUN_AFTER_FIXTURE}
+    )
+
+    if (WIN32)
+      string(REPLACE ";" "\\;" escaped_path "$ENV{PATH}")
+      set_tests_properties(${PARAM_QUALIFIED_TEST_NAME}_compare_std_outputs PROPERTIES
+        ENVIRONMENT "$<SHELL_PATH:$<TARGET_FILE_DIR:souffle>>\\;${escaped_path}"
+      )
+    endif()
 endfunction()
 
 function(SOUFFLE_COMPARE_CSV)

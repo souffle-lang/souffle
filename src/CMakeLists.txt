@@ -334,16 +334,23 @@ endif()
 # be immediately found by the operating system.
 
 if (SOUFFLE_USE_SQLITE)
-add_custom_command(TARGET souffle POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${SQLite3_LIBRARY} ${ZLIB_LIBRARY_RELEASE}
-  $<TARGET_FILE_DIR:souffle>)
+  add_custom_command(TARGET souffle POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${SQLite3_LIBRARY}
+    $<TARGET_FILE_DIR:souffle>)
+  if (WIN32)
+    cmake_path(GET SQLite3_LIBRARY PARENT_PATH SQLite3_LIBRARY_DIR)
+    add_custom_command(TARGET souffle POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${SQLite3_LIBRARY_DIR}/../bin/sqlite3.dll
+      $<TARGET_FILE_DIR:souffle>)
+  endif ()
 endif ()
 
 if (SOUFFLE_USE_ZLIB)
 add_custom_command(TARGET souffle POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${SQLite3_LIBRARY} ${ZLIB_LIBRARY_RELEASE}
+  ${ZLIB_LIBRARY_RELEASE}
   $<TARGET_FILE_DIR:souffle>)
 endif ()
 

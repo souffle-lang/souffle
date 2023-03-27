@@ -70,7 +70,7 @@ std::optional<detail::LinuxWaitStatus> execute(
 
     auto pid = ::fork();
     switch (pid) {
-        case -1: return {};  // unable to fork. likely hit a resource limit of some kind.
+        case -1: return std::nullopt;  // unable to fork. likely hit a resource limit of some kind.
 
         case 0: {  // child
             // thankfully we're a fork. we can trash this proc's `::environ` w/o reprocussions
@@ -102,8 +102,8 @@ std::optional<detail::LinuxWaitStatus> execute(
                 switch (WEXITSTATUS(status)) {
                     default: return WEXITSTATUS(status);
 
-                    case EC::cannot_execute:                // FALL THRU: command_not_found
-                    case EC::command_not_found: return {};  // fork couldn't execute the program
+                    case EC::cannot_execute:                          // FALL THRU: command_not_found
+                    case EC::command_not_found: return std::nullopt;  // fork couldn't execute the program
                 }
             }
             // what should be returned on signal? Treat as error
@@ -128,7 +128,7 @@ std::optional<detail::LinuxWaitStatus> execute(
     int64_t Found = (int64_t)FindExecutableW(program_w.c_str(), nullptr, FoundPath);
     if (Found <= 32) {
         std::cerr << "Cannot find executable '" << program << "'.\n";
-        return {};
+        return std::nullopt;
     }
 
     std::wstringstream args_w;
@@ -152,13 +152,13 @@ std::optional<detail::LinuxWaitStatus> execute(
 
     if (!CreateProcessW(FoundPath, args_w.str().data(), NULL, NULL, FALSE, 0, /*envir.data()*/ nullptr, NULL,
                 &si, &pi)) {
-        return {};
+        return std::nullopt;
     }
 
     WaitForSingleObject(pi.hProcess, INFINITE);
 
     if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
-        return {};
+        return std::nullopt;
     }
 
     CloseHandle(pi.hProcess);
