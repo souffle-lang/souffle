@@ -83,8 +83,8 @@ bool MaterializeSingletonAggregationTransformer::transform(TranslationUnit& tran
         // synthesise an aggregate relation
         // __agg_rel_0()
         std::string aggRelName = analysis::findUniqueRelationName(program, "__agg_single");
-        auto aggRel = mk<Relation>(aggRelName);
-        auto aggClause = mk<Clause>(aggRelName);
+        auto aggRel = mk<Relation>(QualifiedName::fromString(aggRelName));
+        auto aggClause = mk<Clause>(QualifiedName::fromString(aggRelName));
         auto* aggHead = aggClause->getHead();
 
         // create a synthesised variable to replace the aggregate term!

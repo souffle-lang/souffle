@@ -95,7 +95,7 @@ std::set<std::string> getWitnessVariables(
         }
     };
 
-    auto aggregatorlessClause = mk<Clause>("*");
+    auto aggregatorlessClause = mk<Clause>(QualifiedName::fromString("*"));
     aggregatorlessClause->setBodyLiterals(clone(clause.getBodyLiterals()));
 
     auto negatedHead = mk<Negation>(clone(clause.getHead()));
@@ -104,14 +104,14 @@ std::set<std::string> getWitnessVariables(
     // Replace all aggregates with variables
     M update;
     aggregatorlessClause->apply(update);
-    auto groundingAtom = mk<Atom>("+grounding_atom");
+    auto groundingAtom = mk<Atom>(QualifiedName::fromString("+grounding_atom"));
     for (std::string variableName : update.getAggregatorVariables()) {
         groundingAtom->addArgument(mk<Variable>(variableName));
     }
     aggregatorlessClause->addToBody(std::move(groundingAtom));
     // 2. Create an aggregate clause so that we can check
     // that it IS this aggregate giving a grounding to the candidate variable.
-    auto aggregateSubclause = mk<Clause>("*");
+    auto aggregateSubclause = mk<Clause>(QualifiedName::fromString("*"));
     aggregateSubclause->setBodyLiterals(clone(aggregate.getBodyLiterals()));
 
     std::set<std::string> witnessVariables;
@@ -177,7 +177,7 @@ std::string findUniqueVariableName(const Clause& clause, std::string base) {
 std::string findUniqueRelationName(const Program& program, std::string base) {
     int counter = 0;
     auto candidate = base;
-    while (program.getRelation(candidate) != nullptr) {
+    while (program.getRelation(QualifiedName::fromString(candidate)) != nullptr) {
         candidate = base + toString(counter++);
     }
     return candidate;
@@ -321,7 +321,7 @@ std::set<std::string> getInjectedVariables(
     };
     // 2. make a clone of the clause and then apply that mapper onto it
     auto clauseCopy = clone(clause);
-    auto tweakedClause = mk<Clause>("*");
+    auto tweakedClause = mk<Clause>(QualifiedName::fromString("*"));
     tweakedClause->setBodyLiterals(clone(clause.getBodyLiterals()));
 
     // copy in the head as a negated atom
@@ -330,7 +330,7 @@ std::set<std::string> getInjectedVariables(
     ReplaceAggregatesWithVariables update(std::move(ancestorAggregates), clone(aggregate));
     tweakedClause->apply(update);
     // the update will now tell us which variables we need to ground!
-    auto groundingAtom = mk<Atom>("+grounding_atom");
+    auto groundingAtom = mk<Atom>(QualifiedName::fromString("+grounding_atom"));
     for (std::string variableName : update.getAggregatorVariables()) {
         groundingAtom->addArgument(mk<Variable>(variableName));
     }

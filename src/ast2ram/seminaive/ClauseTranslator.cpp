@@ -84,7 +84,8 @@ std::string ClauseTranslator::getClauseString(const ast::Clause& clause) const {
     auto renamedClone = clone(clause);
 
     // Update the head atom
-    renamedClone->getHead()->setQualifiedName(getClauseAtomName(clause, clause.getHead()));
+    renamedClone->getHead()->setQualifiedName(
+            ast::QualifiedName::fromString(getClauseAtomName(clause, clause.getHead())));
 
     // Update the body atoms
     const auto& cloneAtoms = ast::getBodyLiterals<ast::Atom>(*renamedClone);
@@ -95,7 +96,7 @@ std::string ClauseTranslator::getClauseString(const ast::Clause& clause) const {
         const auto* originalAtom = originalAtoms.at(i);
         assert(originalAtom->getQualifiedName() == cloneAtom->getQualifiedName() &&
                 "atom sequence in clone should match");
-        cloneAtom->setQualifiedName(getClauseAtomName(clause, originalAtom));
+        cloneAtom->setQualifiedName(ast::QualifiedName::fromString(getClauseAtomName(clause, originalAtom)));
     }
 
     return toString(*renamedClone);

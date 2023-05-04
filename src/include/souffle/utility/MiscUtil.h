@@ -27,6 +27,7 @@
 #include <memory>
 #include <optional>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 
 #ifdef _WIN32
@@ -147,9 +148,17 @@ Own<A> clone(const Own<A>& node) {
     return clone(node.get());
 }
 
-template <typename K, typename V>
-auto clone(const std::map<K, V>& xs) {
-    std::map<K, decltype(clone(std::declval<const V&>()))> ys;
+template <typename K, typename V, typename C>
+auto clone(const std::map<K, V, C>& xs) {
+    std::map<K, decltype(clone(std::declval<const V&>())), C> ys;
+    for (auto&& [k, v] : xs)
+        ys.insert({k, clone(v)});
+    return ys;
+}
+
+template <typename K, typename V, typename H>
+auto clone(const std::unordered_map<K, V, H>& xs) {
+    std::unordered_map<K, decltype(clone(std::declval<const V&>())), H> ys;
     for (auto&& [k, v] : xs)
         ys.insert({k, clone(v)});
     return ys;

@@ -375,7 +375,7 @@ unit
 qualified_name
   : IDENT
     {
-      $$ = $IDENT;
+      $$ = driver.mkQN($IDENT);
     }
   | qualified_name DOT IDENT
     {
@@ -389,39 +389,39 @@ qualified_name
 type_decl
   : TYPE IDENT SUBTYPE qualified_name
     {
-      $$ = mk<ast::SubsetType>($IDENT, $qualified_name, @$);
+      $$ = mk<ast::SubsetType>(driver.mkQN($IDENT), $qualified_name, @$);
     }
   | TYPE IDENT EQUALS union_type_list
     {
       auto utl = $union_type_list;
       auto id = $IDENT;
       if (utl.size() > 1) {
-         $$ = mk<ast::UnionType>(id, utl, @$);
+         $$ = mk<ast::UnionType>(driver.mkQN(id), utl, @$);
       } else {
          assert(utl.size() == 1 && "qualified name missing for alias type");
-         $$ = mk<ast::AliasType>(id, utl[0], @$);
+         $$ = mk<ast::AliasType>(driver.mkQN(id), utl[0], @$);
       }
     }
   | TYPE IDENT EQUALS record_type_list
     {
-      $$ = mk<ast::RecordType>($IDENT, $record_type_list, @$);
+      $$ = mk<ast::RecordType>(driver.mkQN($IDENT), $record_type_list, @$);
     }
   | TYPE IDENT EQUALS adt_branch_list
     {
-      $$ = mk<ast::AlgebraicDataType>($IDENT, $adt_branch_list, @$);
+      $$ = mk<ast::AlgebraicDataType>(driver.mkQN($IDENT), $adt_branch_list, @$);
     }
     /* Deprecated Type Declarations */
   | NUMBER_TYPE IDENT
     {
-      $$ = driver.mkDeprecatedSubType($IDENT, "number", @$);
+      $$ = driver.mkDeprecatedSubType(driver.mkQN($IDENT), driver.mkQN("number"), @$);
     }
   | SYMBOL_TYPE IDENT
     {
-      $$ = driver.mkDeprecatedSubType($IDENT, "symbol", @$);
+      $$ = driver.mkDeprecatedSubType(driver.mkQN($IDENT), driver.mkQN("symbol"), @$);
     }
   | TYPE IDENT
     {
-      $$ = driver.mkDeprecatedSubType($IDENT, "symbol", @$);
+      $$ = driver.mkDeprecatedSubType(driver.mkQN($IDENT), driver.mkQN("symbol"), @$);
     }
   ;
 
@@ -464,11 +464,11 @@ adt_branch_list
 adt_branch
   : IDENT[name] LBRACE RBRACE
     {
-      $$ = mk<ast::BranchType>($name, VecOwn<ast::Attribute>{}, @$);
+      $$ = mk<ast::BranchType>(driver.mkQN($name), VecOwn<ast::Attribute>{}, @$);
     }
   | IDENT[name] LBRACE non_empty_attributes[attributes] RBRACE
     {
-      $$ = mk<ast::BranchType>($name, $attributes, @$);
+      $$ = mk<ast::BranchType>(driver.mkQN($name), $attributes, @$);
     }
   ;
 
@@ -479,7 +479,7 @@ adt_branch
 lattice_decl
   : LATTICE IDENT[name] LT GT LBRACE lattice_operator_list RBRACE
     {
-      $$ = mk<ast::Lattice>($name, std::move($lattice_operator_list), @$);
+      $$ = mk<ast::Lattice>(driver.mkQN($name), std::move($lattice_operator_list), @$);
     }
 
 lattice_operator_list
@@ -532,12 +532,12 @@ relation_decl
         rel->setAttributes(clone(attributes_list));
       }
     }
-  | DECL IDENT EQUALS DEBUG_DELTA LPAREN IDENT RPAREN relation_tags
+  | DECL IDENT[delta] EQUALS DEBUG_DELTA LPAREN IDENT[name] RPAREN relation_tags
     {
       auto tags = $relation_tags;
-      $$.push_back(mk<ast::Relation>($2, @2));
+      $$.push_back(mk<ast::Relation>(driver.mkQN($delta), @2));
       for (auto&& rel : $$) {
-        rel->setIsDeltaDebug($6);
+        rel->setIsDeltaDebug(driver.mkQN($name));
         for (auto tag : tags) {
           if (isRelationQualifierTag(tag)) {
             rel->addQualifier(getRelationQualifierFromTag(tag));
@@ -557,12 +557,12 @@ relation_decl
 relation_names
   : IDENT
     {
-      $$.push_back(mk<ast::Relation>($1, @1));
+      $$.push_back(mk<ast::Relation>(driver.mkQN($1), @1));
     }
   | relation_names COMMA IDENT
     {
       $$ = $1;
-      $$.push_back(mk<ast::Relation>($3, @3));
+      $$.push_back(mk<ast::Relation>(driver.mkQN($3), @3));
     }
   ;
 
@@ -1345,12 +1345,12 @@ component_type_params
 component_param_list
   : IDENT
     {
-      $$.push_back($IDENT);
+      $$.push_back(driver.mkQN($IDENT));
     }
   | component_param_list COMMA IDENT
     {
       $$ = $1;
-      $$.push_back($IDENT);
+      $$.push_back(driver.mkQN($IDENT));
     }
   ;
 

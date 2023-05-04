@@ -37,13 +37,13 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(TranslationUnit& tran
     Program& program = translationUnit.getProgram();
     auto& ioTypes = translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
-    std::set<QualifiedName> atoms_in_aggs;
+    UnorderedQualifiedNameSet atoms_in_aggs;
     visitFrontier(program, [&](Aggregator& agg) {
         visit(agg, [&](Atom& atom) { atoms_in_aggs.insert(atom.getQualifiedName()); });
         return true;
     });
 
-    std::set<QualifiedName> emptyRelations;
+    UnorderedQualifiedNameSet emptyRelations;
     bool changed = false;
     for (auto rel : program.getRelations()) {
         if (ioTypes.isInput(rel)) continue;

@@ -50,7 +50,7 @@ inline Own<TranslationUnit> makeATU(std::string program) {
 }
 
 inline Own<Clause> makeClause(std::string name, Own<Argument> headArgument) {
-    auto clause = mk<Clause>(name);
+    auto clause = mk<Clause>(QualifiedName::fromString(name));
     auto headAtom = clause->getHead();
     headAtom->addArgument(std::move(headArgument));
     return clause;
@@ -84,9 +84,9 @@ TEST(Program, Parse) {
     EXPECT_EQ(1, prog.getTypes().size());
     EXPECT_EQ(2, prog.getRelations().size());
 
-    EXPECT_TRUE(prog.getRelation("e"));
-    EXPECT_TRUE(prog.getRelation("r"));
-    EXPECT_FALSE(prog.getRelation("n"));
+    EXPECT_TRUE(prog.getRelation(QualifiedName::fromString("e")));
+    EXPECT_TRUE(prog.getRelation(QualifiedName::fromString("r")));
+    EXPECT_FALSE(prog.getRelation(QualifiedName::fromString("n")));
 }
 
 #define TESTASTCLONEANDEQUAL(SUBTYPE, DL)                                            \
@@ -201,7 +201,7 @@ TESTASTCLONEANDEQUAL(RelationCopies,
 
 // should *not* remove anything because `removeClause` operates by identity, not equality
 TEST(Program, RemoveClauseByEquality) {
-    auto atom = mk<Atom>("B");
+    auto atom = mk<Atom>(QualifiedName::fromString("B"));
     atom->addArgument(mk<Variable>("x"));
     auto sum = mk<IntrinsicAggregator>(AggregateOp::SUM, mk<Variable>("x"));
     VecOwn<Literal> body;
@@ -225,7 +225,7 @@ TEST(Program, RemoveClauseByEquality) {
 
 TEST(Program, RemoveClauseByIdentity) {
     auto tu1 = makeATU(".decl A,B(x:number) \n A(sum x : B(x)).");
-    auto clauses = tu1->getProgram().getClauses("A");
+    auto clauses = tu1->getProgram().getClauses(QualifiedName::fromString("A"));
     EXPECT_EQ(1, clauses.size());
     tu1->getProgram().removeClause(*clauses[0]);
 
@@ -237,8 +237,8 @@ TEST(Program, AppendRelation) {
     auto tu1 = makeATU(".decl A,B,C(x:number)");
     auto& prog1 = tu1->getProgram();
     auto rel = mk<Relation>();
-    rel->setQualifiedName("D");
-    rel->addAttribute(mk<Attribute>("x", "number"));
+    rel->setQualifiedName(QualifiedName::fromString("D"));
+    rel->addAttribute(mk<Attribute>("x", QualifiedName::fromString("number")));
     prog1.addRelation(std::move(rel));
     auto tu2 = makeATU(".decl A,B,C,D(x:number)");
     EXPECT_EQ(tu1->getProgram(), tu2->getProgram());
@@ -246,7 +246,7 @@ TEST(Program, AppendRelation) {
 
 TEST(Program, RemoveRelation) {
     auto tu1 = makeATU(".decl A,B,C(x:number)");
-    EXPECT_TRUE(tu1->getProgram().removeRelation("B"));
+    EXPECT_TRUE(tu1->getProgram().removeRelation(QualifiedName::fromString("B")));
     auto tu2 = makeATU(".decl A,C(x:number)");
     EXPECT_EQ(tu1->getProgram(), tu2->getProgram());
 }

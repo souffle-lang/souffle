@@ -116,8 +116,8 @@ std::string getDeleteRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@delete_");
 }
 
-std::string getRelationName(const ast::QualifiedName& name) {
-    return toString(join(name.getQualifiers(), "."));
+const std::string& getRelationName(const ast::QualifiedName& name) {
+    return name.toString();
 }
 
 std::string getBaseRelationName(const ast::QualifiedName& name) {

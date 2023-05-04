@@ -45,18 +45,22 @@ void RecordType::print(std::ostream& out) const {
 }
 
 TypeSet TypeEnvironment::initializeConstantTypes() {
-    auto& signedConstant = createType<ConstantType>("__numberConstant", "number");
-    auto& floatConstant = createType<ConstantType>("__floatConstant", "float");
-    auto& symbolConstant = createType<ConstantType>("__symbolConstant", "symbol");
-    auto& unsignedConstant = createType<ConstantType>("__unsignedConstant", "unsigned");
+    auto& signedConstant = createType<ConstantType>(
+            QualifiedName::fromString("__numberConstant"), QualifiedName::fromString("number"));
+    auto& floatConstant = createType<ConstantType>(
+            QualifiedName::fromString("__floatConstant"), QualifiedName::fromString("float"));
+    auto& symbolConstant = createType<ConstantType>(
+            QualifiedName::fromString("__symbolConstant"), QualifiedName::fromString("symbol"));
+    auto& unsignedConstant = createType<ConstantType>(
+            QualifiedName::fromString("__unsignedConstant"), QualifiedName::fromString("unsigned"));
 
     return TypeSet(signedConstant, floatConstant, symbolConstant, unsignedConstant);
 }
 
 TypeSet TypeEnvironment::initializePrimitiveTypes() {
-#define CREATE_PRIMITIVE(TYPE)                    \
-    auto& TYPE##Type = createType<PrimitiveType>( \
-            #TYPE, static_cast<const ConstantType&>(getType("__" #TYPE "Constant")));
+#define CREATE_PRIMITIVE(TYPE)                                                     \
+    auto& TYPE##Type = createType<PrimitiveType>(QualifiedName::fromString(#TYPE), \
+            static_cast<const ConstantType&>(getType(QualifiedName::fromString("__" #TYPE "Constant"))));
 
     CREATE_PRIMITIVE(number);
     CREATE_PRIMITIVE(float);

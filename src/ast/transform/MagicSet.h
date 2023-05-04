@@ -30,6 +30,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -80,26 +81,26 @@ private:
      * Gets the set of relations that are trivially computable,
      * and so should not be magic-set.
      */
-    static std::set<QualifiedName> getTriviallyIgnoredRelations(const TranslationUnit& tu);
+    static UnorderedQualifiedNameSet getTriviallyIgnoredRelations(const TranslationUnit& tu);
 
     /**
      * Gets the set of relations to weakly ignore during the MST process.
      * Weakly-ignored relations cannot be adorned/magic'd.
      * Superset of strongly-ignored relations.
      */
-    static std::set<QualifiedName> getWeaklyIgnoredRelations(const TranslationUnit& tu);
+    static UnorderedQualifiedNameSet getWeaklyIgnoredRelations(const TranslationUnit& tu);
 
     /**
      * Gets the set of relations to strongly ignore during the MST process.
      * Strongly-ignored relations cannot be safely duplicated without affecting semantics.
      */
-    static std::set<QualifiedName> getStronglyIgnoredRelations(const TranslationUnit& tu);
+    static UnorderedQualifiedNameSet getStronglyIgnoredRelations(const TranslationUnit& tu);
 
     /**
      * Gets the set of relations to not label.
      * The union of strongly and trivially ignored.
      */
-    static std::set<QualifiedName> getRelationsToNotLabel(const TranslationUnit& tu);
+    static UnorderedQualifiedNameSet getRelationsToNotLabel(const TranslationUnit& tu);
 };
 
 /**
@@ -240,9 +241,19 @@ private:
 
     using adorned_predicate = std::pair<QualifiedName, std::string>;
 
-    std::set<adorned_predicate> headAdornmentsToDo;
-    std::set<QualifiedName> headAdornmentsSeen;
-    std::set<QualifiedName> weaklyIgnoredRelations;
+    struct AdornedPredicateHash {
+        std::size_t operator()(const adorned_predicate& pred) const {
+            std::size_t seed = qnhasher(pred.first);
+            seed ^= strhasher(pred.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            return seed;
+        }
+        std::hash<QualifiedName> qnhasher;
+        std::hash<std::string> strhasher;
+    };
+
+    std::unordered_set<adorned_predicate, AdornedPredicateHash> headAdornmentsToDo;
+    UnorderedQualifiedNameSet headAdornmentsSeen;
+    UnorderedQualifiedNameSet weaklyIgnoredRelations;
 
     bool transform(TranslationUnit& translationUnit) override;
 

@@ -153,7 +153,7 @@ void TypeChecker::verify(TranslationUnit& tu) {
 
 void TypeDeclarationChecker::checkUnionType(const ast::UnionType& type) {
     // check presence of all the element types and that all element types are based off a primitive
-    for (const QualifiedName& sub : type.getTypes()) {
+    for (const QualifiedName& sub : orderedQualifiedNameSet(type.getTypes())) {
         if (typeEnv.isPrimitiveType(sub)) {
             continue;
         }
@@ -186,7 +186,8 @@ void TypeDeclarationChecker::checkUnionType(const ast::UnionType& type) {
 
         const auto& name = type->getQualifiedName();
 
-        const auto& predefinedTypesInUnion = typeEnvAnalysis.getPrimitiveTypesInUnion(name);
+        const auto predefinedTypesInUnion =
+                orderedQualifiedNameSet(typeEnvAnalysis.getPrimitiveTypesInUnion(name));
 
         // Report error (if size == 0, then the union is cyclic)
         if (predefinedTypesInUnion.size() > 1) {
@@ -304,7 +305,7 @@ void TypeDeclarationChecker::run() {
     }
 
     // Check if all the branch names are unique in sum types.
-    std::map<QualifiedName, std::vector<SrcLocation>> branchToLocation;
+    UnorderedQualifiedNameMap<std::vector<SrcLocation>> branchToLocation;
     visit(program.getTypes(), [&](const ast::AlgebraicDataType& type) {
         for (auto* branch : type.getBranches()) {
             branchToLocation[branch->getBranchName()].push_back(branch->getSrcLoc());

@@ -44,6 +44,10 @@
 
 namespace souffle::ast::test {
 
+QualifiedName qn(std::string_view s) {
+    return QualifiedName::fromString(s);
+}
+
 inline Own<TranslationUnit> makeATU(std::string program = ".decl A,B,C(x:number)") {
     Global glb;
     ErrorReport e;
@@ -58,7 +62,7 @@ inline Own<TranslationUnit> makePrintedATU(Own<TranslationUnit>& tu) {
 }
 
 inline Own<Clause> makeClauseA(Own<Argument> headArgument) {
-    auto clause = mk<Clause>("A");
+    auto clause = mk<Clause>(qn("A"));
     auto headAtom = clause->getHead();
     headAtom->addArgument(std::move(headArgument));
     return clause;
@@ -124,12 +128,12 @@ TEST(AstPrint, Counter) {
 }
 
 TEST(AstPrint, AggregatorMin) {
-    auto atom = mk<Atom>("B");
+    auto atom = mk<Atom>(qn("B"));
     atom->addArgument(mk<Variable>("x"));
     auto min = mk<IntrinsicAggregator>(AggregateOp::MIN, mk<Variable>("x"));
 
     VecOwn<Literal> body;
-    body.push_back(mk<Atom>("B"));
+    body.push_back(mk<Atom>(qn("B")));
 
     min->setBodyLiterals(std::move(body));
 
@@ -141,7 +145,7 @@ TEST(AstPrint, AggregatorMin) {
 }
 
 TEST(AstPrint, AggregatorMax) {
-    auto atom = mk<Atom>("B");
+    auto atom = mk<Atom>(qn("B"));
     atom->addArgument(mk<Variable>("x"));
     auto max = mk<IntrinsicAggregator>(AggregateOp::MAX, mk<Variable>("x"));
 
@@ -157,7 +161,7 @@ TEST(AstPrint, AggregatorMax) {
 }
 
 TEST(AstPrint, AggregatorCount) {
-    auto atom = mk<Atom>("B");
+    auto atom = mk<Atom>(qn("B"));
     atom->addArgument(mk<Variable>("x"));
     auto count = mk<IntrinsicAggregator>(AggregateOp::COUNT);
 
@@ -173,7 +177,7 @@ TEST(AstPrint, AggregatorCount) {
 }
 
 TEST(AstPrint, AggregatorSum) {
-    auto atom = mk<Atom>("B");
+    auto atom = mk<Atom>(qn("B"));
     atom->addArgument(mk<Variable>("x"));
     auto sum = mk<IntrinsicAggregator>(AggregateOp::SUM, mk<Variable>("x"));
 

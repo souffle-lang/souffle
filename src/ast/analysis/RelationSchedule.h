@@ -21,7 +21,9 @@
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/analysis/PrecedenceGraph.h"
+#include "ast/analysis/SCCGraph.h"
 #include "ast/analysis/TopologicallySortedSCCGraph.h"
+
 #include <ostream>
 #include <set>
 #include <string>
@@ -88,11 +90,12 @@ public:
 private:
     TopologicallySortedSCCGraphAnalysis* topsortSCCGraphAnalysis = nullptr;
     PrecedenceGraphAnalysis* precedenceGraph = nullptr;
+    const SCCGraphAnalysis* sccGraph = nullptr;
 
     /** Relations computed and expired relations at each step */
     std::vector<RelationScheduleAnalysisStep> relationSchedule;
 
-    std::vector<RelationSet> computeRelationExpirySchedule(const TranslationUnit& translationUnit);
+    std::vector<RelationSet> computeRelationExpirySchedule();
 };
 
 }  // namespace souffle::ast::analysis

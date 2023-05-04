@@ -18,70 +18,142 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <map>
+#include <set>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace souffle::ast {
 
+struct QualifiedNameData {
+    using Segment = std::string;
+    std::vector<Segment> segments;
+
+    /// the whole qualified name with segments glued with dot
+    std::string qualified;
+
+    bool lexicalLess(const QualifiedNameData& other) const;
+};
+
+struct QNInterner;
+
 /**
- * @class QualifiedName
  * @brief Qualified Name class defines fully/partially qualified names
  * to identify objects in components.
  */
 class QualifiedName {
+private:
+    friend struct QNInterner;
+    explicit QualifiedName(uint32_t);
+
 public:
+    /** Build a QualifiedName from a dot-separated qualified name */
+    static QualifiedName fromString(std::string_view qualname);
+
+    /// The empty qualified name
     QualifiedName();
-    QualifiedName(std::string name);
-    QualifiedName(const char* name);
-    QualifiedName(std::vector<std::string> qualifiers);
+
     QualifiedName(const QualifiedName&) = default;
     QualifiedName(QualifiedName&&) = default;
     QualifiedName& operator=(const QualifiedName&) = default;
     QualifiedName& operator=(QualifiedName&&) = default;
 
-    /** append qualifiers */
-    void append(std::string name);
+    const QualifiedNameData& data() const;
 
-    /** prepend qualifiers */
-    void prepend(std::string name);
+    /** append one qualifier */
+    void append(const std::string& name);
+
+    /** prepend one qualifier */
+    void prepend(const std::string& name);
 
     /** check for emptiness */
-    bool empty() const {
-        return qualifiers.empty();
-    }
+    bool empty() const;
 
     /** get qualifiers */
-    const std::vector<std::string>& getQualifiers() const {
-        return qualifiers;
-    }
+    const std::vector<std::string>& getQualifiers() const;
 
     /** convert to a string separated by fullstop */
-    std::string toString() const;
+    const std::string& toString() const;
 
-    bool operator==(const QualifiedName& other) const {
-        return qualifiers == other.qualifiers;
-    }
+    bool operator==(const QualifiedName& other) const;
 
-    bool operator!=(const QualifiedName& other) const {
-        return !(*this == other);
-    }
+    bool operator!=(const QualifiedName& other) const;
 
-    bool operator<(const QualifiedName& other) const;
+    /// Lexicographic less comparison.
+    ///
+    /// We don't offer `operator<` because it's a costly operation
+    /// that should only be used when ordering is required.
+    ///
+    /// See type definitions of containers below.
+    bool lexicalLess(const QualifiedName& other) const;
 
     /** print qualified name */
     void print(std::ostream& out) const;
 
     friend std::ostream& operator<<(std::ostream& out, const QualifiedName& id);
 
+    /// Return the unique identifier of the interned qualified name.
+    uint32_t getIndex() const;
+
 private:
-    /* array of name qualifiers */
-    std::vector<std::string> qualifiers;
+    /// index of this qualified name in the qualified-name interner
+    uint32_t index;
 };
 
-inline QualifiedName operator+(const std::string& name, const QualifiedName& id) {
-    QualifiedName res = id;
-    res.prepend(name);
-    return res;
+/// Return the qualified name by the adding prefix segment in head of the qualified name.
+QualifiedName operator+(const std::string& head, const QualifiedName& tail);
+
+struct OrderedQualifiedNameLess {
+    bool operator()(const QualifiedName& lhs, const QualifiedName& rhs) const {
+        return lhs.lexicalLess(rhs);
+    }
+};
+
+struct UnorderedQualifiedNameLess {
+    bool operator()(const QualifiedName& lhs, const QualifiedName& rhs) const {
+        return lhs.getIndex() < rhs.getIndex();
+    }
+};
+
+struct QualifiedNameHash {
+    std::size_t operator()(const QualifiedName& qn) const {
+        return static_cast<std::size_t>(qn.getIndex());
+    }
+};
+
+/// a map from qualified name to T where qualified name keys are ordered in
+/// lexicographic order.
+template <typename T>
+using OrderedQualifiedNameMap = std::map<QualifiedName, T, OrderedQualifiedNameLess>;
+
+/// a map from qualified name to T where qualified name keys are not ordered in
+/// any deterministic order.
+template <typename T>
+using UnorderedQualifiedNameMap = std::unordered_map<QualifiedName, T, QualifiedNameHash>;
+
+/// a multi-map from qualified name to T where qualified name keys are not ordered in
+/// any deterministic order.
+template <typename T>
+using UnorderedQualifiedNameMultimap = std::unordered_multimap<QualifiedName, T, QualifiedNameHash>;
+
+/// an ordered set of qualified name ordered in lexicographic order.
+using OrderedQualifiedNameSet = std::set<QualifiedName, OrderedQualifiedNameLess>;
+
+/// an unordered set of qualified name.
+using UnorderedQualifiedNameSet = std::unordered_set<QualifiedName, QualifiedNameHash>;
+
+template <typename Container>
+OrderedQualifiedNameSet orderedQualifiedNameSet(const Container& cont) {
+    return OrderedQualifiedNameSet(cont.cbegin(), cont.cend());
 }
 
 }  // namespace souffle::ast
+
+template <>
+struct std::hash<souffle::ast::QualifiedName> {
+    std::size_t operator()(const souffle::ast::QualifiedName& qn) const noexcept {
+        return static_cast<std::size_t>(qn.getIndex());
+    }
+};

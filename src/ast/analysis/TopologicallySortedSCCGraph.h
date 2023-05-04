@@ -42,31 +42,17 @@ class TopologicallySortedSCCGraphAnalysis : public Analysis {
 public:
     static constexpr const char* name = "topological-scc-graph";
 
-    TopologicallySortedSCCGraphAnalysis() : Analysis(name) {}
+    explicit TopologicallySortedSCCGraphAnalysis();
 
     void run(const TranslationUnit& translationUnit) override;
 
-    const std::vector<std::size_t>& order() const {
-        return sccOrder;
-    }
+    const std::vector<std::size_t>& order() const;
 
-    std::size_t sccOfIndex(const std::size_t index) const {
-        return sccOrder.at(index);
-    }
+    std::size_t sccOfIndex(const std::size_t index) const;
 
-    std::size_t indexOfScc(const std::size_t scc) const {
-        auto it = std::find(sccOrder.begin(), sccOrder.end(), scc);
-        assert(it != sccOrder.end());
-        return (std::size_t)std::distance(sccOrder.begin(), it);
-    }
+    std::size_t indexOfScc(const std::size_t scc) const;
 
-    std::set<std::size_t> indexOfScc(const std::set<std::size_t>& sccs) const {
-        std::set<std::size_t> indices;
-        for (const auto scc : sccs) {
-            indices.insert(indexOfScc(scc));
-        }
-        return indices;
-    }
+    std::set<std::size_t> indexOfScc(const std::set<std::size_t>& sccs) const;
 
     /** Output topologically sorted strongly connected component graph in text format */
     void print(std::ostream& os) const override;
@@ -78,12 +64,15 @@ private:
     /** The final topological ordering of the SCCs. */
     std::vector<std::size_t> sccOrder;
 
+    /** The mapping from an SCC index to its maximum distance from roots */
+    std::map<std::size_t, int> sccDistance;
+
     /** Calculate the topological ordering cost of a permutation of as of yet unordered SCCs
     using the ordered SCCs. Returns -1 if the given vector is not a valid topological ordering. */
     int topologicalOrderingCost(const std::vector<std::size_t>& permutationOfSCCs) const;
 
     /** Recursive component for the forwards algorithm computing the topological ordering of the SCCs. */
-    void computeTopologicalOrdering(std::size_t scc, std::vector<bool>& visited);
+    void computeTopologicalOrdering(std::size_t scc, std::vector<int>& visited);
 };
 
 }  // namespace analysis

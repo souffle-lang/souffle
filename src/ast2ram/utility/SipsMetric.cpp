@@ -146,7 +146,7 @@ std::vector<std::size_t> SelingerProfileSipsMetric::getReordering(
         }
 
         if (joinKeys.empty() && !isRecursive) {
-            return static_cast<double>(prof->getRelationSize(rel));
+            return static_cast<double>(prof->getRelationSize(QualifiedName::fromString(rel)));
         }
 
         std::stringstream ss;

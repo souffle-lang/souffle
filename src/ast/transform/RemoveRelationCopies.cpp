@@ -36,7 +36,7 @@
 namespace souffle::ast::transform {
 
 bool RemoveRelationCopiesTransformer::removeRelationCopies(TranslationUnit& translationUnit) {
-    using alias_map = std::map<QualifiedName, QualifiedName>;
+    using alias_map = UnorderedQualifiedNameMap<QualifiedName>;
 
     // collect aliases
     alias_map isDirectAliasOf;
@@ -107,12 +107,12 @@ bool RemoveRelationCopiesTransformer::removeRelationCopies(TranslationUnit& tran
     alias_map isAliasOf;
 
     // track any copy cycles; cyclic rules are effectively empty
-    std::set<QualifiedName> cycle_reps;
+    UnorderedQualifiedNameSet cycle_reps;
 
     for (std::pair<QualifiedName, QualifiedName> cur : isDirectAliasOf) {
         // compute replacement
 
-        std::set<QualifiedName> visited;
+        UnorderedQualifiedNameSet visited;
         visited.insert(cur.first);
         visited.insert(cur.second);
 

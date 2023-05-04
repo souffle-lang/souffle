@@ -84,4 +84,8 @@ Relation* Relation::cloning() const {
     return res;
 }
 
+RelationSet orderedRelationSet(const UnorderedRelationSet& cont) {
+    return RelationSet(cont.cbegin(), cont.cend());
+}
+
 }  // namespace souffle::ast

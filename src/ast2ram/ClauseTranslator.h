@@ -19,11 +19,11 @@
 
 #include "souffle/utility/ContainerUtil.h"
 
+#include "ast/Relation.h"
+
 namespace souffle::ast {
 class Clause;
 class Relation;
-struct NameComparison;
-using RelationSet = std::set<const Relation*, NameComparison>;
 
 }  // namespace souffle::ast
 

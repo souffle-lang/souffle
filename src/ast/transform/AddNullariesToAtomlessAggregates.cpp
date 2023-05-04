@@ -32,6 +32,9 @@
 namespace souffle::ast::transform {
 
 bool AddNullariesToAtomlessAggregatesTransformer::transform(TranslationUnit& translationUnit) {
+    // +Tautology()
+    const QualifiedName relName = QualifiedName::fromString("+Tautology");
+
     bool changed{false};
     Program& program = translationUnit.getProgram();
     visit(program, [&](Aggregator& agg) {
@@ -46,8 +49,6 @@ bool AddNullariesToAtomlessAggregatesTransformer::transform(TranslationUnit& tra
         }
         // We will add in the Tautology atom to the body of this aggregate now
         changed = true;
-        // +Tautology()
-        std::string const relName = "+Tautology";
 
         if (program.getRelation(relName) == nullptr) {
             // +Tautology().

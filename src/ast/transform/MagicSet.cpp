@@ -61,10 +61,10 @@ using NegativeLabellingTransformer =
 using PositiveLabellingTransformer =
         MagicSetTransformer::LabelDatabaseTransformer::PositiveLabellingTransformer;
 
-std::set<QualifiedName> MagicSetTransformer::getTriviallyIgnoredRelations(const TranslationUnit& tu) {
+UnorderedQualifiedNameSet MagicSetTransformer::getTriviallyIgnoredRelations(const TranslationUnit& tu) {
     const auto& program = tu.getProgram();
     const auto& ioTypes = tu.getAnalysis<analysis::IOTypeAnalysis>();
-    std::set<QualifiedName> triviallyIgnoredRelations;
+    UnorderedQualifiedNameSet triviallyIgnoredRelations;
 
     // - Any relations known in constant time (IDB relations)
     for (auto* rel : program.getRelations()) {
@@ -87,23 +87,21 @@ std::set<QualifiedName> MagicSetTransformer::getTriviallyIgnoredRelations(const 
     return triviallyIgnoredRelations;
 }
 
-std::set<QualifiedName> MagicSetTransformer::getWeaklyIgnoredRelations(const TranslationUnit& tu) {
+UnorderedQualifiedNameSet MagicSetTransformer::getWeaklyIgnoredRelations(const TranslationUnit& tu) {
     const auto& program = tu.getProgram();
     const auto& precedenceGraph = tu.getAnalysis<analysis::PrecedenceGraphAnalysis>().graph();
     const auto& polyAnalysis = tu.getAnalysis<analysis::PolymorphicObjectsAnalysis>();
-    std::set<QualifiedName> weaklyIgnoredRelations;
+    UnorderedQualifiedNameSet weaklyIgnoredRelations;
 
     // Add magic-transform-exclude relations to the weakly ignored set
     for (const auto& relStr : splitString(tu.global().config().get("magic-transform-exclude"), ',')) {
-        std::vector<std::string> qualifiers = splitString(relStr, '.');
-        weaklyIgnoredRelations.insert(QualifiedName(qualifiers));
+        weaklyIgnoredRelations.insert(QualifiedName::fromString(relStr));
     }
 
     // Pick up specified relations from config
-    std::set<QualifiedName> specifiedRelations;
+    UnorderedQualifiedNameSet specifiedRelations;
     for (const auto& relStr : splitString(tu.global().config().get("magic-transform"), ',')) {
-        std::vector<std::string> qualifiers = splitString(relStr, '.');
-        specifiedRelations.insert(QualifiedName(qualifiers));
+        specifiedRelations.insert(QualifiedName::fromString(relStr));
     }
 
     // Pick up specified relations and ignored relations from relation tags
@@ -116,8 +114,11 @@ std::set<QualifiedName> MagicSetTransformer::getWeaklyIgnoredRelations(const Tra
     }
 
     // Get the complement if not everything is magic'd
-    std::set<QualifiedName> includedRelations = specifiedRelations - weaklyIgnoredRelations;
-    if (!contains(includedRelations, "*")) {
+    UnorderedQualifiedNameSet includedRelations;
+    std::copy_if(specifiedRelations.begin(), specifiedRelations.end(),
+            std::inserter(includedRelations, includedRelations.end()),
+            [&](const QualifiedName& qn) { return weaklyIgnoredRelations.count(qn) == 0; });
+    if (!contains(includedRelations, QualifiedName::fromString("*"))) {
         for (const Relation* rel : program.getRelations()) {
             if (!contains(specifiedRelations, rel->getQualifiedName())) {
                 weaklyIgnoredRelations.insert(rel->getQualifiedName());
@@ -215,10 +216,10 @@ std::set<QualifiedName> MagicSetTransformer::getWeaklyIgnoredRelations(const Tra
     return weaklyIgnoredRelations;
 }
 
-std::set<QualifiedName> MagicSetTransformer::getStronglyIgnoredRelations(const TranslationUnit& tu) {
+UnorderedQualifiedNameSet MagicSetTransformer::getStronglyIgnoredRelations(const TranslationUnit& tu) {
     const auto& program = tu.getProgram();
     const auto& precedenceGraph = tu.getAnalysis<analysis::PrecedenceGraphAnalysis>().graph();
-    std::set<QualifiedName> stronglyIgnoredRelations;
+    UnorderedQualifiedNameSet stronglyIgnoredRelations;
 
     // - Any atom appearing at the head of a clause containing a counter
     for (const auto* clause : program.getClauses()) {
@@ -231,7 +232,7 @@ std::set<QualifiedName> MagicSetTransformer::getStronglyIgnoredRelations(const T
     while (!fixpointReached) {
         fixpointReached = true;
         // - To prevent poslabelling issues, all dependent strata should also be strongly ignored
-        std::set<QualifiedName> dependentRelations;
+        UnorderedQualifiedNameSet dependentRelations;
         for (const auto& relName : stronglyIgnoredRelations) {
             precedenceGraph.visit(program.getRelation(relName), [&](const auto* dependentRel) {
                 dependentRelations.insert(dependentRel->getQualifiedName());
@@ -245,7 +246,7 @@ std::set<QualifiedName> MagicSetTransformer::getStronglyIgnoredRelations(const T
         }
 
         // - Since we can't duplicate the rules, nothing should be labelled in the bodies as well
-        std::set<QualifiedName> bodyRelations;
+        UnorderedQualifiedNameSet bodyRelations;
         for (const auto& relName : stronglyIgnoredRelations) {
             visit(program.getClauses(relName),
                     [&](Atom& atom) { bodyRelations.insert(atom.getQualifiedName()); });
@@ -261,8 +262,8 @@ std::set<QualifiedName> MagicSetTransformer::getStronglyIgnoredRelations(const T
     return stronglyIgnoredRelations;
 }
 
-std::set<QualifiedName> MagicSetTransformer::getRelationsToNotLabel(const TranslationUnit& tu) {
-    std::set<QualifiedName> result;
+UnorderedQualifiedNameSet MagicSetTransformer::getRelationsToNotLabel(const TranslationUnit& tu) {
+    UnorderedQualifiedNameSet result;
     for (const auto& name : getTriviallyIgnoredRelations(tu)) {
         result.insert(name);
     }
@@ -308,7 +309,7 @@ bool NormaliseDatabaseTransformer::partitionIO(TranslationUnit& translationUnit)
     const auto& ioTypes = translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
     // Get all relations that are both input and output
-    std::set<QualifiedName> relationsToSplit;
+    UnorderedQualifiedNameSet relationsToSplit;
     for (auto* rel : program.getRelations()) {
         if (ioTypes.isInput(rel) && (ioTypes.isOutput(rel) || ioTypes.isPrintSize(rel))) {
             relationsToSplit.insert(rel->getQualifiedName());
@@ -384,7 +385,7 @@ bool NormaliseDatabaseTransformer::extractIDB(TranslationUnit& translationUnit) 
     };
 
     // Get all input relations that also have IDB rules attached
-    std::set<QualifiedName> inputRelationNames;
+    UnorderedQualifiedNameSet inputRelationNames;
     for (auto* rel : program.getRelations()) {
         if (ioTypes.isInput(rel) && !isStrictlyEDB(rel)) {
             assert(!ioTypes.isOutput(rel) && !ioTypes.isPrintSize(rel) &&
@@ -395,7 +396,7 @@ bool NormaliseDatabaseTransformer::extractIDB(TranslationUnit& translationUnit) 
 
     // Add a new intermediate non-input relation for each
     // These will cover relation appearances in IDB rules
-    std::map<QualifiedName, QualifiedName> inputToIntermediate;
+    UnorderedQualifiedNameMap<QualifiedName> inputToIntermediate;
     for (const auto& inputRelationName : inputRelationNames) {
         // Give it a unique name
         QualifiedName intermediateName(inputRelationName);
@@ -460,7 +461,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(TranslationUnit& trans
 
     // Get all output relations that need to be normalised
     const auto& ioTypes = translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
-    std::set<QualifiedName> outputRelationNames;
+    UnorderedQualifiedNameSet outputRelationNames;
     for (auto* rel : program.getRelations()) {
         if ((ioTypes.isOutput(rel) || ioTypes.isPrintSize(rel)) && !isStrictlyOutput(rel)) {
             assert(!ioTypes.isInput(rel) && "output relations should not be input at this stage");
@@ -470,7 +471,7 @@ bool NormaliseDatabaseTransformer::querifyOutputRelations(TranslationUnit& trans
 
     // Add a new intermediate non-output relation for each
     // These will cover relation appearances in intermediate rules
-    std::map<QualifiedName, QualifiedName> outputToIntermediate;
+    UnorderedQualifiedNameMap<QualifiedName> outputToIntermediate;
     for (const auto& outputRelationName : outputRelationNames) {
         // Give it a unique name
         QualifiedName intermediateName(outputRelationName);
@@ -792,7 +793,7 @@ bool NegativeLabellingTransformer::transform(TranslationUnit& translationUnit) {
     const auto& sccGraph = translationUnit.getAnalysis<analysis::SCCGraphAnalysis>();
     Program& program = translationUnit.getProgram();
 
-    std::set<QualifiedName> relationsToLabel;
+    UnorderedQualifiedNameSet relationsToLabel;
     VecOwn<Clause> clausesToAdd;
     const auto& relationsToNotLabel = getRelationsToNotLabel(translationUnit);
 
@@ -819,7 +820,7 @@ bool NegativeLabellingTransformer::transform(TranslationUnit& translationUnit) {
     for (std::size_t stratum = 0; stratum < sccGraph.getNumberOfSCCs(); stratum++) {
         // Check which relations to label in this stratum
         const auto& stratumRels = sccGraph.getInternalRelations(stratum);
-        std::map<QualifiedName, QualifiedName> newSccFriendNames;
+        UnorderedQualifiedNameMap<QualifiedName> newSccFriendNames;
         for (const auto* rel : stratumRels) {
             auto relName = rel->getQualifiedName();
             if (contains(relationsToNotLabel, relName)) continue;
@@ -909,7 +910,7 @@ bool PositiveLabellingTransformer::transform(TranslationUnit& translationUnit) {
         for (const auto* rel : sccGraph.getInternalRelations(stratum)) {
             assert(isNegativelyLabelled(rel->getQualifiedName()) &&
                     "should only be looking at neglabelled strata");
-            std::set<QualifiedName> relsToCopy;
+            UnorderedQualifiedNameSet relsToCopy;
 
             // Get the unignored unlabelled relations appearing in the rules
             for (auto&& clause : program.getClauses(*rel)) {
@@ -921,7 +922,7 @@ bool PositiveLabellingTransformer::transform(TranslationUnit& translationUnit) {
                 });
             }
 
-            std::map<QualifiedName, QualifiedName> labelledNames;
+            UnorderedQualifiedNameMap<QualifiedName> labelledNames;
             for (const auto& relName : relsToCopy) {
                 std::size_t relStratum = sccGraph.getSCC(program.getRelation(relName));
                 std::size_t copyCount = originalStrataCopyCount.at(relStratum) + 1;
@@ -943,7 +944,7 @@ bool PositiveLabellingTransformer::transform(TranslationUnit& translationUnit) {
 
                 for (auto&& clause : program.getClauses(*rel)) {
                     // Grab the new names for all unignored unlabelled positive atoms
-                    std::map<QualifiedName, QualifiedName> labelledNames;
+                    UnorderedQualifiedNameMap<QualifiedName> labelledNames;
                     visit(*clause, [&](const Atom& atom) {
                         const auto& relName = atom.getQualifiedName();
                         if (contains(relationsToNotLabel, relName) || isNegativelyLabelled(relName)) return;

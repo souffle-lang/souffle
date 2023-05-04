@@ -58,7 +58,8 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
     // - An edge (a,b) exists iff a uses b "non-existentially" in one of its *recursive* clauses
     // This way, a relation can be transformed into an existential form
     // if and only if all its predecessors can also be transformed.
-    Graph<QualifiedName> relationGraph = Graph<QualifiedName>();
+    using QNGraph = GraphLabeled<QualifiedName, Unit, UnorderedQualifiedNameLess>;
+    QNGraph relationGraph;
 
     // Add in the nodes
     for (Relation* relation : program.getRelations()) {
@@ -66,7 +67,7 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
     }
 
     // Keep track of all relations that cannot be transformed
-    std::set<QualifiedName> minimalIrreducibleRelations;
+    UnorderedQualifiedNameSet minimalIrreducibleRelations;
 
     auto& ioType = translationUnit.getAnalysis<analysis::IOTypeAnalysis>();
 
@@ -105,14 +106,14 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
     // Run a DFS from each 'bad' source
     // A node is reachable in a DFS from an irreducible node if and only if it is
     // also an irreducible node
-    std::set<QualifiedName> irreducibleRelations;
+    UnorderedQualifiedNameSet irreducibleRelations;
     for (QualifiedName relationName : minimalIrreducibleRelations) {
         relationGraph.visit(
                 relationName, [&](const QualifiedName& subRel) { irreducibleRelations.insert(subRel); });
     }
 
     // All other relations are necessarily existential
-    std::set<QualifiedName> existentialRelations;
+    UnorderedQualifiedNameSet existentialRelations;
     for (Relation* relation : program.getRelations()) {
         if (!program.getClauses(*relation).empty() && relation->getArity() != 0 &&
                 irreducibleRelations.find(relation->getQualifiedName()) == irreducibleRelations.end()) {
@@ -126,8 +127,9 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
 
         std::stringstream newRelationName;
         newRelationName << "+?exists_" << relationName;
+        const QualifiedName newRelationQName = QualifiedName::fromString(newRelationName.str());
 
-        auto newRelation = mk<Relation>(newRelationName.str(), originalRelation->getSrcLoc());
+        auto newRelation = mk<Relation>(newRelationQName, originalRelation->getSrcLoc());
 
         // EqRel relations require two arguments, so remove it from the qualifier
         if (newRelation->getRepresentation() == RelationRepresentation::EQREL) {
@@ -137,7 +139,7 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
         // Keep all non-recursive clauses
         for (auto&& clause : program.getClauses(*originalRelation)) {
             if (!isRecursiveClause(*clause)) {
-                auto newClause = mk<Clause>(mk<Atom>(newRelationName.str()), clone(clause->getBodyLiterals()),
+                auto newClause = mk<Clause>(mk<Atom>(newRelationQName), clone(clause->getBodyLiterals()),
                         // clone handles nullptr gracefully
                         clone(clause->getExecutionPlan()), clause->getSrcLoc());
                 program.addClause(std::move(newClause));
@@ -150,9 +152,9 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
     // Mapper that renames the occurrences of marked relations with their existential
     // counterparts
     struct renameExistentials : public NodeMapper {
-        const std::set<QualifiedName>& relations;
+        const UnorderedQualifiedNameSet& relations;
 
-        renameExistentials(std::set<QualifiedName>& relations) : relations(relations) {}
+        renameExistentials(UnorderedQualifiedNameSet& relations) : relations(relations) {}
 
         Own<Node> operator()(Own<Node> node) const override {
             if (auto* clause = as<Clause>(node)) {
@@ -165,7 +167,7 @@ bool ReduceExistentialsTransformer::transform(TranslationUnit& translationUnit) 
                     // Relation is now existential, so rename it
                     std::stringstream newName;
                     newName << "+?exists_" << atom->getQualifiedName();
-                    return mk<Atom>(newName.str());
+                    return mk<Atom>(QualifiedName::fromString(newName.str()));
                 }
             }
             node->apply(*this);

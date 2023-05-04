@@ -42,9 +42,10 @@ void ComponentLookupAnalysis::run(const TranslationUnit& translationUnit) {
 const Component* ComponentLookupAnalysis::getComponent(
         const Component* scope, const std::string& name, const TypeBinding& activeBinding) const {
     // forward according to binding (we do not do this recursively on purpose)
-    QualifiedName boundName = activeBinding.find(name);
+    const QualifiedName qn = QualifiedName::fromString(name);
+    QualifiedName boundName = activeBinding.find(qn);
     if (boundName.empty()) {
-        boundName = name;
+        boundName = qn;
     }
 
     // search nested scopes bottom up

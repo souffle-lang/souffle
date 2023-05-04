@@ -44,7 +44,7 @@ namespace souffle::ast::analysis {
 
 NormalisedClause::NormalisedClause(const Clause* clause) {
     // head
-    QualifiedName name("@min:head");
+    QualifiedName name = QualifiedName::fromString("@min:head");
     std::vector<std::string> headVars;
     for (const auto* arg : clause->getHead()->getArguments()) {
         headVars.push_back(normaliseArgument(arg));
@@ -76,7 +76,7 @@ void NormalisedClause::addClauseBodyLiteral(const std::string& scopeID, const Li
     } else if (const auto* neg = as<Negation>(lit)) {
         addClauseAtom("@min:neg", scopeID, neg->getAtom());
     } else if (const auto* bc = as<BinaryConstraint>(lit)) {
-        QualifiedName name(toBinaryConstraintSymbol(bc->getBaseOperator()));
+        QualifiedName name = QualifiedName::fromString(toBinaryConstraintSymbol(bc->getBaseOperator()));
         name.prepend("@min:operator");
         std::vector<std::string> vars;
         vars.push_back(scopeID);
@@ -88,7 +88,7 @@ void NormalisedClause::addClauseBodyLiteral(const std::string& scopeID, const Li
         fullyNormalised = false;
         std::stringstream qualifier;
         qualifier << "@min:unhandled:lit:" << scopeID;
-        QualifiedName name(toString(*lit));
+        QualifiedName name = QualifiedName::fromString(toString(*lit));
         name.prepend(qualifier.str());
         clauseElements.push_back({name, std::vector<std::string>()});
     }
@@ -142,7 +142,8 @@ std::string NormalisedClause::normaliseArgument(const Argument* arg) {
         }
 
         // Type signature is its own special atom
-        clauseElements.push_back({aggrTypeSignature.str(), aggrTypeSignatureComponents});
+        clauseElements.push_back(
+                {QualifiedName::fromString(aggrTypeSignature.str()), aggrTypeSignatureComponents});
 
         // Add each contained normalised clause literal, tying it with the new scope ID
         for (const auto* literal : aggr->getBodyLiterals()) {

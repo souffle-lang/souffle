@@ -86,7 +86,7 @@ public:
         VecOwn<Directive> directives;
     };
 
-    using RelationInfoMap = std::map<QualifiedName, RelationInfo>;
+    using RelationInfoMap = OrderedQualifiedNameMap<RelationInfo>;
 
     RelationInfoMap& getRelationInfo() {
         return relations;
@@ -238,8 +238,6 @@ protected:
     void addInstantiation(Own<ComponentInit> instantiation);
 
 private:
-    bool equal(const Node& node) const override;
-
     Program* cloning() const override;
 
 private:

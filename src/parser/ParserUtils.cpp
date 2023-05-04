@@ -93,7 +93,7 @@ VecOwn<ast::Clause> RuleBody::toClauseBodies() const {
     // collect clause results
     VecOwn<ast::Clause> bodies;
     for (const clause& cur : dnf) {
-        bodies.push_back(mk<ast::Clause>("*"));
+        bodies.push_back(mk<ast::Clause>(ast::QualifiedName::fromString("*")));
         ast::Clause& clause = *bodies.back();
 
         for (const literal& lit : cur) {

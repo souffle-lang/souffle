@@ -237,8 +237,8 @@ bool equal_targets(const std::vector<T>& a, const std::vector<T>& b) {
  * A function testing whether two maps of unique pointers are referencing to equivalent
  * targets.
  */
-template <typename Key, typename Value>
-bool equal_targets(const std::map<Key, Own<Value>>& a, const std::map<Key, Own<Value>>& b) {
+template <typename Key, typename Value, typename Cmp>
+bool equal_targets(const std::map<Key, Own<Value>, Cmp>& a, const std::map<Key, Own<Value>, Cmp>& b) {
     auto comp = comp_deref<Own<Value>>();
     return equal_targets(
             a, b, [&comp](auto& a, auto& b) { return a.first == b.first && comp(a.second, b.second); });
@@ -247,8 +247,8 @@ bool equal_targets(const std::map<Key, Own<Value>>& a, const std::map<Key, Own<V
 /**
  * A function testing whether two maps are equivalent using projected values.
  */
-template <typename Key, typename Value, typename F>
-bool equal_targets_map(const std::map<Key, Value>& a, const std::map<Key, Value>& b, F&& comp) {
+template <typename Key, typename Value, typename Cmp, typename F>
+bool equal_targets_map(const std::map<Key, Value, Cmp>& a, const std::map<Key, Value, Cmp>& b, F&& comp) {
     return equal_targets(
             a, b, [&](auto& a, auto& b) { return a.first == b.first && comp(a.second, b.second); });
 }

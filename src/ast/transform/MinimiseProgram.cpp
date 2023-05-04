@@ -314,7 +314,7 @@ bool MinimiseProgramTransformer::reduceSingletonRelations(TranslationUnit& trans
     }
 
     // Keep track of canonical relation name for each redundant clause
-    std::map<QualifiedName, QualifiedName> canonicalName;
+    UnorderedQualifiedNameMap<QualifiedName> canonicalName;
 
     // Check pairwise equivalence of each singleton relation
     for (std::size_t i = 0; i < singletonRelationClauses.size(); i++) {

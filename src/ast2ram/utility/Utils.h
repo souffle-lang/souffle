@@ -46,7 +46,7 @@ std::string getAtomName(const ast::Clause& clause, const ast::Atom* atom,
 std::string getConcreteRelationName(const ast::QualifiedName& name, const std::string prefix = "");
 
 /** converts the given relation identifier into a relation name */
-std::string getRelationName(const ast::QualifiedName& name);
+const std::string& getRelationName(const ast::QualifiedName& name);
 
 /** Get the corresponding RAM delta relation name for the relation */
 std::string getDeltaRelationName(const ast::QualifiedName& name);

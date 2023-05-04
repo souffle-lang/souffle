@@ -62,6 +62,7 @@ public:
     void addIoFromDeprecatedTag(ast::Relation& r);
     Own<ast::SubsetType> mkDeprecatedSubType(
             ast::QualifiedName name, ast::QualifiedName attr, SrcLocation loc);
+    ast::QualifiedName mkQN(std::string_view);
 
     std::set<RelationTag> addReprTag(RelationTag tag, SrcLocation tagLoc, std::set<RelationTag> tags);
     std::set<RelationTag> addDeprecatedTag(RelationTag tag, SrcLocation tagLoc, std::set<RelationTag> tags);

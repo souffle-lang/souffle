@@ -49,9 +49,6 @@ public:
 
 private:
     std::set<const Clause*> recursiveClauses;
-
-    /** Determines whether the given clause is recursive within the given program */
-    bool computeIsRecursive(const Clause& clause, const TranslationUnit& translationUnit) const;
 };
 
 }  // namespace analysis

@@ -308,23 +308,6 @@ void Program::print(std::ostream& os) const {
     show(getDirectives(), "\n\n");
 }
 
-bool Program::equal(const Node& node) const {
-    const auto& other = asAssert<Program>(node);
-    // clang-format off
-    return equal_targets(pragmas, other.pragmas) &&
-           equal_targets(components, other.components) &&
-           equal_targets(instantiations, other.instantiations) &&
-           equal_targets(functors, other.functors) &&
-           equal_targets(types, other.types) &&
-           equal_targets(lattices, other.lattices) &&
-           equal_targets_map(relations, other.relations, [](auto& a, auto& b) {
-                return  equal_targets(a.decls     , b.decls     ) &&
-                        equal_targets(a.clauses   , b.clauses   ) &&
-                        equal_targets(a.directives, b.directives);
-           });
-    // clang-format on
-}
-
 void Program::addComponent(Own<Component> component) {
     assert(component && "NULL component");
     components.push_back(std::move(component));

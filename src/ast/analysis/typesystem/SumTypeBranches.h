@@ -51,7 +51,7 @@ public:
     }
 
 private:
-    std::map<QualifiedName, const Type*> branchToType;
+    OrderedQualifiedNameMap<const Type*> branchToType;
 };
 
 }  // namespace analysis

@@ -46,9 +46,13 @@ namespace souffle::ast {
 
 namespace test {
 
+QualifiedName qn(std::string_view s) {
+    return QualifiedName::fromString(s);
+}
+
 TEST(AstUtils, Grounded) {
     // create an example clause:
-    auto clause = mk<Clause>("r");
+    auto clause = mk<Clause>(qn("r"));
 
     // something like:
     //   r(X,Y,Z) :- a(X), X = Y, !b(Z).
@@ -60,7 +64,7 @@ TEST(AstUtils, Grounded) {
     head->addArgument(Own<Argument>(new Variable("Z")));
 
     // a(X)
-    auto* a = new Atom("a");
+    auto* a = new Atom(qn("a"));
     a->addArgument(Own<Argument>(new Variable("X")));
     clause->addToBody(Own<Literal>(a));
 
@@ -70,7 +74,7 @@ TEST(AstUtils, Grounded) {
     clause->addToBody(Own<Literal>(e1));
 
     // !b(Z)
-    auto* b = new Atom("b");
+    auto* b = new Atom(qn("b"));
     b->addArgument(Own<Argument>(new Variable("Z")));
     auto* neg = new Negation(Own<Atom>(b));
     clause->addToBody(Own<Literal>(neg));
@@ -114,7 +118,7 @@ TEST(AstUtils, GroundedRecords) {
 
     Program& program = tu->getProgram();
 
-    auto* clause = program.getClauses("s")[0];
+    auto* clause = program.getClauses(qn("s"))[0];
 
     // check construction
     EXPECT_EQ("s(x) :- \n   r([x,y]).", toString(*clause));
@@ -149,8 +153,8 @@ TEST(AstUtils, ReorderClauseAtoms) {
     Program& program = tu->getProgram();
     EXPECT_EQ(5, program.getRelations().size());
 
-    EXPECT_NE(program.getRelation("a"), nullptr);
-    auto&& clauses = program.getClauses("a");
+    EXPECT_NE(program.getRelation(qn("a")), nullptr);
+    auto&& clauses = program.getClauses(qn("a"));
     EXPECT_EQ(1, clauses.size());
 
     auto&& clause = clauses[0];
@@ -185,11 +189,11 @@ TEST(AstUtils, RemoveEquivalentClauses) {
     Program& program = tu->getProgram();
     EXPECT_EQ(1, program.getRelations().size());
 
-    EXPECT_NE(program.getRelation("a"), nullptr);
-    EXPECT_EQ(15, program.getClauses("a").size());
+    EXPECT_NE(program.getRelation(qn("a")), nullptr);
+    EXPECT_EQ(15, program.getClauses(qn("a")).size());
 
-    program.removeRelation("a");
-    EXPECT_EQ(0, program.getClauses("a").size());
+    program.removeRelation(qn("a"));
+    EXPECT_EQ(0, program.getClauses(qn("a")).size());
 }
 
 }  // namespace test

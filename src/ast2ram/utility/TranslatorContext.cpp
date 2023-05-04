@@ -309,7 +309,7 @@ int TranslatorContext::getADTBranchId(const ast::BranchInit* adt) const {
     auto iterToBranch = std::lower_bound(branches.begin(), branches.end(), searchDummy,
             [](const ast::analysis::AlgebraicDataType::Branch& left,
                     const ast::analysis::AlgebraicDataType::Branch& right) {
-                return left.name < right.name;
+                return left.name.lexicalLess(right.name);
             });
     return static_cast<int>(std::distance(std::begin(branches), iterToBranch));
 }

@@ -43,6 +43,10 @@
 namespace souffle::ast::transform::test {
 using namespace analysis;
 
+QualifiedName qn(std::string_view s) {
+    return QualifiedName::fromString(s);
+}
+
 TEST(Transformers, GroundTermPropagation) {
     Global glb;
     ErrorReport errorReport;
@@ -60,7 +64,7 @@ TEST(Transformers, GroundTermPropagation) {
     Program& program = tu->getProgram();
 
     // check types in clauses
-    auto* a = program.getClauses("p")[0];
+    auto* a = program.getClauses(qn("p"))[0];
 
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
             toString(*a));
@@ -92,7 +96,7 @@ TEST(Transformers, GroundTermPropagation2) {
     Program& program = tu->getProgram();
 
     // check types in clauses
-    auto* a = program.getClauses("p")[0];
+    auto* a = program.getClauses(qn("p"))[0];
 
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   x = y,\n   x = a,\n   y = b.", toString(*a));
 
@@ -120,11 +124,11 @@ TEST(Transformers, ResolveGroundedAliases) {
     Program& program = tu->getProgram();
 
     EXPECT_EQ("p(a,b) :- \n   p(x,y),\n   r = [x,y],\n   s = r,\n   s = [w,v],\n   [w,v] = [a,b].",
-            toString(*program.getClauses("p")[0]));
+            toString(*program.getClauses(qn("p"))[0]));
 
     mk<ResolveAliasesTransformer>()->apply(*tu);
 
-    EXPECT_EQ("p(x,y) :- \n   p(x,y).", toString(*program.getClauses("p")[0]));
+    EXPECT_EQ("p(x,y) :- \n   p(x,y).", toString(*program.getClauses(qn("p"))[0]));
 }
 
 TEST(Transformers, ResolveAliasesWithTermsInAtoms) {
@@ -144,12 +148,12 @@ TEST(Transformers, ResolveAliasesWithTermsInAtoms) {
     Program& program = tu->getProgram();
 
     EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
-            toString(*program.getClauses("p")[0]));
+            toString(*program.getClauses(qn("p"))[0]));
 
     mk<ResolveAliasesTransformer>()->apply(*tu);
 
     EXPECT_EQ("p(x,c) :- \n   p(x,b),\n   p(b,c),\n   c = (b+1),\n   x = (c+2).",
-            toString(*program.getClauses("p")[0]));
+            toString(*program.getClauses(qn("p"))[0]));
 }
 
 /**
@@ -274,9 +278,9 @@ TEST(Transformers, CheckClausalEquivalence) {
 
     // Resolve aliases to remove trivial equalities
     mk<ResolveAliasesTransformer>()->apply(*tu);
-    auto aClauses = program.getClauses("A");
-    auto bClauses = program.getClauses("B");
-    auto cClauses = program.getClauses("C");
+    auto aClauses = program.getClauses(qn("A"));
+    auto bClauses = program.getClauses(qn("B"));
+    auto cClauses = program.getClauses(qn("C"));
 
     EXPECT_EQ(3, aClauses.size());
     EXPECT_EQ("A(0,0).", toString(*aClauses[0]));
@@ -316,9 +320,9 @@ TEST(Transformers, CheckClausalEquivalence) {
 
     // Make sure equivalent (and only equivalent) clauses are removed by the minimiser
     mk<MinimiseProgramTransformer>()->apply(*tu);
-    auto&& aMinClauses = program.getClauses("A");
-    auto&& bMinClauses = program.getClauses("B");
-    auto&& cMinClauses = program.getClauses("C");
+    auto&& aMinClauses = program.getClauses(qn("A"));
+    auto&& bMinClauses = program.getClauses(qn("B"));
+    auto&& cMinClauses = program.getClauses(qn("C"));
 
     EXPECT_EQ(2, aMinClauses.size());
     EXPECT_EQ("A(0,0).", toString(*aMinClauses[0]));
@@ -376,13 +380,13 @@ TEST(Transformers, CheckAggregatorEquivalence) {
 
     // A, B, C, D should still be the relations
     EXPECT_EQ(4, program.getRelations().size());
-    EXPECT_NE(nullptr, program.getRelation("A"));
-    EXPECT_NE(nullptr, program.getRelation("B"));
-    EXPECT_NE(nullptr, program.getRelation("C"));
-    EXPECT_NE(nullptr, program.getRelation("D"));
+    EXPECT_NE(nullptr, program.getRelation(qn("A")));
+    EXPECT_NE(nullptr, program.getRelation(qn("B")));
+    EXPECT_NE(nullptr, program.getRelation(qn("C")));
+    EXPECT_NE(nullptr, program.getRelation(qn("D")));
 
     // D should now only have the two clauses non-equivalent clauses
-    auto&& dClauses = program.getClauses("D");
+    auto&& dClauses = program.getClauses(qn("D"));
     EXPECT_EQ(2, dClauses.size());
     EXPECT_EQ(
             "D(X) :- \n   B(X),\n   X < max Y : { C(Y),B(Y),Y < 2 },\n   A(Z),\n   Z = sum A : { C(A),B(A),A "
@@ -431,8 +435,8 @@ TEST(Transformers, RemoveClauseRedundancies) {
     // In particular: Replacing relation `c` with `b` should not create a clause
     // `b(x) :- b(x)` from `c(x) :- b(x)`.
     mk<RemoveRelationCopiesTransformer>()->apply(*tu);
-    EXPECT_EQ(nullptr, program.getRelation("c"));
-    auto&& bIntermediateClauses = program.getClauses("b");
+    EXPECT_EQ(nullptr, program.getRelation(qn("c")));
+    auto&& bIntermediateClauses = program.getClauses(qn("b"));
     EXPECT_EQ(1, bIntermediateClauses.size());
     EXPECT_EQ("b(1).", toString(*bIntermediateClauses[0]));
 
@@ -440,16 +444,16 @@ TEST(Transformers, RemoveClauseRedundancies) {
     mk<MinimiseProgramTransformer>()->apply(*tu);
     EXPECT_EQ(3, program.getRelations().size());
 
-    auto&& aClauses = program.getClauses("a");
+    auto&& aClauses = program.getClauses(qn("a"));
     EXPECT_EQ(2, aClauses.size());
     EXPECT_EQ("a(0).", toString(*aClauses[0]));
     EXPECT_EQ("a(X) :- \n   b(X).", toString(*aClauses[1]));
 
-    auto&& bClauses = program.getClauses("b");
+    auto&& bClauses = program.getClauses(qn("b"));
     EXPECT_EQ(1, bClauses.size());
     EXPECT_EQ("b(1).", toString(*bClauses[0]));
 
-    auto&& qClauses = program.getClauses("q");
+    auto&& qClauses = program.getClauses(qn("q"));
     EXPECT_EQ(1, qClauses.size());
     EXPECT_EQ("q(X) :- \n   a(X).", toString(*qClauses[0]));
 }

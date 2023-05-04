@@ -49,7 +49,7 @@ bool DebugDeltaRelationTransformer::updateSignature(TranslationUnit& translation
 
         rel->setAttributes(clone(orig->getAttributes()));
         changed = true;
-        rel->addAttribute(mk<Attribute>("<iteration>", "unsigned"));
+        rel->addAttribute(mk<Attribute>("<iteration>", QualifiedName::fromString("unsigned")));
     }
     return changed;
 }
