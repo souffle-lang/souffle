@@ -517,45 +517,116 @@ void SemanticCheckerImpl::checkClause(const Clause& clause) {
 }
 
 void SemanticCheckerImpl::checkComplexRule(const std::set<const Clause*>& multiRule) {
-    std::map<std::string, int> var_count;
-    std::map<std::string, const ast::Variable*> var_pos;
 
-    auto count_var = [&](const ast::Variable& var) {
-        const auto& varName = var.getName();
-        if (0 == var_count[varName]++) {
-            var_pos[varName] = &var;
-        } else {
-            const auto& PrevLoc = var_pos[varName]->getSrcLoc();
-            const auto& Loc = var.getSrcLoc();
-            if (PrevLoc < Loc) {
-                var_pos[varName] = &var;
+    // variable v occurs only once if:
+    // - it occurs at most once in each clause body of the (possibly) multi-clause rule.
+    // - and it never occurs in any clause head of the (possibly) multi-clause rule.
+    //
+    // note that ungrounded variables are already detected by another check so
+    // we don't report them here (ungrounded variables warning, argument in
+    // fact is not constant warning).
+
+    /// variables that occurs in some clause head, these variables are not
+    /// candidate to "occurs only once" warning.
+    std::set<std::string> varOccursInSomeHead;
+
+    /// variables that occurs more than once in some clause body, these
+    /// variables are not candidate to "occurs only once" warning.
+    std::set<std::string> varOccursMoreThanOnceInSomeBody;
+
+    /// variables that never occur in clause head, and at most once in
+    /// each clause body, these variables "occurs only once".
+    std::set<std::string> varOccursAtMostOnce;
+
+    struct VarsCounter : public Visitor<void> {
+        // map from variable name to the occurrence count
+        std::map<std::string, int> occurrences;
+
+        void visit_(type_identity<ast::Variable>, const ast::Variable& var) override {
+            const auto& name = var.getName();
+            if (name[0] == '_') {
+              // do not count variables starting with underscore
+              return;
+            }
+            auto it = occurrences.find(name);
+            if (it == occurrences.end()) {
+                occurrences[name] = 1;
+            } else {
+                it->second += 1;
             }
         }
     };
 
-    // Count the variable occurrence for the body of a
-    // complex rule only once.
-    // TODO (b-scholz): for negation / disjunction this is not quite
-    // right; we would need more semantic information here.
-    for (auto literal : (*multiRule.begin())->getBodyLiterals()) {
-        visit(*literal, count_var);
-    }
-
-    // Count variable occurrence for each head separately
-    for (auto clause : multiRule) {
-        visit(*(clause->getHead()), count_var);
-    }
-
-    // Check that a variables occurs more than once
-    for (const auto& cur : var_count) {
-        int numAppearances = cur.second;
-        const auto& varName = cur.first;
-        const auto& varLocation = var_pos[varName]->getSrcLoc();
-        if (varName[0] != '_' && numAppearances == 1) {
-            report.addWarning(
-                    WarnType::VarAppearsOnce, "Variable " + varName + " only occurs once", varLocation);
+    {   // find variables that occurs in some clause head
+        VarsCounter vc;
+        for (const Clause* cl : multiRule) {
+            // count occurrences in clause head
+            visit(cl->getHead(), vc);
+        }
+        for (const auto& entry : vc.occurrences) {
+            varOccursInSomeHead.emplace(entry.first);
         }
     }
+
+    for (const Clause* cl : multiRule) {
+        // TODO (b-scholz): for negation / disjunction this is not quite
+        // right; we would need more semantic information here.
+        VarsCounter vc;
+        for (auto lit : cl->getBodyLiterals()) {
+            visit(*lit, vc);
+        }
+
+        for (const auto& entry : vc.occurrences) {
+            const std::string name = entry.first;
+            if (varOccursInSomeHead.count(name) > 0) {
+                // variable occurs in some head => not a candidate for
+                // "variable occurs only once"
+                continue;
+            }
+
+            const int occurences = entry.second;
+            if (occurences == 1 && varOccursMoreThanOnceInSomeBody.count(name) == 0) {
+                varOccursAtMostOnce.emplace(name);
+            } else {
+                // variable occurs more than once in some body => not a
+                // candidate for "variable occurs only once"
+                varOccursMoreThanOnceInSomeBody.emplace(name);
+                varOccursAtMostOnce.erase(name);
+            }
+        }
+    }
+
+    /// Find the least source location of a variable.
+    struct VarFinder : public Visitor<void> {
+        const std::string& name;
+        bool seen = false;
+        SrcLocation leastLoc = {};
+
+        explicit VarFinder(const std::string& varName) : name(varName) {}
+
+        void visit_(type_identity<ast::Variable>, const ast::Variable& var) override {
+            if (var.getName() == name) {
+                if (!seen) {
+                    leastLoc = var.getSrcLoc();
+                    seen = true;
+                } else if (var.getSrcLoc() < leastLoc) {
+                    leastLoc = var.getSrcLoc();
+                }
+            }
+        }
+    };
+
+    for (const auto& name : varOccursAtMostOnce) {
+        VarFinder vf(name);
+        // find the least source location of the variable to give a warning location
+        for (const Clause* cl : multiRule) {
+            for (auto lit : cl->getBodyLiterals()) {
+                visit(*lit, vf);
+            }
+        }
+        report.addWarning(WarnType::VarAppearsOnce, "Variable " + name + " only occurs once", vf.leastLoc);
+    }
+
 }
 
 void SemanticCheckerImpl::checkType(ast::Attribute const& attr, std::string const& name) {
