@@ -17,6 +17,7 @@
 #include "ram/ListStatement.h"
 #include "ram/Statement.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/Types.h"
 #include <memory>
 #include <ostream>
 #include <utility>
@@ -32,11 +33,11 @@ namespace souffle::ram {
  */
 class Sequence : public ListStatement {
 public:
-    Sequence(VecOwn<Statement> statements) : ListStatement(std::move(statements)) {}
-    Sequence() : ListStatement() {}
+    Sequence(VecOwn<Statement> statements) : ListStatement(NK_Sequence, std::move(statements)) {}
+    Sequence() : ListStatement(NK_Sequence) {}
     template <typename... Stmts>
     Sequence(Own<Statement> first, Own<Stmts>... rest)
-            : ListStatement(std::move(first), std::move(rest)...) {}
+            : ListStatement(NK_Sequence, std::move(first), std::move(rest)...) {}
 
     Sequence* cloning() const override {
         auto* res = new Sequence();
@@ -44,6 +45,10 @@ public:
             res->statements.push_back(clone(cur));
         }
         return res;
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Sequence;
     }
 
 protected:

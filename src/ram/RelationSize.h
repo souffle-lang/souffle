@@ -41,7 +41,7 @@ namespace souffle::ram {
  */
 class RelationSize : public Expression {
 public:
-    RelationSize(std::string rel) : relation(std::move(rel)) {}
+    RelationSize(std::string rel) : Expression(NK_RelationSize), relation(std::move(rel)) {}
 
     /** @brief Get relation */
     const std::string getRelation() const {
@@ -50,6 +50,10 @@ public:
 
     RelationSize* cloning() const override {
         return new RelationSize(relation);
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_RelationSize;
     }
 
 protected:

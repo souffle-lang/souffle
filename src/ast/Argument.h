@@ -27,6 +27,11 @@ namespace souffle::ast {
 class Argument : public Node {
 public:
     using Node::Node;
+
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Argument && kind < NK_LastArgument);
+    }
 };
 
 }  // namespace souffle::ast

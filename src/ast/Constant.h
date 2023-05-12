@@ -34,8 +34,10 @@ public:
         return constant;
     }
 
+    static bool classof(const Node*);
+
 protected:
-    Constant(std::string value, SrcLocation loc = {});
+    Constant(NodeKind kind, std::string value, SrcLocation loc = {});
 
     void print(std::ostream& os) const override;
 

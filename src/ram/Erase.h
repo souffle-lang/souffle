@@ -46,8 +46,8 @@ namespace souffle::ram {
 class Erase : public Operation {
 public:
     Erase(std::string rel, VecOwn<Expression> expressions)
-            : relation(std::move(rel)), expressions(std::move(expressions)) {
-        for (auto const& expr : expressions) {
+            : Operation(NK_Erase), relation(std::move(rel)), expressions(std::move(expressions)) {
+        for ([[maybe_unused]] auto const& expr : expressions) {
             assert(expr != nullptr && "Expression is a null-pointer");
         }
     }
@@ -82,6 +82,10 @@ public:
         for (auto& expr : expressions) {
             expr = map(std::move(expr));
         }
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Erase;
     }
 
 protected:

@@ -46,11 +46,6 @@ namespace souffle::ram {
  */
 class NestedOperation : public Operation {
 public:
-    NestedOperation(Own<Operation> nested, std::string profileText = "")
-            : nestedOperation(std::move(nested)), profileText(std::move(profileText)) {
-        assert(nestedOperation != nullptr);
-    }
-
     NestedOperation* cloning() const override = 0;
 
     /** @brief Get nested operation */
@@ -67,7 +62,18 @@ public:
         nestedOperation = map(std::move(nestedOperation));
     }
 
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_NestedOperation && kind < NK_LastNestedOperation);
+    }
+
 protected:
+    NestedOperation(NodeKind kind, Own<Operation> nested, std::string profileText = "")
+            : Operation(kind), nestedOperation(std::move(nested)), profileText(std::move(profileText)) {
+        assert(nestedOperation != nullptr);
+        assert(kind >= NK_NestedOperation && kind < NK_LastNestedOperation);
+    }
+
     void print(std::ostream& os, int tabpos) const override {
         Operation::print(nestedOperation.get(), os, tabpos);
     }

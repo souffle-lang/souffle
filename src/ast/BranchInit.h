@@ -49,6 +49,8 @@ public:
         this->name = name;
     }
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

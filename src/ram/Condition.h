@@ -26,8 +26,20 @@ namespace souffle::ram {
  * @brief Abstract class for conditions and boolean values in RAM
  */
 class Condition : public Node {
+protected:
+    using Node::Node;
+
+    Condition(NodeKind kind) : Node(kind) {
+        assert(kind >= NK_Condition && kind < NK_LastCondition);
+    }
+
 public:
     Condition* cloning() const override = 0;
+
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Condition && kind < NK_LastCondition);
+    }
 };
 
 }  // namespace souffle::ram

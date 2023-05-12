@@ -11,12 +11,18 @@
 
 namespace souffle::ast {
 
+UnnamedVariable::UnnamedVariable(SrcLocation loc) : Argument(NK_UnnamedVariable, loc) {}
+
 void UnnamedVariable::print(std::ostream& os) const {
     os << "_";
 }
 
 UnnamedVariable* UnnamedVariable::cloning() const {
     return new UnnamedVariable(getSrcLoc());
+}
+
+bool UnnamedVariable::classof(const Node* n) {
+    return n->getKind() == NK_UnnamedVariable;
 }
 
 }  // namespace souffle::ast

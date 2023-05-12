@@ -29,8 +29,14 @@ namespace souffle::ram {
  */
 class UndefValue : public Expression {
 public:
+    UndefValue() : Expression(NK_UndefValue) {}
+
     UndefValue* cloning() const override {
         return new UndefValue();
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_UndefValue;
     }
 
 protected:

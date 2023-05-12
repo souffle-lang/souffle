@@ -31,6 +31,8 @@ class StringConstant : public Constant {
 public:
     explicit StringConstant(std::string value, SrcLocation loc = {});
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

@@ -38,7 +38,7 @@ namespace souffle::ram {
 
 class Call : public Statement {
 public:
-    Call(std::string name) : name(std::move(name)) {}
+    Call(std::string name) : Statement(NK_Call), name(std::move(name)) {}
 
     /** @brief Get call name */
     const std::string& getName() const {
@@ -47,6 +47,10 @@ public:
 
     Call* cloning() const override {
         return new Call(name);
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Call;
     }
 
 protected:

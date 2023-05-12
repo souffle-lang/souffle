@@ -36,7 +36,7 @@ namespace souffle::ram {
  */
 class TupleElement : public Expression {
 public:
-    TupleElement(std::size_t ident, std::size_t elem) : identifier(ident), element(elem) {}
+    TupleElement(std::size_t ident, std::size_t elem) : Expression(NK_TupleElement), identifier(ident), element(elem) {}
 
     /** @brief Get identifier */
     std::size_t getTupleId() const {
@@ -50,6 +50,10 @@ public:
 
     TupleElement* cloning() const override {
         return new TupleElement(identifier, element);
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_TupleElement;
     }
 
 protected:

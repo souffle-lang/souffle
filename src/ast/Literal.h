@@ -30,6 +30,15 @@ namespace souffle::ast {
 class Literal : public Node {
 public:
     using Node::Node;
+
+    explicit Literal(NodeKind kind, SrcLocation loc = {}) : Node(kind, loc) {
+        assert(kind >= NK_Literal && kind < NK_LastLiteral);
+    }
+
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Literal && kind < NK_LastLiteral);
+    }
 };
 
 }  // namespace souffle::ast

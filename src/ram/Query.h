@@ -45,7 +45,7 @@ namespace souffle::ram {
  */
 class Query : public Statement {
 public:
-    Query(Own<Operation> o) : operation(std::move(o)) {
+    Query(Own<Operation> o) : Statement(NK_Query), operation(std::move(o)) {
         assert(operation && "operation is a nullptr");
     }
 
@@ -60,6 +60,10 @@ public:
 
     void apply(const NodeMapper& map) override {
         operation = map(std::move(operation));
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Query;
     }
 
 protected:

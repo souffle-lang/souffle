@@ -50,9 +50,9 @@ public:
     /** Set type name */
     void setTypeName(QualifiedName name);
 
-    bool getIsLattice() const {
-        return isLattice;
-    }
+    bool getIsLattice() const;
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

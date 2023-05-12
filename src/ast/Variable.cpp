@@ -12,7 +12,8 @@
 #include <utility>
 
 namespace souffle::ast {
-Variable::Variable(std::string name, SrcLocation loc) : Argument(std::move(loc)), name(std::move(name)) {}
+Variable::Variable(std::string name, SrcLocation loc)
+        : Argument(NK_Variable, std::move(loc)), name(std::move(name)) {}
 
 void Variable::setName(std::string name) {
     this->name = std::move(name);
@@ -30,4 +31,9 @@ bool Variable::equal(const Node& node) const {
 Variable* Variable::cloning() const {
     return new Variable(name, getSrcLoc());
 }
+
+bool Variable::classof(const Node* n) {
+    return n->getKind() == NK_Variable;
+}
+
 }  // namespace souffle::ast

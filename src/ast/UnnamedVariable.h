@@ -29,6 +29,10 @@ class UnnamedVariable : public Argument {
 public:
     using Argument::Argument;
 
+    UnnamedVariable(SrcLocation loc = {});
+
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

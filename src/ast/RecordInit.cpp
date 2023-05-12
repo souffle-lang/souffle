@@ -14,7 +14,7 @@
 
 namespace souffle::ast {
 RecordInit::RecordInit(VecOwn<Argument> operands, SrcLocation loc)
-        : Term(std::move(operands), std::move(loc)) {}
+        : Term(NK_RecordInit, std::move(operands), std::move(loc)) {}
 
 void RecordInit::print(std::ostream& os) const {
     os << "[" << join(args) << "]";
@@ -23,4 +23,9 @@ void RecordInit::print(std::ostream& os) const {
 RecordInit* RecordInit::cloning() const {
     return new RecordInit(clone(args), getSrcLoc());
 }
+
+bool RecordInit::classof(const Node* n) {
+    return n->getKind() == NK_RecordInit;
+}
+
 }  // namespace souffle::ast

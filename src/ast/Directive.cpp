@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, DirectiveType e) {
 }
 
 Directive::Directive(DirectiveType type, QualifiedName name, SrcLocation loc)
-        : Node(std::move(loc)), type(type), name(std::move(name)) {}
+        : Node(NK_Directive, std::move(loc)), type(type), name(std::move(name)) {}
 
 void Directive::setQualifiedName(QualifiedName name) {
     this->name = std::move(name);
@@ -54,6 +54,10 @@ Directive* Directive::cloning() const {
     auto res = new Directive(type, name, getSrcLoc());
     res->parameters = parameters;
     return res;
+}
+
+bool Directive::classof(const Node* n) {
+    return n->getKind() == NK_Directive;
 }
 
 }  // namespace souffle::ast

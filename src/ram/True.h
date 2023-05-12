@@ -30,8 +30,14 @@ namespace souffle::ram {
  */
 class True : public Condition {
 public:
+    True() : Condition(NK_True){}
+
     True* cloning() const override {
         return new True();
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_True;
     }
 
 protected:

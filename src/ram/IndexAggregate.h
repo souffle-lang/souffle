@@ -47,8 +47,8 @@ class IndexAggregate : public IndexOperation, public AbstractAggregate {
 public:
     IndexAggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
             Own<Condition> condition, RamPattern queryPattern, std::size_t ident)
-            : IndexOperation(rel, ident, std::move(queryPattern), std::move(nested)),
-              AbstractAggregate(std::move(fun), std::move(expression), std::move(condition)) {}
+            : IndexAggregate(NK_IndexAggregate, std::move(nested), std::move(fun), rel, std::move(expression),
+                std::move(condition), std::move(queryPattern), ident) {}
 
     IndexAggregate* cloning() const override {
         RamPattern pattern;
@@ -58,7 +58,7 @@ public:
         for (const auto& i : queryPattern.second) {
             pattern.second.emplace_back(i->cloning());
         }
-        return new IndexAggregate(clone(getOperation()), clone(function), relation, clone(expression),
+        return new IndexAggregate(NK_IndexAggregate, clone(getOperation()), clone(function), relation, clone(expression),
                 clone(condition), std::move(pattern), getTupleId());
     }
 
@@ -68,7 +68,19 @@ public:
         expression = map(std::move(expression));
     }
 
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_IndexAggregate && kind < NK_LastIndexAggregate);
+    }
+
 protected:
+    IndexAggregate(NodeKind kind, Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
+            Own<Condition> condition, RamPattern queryPattern, std::size_t ident)
+            : IndexOperation(kind, rel, ident, std::move(queryPattern), std::move(nested)),
+              AbstractAggregate(std::move(fun), std::move(expression), std::move(condition)) {
+                        assert(kind >= NK_IndexAggregate && kind < NK_LastIndexAggregate);
+              }
+
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos);
         os << "t" << getTupleId() << ".0 = ";

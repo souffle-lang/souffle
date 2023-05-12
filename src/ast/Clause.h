@@ -37,6 +37,9 @@ namespace souffle::ast {
  */
 class Clause : public Node {
 public:
+    Clause(NodeKind kind, Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan = {},
+            SrcLocation loc = {});
+
     Clause(Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan = {}, SrcLocation loc = {});
 
     Clause(Own<Atom> head, SrcLocation loc = {});
@@ -80,6 +83,8 @@ public:
     virtual Clause* cloneHead() const;
 
     void apply(const NodeMapper& map) override;
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

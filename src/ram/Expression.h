@@ -17,6 +17,7 @@
 #pragma once
 
 #include "ram/Node.h"
+#include <cassert>
 
 namespace souffle::ram {
 
@@ -25,7 +26,19 @@ namespace souffle::ram {
  * @brief Abstract class for describing scalar values in RAM
  */
 class Expression : public Node {
+protected:
+    using Node::Node;
+
+    explicit Expression(NodeKind kind) : Node(kind) {
+        assert(kind >= NK_Expression && kind < NK_LastExpression);
+    }
+
 public:
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Expression && kind < NK_LastExpression);
+    }
+
     Expression* cloning() const override = 0;
 };
 

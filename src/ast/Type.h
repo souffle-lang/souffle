@@ -28,7 +28,7 @@ namespace souffle::ast {
  */
 class Type : public Node {
 public:
-    Type(QualifiedName name = {}, SrcLocation loc = {});
+    Type(NodeKind kind, QualifiedName name = {}, SrcLocation loc = {});
 
     /** Return type name */
     const QualifiedName& getQualifiedName() const {
@@ -37,6 +37,8 @@ public:
 
     /** Set type name */
     void setQualifiedName(QualifiedName name);
+
+    static bool classof(const Node*);
 
 private:
     /** type name */

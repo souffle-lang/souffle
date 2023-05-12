@@ -15,7 +15,7 @@
 namespace souffle::ast {
 
 BinaryConstraint::BinaryConstraint(BinaryConstraintOp o, Own<Argument> ls, Own<Argument> rs, SrcLocation loc)
-        : Constraint(std::move(loc)), operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {
+        : Constraint(NK_BinaryConstraint, std::move(loc)), operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {
     assert(lhs != nullptr);
     assert(rhs != nullptr);
 }
@@ -44,6 +44,10 @@ bool BinaryConstraint::equal(const Node& node) const {
 
 BinaryConstraint* BinaryConstraint::cloning() const {
     return new BinaryConstraint(operation, clone(lhs), clone(rhs), getSrcLoc());
+}
+
+bool BinaryConstraint::classof(const Node* n) {
+    return n->getKind() == NK_BinaryConstraint;
 }
 
 }  // namespace souffle::ast

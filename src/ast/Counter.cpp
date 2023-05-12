@@ -11,12 +11,18 @@
 
 namespace souffle::ast {
 
+Counter::Counter(SrcLocation loc) : Argument(NK_Counter, std::move(loc)) {}
+
 void Counter::print(std::ostream& os) const {
     os << "$";
 }
 
 Counter* Counter::cloning() const {
     return new Counter(getSrcLoc());
+}
+
+bool Counter::classof(const Node* n) {
+    return n->getKind() == NK_Counter;
 }
 
 }  // namespace souffle::ast

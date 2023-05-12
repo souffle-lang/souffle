@@ -16,7 +16,7 @@
 namespace souffle::ast {
 
 IntrinsicFunctor::IntrinsicFunctor(std::string op, VecOwn<Argument> args, SrcLocation loc)
-        : Functor(std::move(args), std::move(loc)), function(std::move(op)) {}
+        : Functor(NK_IntrinsicFunctor, std::move(args), std::move(loc)), function(std::move(op)) {}
 
 void IntrinsicFunctor::print(std::ostream& os) const {
     if (isInfixFunctorOp(function)) {
@@ -39,6 +39,10 @@ bool IntrinsicFunctor::equal(const Node& node) const {
 
 IntrinsicFunctor* IntrinsicFunctor::cloning() const {
     return new IntrinsicFunctor(function, clone(args), getSrcLoc());
+}
+
+bool IntrinsicFunctor::classof(const Node* n) {
+    return n->getKind() == NK_IntrinsicFunctor;
 }
 
 }  // namespace souffle::ast

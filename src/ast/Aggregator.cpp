@@ -16,11 +16,12 @@
 #include <utility>
 
 namespace souffle::ast {
-Aggregator::Aggregator(Own<Argument> expr, VecOwn<Literal> body, SrcLocation loc)
-        : Argument(std::move(loc)), targetExpression(std::move(expr)), body(std::move(body)) {
+Aggregator::Aggregator(NodeKind kind, Own<Argument> expr, VecOwn<Literal> body, SrcLocation loc)
+        : Argument(kind, std::move(loc)), targetExpression(std::move(expr)), body(std::move(body)) {
     // NOTE: targetExpression can be nullptr - it's used e.g. when aggregator
     // has no parameters, such as count: { body }
     assert(allValidPtrs(this->body));
+    assert(kind >= NK_Aggregator && kind < NK_LastAggregator);
 }
 
 std::vector<Literal*> Aggregator::getBodyLiterals() const {
@@ -40,6 +41,11 @@ void Aggregator::apply(const NodeMapper& map) {
     }
 
     mapAll(body, map);
+}
+
+bool Aggregator::classof(const Node* n) {
+    const NodeKind kind = n->getKind();
+    return (kind >= NK_Aggregator && kind < NK_LastAggregator);
 }
 
 Node::NodeVec Aggregator::getChildren() const {

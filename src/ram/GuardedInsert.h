@@ -44,7 +44,7 @@ namespace souffle::ram {
 class GuardedInsert : public Insert {
 public:
     GuardedInsert(std::string rel, VecOwn<Expression> expressions, Own<Condition> condition = mk<True>())
-            : Insert(rel, std::move(expressions)), condition(std::move(condition)) {}
+            : Insert(NK_GuardedInsert, rel, std::move(expressions)), condition(std::move(condition)) {}
 
     /** @brief Get guarded condition */
     const Condition* getCondition() const {
@@ -65,6 +65,10 @@ public:
             expr = map(std::move(expr));
         }
         condition = map(std::move(condition));
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_GuardedInsert;
     }
 
 protected:

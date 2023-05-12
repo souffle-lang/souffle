@@ -45,10 +45,14 @@ namespace souffle::ram {
 class Filter : public AbstractConditional {
 public:
     Filter(Own<Condition> cond, Own<Operation> nested, std::string profileText = "")
-            : AbstractConditional(std::move(cond), std::move(nested), std::move(profileText)) {}
+            : AbstractConditional(NK_Filter, std::move(cond), std::move(nested), std::move(profileText)) {}
 
     Filter* cloning() const override {
         return new Filter(clone(condition), clone(getOperation()), getProfileText());
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Filter;
     }
 
 protected:

@@ -46,6 +46,7 @@
 #include "ram/IndexIfExists.h"
 #include "ram/IndexScan.h"
 #include "ram/Insert.h"
+#include "ram/IntrinsicAggregator.h"
 #include "ram/IntrinsicOperator.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogSize.h"

@@ -42,10 +42,14 @@ namespace souffle::ram {
 
 class Clear : public RelationStatement {
 public:
-    Clear(std::string rel) : RelationStatement(rel) {}
+    Clear(std::string rel) : RelationStatement(NK_Clear, rel) {}
 
     Clear* cloning() const override {
         return new Clear(relation);
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Clear;
     }
 
 protected:

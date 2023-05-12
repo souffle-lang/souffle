@@ -29,6 +29,10 @@ class Counter : public Argument {
 public:
     using Argument::Argument;
 
+    Counter(SrcLocation = {});
+
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

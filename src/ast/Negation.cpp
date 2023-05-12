@@ -14,7 +14,8 @@
 
 namespace souffle::ast {
 
-Negation::Negation(Own<Atom> atom, SrcLocation loc) : Literal(std::move(loc)), atom(std::move(atom)) {
+Negation::Negation(Own<Atom> atom, SrcLocation loc)
+        : Literal(NK_Negation, std::move(loc)), atom(std::move(atom)) {
     assert(this->atom != nullptr);
 }
 
@@ -37,6 +38,10 @@ bool Negation::equal(const Node& node) const {
 
 Negation* Negation::cloning() const {
     return new Negation(clone(atom), getSrcLoc());
+}
+
+bool Negation::classof(const Node* n) {
+    return n->getKind() == NK_Negation;
 }
 
 }  // namespace souffle::ast

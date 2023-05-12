@@ -43,13 +43,23 @@ namespace souffle::ram {
 class Scan : public RelationOperation {
 public:
     Scan(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
-            : RelationOperation(rel, ident, std::move(nested), std::move(profileText)) {}
+            : Scan(NK_Scan, rel, ident, std::move(nested), std::move(profileText)) {}
 
     Scan* cloning() const override {
-        return new Scan(relation, getTupleId(), clone(getOperation()), getProfileText());
+        return new Scan(NK_Scan, relation, getTupleId(), clone(getOperation()), getProfileText());
+    }
+
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Scan && kind < NK_LastScan);
     }
 
 protected:
+    Scan(NodeKind kind, std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
+            : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)) {
+        assert(kind >= NK_Scan && kind < NK_LastScan);
+    }
+
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos);
         os << "FOR t" << getTupleId();

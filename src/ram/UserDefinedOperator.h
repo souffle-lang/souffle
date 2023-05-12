@@ -39,7 +39,7 @@ class UserDefinedOperator : public AbstractOperator {
 public:
     UserDefinedOperator(std::string n, std::vector<TypeAttribute> argsTypes, TypeAttribute returnType,
             bool stateful, VecOwn<Expression> args)
-            : AbstractOperator(std::move(args)), name(std::move(n)), argsTypes(std::move(argsTypes)),
+            : AbstractOperator(NK_UserDefinedOperator, std::move(args)), name(std::move(n)), argsTypes(std::move(argsTypes)),
               returnType(returnType), stateful(stateful) {
         assert(argsTypes.size() == args.size());
     }
@@ -71,6 +71,10 @@ public:
             res->arguments.emplace_back(arg);
         }
         return res;
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_UserDefinedOperator;
     }
 
 protected:

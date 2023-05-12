@@ -28,6 +28,12 @@ namespace souffle::ast {
 class Functor : public Term {
 protected:
     using Term::Term;
+
+    Functor(NodeKind kind, SrcLocation loc = {}) : Term(kind, loc) {
+        assert(kind > NK_FirstFunctor && kind < NK_LastFunctor);
+    }
+
+    static bool classof(const Node*);
 };
 
 }  // namespace souffle::ast

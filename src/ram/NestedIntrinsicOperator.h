@@ -58,7 +58,7 @@ class NestedIntrinsicOperator : public TupleOperation {
 public:
     NestedIntrinsicOperator(
             NestedIntrinsicOp op, VecOwn<Expression> args, Own<Operation> nested, std::size_t ident)
-            : TupleOperation(ident, std::move(nested)), args(std::move(args)), op(op) {}
+            : TupleOperation(NK_NestedIntrinsicOperator, ident, std::move(nested)), args(std::move(args)), op(op) {}
 
     NestedIntrinsicOp getFunction() const {
         return op;
@@ -77,6 +77,10 @@ public:
         for (auto&& x : args) {
             x = map(std::move(x));
         }
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_NestedIntrinsicOperator;
     }
 
 protected:

@@ -35,7 +35,7 @@ namespace souffle::ram {
  */
 class PackRecord : public Expression {
 public:
-    PackRecord(VecOwn<Expression> args) : arguments(std::move(args)) {
+    PackRecord(VecOwn<Expression> args) : Expression(NK_PackRecord), arguments(std::move(args)) {
         assert(allValidPtrs(arguments));
     }
 
@@ -56,6 +56,10 @@ public:
         for (auto& arg : arguments) {
             arg = map(std::move(arg));
         }
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_PackRecord;
     }
 
 protected:

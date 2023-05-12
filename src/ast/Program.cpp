@@ -110,6 +110,8 @@ namespace souffle::ast {
 
 using souffle::clone;
 
+Program::Program() : Node(NK_Program) {}
+
 Program::RelationInfo clone(Program::RelationInfo const& x) {
     return {clone(x.decls), clone(x.clauses), clone(x.directives)};
 }
@@ -328,6 +330,10 @@ Program* Program::cloning() const {
     res->functors = clone(functors);
     res->relations = clone(relations);
     return res;
+}
+
+bool Program::classof(const Node* n) {
+    return n->getKind() == NK_Program;
 }
 
 }  // namespace souffle::ast

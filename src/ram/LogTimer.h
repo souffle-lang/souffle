@@ -49,7 +49,7 @@ namespace souffle::ram {
  */
 class LogTimer : public Statement, public AbstractLog {
 public:
-    LogTimer(Own<Statement> stmt, std::string msg) : AbstractLog(std::move(stmt), std::move(msg)) {}
+    LogTimer(Own<Statement> stmt, std::string msg) : Statement(NK_LogTimer), AbstractLog(std::move(stmt), std::move(msg)) {}
 
     LogTimer* cloning() const override {
         return new LogTimer(clone(statement), message);
@@ -57,6 +57,10 @@ public:
 
     void apply(const NodeMapper& map) override {
         AbstractLog::apply(map);
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_LogTimer;
     }
 
 protected:

@@ -17,7 +17,7 @@
 
 namespace souffle::ast {
 RecordType::RecordType(QualifiedName name, VecOwn<Attribute> fields, SrcLocation loc)
-        : Type(std::move(name), std::move(loc)), fields(std::move(fields)) {
+        : Type(NK_RecordType, std::move(name), std::move(loc)), fields(std::move(fields)) {
     assert(allValidPtrs(this->fields));
 }
 
@@ -44,6 +44,10 @@ bool RecordType::equal(const Node& node) const {
 
 RecordType* RecordType::cloning() const {
     return new RecordType(getQualifiedName(), clone(fields), getSrcLoc());
+}
+
+bool RecordType::classof(const Node* n) {
+    return n->getKind() == NK_RecordType;
 }
 
 }  // namespace souffle::ast

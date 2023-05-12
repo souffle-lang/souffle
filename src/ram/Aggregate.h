@@ -49,13 +49,13 @@ class Aggregate : public RelationOperation, public AbstractAggregate {
 public:
     Aggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
             Own<Condition> condition, std::size_t ident)
-            : RelationOperation(rel, ident, std::move(nested)),
-              AbstractAggregate(std::move(fun), std::move(expression), std::move(condition)) {}
+            : Aggregate(NK_Aggregate, std::move(nested), std::move(fun), rel, std::move(expression),
+                std::move(condition), ident) {}
 
     ~Aggregate() override = default;
 
     Aggregate* cloning() const override {
-        return new Aggregate(clone(getOperation()), clone(function), relation, clone(expression),
+        return new Aggregate(NK_Aggregate, clone(getOperation()), clone(function), relation, clone(expression),
                 clone(condition), getTupleId());
     }
 
@@ -65,7 +65,19 @@ public:
         expression = map(std::move(expression));
     }
 
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Aggregate && kind < NK_LastAggregate);
+    }
+
 protected:
+    Aggregate(NodeKind kind, Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
+            Own<Condition> condition, std::size_t ident)
+            : RelationOperation(kind, rel, ident, std::move(nested)),
+              AbstractAggregate(std::move(fun), std::move(expression), std::move(condition)) {
+                assert(kind >= NK_Aggregate && kind < NK_LastAggregate);
+              }
+
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos);
         os << "t" << getTupleId() << ".0 = ";

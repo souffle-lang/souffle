@@ -36,7 +36,7 @@ std::string latticeOperatorToString(const LatticeOperator op) {
 }
 
 Lattice::Lattice(QualifiedName name, std::map<LatticeOperator, Own<ast::Argument>> ops, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(name)), operators(std::move(ops)) {}
+        : Node(NK_Lattice, std::move(loc)), name(std::move(name)), operators(std::move(ops)) {}
 
 void Lattice::setQualifiedName(QualifiedName name) {
     this->name = std::move(name);
@@ -102,6 +102,10 @@ bool Lattice::equal(const Node& node) const {
 
 Lattice* Lattice::cloning() const {
     return new Lattice(getQualifiedName(), clone(operators), getSrcLoc());
+}
+
+bool Lattice::classof(const Node* n) {
+    return n->getKind() == NK_Lattice;
 }
 
 }  // namespace souffle::ast

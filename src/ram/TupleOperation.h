@@ -32,7 +32,7 @@ namespace souffle::ram {
 class TupleOperation : public NestedOperation {
 public:
     TupleOperation(std::size_t ident, Own<Operation> nested, std::string profileText = "")
-            : NestedOperation(std::move(nested), std::move(profileText)), identifier(ident) {}
+            : TupleOperation(NK_TupleOperation, ident, std::move(nested), std::move(profileText)) {}
 
     TupleOperation* cloning() const override = 0;
 
@@ -46,7 +46,17 @@ public:
         identifier = id;
     }
 
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_TupleOperation && kind < NK_LastTupleOperation);
+    }
+
 protected:
+    TupleOperation(NodeKind kind, std::size_t ident, Own<Operation> nested, std::string profileText = "")
+            : NestedOperation(kind, std::move(nested), std::move(profileText)), identifier(ident) {
+        assert(kind > NK_TupleOperation && kind < NK_LastTupleOperation);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<TupleOperation>(node);
         return NestedOperation::equal(other) && identifier == other.identifier;

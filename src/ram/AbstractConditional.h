@@ -33,11 +33,6 @@ namespace souffle::ram {
  */
 class AbstractConditional : public NestedOperation {
 public:
-    AbstractConditional(Own<Condition> cond, Own<Operation> nested, std::string profileText = "")
-            : NestedOperation(std::move(nested), std::move(profileText)), condition(std::move(cond)) {
-        assert(condition != nullptr && "Condition is a null-pointer");
-    }
-
     AbstractConditional* cloning() const override = 0;
 
     /** @brief Get condition that must be satisfied */
@@ -51,7 +46,18 @@ public:
         condition = map(std::move(condition));
     }
 
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_AbstractConditional && kind < NK_LastAbstractConditional);
+    }
+
 protected:
+    AbstractConditional(NodeKind kind, Own<Condition> cond, Own<Operation> nested, std::string profileText = "")
+            : NestedOperation(kind, std::move(nested), std::move(profileText)), condition(std::move(cond)) {
+        assert(condition != nullptr && "Condition is a null-pointer");
+        assert(kind >= NK_AbstractConditional && kind < NK_LastAbstractConditional);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<AbstractConditional>(node);
         return NestedOperation::equal(node) && equal_ptr(condition, other.condition);

@@ -17,13 +17,17 @@
 
 namespace souffle::ast {
 
-Clause::Clause(Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan, SrcLocation loc)
-        : Node(std::move(loc)), head(std::move(head)), bodyLiterals(std::move(bodyLiterals)),
+Clause::Clause(NodeKind kind, Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan, SrcLocation loc)
+        : Node(kind, std::move(loc)), head(std::move(head)), bodyLiterals(std::move(bodyLiterals)),
           plan(std::move(plan)) {
     assert(this->head != nullptr);
     assert(allValidPtrs(this->bodyLiterals));
+    assert(kind >= NK_Clause && kind < NK_LastClause);
     // Execution plan can be null
 }
+
+Clause::Clause(Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan, SrcLocation loc)
+        : Clause(NK_Clause, std::move(head), std::move(bodyLiterals), std::move(plan), std::move(loc)) {}
 
 Clause::Clause(Own<Atom> head, SrcLocation loc) : Clause(std::move(head), {}, {}, std::move(loc)) {}
 
@@ -95,6 +99,11 @@ Clause* Clause::cloneHead() const {
         myClone->setExecutionPlan(clone(getExecutionPlan()));
     }
     return myClone;
+}
+
+bool Clause::classof(const Node* n) {
+    const NodeKind kind = n->getKind();
+    return (kind >= NK_Clause && kind < NK_LastClause);
 }
 
 }  // namespace souffle::ast

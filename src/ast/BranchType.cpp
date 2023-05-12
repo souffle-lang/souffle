@@ -16,7 +16,7 @@
 namespace souffle::ast {
 
 BranchType::BranchType(QualifiedName name, VecOwn<Attribute> fields, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(name)), fields(std::move(fields)) {
+        : Node(NK_BranchType, std::move(loc)), name(std::move(name)), fields(std::move(fields)) {
     assert(allValidPtrs(this->fields));
 }
 
@@ -34,6 +34,10 @@ BranchType* BranchType::cloning() const {
 
 void BranchType::setFieldType(std::size_t idx, QualifiedName type) {
     fields.at(idx)->setTypeName(std::move(type));
+}
+
+bool BranchType::classof(const Node* n) {
+    return n->getKind() == NK_BranchType;
 }
 
 }  // namespace souffle::ast

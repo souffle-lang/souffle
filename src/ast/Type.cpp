@@ -11,10 +11,17 @@
 
 namespace souffle::ast {
 
-Type::Type(QualifiedName name, SrcLocation loc) : Node(std::move(loc)), name(std::move(name)) {}
+Type::Type(NodeKind kind, QualifiedName name, SrcLocation loc) : Node(kind, std::move(loc)), name(std::move(name)) {
+  assert(kind > NK_Type && kind < NK_LastType);
+}
 
 void Type::setQualifiedName(QualifiedName name) {
     this->name = std::move(name);
+}
+
+bool Type::classof(const Node* n) {
+    const NodeKind kind = n->getKind();
+    return (kind >= NK_Type && kind < NK_LastType);
 }
 
 }  // namespace souffle::ast

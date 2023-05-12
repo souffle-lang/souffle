@@ -16,10 +16,12 @@
 
 namespace souffle::ast {
 
-UserDefinedFunctor::UserDefinedFunctor(std::string name) : Functor({}, {}), name(std::move(name)){};
+UserDefinedFunctor::UserDefinedFunctor(std::string name)
+        : Functor(NK_UserDefinedFunctor, {}, {}), name(std::move(name)) {}
 
-UserDefinedFunctor::UserDefinedFunctor(std::string name, VecOwn<Argument> args, SrcLocation loc)
-        : Functor(std::move(args), std::move(loc)), name(std::move(name)) {}
+UserDefinedFunctor::UserDefinedFunctor(
+        std::string name, VecOwn<Argument> args, SrcLocation loc)
+        : Functor(NK_UserDefinedFunctor, std::move(args), std::move(loc)), name(std::move(name)) {}
 
 void UserDefinedFunctor::print(std::ostream& os) const {
     os << '@' << name << "(" << join(args) << ")";
@@ -32,6 +34,10 @@ bool UserDefinedFunctor::equal(const Node& node) const {
 
 UserDefinedFunctor* UserDefinedFunctor::cloning() const {
     return new UserDefinedFunctor(name, clone(args), getSrcLoc());
+}
+
+bool UserDefinedFunctor::classof(const Node* n) {
+    return n->getKind() == NK_UserDefinedFunctor;
 }
 
 }  // namespace souffle::ast

@@ -55,6 +55,8 @@ public:
 
     void apply(const NodeMapper& mapper) override;
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

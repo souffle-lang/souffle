@@ -47,7 +47,7 @@ namespace souffle::ram {
 class Constraint : public Condition {
 public:
     Constraint(BinaryConstraintOp op, Own<Expression> l, Own<Expression> r)
-            : op(op), lhs(std::move(l)), rhs(std::move(r)) {
+            : Condition(NK_Constraint), op(op), lhs(std::move(l)), rhs(std::move(r)) {
         assert(lhs != nullptr && "left-hand side of constraint is a null-pointer");
         assert(rhs != nullptr && "right-hand side of constraint is a null-pointer");
     }
@@ -74,6 +74,10 @@ public:
     void apply(const NodeMapper& map) override {
         lhs = map(std::move(lhs));
         rhs = map(std::move(rhs));
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_Constraint;
     }
 
 protected:

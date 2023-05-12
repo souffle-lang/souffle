@@ -20,7 +20,7 @@ namespace souffle::ast {
 
 FunctorDeclaration::FunctorDeclaration(
         std::string name, VecOwn<Attribute> params, Own<Attribute> returnType, bool stateful, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(name)), params(std::move(params)),
+        : Node(NK_FunctorDeclaration, std::move(loc)), name(std::move(name)), params(std::move(params)),
           returnType(std::move(returnType)), stateful(stateful) {
     assert(this->name.length() > 0 && "functor name is empty");
     assert(allValidPtrs(this->params));
@@ -46,6 +46,10 @@ bool FunctorDeclaration::equal(const Node& node) const {
 
 FunctorDeclaration* FunctorDeclaration::cloning() const {
     return new FunctorDeclaration(name, clone(params), clone(returnType), stateful, getSrcLoc());
+}
+
+bool FunctorDeclaration::classof(const Node* n) {
+    return n->getKind() == NK_FunctorDeclaration;
 }
 
 }  // namespace souffle::ast

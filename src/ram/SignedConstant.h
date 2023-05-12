@@ -33,7 +33,7 @@ namespace souffle::ram {
  */
 class SignedConstant : public NumericConstant {
 public:
-    explicit SignedConstant(RamDomain val) : NumericConstant(val) {}
+    explicit SignedConstant(RamDomain val) : NumericConstant(NK_SignedConstant, val) {}
 
     /** @brief Get value of the constant. */
     RamDomain getValue() const {
@@ -43,6 +43,10 @@ public:
     /** Create cloning */
     SignedConstant* cloning() const override {
         return new SignedConstant(getValue());
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_SignedConstant;
     }
 
 protected:

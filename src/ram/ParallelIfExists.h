@@ -48,11 +48,15 @@ class ParallelIfExists : public IfExists, public AbstractParallel {
 public:
     ParallelIfExists(std::string rel, std::size_t ident, Own<Condition> cond, Own<Operation> nested,
             std::string profileText = "")
-            : IfExists(rel, ident, std::move(cond), std::move(nested), profileText) {}
+            : IfExists(NK_ParallelIfExists, rel, ident, std::move(cond), std::move(nested), profileText) {}
 
     ParallelIfExists* cloning() const override {
         return new ParallelIfExists(
                 relation, getTupleId(), clone(condition), clone(getOperation()), getProfileText());
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_ParallelIfExists;
     }
 
 protected:

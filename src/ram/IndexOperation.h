@@ -44,12 +44,8 @@ class IndexOperation : public RelationOperation {
 public:
     IndexOperation(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
-            : RelationOperation(rel, ident, std::move(nested), std::move(profileText)),
-              queryPattern(std::move(queryPattern)) {
-        assert(queryPattern.first.size() == queryPattern.second.size() && "Arity mismatch");
-        assert(allValidPtrs(queryPattern.first));
-        assert(allValidPtrs(queryPattern.second));
-    }
+            : IndexOperation(NK_IndexOperation, std::move(rel), ident, std::move(queryPattern),
+                std::move(nested), std::move(profileText)) {}
 
     /**
      * @brief Get range pattern
@@ -80,7 +76,7 @@ public:
         for (const auto& i : queryPattern.second) {
             resQueryPattern.second.emplace_back(i->cloning());
         }
-        return new IndexOperation(
+        return new IndexOperation(NK_IndexOperation,
                 relation, getTupleId(), std::move(resQueryPattern), clone(getOperation()), getProfileText());
     }
 
@@ -129,7 +125,22 @@ public:
         }
     }
 
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_IndexOperation && kind < NK_LastIndexOperation);
+    }
+
 protected:
+    IndexOperation(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
+            std::string profileText = "")
+            : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)),
+              queryPattern(std::move(queryPattern)) {
+        assert(queryPattern.first.size() == queryPattern.second.size() && "Arity mismatch");
+        assert(allValidPtrs(queryPattern.first));
+        assert(allValidPtrs(queryPattern.second));
+        assert(kind >= NK_IndexOperation && kind < NK_LastIndexOperation);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IndexOperation>(node);
         return RelationOperation::equal(other) &&

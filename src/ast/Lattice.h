@@ -59,6 +59,8 @@ public:
     const ast::Argument* getBottom() const;
     const ast::Argument* getTop() const;
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

@@ -36,14 +36,19 @@ namespace souffle::ram {
  */
 class RelationOperation : public TupleOperation {
 public:
-    RelationOperation(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
-            : TupleOperation(ident, std::move(nested), std::move(profileText)), relation(std::move(rel)) {}
+    RelationOperation(NodeKind kind, std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
+            : TupleOperation(kind, ident, std::move(nested), std::move(profileText)), relation(std::move(rel)) {}
 
     RelationOperation* cloning() const override = 0;
 
     /** @brief Get search relation */
     const std::string& getRelation() const {
         return relation;
+    }
+
+    static bool classof(const Node* n){
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_RelationOperation && kind < NK_LastRelationOperation);
     }
 
 protected:

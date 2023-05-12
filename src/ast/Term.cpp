@@ -14,8 +14,9 @@
 
 namespace souffle::ast {
 
-Term::Term(VecOwn<Argument> operands, SrcLocation loc) : Argument(std::move(loc)), args(std::move(operands)) {
+Term::Term(NodeKind kind, VecOwn<Argument> operands, SrcLocation loc) : Argument(kind, std::move(loc)), args(std::move(operands)) {
     assert(allValidPtrs(args));
+    assert(kind >= NK_Term && kind < NK_LastTerm);
 }
 
 std::vector<Argument*> Term::getArguments() const {
@@ -41,6 +42,11 @@ void Term::apply(const NodeMapper& map) {
 bool Term::equal(const Node& node) const {
     const auto& other = asAssert<Term>(node);
     return equal_targets(args, other.args);
+}
+
+bool Term::classof(const Node* n) {
+    const NodeKind kind = n->getKind();
+    return (kind >= NK_Term && kind < NK_LastTerm);
 }
 
 }  // namespace souffle::ast

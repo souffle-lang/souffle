@@ -44,7 +44,7 @@ namespace souffle::ram {
  */
 class EmptinessCheck : public Condition {
 public:
-    EmptinessCheck(std::string rel) : relation(std::move(rel)) {}
+    EmptinessCheck(std::string rel) : Condition(NK_EmptinessCheck), relation(std::move(rel)) {}
 
     /** @brief Get relation */
     const std::string& getRelation() const {
@@ -53,6 +53,10 @@ public:
 
     EmptinessCheck* cloning() const override {
         return new EmptinessCheck(relation);
+    }
+
+    static bool classof(const Node* n){
+        return n->getKind() == NK_EmptinessCheck;
     }
 
 protected:

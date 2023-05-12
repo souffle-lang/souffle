@@ -75,6 +75,8 @@ public:
         return parameters;
     }
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

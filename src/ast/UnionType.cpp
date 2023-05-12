@@ -14,7 +14,7 @@
 
 namespace souffle::ast {
 UnionType::UnionType(QualifiedName name, std::vector<QualifiedName> types, SrcLocation loc)
-        : Type(std::move(name), std::move(loc)), types(std::move(types)) {}
+        : Type(NK_UnionType, std::move(name), std::move(loc)), types(std::move(types)) {}
 
 void UnionType::add(QualifiedName type) {
     types.push_back(std::move(type));
@@ -35,6 +35,10 @@ bool UnionType::equal(const Node& node) const {
 
 UnionType* UnionType::cloning() const {
     return new UnionType(getQualifiedName(), types, getSrcLoc());
+}
+
+bool UnionType::classof(const Node* n) {
+    return n->getKind() == NK_UnionType;
 }
 
 }  // namespace souffle::ast

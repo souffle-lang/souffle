@@ -15,7 +15,7 @@
 namespace souffle::ast {
 
 ExecutionOrder::ExecutionOrder(ExecOrder order, SrcLocation loc)
-        : Node(std::move(loc)), order(std::move(order)) {}
+        : Node(NK_ExecutionOrder, std::move(loc)), order(std::move(order)) {}
 
 void ExecutionOrder::print(std::ostream& out) const {
     out << "(" << join(order) << ")";
@@ -28,6 +28,10 @@ bool ExecutionOrder::equal(const Node& node) const {
 
 ExecutionOrder* ExecutionOrder::cloning() const {
     return new ExecutionOrder(order, getSrcLoc());
+}
+
+bool ExecutionOrder::classof(const Node* n) {
+    return n->getKind() == NK_ExecutionOrder;
 }
 
 }  // namespace souffle::ast

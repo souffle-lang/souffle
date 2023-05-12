@@ -58,6 +58,8 @@ public:
     /** Set field type */
     void setFieldType(std::size_t idx, QualifiedName type);
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

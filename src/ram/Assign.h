@@ -38,7 +38,7 @@ namespace souffle::ram {
 class Assign : public Statement {
 public:
     Assign(Own<Variable> v, Own<Expression> e, bool init)
-            : variable(std::move(v)), value(std::move(e)), init(init) {
+            : Statement(NK_Assign), variable(std::move(v)), value(std::move(e)), init(init) {
         assert(variable != nullptr && "variable is a null-pointer");
         assert(value != nullptr && "value is a null-pointer");
     }
@@ -64,6 +64,10 @@ public:
     void apply(const NodeMapper& map) override {
         variable = map(std::move(variable));
         value = map(std::move(value));
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Assign;
     }
 
 protected:

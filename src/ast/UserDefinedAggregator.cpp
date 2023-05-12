@@ -19,7 +19,7 @@
 namespace souffle::ast {
 UserDefinedAggregator::UserDefinedAggregator(
         std::string name, Own<Argument> init, Own<Argument> expr, VecOwn<Literal> body, SrcLocation loc)
-        : Aggregator(std::move(expr), std::move(body), std::move(loc)), name(name),
+        : Aggregator(NK_UserDefinedAggregator, std::move(expr), std::move(body), std::move(loc)), name(name),
           initValue(std::move(init)) {}
 
 void UserDefinedAggregator::apply(const NodeMapper& map) {
@@ -51,6 +51,10 @@ bool UserDefinedAggregator::equal(const Node& node) const {
 UserDefinedAggregator* UserDefinedAggregator::cloning() const {
     return new UserDefinedAggregator(
             name, clone(initValue), clone(targetExpression), clone(body), getSrcLoc());
+}
+
+bool UserDefinedAggregator::classof(const Node* n) {
+    return n->getKind() == NK_UserDefinedAggregator;
 }
 
 }  // namespace souffle::ast

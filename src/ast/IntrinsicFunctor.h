@@ -34,11 +34,11 @@ class IntrinsicFunctor : public Functor {
 public:
     template <typename... Operands>
     IntrinsicFunctor(std::string op, Operands&&... operands)
-            : Functor(std::forward<Operands>(operands)...), function(std::move(op)) {}
+            : Functor(NK_IntrinsicFunctor, std::forward<Operands>(operands)...), function(std::move(op)) {}
 
     template <typename... Operands>
     IntrinsicFunctor(SrcLocation loc, std::string op, Operands&&... operands)
-            : Functor(std::move(loc), std::forward<Operands>(operands)...), function(std::move(op)) {}
+            : Functor(NK_IntrinsicFunctor, std::move(loc), std::forward<Operands>(operands)...), function(std::move(op)) {}
 
     IntrinsicFunctor(std::string op, VecOwn<Argument> args, SrcLocation loc = {});
 
@@ -51,6 +51,8 @@ public:
     void setFunction(std::string functor) {
         function = std::move(functor);
     }
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

@@ -52,32 +52,124 @@ struct ConstCaster {
  */
 class Node {
 public:
-    Node(SrcLocation loc = {});
+    // clang-format: off
+    /// LLVM-style RTTI
+    ///
+    /// Each class under the ast::Node hierarchy must appear here and must implement
+    /// `static bool classof(const Node*)`.
+    ///
+    /// When class T is final, we must provide a single enum:
+    ///
+    ///   ...
+    ///   NK_T,
+    ///   ...
+    ///
+    /// When class T is non-final, we must provide enums like this:
+    ///
+    ///   NK_T,
+    ///     NK_Child1,
+    ///     ...
+    ///     NK_ChildN,
+    ///   NK_LastT
+    ///
+    ///
+    enum NodeKind {
+        NK_NONE,
+        NK_Argument,
+            NK_Constant,
+                NK_NilConstant,
+                NK_NumericConstant,
+                NK_StringConstant,
+            NK_LastConstant,
+
+            NK_Counter,
+            NK_ExecutionOrder,
+            NK_ExecutionPlan,
+            NK_IterationCounter,
+
+            NK_Aggregator,
+                NK_IntrinsicAggregator,
+                NK_UserDefinedAggregator,
+            NK_LastAggregator,
+
+            NK_Term,
+                NK_BranchInit,
+                NK_FirstFunctor,
+                    NK_IntrinsicFunctor,
+                    NK_UserDefinedFunctor,
+                NK_LastFunctor,
+                NK_RecordInit,
+            NK_LastTerm,
+
+            NK_UnnamedVariable,
+            NK_Variable,
+            NK_TypeCast,
+        NK_LastArgument,
+
+        NK_Attribute,
+        NK_BranchType,
+        NK_Clause,
+          NK_SubsumptiveClause,
+        NK_LastClause,
+        NK_Component,
+        NK_ComponentInit,
+        NK_ComponentType,
+        NK_Directive,
+        NK_FunctorDeclaration,
+        NK_Lattice,
+
+        NK_Literal,
+            NK_Atom,
+
+            NK_Constraint,
+                NK_BinaryConstraint,
+                NK_BooleanConstraint,
+                NK_FunctionalConstraint,
+            NK_LastConstraint,
+
+            NK_Negation,
+        NK_LastLiteral,
+
+        NK_Pragma,
+        NK_Program,
+        NK_Relation,
+
+        NK_Type,
+            NK_AlgebraicDataType,
+            NK_AliasType,
+            NK_RecordType,
+            NK_SubsetType,
+            NK_UnionType,
+        NK_LastType,
+    };
+    // clang-format: on
+private:
+    const NodeKind Kind;
+
+public:
+
+    explicit Node(NodeKind K, SrcLocation loc = {});
     virtual ~Node() = default;
     // Make sure we don't accidentally copy/slice
     Node(Node const&) = delete;
     Node& operator=(Node const&) = delete;
 
+    NodeKind getKind() const;
+
     /** Return source location of the Node */
-    const SrcLocation& getSrcLoc() const {
-        return location;
-    }
+    const SrcLocation& getSrcLoc() const;
 
     /** Set source location for the Node */
     void setSrcLoc(SrcLocation l);
 
     /** Return source location of the syntactic element */
-    std::string extloc() const {
-        return location.extloc();
-    }
+    std::string extloc() const;
 
     /** Equivalence check for two AST nodes */
     bool operator==(const Node& other) const;
 
     /** Inequality check for two AST nodes */
-    bool operator!=(const Node& other) const {
-        return !(*this == other);
-    }
+    bool operator!=(const Node& other) const;
 
     /** Create a clone (i.e. deep copy) of this node */
     Own<Node> cloneImpl() const;
