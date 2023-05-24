@@ -157,7 +157,7 @@ function drawGraph() {
         height: "calc((100vh - 167px) / 2)",
         axisY: {
             labelInterpolationFnc: function (value) {
-                return humanise_time(value);
+                return humanise_time(value/1000000.0);
             }
         },
         axisX: {
@@ -172,7 +172,11 @@ function drawGraph() {
                 return value;
             }
         },
-        plugins: [Chartist.plugins.tooltip()]
+        plugins: [Chartist.plugins.tooltip({
+                  tooltipFnc: function(meta, value) {
+                    return humanise_time(value / 1000000.0);
+                  }
+                  })]
     };
 
     new Chartist.Bar(".ct-chart1", {
@@ -185,6 +189,11 @@ function drawGraph() {
             return minify_numbers(value);
         }
     };
+    options.plugins = [Chartist.plugins.tooltip({
+                  tooltipFnc: function(meta, value) {
+                    return minify_numbers(value) + " tuples";
+                  }
+                  })]
 
     new Chartist.Bar(".ct-chart2", {
         labels: graph_vals.labels,

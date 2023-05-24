@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iosfwd>
 #include <string>
 #include <vector>

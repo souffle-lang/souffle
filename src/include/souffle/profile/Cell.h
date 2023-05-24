@@ -37,7 +37,7 @@ public:
     double getDoubleVal() const override {
         return value.count() / 1000000.0;
     }
-    long getLongVal() const override {
+    int64_t getLongVal() const override {
         std::cerr << "getting long on time cell\n";
         throw this;
     }
@@ -62,7 +62,7 @@ public:
     double getDoubleVal() const override {
         return value;
     }
-    long getLongVal() const override {
+    int64_t getLongVal() const override {
         std::cerr << "getting long on double cell\n";
         throw this;
     }
@@ -89,7 +89,7 @@ public:
         std::cerr << "getting double on string cell\n";
         throw this;
     }
-    long getLongVal() const override {
+    int64_t getLongVal() const override {
         std::cerr << "getting long on string cell\n";
         throw this;
     }
@@ -106,11 +106,11 @@ public:
 };
 
 template <>
-class Cell<long> : public CellInterface {
-    const long value;
+class Cell<int64_t> : public CellInterface {
+    const int64_t value;
 
 public:
-    Cell(long value) : value(value){};
+    Cell(int64_t value) : value(value){};
     double getDoubleVal() const override {
         std::cerr << "getting double on long cell\n";
         throw this;
@@ -119,7 +119,7 @@ public:
         std::cerr << "getting string on long cell\n";
         throw this;
     }
-    long getLongVal() const override {
+    int64_t getLongVal() const override {
         return value;
     }
     std::chrono::microseconds getTimeVal() const override {
@@ -139,7 +139,7 @@ public:
         std::cerr << "getting double on void cell";
         throw this;
     }
-    long getLongVal() const override {
+    int64_t getLongVal() const override {
         std::cerr << "getting long on void cell";
         throw this;
     }

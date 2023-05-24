@@ -31,7 +31,8 @@ private:
     const std::string name;
     std::chrono::microseconds starttime{};
     std::chrono::microseconds endtime{};
-    std::chrono::microseconds loadtime{};
+    std::chrono::microseconds loadstarttime{};
+    std::chrono::microseconds loadendtime{};
     std::chrono::microseconds savetime{};
     std::size_t nonRecTuples = 0;
     std::size_t preMaxRSS = 0;
@@ -70,7 +71,15 @@ public:
     }
 
     std::chrono::microseconds getLoadtime() const {
-        return loadtime;
+        return loadendtime - loadstarttime;
+    }
+
+    std::chrono::microseconds getLoadStarttime() const {
+        return loadstarttime;
+    }
+
+    std::chrono::microseconds getLoadEndtime() const {
+        return loadendtime;
     }
 
     std::chrono::microseconds getSavetime() const {
@@ -127,8 +136,9 @@ public:
         return result;
     }
 
-    void setLoadtime(std::chrono::microseconds loadtime) {
-        this->loadtime = loadtime;
+    void setLoadtime(std::chrono::microseconds loadstarttime, std::chrono::microseconds loadendtime) {
+        this->loadstarttime = loadstarttime;
+        this->loadendtime = loadendtime;
     }
 
     void setSavetime(std::chrono::microseconds savetime) {

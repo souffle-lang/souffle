@@ -367,16 +367,15 @@ endif ()
 # Souffle's profiler binary
 # --------------------------------------------------
 
-if (NOT WIN32)
-  add_executable(souffleprof
-    souffle_prof.cpp)
-  target_include_directories(souffleprof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-  install(TARGETS souffleprof DESTINATION bin)
 
-  # Set C++ standard to C++17
-  target_compile_features(souffleprof
-    PUBLIC cxx_std_17)
-endif()
+add_executable(souffleprof
+  souffle_prof.cpp)
+target_include_directories(souffleprof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+install(TARGETS souffleprof DESTINATION bin)
+
+# Set C++ standard to C++17
+target_compile_features(souffleprof
+  PUBLIC cxx_std_17)
 
 if (MSVC)
   target_compile_options(libsouffle PUBLIC /bigobj)
@@ -403,12 +402,15 @@ if (MSVC)
 
   target_compile_options(libsouffle PUBLIC /Zc:preprocessor)
   target_compile_options(compiled PUBLIC /Zc:preprocessor)
+  target_compile_options(souffleprof PUBLIC /Zc:preprocessor)
 
   target_compile_options(libsouffle PUBLIC /EHsc)
   target_compile_options(compiled PUBLIC /EHsc)
+  target_compile_options(souffleprof PUBLIC /EHsc)
 
   target_compile_definitions(libsouffle PUBLIC USE_CUSTOM_GETOPTLONG)
   target_compile_definitions(compiled PUBLIC USE_CUSTOM_GETOPTLONG)
+  target_compile_definitions(souffleprof PUBLIC USE_CUSTOM_GETOPTLONG)
 endif (MSVC)
 
 
