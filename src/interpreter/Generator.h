@@ -128,6 +128,8 @@ public:
 
     NodePtr visit_(type_identity<ram::NumericConstant>, const ram::NumericConstant& num) override;
 
+    NodePtr visit_(type_identity<ram::Variable>, const ram::Variable& var) override;
+
     NodePtr visit_(type_identity<ram::StringConstant>, const ram::StringConstant& num) override;
 
     NodePtr visit_(type_identity<ram::TupleElement>, const ram::TupleElement& access) override;
@@ -238,6 +240,8 @@ public:
     NodePtr visit_(type_identity<ram::MergeExtend>, const ram::MergeExtend& extend) override;
 
     NodePtr visit_(type_identity<ram::Swap>, const ram::Swap& swap) override;
+
+    NodePtr visit_(type_identity<ram::Assign>, const ram::Assign& assign) override;
 
     NodePtr visit_(type_identity<ram::UndefValue>, const ram::UndefValue&) override;
 

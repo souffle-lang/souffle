@@ -116,6 +116,7 @@ bool TranslatorContext::isRecursiveSCC(std::size_t scc) const {
 std::vector<ast::Directive*> TranslatorContext::getStoreDirectives(const ast::QualifiedName& name) const {
     return filter(program->getDirectives(name), [&](const ast::Directive* dir) {
         return dir->getType() == ast::DirectiveType::printsize ||
+               dir->getType() == ast::DirectiveType::debug_delta ||
                dir->getType() == ast::DirectiveType::output;
     });
 }

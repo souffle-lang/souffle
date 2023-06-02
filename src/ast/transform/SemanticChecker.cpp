@@ -37,6 +37,7 @@
 #include "ast/Functor.h"
 #include "ast/IntrinsicAggregator.h"
 #include "ast/IntrinsicFunctor.h"
+#include "ast/IterationCounter.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
@@ -414,6 +415,8 @@ bool isConstantArgument(const Argument* arg) {
         // if all argument of functor are constant, then
         // assume functor returned value is constant.
         return all_of(udf->getArguments(), isConstantArgument);
+    } else if (isA<IterationCounter>(arg)) {
+        return false;
     } else if (isA<Counter>(arg)) {
         return false;
     } else if (auto* typeCast = as<ast::TypeCast>(arg)) {

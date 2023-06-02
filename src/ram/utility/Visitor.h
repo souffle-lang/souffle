@@ -22,6 +22,7 @@
 #include "ram/AbstractOperator.h"
 #include "ram/Aggregate.h"
 #include "ram/Aggregator.h"
+#include "ram/Assign.h"
 #include "ram/AutoIncrement.h"
 #include "ram/BinRelationStatement.h"
 #include "ram/Break.h"
@@ -92,6 +93,7 @@
 #include "ram/UnsignedConstant.h"
 #include "ram/UserDefinedAggregator.h"
 #include "ram/UserDefinedOperator.h"
+#include "ram/Variable.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/Visitor.h"
@@ -121,6 +123,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(TupleElement);
         SOUFFLE_VISITOR_FORWARD(SignedConstant);
         SOUFFLE_VISITOR_FORWARD(UnsignedConstant);
+        SOUFFLE_VISITOR_FORWARD(Variable);
         SOUFFLE_VISITOR_FORWARD(FloatConstant);
         SOUFFLE_VISITOR_FORWARD(NumericConstant);
         SOUFFLE_VISITOR_FORWARD(StringConstant);
@@ -165,6 +168,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(IndexAggregate);
 
         // Statements
+        SOUFFLE_VISITOR_FORWARD(Assign);
         SOUFFLE_VISITOR_FORWARD(IO);
         SOUFFLE_VISITOR_FORWARD(Query);
         SOUFFLE_VISITOR_FORWARD(Clear);
@@ -198,6 +202,7 @@ protected:
     SOUFFLE_VISITOR_LINK(EstimateJoinSize, RelationStatement);
 
     SOUFFLE_VISITOR_LINK(RelationStatement, Statement);
+    SOUFFLE_VISITOR_LINK(Assign, Statement);
 
     SOUFFLE_VISITOR_LINK(Swap, BinRelationStatement);
     SOUFFLE_VISITOR_LINK(MergeExtend, BinRelationStatement);
@@ -261,6 +266,7 @@ protected:
     SOUFFLE_VISITOR_LINK(SignedConstant, NumericConstant);
     SOUFFLE_VISITOR_LINK(UnsignedConstant, NumericConstant);
     SOUFFLE_VISITOR_LINK(FloatConstant, NumericConstant);
+    SOUFFLE_VISITOR_LINK(Variable, Expression);
     SOUFFLE_VISITOR_LINK(NumericConstant, Expression);
     SOUFFLE_VISITOR_LINK(StringConstant, Expression);
     SOUFFLE_VISITOR_LINK(UndefValue, Expression);

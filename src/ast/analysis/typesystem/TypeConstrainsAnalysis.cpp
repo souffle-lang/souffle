@@ -174,6 +174,10 @@ void TypeConstraintsAnalysis::visit_(type_identity<Counter>, const Counter& coun
     addConstraint(isSubtypeOf(getVar(counter), typeEnv.getConstantType(TypeAttribute::Signed)));
 }
 
+void TypeConstraintsAnalysis::visit_(type_identity<IterationCounter>, const IterationCounter& counter) {
+    addConstraint(isSubtypeOf(getVar(counter), typeEnv.getConstantType(TypeAttribute::Unsigned)));
+}
+
 void TypeConstraintsAnalysis::visit_(type_identity<TypeCast>, const ast::TypeCast& typeCast) {
     auto& typeName = typeCast.getType();
     if (!typeEnv.isType(typeName)) {

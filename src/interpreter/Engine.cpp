@@ -24,6 +24,7 @@
 #include "interpreter/ViewContext.h"
 #include "ram/Aggregate.h"
 #include "ram/Aggregator.h"
+#include "ram/Assign.h"
 #include "ram/AutoIncrement.h"
 #include "ram/Break.h"
 #include "ram/Call.h"
@@ -81,6 +82,7 @@
 #include "ram/UnpackRecord.h"
 #include "ram/UserDefinedAggregator.h"
 #include "ram/UserDefinedOperator.h"
+#include "ram/Variable.h"
 #include "ram/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/RamTypes.h"
@@ -574,6 +576,10 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return cur.getConstant();
         ESAC(NumericConstant)
 
+        CASE(Variable)
+            return ctxt.getVariable(cur.getName());
+        ESAC(Variable)
+
         CASE(StringConstant)
             return shadow.getConstant();
         ESAC(StringConstant)
@@ -780,7 +786,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", cur.getOperator());
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            { UNREACHABLE_BAD_CASE_ANALYSIS }
 
 #undef BINARY_OP_LOGICAL
 #undef BINARY_OP_INTEGRAL
@@ -814,7 +820,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 case ram::NestedIntrinsicOp::FRANGE: return RUN_RANGE(RamFloat);
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            { UNREACHABLE_BAD_CASE_ANALYSIS }
 #undef RUN_RANGE
         ESAC(NestedIntrinsicOperator)
 
@@ -1098,7 +1104,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 }
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            { UNREACHABLE_BAD_CASE_ANALYSIS }
 
 #undef COMPARE_NUMERIC
 #undef COMPARE_STRING
@@ -1466,6 +1472,13 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             swapRelation(shadow.getSourceId(), shadow.getTargetId());
             return true;
         ESAC(Swap)
+
+        CASE(Assign)
+            const std::string& name = cur.getVariable().getName();
+            const RamDomain val = execute(shadow.getRhs(), ctxt);
+            ctxt.setVariable(name, val);
+            return true;
+        ESAC(Assign)
     }
 
     UNREACHABLE_BAD_CASE_ANALYSIS

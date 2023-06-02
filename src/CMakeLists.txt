@@ -33,6 +33,7 @@ set(SOUFFLE_SOURCES
     ast/FunctorDeclaration.cpp
     ast/FunctionalConstraint.cpp
     ast/IntrinsicFunctor.cpp
+    ast/IterationCounter.cpp
     ast/Negation.cpp
     ast/NilConstant.cpp
     ast/Node.cpp

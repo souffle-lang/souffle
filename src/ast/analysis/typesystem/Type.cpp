@@ -582,6 +582,8 @@ void TypeAnnotationPrinter::branchOnArgument(const Argument* cur, const Type& ty
         print_(type_identity<UserDefinedFunctor>(), *as<UserDefinedFunctor>(cur));
     } else if (isA<Counter>(*cur)) {
         print_(type_identity<Counter>(), *as<Counter>(cur));
+    } else if (isA<IterationCounter>(*cur)) {
+        print_(type_identity<IterationCounter>(), *as<IterationCounter>(cur));
     } else if (isA<Aggregator>(*cur)) {
         print_(type_identity<Aggregator>(), *as<Aggregator>(cur));
     } else {
@@ -717,6 +719,11 @@ void TypeAnnotationPrinter::print_(type_identity<UserDefinedFunctor>, const User
 
 void TypeAnnotationPrinter::print_(type_identity<Counter>, [[maybe_unused]] const Counter& counter) {
     os << "$∈{number}";
+}
+
+void TypeAnnotationPrinter::print_(
+        type_identity<IterationCounter>, [[maybe_unused]] const IterationCounter& counter) {
+    os << "$∈{unsigned}";
 }
 
 void TypeAnnotationPrinter::print_(type_identity<TypeCast>, const ast::TypeCast& typeCast) {

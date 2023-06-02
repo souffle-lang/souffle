@@ -85,6 +85,11 @@ std::optional<std::size_t> LevelAnalysis::getLevel(const Node* node) const {
             return std::nullopt;
         }
 
+        // number constant
+        maybe_level visit_(type_identity<Variable>, const Variable&) override {
+            return std::nullopt;
+        }
+
         // true
         maybe_level visit_(type_identity<True>, const True&) override {
             return std::nullopt;

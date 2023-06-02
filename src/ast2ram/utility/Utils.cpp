@@ -96,6 +96,10 @@ std::string getDeltaRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@delta_");
 }
 
+std::string getDeltaDebugRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@debug_");
+}
+
 std::string getNewRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@new_");
 }

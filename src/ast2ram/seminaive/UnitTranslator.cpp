@@ -26,6 +26,7 @@
 #include "ast2ram/ClauseTranslator.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
+#include "ram/Assign.h"
 #include "ram/Call.h"
 #include "ram/Clear.h"
 #include "ram/Condition.h"
@@ -40,6 +41,7 @@
 #include "ram/Filter.h"
 #include "ram/IO.h"
 #include "ram/Insert.h"
+#include "ram/IntrinsicOperator.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogSize.h"
 #include "ram/LogTimer.h"
@@ -58,6 +60,8 @@
 #include "ram/Swap.h"
 #include "ram/TranslationUnit.h"
 #include "ram/TupleElement.h"
+#include "ram/UnsignedConstant.h"
+#include "ram/Variable.h"
 #include "ram/utility/Utils.h"
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
@@ -261,6 +265,28 @@ Own<ram::Statement> UnitTranslator::generateMergeRelations(
     return stmt;
 }
 
+Own<ram::Statement> UnitTranslator::generateDebugRelation(
+        const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const {
+    VecOwn<ram::Expression> values;
+
+    for (std::size_t i = 0; i < rel->getArity(); i++) {
+        values.push_back(mk<ram::TupleElement>(0, i));
+    }
+
+    values.push_back(mk<ram::Variable>("loop_counter"));
+
+    // Proposition - insert if not empty
+    if (rel->getArity() == 0) {
+        auto insertion = mk<ram::Insert>(destRelation, std::move(values));
+        return mk<ram::Query>(mk<ram::Filter>(
+                mk<ram::Negation>(mk<ram::EmptinessCheck>(srcRelation)), std::move(insertion)));
+    }
+
+    auto insertion = mk<ram::Insert>(destRelation, std::move(values));
+    auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(insertion)));
+    return stmt;
+}
+
 Own<ram::Statement> UnitTranslator::translateRecursiveClauses(
         const ast::RelationSet& scc, const ast::Relation* rel) const {
     assert(contains(scc, rel) && "relation should belong to scc");
@@ -456,6 +482,15 @@ Own<ram::Statement> UnitTranslator::generateStratumPostamble(const ast::Relation
     return mk<ram::Sequence>(std::move(postamble));
 }
 
+bool UnitTranslator::requiresDebugRelation(const ast::Relation* relation) const {
+    for (const auto* store : context->getStoreDirectives(relation->getQualifiedName())) {
+        if (store->getType() == ast::DirectiveType::debug_delta) {
+            return true;
+        }
+    }
+    return false;
+}
+
 Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::RelationSet& scc) const {
     VecOwn<ram::Statement> updateTable;
 
@@ -464,6 +499,7 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
         std::string newRelation = getNewRelationName(rel->getQualifiedName());
         std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
+        std::string debugRelation = getDeltaDebugRelationName(rel->getQualifiedName());
 
         // swap new and and delta relation and clear new relation afterwards (if not a subsumptive relation)
         Own<ram::Statement> updateRelTable;
@@ -482,6 +518,9 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         }
 
         appendStmt(updateTable, std::move(updateRelTable));
+        if (requiresDebugRelation(rel)) {
+            appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation));
+        }
     }
     return mk<ram::Sequence>(std::move(updateTable));
 }
@@ -569,12 +608,20 @@ Own<ram::Statement> UnitTranslator::generateRecursiveStratum(
     auto recursiveJoinSizeStatements = context->getRecursiveJoinSizeStatementsInSCC(sccNumber);
     auto joinSizeSequence = mk<ram::Sequence>(std::move(recursiveJoinSizeStatements));
 
+    const std::string loop_counter = "loop_counter";
+    VecOwn<ram::Expression> inc;
+    inc.push_back(mk<ram::Variable>(loop_counter));
+    inc.push_back(mk<ram::UnsignedConstant>(1));
+    auto increment_counter = mk<ram::Assign>(mk<ram::Variable>(loop_counter),
+            mk<ram::IntrinsicOperator>(FunctorOp::UADD, std::move(inc)), false);
     // Add in the main fixpoint loop
     auto loopBody = generateStratumLoopBody(scc);
     auto exitSequence = generateStratumExitSequence(scc);
     auto updateSequence = generateStratumTableUpdates(scc);
     auto fixpointLoop = mk<ram::Loop>(mk<ram::Sequence>(std::move(loopBody), std::move(joinSizeSequence),
-            std::move(exitSequence), std::move(updateSequence)));
+            std::move(exitSequence), std::move(updateSequence), std::move(increment_counter)));
+
+    appendStmt(result, mk<ram::Assign>(mk<ram::Variable>(loop_counter), mk<ram::UnsignedConstant>(0), true));
     appendStmt(result, std::move(fixpointLoop));
 
     // Add in the postamble
@@ -623,6 +670,13 @@ Own<ram::Statement> UnitTranslator::generateStoreRelation(const ast::Relation* r
         }
         addAuxiliaryArity(relation, directives);
 
+        if (store->getType() == ast::DirectiveType::debug_delta) {
+            std::string ramRelationName = getDeltaDebugRelationName(relation->getQualifiedName());
+            Own<ram::Statement> storeStmt = mk<ram::IO>(ramRelationName, directives);
+            appendStmt(storeStmts, std::move(storeStmt));
+            continue;
+        }
+
         // Create the resultant store statement, with profile information
         std::string ramRelationName = getConcreteRelationName(relation->getQualifiedName());
         Own<ram::Statement> storeStmt = mk<ram::IO>(ramRelationName, directives);
@@ -669,6 +723,21 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
                 // Add delta relation
                 std::string deltaName = getDeltaRelationName(rel->getQualifiedName());
                 ramRelations.push_back(createRamRelation(rel, deltaName));
+
+                if (requiresDebugRelation(rel)) {
+                    std::string debugName = getDeltaDebugRelationName(rel->getQualifiedName());
+                    std::size_t arity = rel->getArity();
+                    auto attributeNames = ramRelations.back()->getAttributeNames();
+                    auto attributeTypeQualifiers = ramRelations.back()->getAttributeTypes();
+                    auto representation = ramRelations.back()->getRepresentation();
+
+                    arity++;
+                    attributeNames.push_back("iteration");
+                    attributeTypeQualifiers.push_back("u:unsigned");
+
+                    ramRelations.push_back(mk<ram::Relation>(
+                            debugName, arity, 0, attributeNames, attributeTypeQualifiers, representation));
+                }
 
                 // Add new relation
                 std::string newName = getNewRelationName(rel->getQualifiedName());

@@ -88,6 +88,11 @@ private:
             // Casting due to json11.h type requirements.
             long long arity{static_cast<long long>(rel->getArity())};
 
+            if (io->getType() == ast::DirectiveType::debug_delta) {
+                attributesParams.push_back("iteration");
+                arity++;
+            }
+
             json11::Json relJson = json11::Json::object{{"arity", arity},
                     {"params", json11::Json::array(attributesParams.begin(), attributesParams.end())}};
 
@@ -120,6 +125,9 @@ private:
             for (const auto* attribute : rel->getAttributes()) {
                 attributeNames.push_back(attribute->getName());
             }
+            if (io->getType() == ast::DirectiveType::debug_delta) {
+                attributeNames.push_back("iteration");
+            }
             io->addParameter("attributeNames", toString(join(attributeNames, delimiter)));
             changed = true;
         }
@@ -145,6 +153,10 @@ private:
             // Casting due to json11.h type requirements.
             long long arity{static_cast<long long>(rel->getArity())};
 
+            if (io->getType() == ast::DirectiveType::debug_delta) {
+                attributesTypes.push_back("u:unsigned");
+                arity++;
+            }
             json11::Json relJson = json11::Json::object{{"arity", arity},
                     {"types", json11::Json::array(attributesTypes.begin(), attributesTypes.end())}};
 

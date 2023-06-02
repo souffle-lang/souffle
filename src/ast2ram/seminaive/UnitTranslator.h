@@ -63,6 +63,8 @@ protected:
             const ast::Clause* clause, const ast::RelationSet& scc) const;
     std::vector<ast::Atom*> getSccAtoms(const ast::Clause* clause, const ast::RelationSet& scc) const;
 
+    bool requiresDebugRelation(const ast::Relation* relation) const;
+
     virtual void addAuxiliaryArity(
             const ast::Relation* relation, std::map<std::string, std::string>& directives) const;
 
@@ -95,6 +97,8 @@ protected:
             const std::string& destRelation, const std::string& srcRelation,
             const std::string& filterRelation) const;
     virtual Own<ram::Statement> generateEraseTuples(
+            const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const;
+    virtual Own<ram::Statement> generateDebugRelation(
             const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const;
 
 private:

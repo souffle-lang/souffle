@@ -33,6 +33,7 @@
 #include "ram/UndefValue.h"
 #include "ram/UnsignedConstant.h"
 #include "ram/UserDefinedOperator.h"
+#include "ram/Variable.h"
 #include "ram/utility/Utils.h"
 #include "souffle/utility/StringUtil.h"
 
@@ -108,6 +109,11 @@ Own<ram::Expression> ValueTranslator::visit_(
 
 Own<ram::Expression> ValueTranslator::visit_(type_identity<ast::Counter>, const ast::Counter&) {
     return mk<ram::AutoIncrement>();
+}
+
+Own<ram::Expression> ValueTranslator::visit_(
+        type_identity<ast::IterationCounter>, const ast::IterationCounter&) {
+    return mk<ram::Variable>("loop_counter");
 }
 
 Own<ram::Expression> ValueTranslator::visit_(type_identity<ast::RecordInit>, const ast::RecordInit& init) {

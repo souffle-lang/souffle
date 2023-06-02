@@ -59,6 +59,7 @@
     #include "ast/FunctionalConstraint.h"
     #include "ast/FunctorDeclaration.h"
     #include "ast/IntrinsicFunctor.h"
+    #include "ast/IterationCounter.h"
     #include "ast/Literal.h"
     #include "ast/NilConstant.h"
     #include "ast/NumericConstant.h"
@@ -156,12 +157,14 @@
 %token TRUELIT                   "true literal constraint"
 %token FALSELIT                  "false literal constraint"
 %token PLAN                      "plan keyword"
+%token ITERATION                 "iteration keyword"
 %token CHOICEDOMAIN              "choice-domain"
 %token IF                        ":-"
 %token DECL                      "relation declaration"
 %token FUNCTOR                   "functor declaration"
 %token INPUT_DECL                "input directives declaration"
 %token OUTPUT_DECL               "output directives declaration"
+%token DEBUG_DELTA_DECL          "debug_delta directives declaration"
 %token PRINTSIZE_DECL            "printsize directives declaration"
 %token LIMITSIZE_DECL            "limitsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
@@ -906,6 +909,10 @@ arg
     {
       $$ = mk<ast::NumericConstant>($NUMBER, @$);
     }
+  | ITERATION
+    {
+      $$ = mk<ast::IterationCounter>(@$);
+    }
   | UNDERSCORE
     {
       $$ = mk<ast::UnnamedVariable>(@$);
@@ -1438,6 +1445,10 @@ directive_head_decl
   | OUTPUT_DECL
     {
       $$ = ast::DirectiveType::output;
+    }
+  | DEBUG_DELTA_DECL
+    {
+      $$ = ast::DirectiveType::debug_delta;
     }
   | PRINTSIZE_DECL
     {

@@ -63,6 +63,10 @@ NodePtr NodeGenerator::visit_(type_identity<ram::NumericConstant>, const ram::Nu
     return mk<NumericConstant>(I_NumericConstant, &num);
 }
 
+NodePtr NodeGenerator::visit_(type_identity<ram::Variable>, const ram::Variable& var) {
+    return mk<Variable>(I_Variable, &var);
+}
+
 NodePtr NodeGenerator::visit_(type_identity<ram::TupleElement>, const ram::TupleElement& access) {
     auto tupleId = access.getTupleId();
     auto elementId = access.getElement();
@@ -639,6 +643,10 @@ NodePtr NodeGenerator::visit_(type_identity<ram::Swap>, const ram::Swap& swap) {
     std::size_t src = encodeRelation(swap.getFirstRelation());
     std::size_t target = encodeRelation(swap.getSecondRelation());
     return mk<Swap>(I_Swap, &swap, src, target);
+}
+
+NodePtr NodeGenerator::visit_(type_identity<ram::Assign>, const ram::Assign& assign) {
+    return mk<Assign>(I_Assign, &assign, dispatch(assign.getVariable()), dispatch(assign.getValue()));
 }
 
 NodePtr NodeGenerator::visit_(type_identity<ram::UndefValue>, const ram::UndefValue&) {

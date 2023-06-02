@@ -51,6 +51,9 @@ std::string getRelationName(const ast::QualifiedName& name);
 /** Get the corresponding RAM delta relation name for the relation */
 std::string getDeltaRelationName(const ast::QualifiedName& name);
 
+/** Get the corresponding RAM delta debug relation name for the relation */
+std::string getDeltaDebugRelationName(const ast::QualifiedName& name);
+
 /** Get the corresponding RAM 'new' relation name for the relation */
 std::string getNewRelationName(const ast::QualifiedName& name);
 
