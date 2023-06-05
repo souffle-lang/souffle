@@ -266,14 +266,15 @@ Own<ram::Statement> UnitTranslator::generateMergeRelations(
 }
 
 Own<ram::Statement> UnitTranslator::generateDebugRelation(
-        const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const {
+        const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation, Own<ram::Expression> iteration) const {
     VecOwn<ram::Expression> values;
 
     for (std::size_t i = 0; i < rel->getArity(); i++) {
         values.push_back(mk<ram::TupleElement>(0, i));
     }
 
-    values.push_back(mk<ram::Variable>("loop_counter"));
+    //values.push_back(mk<ram::Variable>("loop_counter"));
+    values.push_back(std::move(iteration));
 
     // Proposition - insert if not empty
     if (rel->getArity() == 0) {
@@ -469,6 +470,14 @@ Own<ram::Statement> UnitTranslator::generateStratumPreamble(const ast::RelationS
         std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
         appendStmt(preamble, generateMergeRelations(rel, deltaRelation, mainRelation));
     }
+
+    for (const ast::Relation* rel : scc) {
+        if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
+            const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
+            std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
+            appendStmt(preamble, generateDebugRelation(rel, debugRelation, deltaRelation, mk<ram::UnsignedConstant>(0)));
+        }
+    }
     return mk<ram::Sequence>(std::move(preamble));
 }
 
@@ -510,7 +519,7 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         appendStmt(updateTable, std::move(updateRelTable));
         if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
             const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
-            appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation));
+            appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation, mk<ram::Variable>("loop_counter")));
         }
     }
     return mk<ram::Sequence>(std::move(updateTable));
@@ -612,7 +621,7 @@ Own<ram::Statement> UnitTranslator::generateRecursiveStratum(
     auto fixpointLoop = mk<ram::Loop>(mk<ram::Sequence>(std::move(loopBody), std::move(joinSizeSequence),
             std::move(exitSequence), std::move(updateSequence), std::move(increment_counter)));
 
-    appendStmt(result, mk<ram::Assign>(mk<ram::Variable>(loop_counter), mk<ram::UnsignedConstant>(0), true));
+    appendStmt(result, mk<ram::Assign>(mk<ram::Variable>(loop_counter), mk<ram::UnsignedConstant>(1), true));
     appendStmt(result, std::move(fixpointLoop));
 
     // Add in the postamble
