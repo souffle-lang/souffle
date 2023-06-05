@@ -670,7 +670,8 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
     checkRelationFunctionalDependencies(relation);
 
     // check whether this relation is empty
-    if (program.getClauses(relation).empty() && !ioTypes.isInput(&relation) && !relation.getIsDeltaDebug().has_value() &&
+    if (program.getClauses(relation).empty() && !ioTypes.isInput(&relation) &&
+            !relation.getIsDeltaDebug().has_value() &&
             !relation.hasQualifier(RelationQualifier::SUPPRESSED)) {
         report.addWarning(WarnType::NoRulesNorFacts,
                 "No rules/facts defined for relation " + toString(relation.getQualifiedName()),
@@ -680,10 +681,11 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
     // if the relation is a delta_debug, make sure if has no clause
     if (relation.getIsDeltaDebug().has_value()) {
         if (!program.getClauses(relation).empty() || ioTypes.isInput(&relation)) {
-            report.addError("Unexpected rules/facts for delta_debug relation " + toString(relation.getQualifiedName()), relation.getSrcLoc());
+            report.addError("Unexpected rules/facts for delta_debug relation " +
+                                    toString(relation.getQualifiedName()),
+                    relation.getSrcLoc());
         }
     }
-
 }
 
 void SemanticCheckerImpl::checkIO() {

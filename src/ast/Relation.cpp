@@ -71,8 +71,7 @@ bool Relation::equal(const Node& node) const {
     return name == other.name && equal_targets(attributes, other.attributes) &&
            qualifiers == other.qualifiers &&
            equal_targets(functionalDependencies, other.functionalDependencies) &&
-           representation == other.representation &&
-           isDeltaDebug == other.isDeltaDebug;
+           representation == other.representation && isDeltaDebug == other.isDeltaDebug;
 }
 
 Relation* Relation::cloning() const {
