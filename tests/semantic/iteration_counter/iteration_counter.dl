@@ -4,12 +4,19 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
+.comp c {
+
+
 .decl R(x:number)
 .output R()
-.debug_delta R()
+.decl R_debug = debug_delta(R)
 
+.output R_debug()
 R(0).
 
 R(x + 1) :-
     R(x),
     recursive_iteration_cnt() < 100.
+
+}
+.init C = c

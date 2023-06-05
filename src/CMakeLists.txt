@@ -80,6 +80,7 @@ set(SOUFFLE_SOURCES
     ast/transform/ComponentChecker.cpp
     ast/transform/ComponentInstantiation.cpp
     ast/transform/DebugReporter.cpp
+    ast/transform/DebugDeltaRelation.cpp
     ast/transform/ExecutionPlanChecker.cpp
     ast/transform/ExpandEqrels.cpp
     ast/transform/FoldAnonymousRecords.cpp

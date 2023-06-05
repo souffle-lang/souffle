@@ -96,6 +96,9 @@ public:
     bool hasSizeLimit(const ast::Relation* relation) const;
     std::size_t getSizeLimit(const ast::Relation* relation) const;
 
+    /** Associates a relation with its delta_debug relation if present */
+    const ast::Relation* getDeltaDebugRelation(const ast::Relation* rel) const;
+
     /** Clause methods */
     bool hasSubsumptiveClause(const ast::QualifiedName& name) const;
     bool isRecursiveClause(const ast::Clause* clause) const;
@@ -168,6 +171,8 @@ private:
     std::map<const ast::Clause*, std::size_t> clauseNums;
     Own<ast::SipsMetric> sipsMetric;
     Own<TranslationStrategy> translationStrategy;
+    std::map<const ast::Relation*, const ast::Relation*> deltaRel;
+
 };
 
 }  // namespace souffle::ast2ram

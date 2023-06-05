@@ -48,6 +48,13 @@ void PrecedenceGraphAnalysis::run(const TranslationUnit& translationUnit) {
                 souffle::visit(literals[i], addEdgeToR);
             }
         }
+
+        // delta_debug relation are computed from the original relation
+        if (const auto deltaDebug = r->getIsDeltaDebug()) {
+            const auto* dbg = program.getRelation(deltaDebug.value());
+            backingGraph.insert(r, dbg);
+            backingGraph.insert(dbg, r);
+        }
     }
 }
 

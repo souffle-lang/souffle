@@ -82,11 +82,7 @@ private:
 
             // Set the relation name
             if (!io->hasParameter("name")) {
-                if (io->getType() == ast::DirectiveType::debug_delta) {
-                    io->addParameter("name", "@delta_" + getRelationName(io));
-                } else {
-                    io->addParameter("name", getRelationName(io));
-                }
+                io->addParameter("name", getRelationName(io));
                 changed = true;
             }
 
@@ -99,8 +95,7 @@ private:
                     if (glb.config().has("fact-dir")) {
                         io->addParameter("fact-dir", glb.config().get("fact-dir"));
                     }
-                } else if (io->getType() == ast::DirectiveType::output ||
-                           io->getType() == ast::DirectiveType::debug_delta) {
+                } else if (io->getType() == ast::DirectiveType::output) {
                     io->addParameter("operation", "output");
                     changed = true;
                     // Configure output directory

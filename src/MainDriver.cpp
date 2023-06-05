@@ -27,6 +27,7 @@
 #include "ast/transform/ComponentChecker.h"
 #include "ast/transform/ComponentInstantiation.h"
 #include "ast/transform/Conditional.h"
+#include "ast/transform/DebugDeltaRelation.h"
 #include "ast/transform/ExecutionPlanChecker.h"
 #include "ast/transform/ExpandEqrels.h"
 #include "ast/transform/Fixpoint.h"
@@ -478,6 +479,7 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
     // Main pipeline
     auto pipeline = mk<ast::transform::PipelineTransformer>(mk<ast::transform::ComponentChecker>(),
             mk<ast::transform::ComponentInstantiationTransformer>(),
+            mk<ast::transform::DebugDeltaRelationTransformer>(),
             mk<ast::transform::IODefaultsTransformer>(),
             mk<ast::transform::SimplifyAggregateTargetExpressionTransformer>(),
             mk<ast::transform::UniqueAggregationVariablesTransformer>(),

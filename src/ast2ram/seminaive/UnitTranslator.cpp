@@ -482,15 +482,6 @@ Own<ram::Statement> UnitTranslator::generateStratumPostamble(const ast::Relation
     return mk<ram::Sequence>(std::move(postamble));
 }
 
-bool UnitTranslator::requiresDebugRelation(const ast::Relation* relation) const {
-    for (const auto* store : context->getStoreDirectives(relation->getQualifiedName())) {
-        if (store->getType() == ast::DirectiveType::debug_delta) {
-            return true;
-        }
-    }
-    return false;
-}
-
 Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::RelationSet& scc) const {
     VecOwn<ram::Statement> updateTable;
 
@@ -499,7 +490,6 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
         std::string newRelation = getNewRelationName(rel->getQualifiedName());
         std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
-        std::string debugRelation = getDeltaDebugRelationName(rel->getQualifiedName());
 
         // swap new and and delta relation and clear new relation afterwards (if not a subsumptive relation)
         Own<ram::Statement> updateRelTable;
@@ -518,7 +508,8 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         }
 
         appendStmt(updateTable, std::move(updateRelTable));
-        if (requiresDebugRelation(rel)) {
+        if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
+            const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
             appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation));
         }
     }
@@ -670,13 +661,6 @@ Own<ram::Statement> UnitTranslator::generateStoreRelation(const ast::Relation* r
         }
         addAuxiliaryArity(relation, directives);
 
-        if (store->getType() == ast::DirectiveType::debug_delta) {
-            std::string ramRelationName = getDeltaDebugRelationName(relation->getQualifiedName());
-            Own<ram::Statement> storeStmt = mk<ram::IO>(ramRelationName, directives);
-            appendStmt(storeStmts, std::move(storeStmt));
-            continue;
-        }
-
         // Create the resultant store statement, with profile information
         std::string ramRelationName = getConcreteRelationName(relation->getQualifiedName());
         Own<ram::Statement> storeStmt = mk<ram::IO>(ramRelationName, directives);
@@ -723,21 +707,6 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
                 // Add delta relation
                 std::string deltaName = getDeltaRelationName(rel->getQualifiedName());
                 ramRelations.push_back(createRamRelation(rel, deltaName));
-
-                if (requiresDebugRelation(rel)) {
-                    std::string debugName = getDeltaDebugRelationName(rel->getQualifiedName());
-                    std::size_t arity = rel->getArity();
-                    auto attributeNames = ramRelations.back()->getAttributeNames();
-                    auto attributeTypeQualifiers = ramRelations.back()->getAttributeTypes();
-                    auto representation = ramRelations.back()->getRepresentation();
-
-                    arity++;
-                    attributeNames.push_back("iteration");
-                    attributeTypeQualifiers.push_back("u:unsigned");
-
-                    ramRelations.push_back(mk<ram::Relation>(
-                            debugName, arity, 0, attributeNames, attributeTypeQualifiers, representation));
-                }
 
                 // Add new relation
                 std::string newName = getNewRelationName(rel->getQualifiedName());

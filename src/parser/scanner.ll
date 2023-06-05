@@ -137,7 +137,6 @@ WS [ \t\r\v\f]
 ".functor"/{WS}                       { return yy::parser::make_FUNCTOR(yylloc); }
 ".input"/{WS}                         { return yy::parser::make_INPUT_DECL(yylloc); }
 ".output"/{WS}                        { return yy::parser::make_OUTPUT_DECL(yylloc); }
-".debug_delta"/{WS}                   { return yy::parser::make_DEBUG_DELTA_DECL(yylloc); }
 ".printsize"/{WS}                     { return yy::parser::make_PRINTSIZE_DECL(yylloc); }
 ".limitsize"/{WS}                     { return yy::parser::make_LIMITSIZE_DECL(yylloc); }
 ".type"/{WS}                          { return yy::parser::make_TYPE(yylloc); }
@@ -161,6 +160,7 @@ WS [ \t\r\v\f]
                                           }
                                         }
                                       }
+"debug_delta"                         { return yy::parser::make_DEBUG_DELTA(yylloc); }
 "autoinc"                             { return yy::parser::make_AUTOINC(yylloc); }
 "band"                                { return yy::parser::make_BW_AND(yylloc); }
 "bor"                                 { return yy::parser::make_BW_OR(yylloc); }
