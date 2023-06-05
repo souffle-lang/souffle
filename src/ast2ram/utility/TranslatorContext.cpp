@@ -96,7 +96,6 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
             deltaRel[program->getRelation(delta.value())] = rel;
         }
     }
-
 }
 
 TranslatorContext::~TranslatorContext() = default;

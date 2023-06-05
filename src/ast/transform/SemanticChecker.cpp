@@ -685,6 +685,12 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
                                     toString(relation.getQualifiedName()),
                     relation.getSrcLoc());
         }
+        const auto orig = relation.getIsDeltaDebug().value();
+        if (!program.getRelation(orig)) {
+            report.addError("Could not find relation " + toString(orig) + " referred to by the delta_debug relation " +
+                                    toString(relation.getQualifiedName()),
+                    relation.getSrcLoc());
+        }
     }
 }
 

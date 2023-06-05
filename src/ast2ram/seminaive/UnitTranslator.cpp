@@ -274,7 +274,6 @@ Own<ram::Statement> UnitTranslator::generateDebugRelation(const ast::Relation* r
         values.push_back(mk<ram::TupleElement>(0, i));
     }
 
-    // values.push_back(mk<ram::Variable>("loop_counter"));
     values.push_back(std::move(iteration));
 
     // Proposition - insert if not empty

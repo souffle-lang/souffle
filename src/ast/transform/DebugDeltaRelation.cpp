@@ -47,7 +47,6 @@ bool DebugDeltaRelationTransformer::updateSignature(TranslationUnit& translation
         Relation* orig = program.getRelation(originalRelName);
         assert(orig != nullptr);
 
-
         rel->setAttributes(clone(orig->getAttributes()));
         changed = true;
         rel->addAttribute(mk<Attribute>("<iteration>", "unsigned"));

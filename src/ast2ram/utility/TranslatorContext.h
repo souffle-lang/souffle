@@ -172,7 +172,6 @@ private:
     Own<ast::SipsMetric> sipsMetric;
     Own<TranslationStrategy> translationStrategy;
     std::map<const ast::Relation*, const ast::Relation*> deltaRel;
-
 };
 
 }  // namespace souffle::ast2ram
