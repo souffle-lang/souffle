@@ -12,4 +12,4 @@ R(0).
 
 R(x + 1) :-
     R(x),
-    __ITERATION__ < 100.
+    recursive_iteration_cnt() < 100.

@@ -209,7 +209,7 @@ WS [ \t\r\v\f]
 "to_string"                           { return yy::parser::make_TOSTRING(yylloc); }
 "to_unsigned"                         { return yy::parser::make_TOUNSIGNED(yylloc); }
 "choice-domain"                       { return yy::parser::make_CHOICEDOMAIN(yylloc); }
-"__ITERATION__"                       { return yy::parser::make_ITERATION(yylloc); }
+"recursive_iteration_cnt"             { return yy::parser::make_ITERATION(yylloc); }
 "__FILE__"                            {
                                         return yy::parser::make_STRING(yylloc.file->Reported, yylloc);
                                       }

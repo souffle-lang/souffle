@@ -157,7 +157,7 @@
 %token TRUELIT                   "true literal constraint"
 %token FALSELIT                  "false literal constraint"
 %token PLAN                      "plan keyword"
-%token ITERATION                 "iteration keyword"
+%token ITERATION                 "recursive iteration keyword"
 %token CHOICEDOMAIN              "choice-domain"
 %token IF                        ":-"
 %token DECL                      "relation declaration"
@@ -909,7 +909,7 @@ arg
     {
       $$ = mk<ast::NumericConstant>($NUMBER, @$);
     }
-  | ITERATION
+  | ITERATION LPAREN RPAREN
     {
       $$ = mk<ast::IterationCounter>(@$);
     }
