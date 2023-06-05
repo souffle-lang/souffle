@@ -97,8 +97,9 @@ protected:
             const std::string& filterRelation) const;
     virtual Own<ram::Statement> generateEraseTuples(
             const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const;
-    virtual Own<ram::Statement> generateDebugRelation(
-            const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation, Own<ram::Expression> iteration) const;
+    virtual Own<ram::Statement> generateDebugRelation(const ast::Relation* rel,
+            const std::string& destRelation, const std::string& srcRelation,
+            Own<ram::Expression> iteration) const;
 
 private:
     std::map<std::string, Own<ram::Statement>> ramSubroutines;

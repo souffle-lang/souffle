@@ -265,15 +265,16 @@ Own<ram::Statement> UnitTranslator::generateMergeRelations(
     return stmt;
 }
 
-Own<ram::Statement> UnitTranslator::generateDebugRelation(
-        const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation, Own<ram::Expression> iteration) const {
+Own<ram::Statement> UnitTranslator::generateDebugRelation(const ast::Relation* rel,
+        const std::string& destRelation, const std::string& srcRelation,
+        Own<ram::Expression> iteration) const {
     VecOwn<ram::Expression> values;
 
     for (std::size_t i = 0; i < rel->getArity(); i++) {
         values.push_back(mk<ram::TupleElement>(0, i));
     }
 
-    //values.push_back(mk<ram::Variable>("loop_counter"));
+    // values.push_back(mk<ram::Variable>("loop_counter"));
     values.push_back(std::move(iteration));
 
     // Proposition - insert if not empty
@@ -475,7 +476,8 @@ Own<ram::Statement> UnitTranslator::generateStratumPreamble(const ast::RelationS
         if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
             const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
             std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
-            appendStmt(preamble, generateDebugRelation(rel, debugRelation, deltaRelation, mk<ram::UnsignedConstant>(0)));
+            appendStmt(preamble,
+                    generateDebugRelation(rel, debugRelation, deltaRelation, mk<ram::UnsignedConstant>(0)));
         }
     }
     return mk<ram::Sequence>(std::move(preamble));
@@ -519,7 +521,8 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         appendStmt(updateTable, std::move(updateRelTable));
         if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
             const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
-            appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation, mk<ram::Variable>("loop_counter")));
+            appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation,
+                                            mk<ram::Variable>("loop_counter")));
         }
     }
     return mk<ram::Sequence>(std::move(updateTable));
