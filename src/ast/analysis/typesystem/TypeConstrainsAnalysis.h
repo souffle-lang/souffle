@@ -60,6 +60,7 @@ private:
     void visit_(type_identity<IntrinsicFunctor>, const IntrinsicFunctor& fun) override;
     void visit_(type_identity<UserDefinedFunctor>, const UserDefinedFunctor& fun) override;
     void visit_(type_identity<Counter>, const Counter& counter) override;
+    void visit_(type_identity<IterationCounter>, const IterationCounter& counter) override;
     void visit_(type_identity<TypeCast>, const ast::TypeCast& typeCast) override;
     void visit_(type_identity<RecordInit>, const RecordInit& record) override;
     void visit_(type_identity<BranchInit>, const BranchInit& adt) override;

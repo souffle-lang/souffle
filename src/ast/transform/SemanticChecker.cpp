@@ -37,6 +37,7 @@
 #include "ast/Functor.h"
 #include "ast/IntrinsicAggregator.h"
 #include "ast/IntrinsicFunctor.h"
+#include "ast/IterationCounter.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
@@ -414,6 +415,8 @@ bool isConstantArgument(const Argument* arg) {
         // if all argument of functor are constant, then
         // assume functor returned value is constant.
         return all_of(udf->getArguments(), isConstantArgument);
+    } else if (isA<IterationCounter>(arg)) {
+        return false;
     } else if (isA<Counter>(arg)) {
         return false;
     } else if (auto* typeCast = as<ast::TypeCast>(arg)) {
@@ -668,10 +671,27 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
 
     // check whether this relation is empty
     if (program.getClauses(relation).empty() && !ioTypes.isInput(&relation) &&
+            !relation.getIsDeltaDebug().has_value() &&
             !relation.hasQualifier(RelationQualifier::SUPPRESSED)) {
         report.addWarning(WarnType::NoRulesNorFacts,
                 "No rules/facts defined for relation " + toString(relation.getQualifiedName()),
                 relation.getSrcLoc());
+    }
+
+    // if the relation is a delta_debug, make sure if has no clause
+    if (relation.getIsDeltaDebug().has_value()) {
+        if (!program.getClauses(relation).empty() || ioTypes.isInput(&relation)) {
+            report.addError("Unexpected rules/facts for delta_debug relation " +
+                                    toString(relation.getQualifiedName()),
+                    relation.getSrcLoc());
+        }
+        const auto orig = relation.getIsDeltaDebug().value();
+        if (!program.getRelation(orig)) {
+            report.addError("Could not find relation " + toString(orig) +
+                                    " referred to by the delta_debug relation " +
+                                    toString(relation.getQualifiedName()),
+                    relation.getSrcLoc());
+        }
     }
 }
 

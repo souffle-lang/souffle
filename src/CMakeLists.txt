@@ -33,6 +33,7 @@ set(SOUFFLE_SOURCES
     ast/FunctorDeclaration.cpp
     ast/FunctionalConstraint.cpp
     ast/IntrinsicFunctor.cpp
+    ast/IterationCounter.cpp
     ast/Negation.cpp
     ast/NilConstant.cpp
     ast/Node.cpp
@@ -79,6 +80,7 @@ set(SOUFFLE_SOURCES
     ast/transform/ComponentChecker.cpp
     ast/transform/ComponentInstantiation.cpp
     ast/transform/DebugReporter.cpp
+    ast/transform/DebugDeltaRelation.cpp
     ast/transform/ExecutionPlanChecker.cpp
     ast/transform/ExpandEqrels.cpp
     ast/transform/FoldAnonymousRecords.cpp

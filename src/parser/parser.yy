@@ -59,6 +59,7 @@
     #include "ast/FunctionalConstraint.h"
     #include "ast/FunctorDeclaration.h"
     #include "ast/IntrinsicFunctor.h"
+    #include "ast/IterationCounter.h"
     #include "ast/Literal.h"
     #include "ast/NilConstant.h"
     #include "ast/NumericConstant.h"
@@ -156,12 +157,14 @@
 %token TRUELIT                   "true literal constraint"
 %token FALSELIT                  "false literal constraint"
 %token PLAN                      "plan keyword"
+%token ITERATION                 "recursive iteration keyword"
 %token CHOICEDOMAIN              "choice-domain"
 %token IF                        ":-"
 %token DECL                      "relation declaration"
 %token FUNCTOR                   "functor declaration"
 %token INPUT_DECL                "input directives declaration"
 %token OUTPUT_DECL               "output directives declaration"
+%token DEBUG_DELTA               "debug_delta"
 %token PRINTSIZE_DECL            "printsize directives declaration"
 %token LIMITSIZE_DECL            "limitsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
@@ -484,6 +487,23 @@ relation_decl
           rel->addDependency(souffle::clone(fd));
         }
         rel->setAttributes(clone(attributes_list));
+      }
+    }
+  | DECL IDENT EQUALS DEBUG_DELTA LPAREN IDENT RPAREN relation_tags
+    {
+      auto tags = $relation_tags;
+      $$.push_back(mk<ast::Relation>($2, @2));
+      for (auto&& rel : $$) {
+        rel->setIsDeltaDebug($6);
+        for (auto tag : tags) {
+          if (isRelationQualifierTag(tag)) {
+            rel->addQualifier(getRelationQualifierFromTag(tag));
+          } else if (isRelationRepresentationTag(tag)) {
+            rel->setRepresentation(getRelationRepresentationFromTag(tag));
+          } else {
+            assert(false && "unhandled tag");
+          }
+        }
       }
     }
   ;
@@ -905,6 +925,10 @@ arg
   | NUMBER
     {
       $$ = mk<ast::NumericConstant>($NUMBER, @$);
+    }
+  | ITERATION LPAREN RPAREN
+    {
+      $$ = mk<ast::IterationCounter>(@$);
     }
   | UNDERSCORE
     {

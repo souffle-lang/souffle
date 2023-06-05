@@ -62,6 +62,8 @@ public:
     Own<ram::Expression> visit_(
             type_identity<ast::UserDefinedFunctor>, const ast::UserDefinedFunctor& udf) override;
     Own<ram::Expression> visit_(type_identity<ast::Counter>, const ast::Counter& ctr) override;
+    Own<ram::Expression> visit_(
+            type_identity<ast::IterationCounter>, const ast::IterationCounter& ctr) override;
     Own<ram::Expression> visit_(type_identity<ast::RecordInit>, const ast::RecordInit& init) override;
     Own<ram::Expression> visit_(type_identity<ast::BranchInit>, const ast::BranchInit& init) override;
     Own<ram::Expression> visit_(type_identity<ast::Aggregator>, const ast::Aggregator& agg) override;

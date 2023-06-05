@@ -43,6 +43,7 @@ class Clause;
 class Functor;
 class FunctorDeclaration;
 class IntrinsicFunctor;
+class IterationCounter;
 class NumericConstant;
 class Type;
 class UserDefinedFunctor;
@@ -189,6 +190,7 @@ private:
     void print_(type_identity<IntrinsicFunctor>, const IntrinsicFunctor& fun);
     void print_(type_identity<UserDefinedFunctor>, const UserDefinedFunctor& fun);
     void print_(type_identity<Counter>, const Counter& counter);
+    void print_(type_identity<IterationCounter>, const IterationCounter& counter);
     void print_(type_identity<TypeCast>, const ast::TypeCast& typeCast);
     void print_(type_identity<RecordInit>, const RecordInit& record, const RecordType&);
     void print_(type_identity<BranchInit>, const BranchInit& adt);

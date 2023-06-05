@@ -26,6 +26,7 @@
 #include "ast2ram/ClauseTranslator.h"
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
+#include "ram/Assign.h"
 #include "ram/Call.h"
 #include "ram/Clear.h"
 #include "ram/Condition.h"
@@ -40,6 +41,7 @@
 #include "ram/Filter.h"
 #include "ram/IO.h"
 #include "ram/Insert.h"
+#include "ram/IntrinsicOperator.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/LogSize.h"
 #include "ram/LogTimer.h"
@@ -58,6 +60,8 @@
 #include "ram/Swap.h"
 #include "ram/TranslationUnit.h"
 #include "ram/TupleElement.h"
+#include "ram/UnsignedConstant.h"
+#include "ram/Variable.h"
 #include "ram/utility/Utils.h"
 #include "reports/DebugReport.h"
 #include "reports/ErrorReport.h"
@@ -261,6 +265,29 @@ Own<ram::Statement> UnitTranslator::generateMergeRelations(
     return stmt;
 }
 
+Own<ram::Statement> UnitTranslator::generateDebugRelation(const ast::Relation* rel,
+        const std::string& destRelation, const std::string& srcRelation,
+        Own<ram::Expression> iteration) const {
+    VecOwn<ram::Expression> values;
+
+    for (std::size_t i = 0; i < rel->getArity(); i++) {
+        values.push_back(mk<ram::TupleElement>(0, i));
+    }
+
+    values.push_back(std::move(iteration));
+
+    // Proposition - insert if not empty
+    if (rel->getArity() == 0) {
+        auto insertion = mk<ram::Insert>(destRelation, std::move(values));
+        return mk<ram::Query>(mk<ram::Filter>(
+                mk<ram::Negation>(mk<ram::EmptinessCheck>(srcRelation)), std::move(insertion)));
+    }
+
+    auto insertion = mk<ram::Insert>(destRelation, std::move(values));
+    auto stmt = mk<ram::Query>(mk<ram::Scan>(srcRelation, 0, std::move(insertion)));
+    return stmt;
+}
+
 Own<ram::Statement> UnitTranslator::translateRecursiveClauses(
         const ast::RelationSet& scc, const ast::Relation* rel) const {
     assert(contains(scc, rel) && "relation should belong to scc");
@@ -443,6 +470,15 @@ Own<ram::Statement> UnitTranslator::generateStratumPreamble(const ast::RelationS
         std::string mainRelation = getConcreteRelationName(rel->getQualifiedName());
         appendStmt(preamble, generateMergeRelations(rel, deltaRelation, mainRelation));
     }
+
+    for (const ast::Relation* rel : scc) {
+        if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
+            const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
+            std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
+            appendStmt(preamble,
+                    generateDebugRelation(rel, debugRelation, deltaRelation, mk<ram::UnsignedConstant>(0)));
+        }
+    }
     return mk<ram::Sequence>(std::move(preamble));
 }
 
@@ -482,6 +518,11 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         }
 
         appendStmt(updateTable, std::move(updateRelTable));
+        if (const auto* debugRel = context->getDeltaDebugRelation(rel)) {
+            const std::string debugRelation = getConcreteRelationName(debugRel->getQualifiedName());
+            appendStmt(updateTable, generateDebugRelation(rel, debugRelation, deltaRelation,
+                                            mk<ram::Variable>("loop_counter")));
+        }
     }
     return mk<ram::Sequence>(std::move(updateTable));
 }
@@ -569,12 +610,20 @@ Own<ram::Statement> UnitTranslator::generateRecursiveStratum(
     auto recursiveJoinSizeStatements = context->getRecursiveJoinSizeStatementsInSCC(sccNumber);
     auto joinSizeSequence = mk<ram::Sequence>(std::move(recursiveJoinSizeStatements));
 
+    const std::string loop_counter = "loop_counter";
+    VecOwn<ram::Expression> inc;
+    inc.push_back(mk<ram::Variable>(loop_counter));
+    inc.push_back(mk<ram::UnsignedConstant>(1));
+    auto increment_counter = mk<ram::Assign>(mk<ram::Variable>(loop_counter),
+            mk<ram::IntrinsicOperator>(FunctorOp::UADD, std::move(inc)), false);
     // Add in the main fixpoint loop
     auto loopBody = generateStratumLoopBody(scc);
     auto exitSequence = generateStratumExitSequence(scc);
     auto updateSequence = generateStratumTableUpdates(scc);
     auto fixpointLoop = mk<ram::Loop>(mk<ram::Sequence>(std::move(loopBody), std::move(joinSizeSequence),
-            std::move(exitSequence), std::move(updateSequence)));
+            std::move(exitSequence), std::move(updateSequence), std::move(increment_counter)));
+
+    appendStmt(result, mk<ram::Assign>(mk<ram::Variable>(loop_counter), mk<ram::UnsignedConstant>(1), true));
     appendStmt(result, std::move(fixpointLoop));
 
     // Add in the postamble
