@@ -545,8 +545,8 @@ void SemanticCheckerImpl::checkComplexRule(const std::set<const Clause*>& multiR
         void visit_(type_identity<ast::Variable>, const ast::Variable& var) override {
             const auto& name = var.getName();
             if (name[0] == '_') {
-              // do not count variables starting with underscore
-              return;
+                // do not count variables starting with underscore
+                return;
             }
             auto it = occurrences.find(name);
             if (it == occurrences.end()) {
@@ -557,7 +557,7 @@ void SemanticCheckerImpl::checkComplexRule(const std::set<const Clause*>& multiR
         }
     };
 
-    {   // find variables that occurs in some clause head
+    {  // find variables that occurs in some clause head
         VarsCounter vc;
         for (const Clause* cl : multiRule) {
             // count occurrences in clause head
