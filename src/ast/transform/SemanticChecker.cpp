@@ -517,7 +517,6 @@ void SemanticCheckerImpl::checkClause(const Clause& clause) {
 }
 
 void SemanticCheckerImpl::checkComplexRule(const std::set<const Clause*>& multiRule) {
-
     // variable v occurs only once if:
     // - it occurs at most once in each clause body of the (possibly) multi-clause rule.
     // - and it never occurs in any clause head of the (possibly) multi-clause rule.
@@ -626,7 +625,6 @@ void SemanticCheckerImpl::checkComplexRule(const std::set<const Clause*>& multiR
         }
         report.addWarning(WarnType::VarAppearsOnce, "Variable " + name + " only occurs once", vf.leastLoc);
     }
-
 }
 
 void SemanticCheckerImpl::checkType(ast::Attribute const& attr, std::string const& name) {
