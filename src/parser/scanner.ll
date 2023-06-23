@@ -153,10 +153,11 @@ WS [ \t\r\v\f]
                                       }
 ".once"                               {
                                         if (!driver.canEnterOnce(yylloc)) {
+                                          auto loc = yylloc;
                                           yypop_buffer_state(yyscanner);
                                           yyinfo.pop();
                                           if (!YY_CURRENT_BUFFER) {
-                                            return yy::parser::make_END(yylloc);
+                                            return yy::parser::make_END(loc);
                                           }
                                         }
                                       }
@@ -411,10 +412,11 @@ WS [ \t\r\v\f]
 \n                                    { }
 {WS}+                                 { }
 <<EOF>>                               {
+                                        auto loc = yylloc;
                                         yypop_buffer_state(yyscanner);
                                         yyinfo.pop();
                                         if (!YY_CURRENT_BUFFER) {
-                                          return yy::parser::make_END(yylloc);
+                                          return yy::parser::make_END(loc);
                                         }
                                       }
 .                                     { driver.error(yylloc, std::string("unexpected ") + yytext); }

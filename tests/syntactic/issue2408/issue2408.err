@@ -1,0 +1,4 @@
+Error: syntax error, unexpected end of file, expecting ( or . in file issue2408.dl at line 1
+x
+-^
+1 errors generated, evaluation aborted
