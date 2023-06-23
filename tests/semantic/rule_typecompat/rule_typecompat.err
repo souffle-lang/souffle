@@ -54,9 +54,6 @@ The argument's declared type is R in file rule_typecompat.dl at line 12
 Error: Ungrounded variable y in file rule_typecompat.dl at line 30
 G(x,y) :- A(x).
 ----^-----------
-Warning: Variable y only occurs once in file rule_typecompat.dl at line 30
-G(x,y) :- A(x).
-----^-----------
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 33
 A(x) :- B(x), C(x).
 --^-----------------
@@ -80,9 +77,6 @@ The argument's declared type is T in file rule_typecompat.dl at line 11
 .decl F (r:R, t:T)
 ----------------^--
 Error: Ungrounded variable y in file rule_typecompat.dl at line 41
-F(x,y) :- F(x,z), G(z,x).
-----^---------------------
-Warning: Variable y only occurs once in file rule_typecompat.dl at line 41
 F(x,y) :- F(x,z), G(z,x).
 ----^---------------------
 Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 47
