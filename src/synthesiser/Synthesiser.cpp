@@ -844,7 +844,11 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             if (!keys.empty()) {
                 indexNumber = isa->getIndexSelection(estimateJoinSize.getRelation()).getLexOrderNum(keys);
             }
-            auto indexName = relName + "->ind_" + std::to_string(indexNumber);
+
+            auto relationType =
+                    Relation::getSynthesiserRelation(*rel, isa->getIndexSelection(rel->getName()));
+            const std::string& type = relationType->getTypeName();
+            auto indexName = relName + (type == "t_eqrel" ? "->ind" : "->ind_" + std::to_string(indexNumber));
 
             bool onlyConstants = true;
             for (auto col : estimateJoinSize.getKeyColumns()) {

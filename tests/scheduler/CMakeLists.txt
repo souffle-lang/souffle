@@ -93,4 +93,5 @@ endfunction()
 
 if (NOT MSVC)
     souffle_add_scheduler_test(functionality)
+    souffle_add_scheduler_test(eqrel)
 endif()
