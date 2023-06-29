@@ -48,6 +48,7 @@ bool RemoveEmptyRelationsTransformer::removeEmptyRelations(TranslationUnit& tran
     for (auto rel : program.getRelations()) {
         if (ioTypes.isInput(rel)) continue;
         if (!program.getClauses(*rel).empty()) continue;
+        if (rel->getIsDeltaDebug()) continue;
 
         emptyRelations.insert(rel->getQualifiedName());
 
