@@ -180,8 +180,8 @@ std::set<std::size_t> SipGraph::getBoundIndices(
                 auto& dependentVars = varToOtherVars.at(var->getName());
 
                 // and all of these variables are grounded by "from"
-                if (std::includes(groundedVars.begin(), groundedVars.end(), dependentVars.begin(),
-                            dependentVars.end())) {
+                if (!dependentVars.empty() && std::includes(groundedVars.begin(), groundedVars.end(),
+                                                      dependentVars.begin(), dependentVars.end())) {
                     boundColumns.insert(argIdx);
                 }
             }
