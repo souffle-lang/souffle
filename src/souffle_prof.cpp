@@ -20,7 +20,7 @@
 
 int main(int argc, char* argv[]) {
     souffle::profile::Cli cli_obj(argc, argv);
-    cli_obj.parse();
+    const int status = cli_obj.parse();
     std::cout << "\n";
-    return 0;
+    return status;
 }

@@ -15,7 +15,12 @@
 #include <map>
 #include <string>
 #include <vector>
+
+#ifdef USE_CUSTOM_GETOPTLONG
+#include "souffle/utility/GetOptLongImpl.h"
+#else
 #include <getopt.h>
+#endif
 
 namespace souffle {
 namespace profile {
@@ -52,10 +57,10 @@ public:
         }
     }
 
-    void parse() {
+    int parse() {
         if (args.size() == 0) {
             std::cout << "No arguments provided.\nTry souffleprof -h for help.\n";
-            exit(EXIT_FAILURE);
+            return (EXIT_FAILURE);
         }
 
         if (args.count('h') != 0 || args.count('f') == 0) {
@@ -70,7 +75,7 @@ public:
                       << std::endl
                       << "                      Default filename is profiler_html/[num].html" << std::endl
                       << "-h                    Print this help message." << std::endl;
-            exit(0);
+            return (0);
         }
         std::string filename = args['f'];
 
@@ -81,13 +86,15 @@ public:
             }
         } else if (args.count('j') != 0) {
             if (args['j'] == "j") {
-                Tui(filename, false, true).outputHtml();
+                return Tui(filename, false, true).outputHtml();
             } else {
-                Tui(filename, false, true).outputHtml(args['j']);
+                return Tui(filename, false, true).outputHtml(args['j']);
             }
         } else {
             Tui(filename, true, false).runProf();
         }
+
+        return 0;
     }
 };
 

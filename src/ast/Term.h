@@ -56,11 +56,8 @@ private:
 
     template <typename... Operands>
     static VecOwn<Argument> asVec(Operands... ops) {
-        Own<Argument> ary[] = {std::move(ops)...};
         VecOwn<Argument> xs;
-        for (auto&& x : ary) {
-            xs.push_back(std::move(x));
-        }
+        (xs.emplace_back(std::move(std::forward<Operands>(ops))), ...);
         return xs;
     }
 

@@ -138,6 +138,8 @@ public:
         for (auto& cur : relationMap) {
             if (cur.second->getStarttime() <= end && cur.second->getEndtime() >= start) {
                 result.insert(cur.second);
+            } else if (cur.second->getLoadStarttime() <= end && cur.second->getLoadEndtime() >= start) {
+                result.insert(cur.second);
             }
         }
         return result;
@@ -147,7 +149,7 @@ public:
         return Tools::formatTime(runtime);
     }
 
-    inline std::string formatNum(int precision, long number) const {
+    inline std::string formatNum(int precision, int64_t number) const {
         return Tools::formatNum(precision, number);
     }
 
