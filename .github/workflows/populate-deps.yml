@@ -24,13 +24,10 @@ jobs:
         submodules: 'recursive'
 
     - name: Checkout vcpkg
-      run: |
-            git clone https://github.com/Microsoft/vcpkg.git
-            cd vcpkg
-            ./bootstrap-vcpkg.sh
+      run: git clone https://github.com/Microsoft/vcpkg.git
 
     - name: Bootstrap vcpkg
-      working-directory: vcpkg/vcpkg
+      working-directory: vcpkg
       run: ./bootstrap-vcpkg.sh
 
     # This will execute a dry-run, meaning that libraries will not be built and
