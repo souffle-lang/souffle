@@ -1,17 +1,17 @@
 name: Populate dependencies
 
 on:
-  push:
-    branches: [ master ]
-  workflow_dispatch:
-  pull_request:
+    push:
+        branches: [ master ]
+    workflow_dispatch:
+    pull_request:
 
 permissions:
-  contents: write
+    contents: write
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  VCPKG_FEATURE_FLAGS: dependencygraph
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    VCPKG_FEATURE_FLAGS: dependencygraph
 
 jobs:
   build:
@@ -22,6 +22,10 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: 'recursive'
+
+    - name: Bootstrap vcpkg
+      working-directory: vcpkg/vcpkg
+      run: ./bootstrap-vcpkg.sh
 
     # This will execute a dry-run, meaning that libraries will not be built and
     # installed, but they will still be reported to the GitHub dependency graph.
