@@ -24,7 +24,10 @@ jobs:
         submodules: 'recursive'
 
     - name: Checkout vcpkg
-      run: git clone https://github.com/Microsoft/vcpkg.git -- 8f3e8d6e95c7f91edea60c47a7d1414ab5ca9492
+      run: |
+            git clone https://github.com/Microsoft/vcpkg.git
+            cd vcpkg
+            git checkout 8f3e8d6e95c7f91edea60c47a7d1414ab5ca9492
 
     - name: Bootstrap vcpkg
       working-directory: vcpkg
