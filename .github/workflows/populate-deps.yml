@@ -23,6 +23,12 @@ jobs:
       with:
         submodules: 'recursive'
 
+    - name: Checkout vcpkg
+      run: |
+            git clone https://github.com/Microsoft/vcpkg.git
+            cd vcpkg
+            ./bootstrap-vcpkg.sh
+
     - name: Bootstrap vcpkg
       working-directory: vcpkg/vcpkg
       run: ./bootstrap-vcpkg.sh

@@ -33,7 +33,7 @@ jobs:
 
     # Use vcpkg to install devel library dependencies.
     - name: Library Dependencies (vcpkg)
-      uses: lukka/run-vcpkg@v10
+      uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: '8f3e8d6e95c7f91edea60c47a7d1414ab5ca9492'
 
