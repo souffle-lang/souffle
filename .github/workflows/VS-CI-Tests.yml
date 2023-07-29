@@ -35,7 +35,7 @@ jobs:
     - name: Library Dependencies (vcpkg)
       uses: lukka/run-vcpkg@v11
       with:
-        vcpkgGitCommitId: '8f3e8d6e95c7f91edea60c47a7d1414ab5ca9492'
+        vcpkgGitCommitId: '56954f1db97f38635782d5ad7cdfd45d2731c854'
 
     - name: Create Build Directory
       working-directory: ${{github.workspace}}
