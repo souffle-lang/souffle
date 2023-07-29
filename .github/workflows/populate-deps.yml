@@ -37,5 +37,5 @@ jobs:
     # installed, but they will still be reported to the GitHub dependency graph.
     # This step assumes `vcpkg` has been bootstrapped (run `./vcpkg/bootstrap-vcpkg`)
     - name: Run vcpkg
-      run: ${{ github.workspace }}/vcpkg/vcpkg install --dry-run
+      run: ${{ github.workspace }}/vcpkg/vcpkg install --dry-run --debug
 
