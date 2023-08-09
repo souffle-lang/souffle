@@ -33,9 +33,9 @@ jobs:
 
     # Use vcpkg to install devel library dependencies.
     - name: Library Dependencies (vcpkg)
-      uses: lukka/run-vcpkg@v10
+      uses: lukka/run-vcpkg@v11
       with:
-        vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
+        vcpkgGitCommitId: '56954f1db97f38635782d5ad7cdfd45d2731c854'
 
     - name: Create Build Directory
       working-directory: ${{github.workspace}}

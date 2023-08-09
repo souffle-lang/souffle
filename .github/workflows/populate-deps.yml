@@ -1,0 +1,40 @@
+name: Populate dependencies
+
+on:
+    push:
+        branches: [ master ]
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    VCPKG_FEATURE_FLAGS: dependencygraph
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+
+    - name: Checkout vcpkg
+      run: |
+            git clone https://github.com/Microsoft/vcpkg.git
+            cd vcpkg
+            git checkout 56954f1db97f38635782d5ad7cdfd45d2731c854
+
+    - name: Bootstrap vcpkg
+      working-directory: vcpkg
+      run: ./bootstrap-vcpkg.sh
+
+    # This will execute a dry-run, meaning that libraries will not be built and
+    # installed, but they will still be reported to the GitHub dependency graph.
+    # This step assumes `vcpkg` has been bootstrapped (run `./vcpkg/bootstrap-vcpkg`)
+    - name: Run vcpkg
+      run: ${{ github.workspace }}/vcpkg/vcpkg install --dry-run --debug
+
