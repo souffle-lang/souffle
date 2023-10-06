@@ -48,6 +48,7 @@ char const* functorOpNameLegacy(FunctorOp op) {
         /** Binary Functor Operators */
         case FunctorOp::ADD:
         case FunctorOp::FADD:
+        case FunctorOp::SSADD:
         case FunctorOp::UADD: return "+";
         case FunctorOp::SUB:
         case FunctorOp::USUB:
@@ -223,6 +224,9 @@ const std::vector<IntrinsicFunctorInfo> FUNCTOR_INTRINSICS = {
         VARIADIC(CAT, Symbol),
         OP_1(STRLEN, Symbol, Signed),
         OP_3(SUBSTR, Symbol, Signed, Signed, Symbol, false),
+
+        {functorOpNameSymbol(FOp::SSADD), {TAttr::Symbol, TAttr::Symbol}, TAttr::Symbol, FOp::SSADD, false,
+                false},
 };
 
 template <typename F>

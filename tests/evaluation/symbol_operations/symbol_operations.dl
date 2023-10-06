@@ -1,0 +1,23 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2023, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl Add(s:symbol)
+Add("pre-" + "-post").
+Add("pre-" + s) :- some_symbol(s).
+Add(s + "-post") :- some_symbol(s).
+Add(s1 + s2 + s3) :-
+  some_symbol(s1),
+  some_symbol(s2),
+  some_symbol(s3),
+  s1 != s2,
+  s1 != s3.
+Add("one:" + to_string(1) + ", pi:" + to_string(3.14) + "\n").
+
+.decl some_symbol(s:symbol)
+some_symbol("(a)").
+some_symbol("(b)").
+
+.output Add()
