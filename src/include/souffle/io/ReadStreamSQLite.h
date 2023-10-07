@@ -66,12 +66,12 @@ protected:
         for (column = 0; column < arity; column++) {
             std::string element;
             if (0 == sqlite3_column_bytes(selectStatement, column)) {
-                element = "n/a";
+                element = "";
             } else {
                 element = reinterpret_cast<const char*>(sqlite3_column_text(selectStatement, column));
 
                 if (element.empty()) {
-                    element = "n/a";
+                    element = "";
                 }
             }
 
