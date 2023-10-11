@@ -1864,7 +1864,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
                 // strings
                 case BinaryConstraintOp::MATCH: {
-                    if (const StringConstant* str = dynamic_cast<const StringConstant*>(&rel.getLHS()); str) {
+                    if (const StringConstant* str = as<StringConstant>(&rel.getLHS()); str) {
                         const auto& regex = synthesiser.compileRegex(str->getConstant());
                         if (regex) {
                             out << "std::regex_match(symTable.decode(";
@@ -1884,7 +1884,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                     break;
                 }
                 case BinaryConstraintOp::NOT_MATCH: {
-                    if (const StringConstant* str = dynamic_cast<const StringConstant*>(&rel.getLHS()); str) {
+                    if (const StringConstant* str = as<StringConstant>(&rel.getLHS()); str) {
                         const auto& regex = synthesiser.compileRegex(str->getConstant());
                         if (regex) {
                             out << "!std::regex_match(symTable.decode(";
@@ -2313,6 +2313,35 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case FunctorOp::URANGE:
                 case FunctorOp::FRANGE:
                     fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", op.getOperator());
+
+                case FunctorOp::SSADD: {
+                    const StringConstant* lstr = as<StringConstant>(args[0]);
+                    const StringConstant* rstr = as<StringConstant>(args[1]);
+                    if (lstr && rstr) {
+                        out << "RamSigned("
+                            << synthesiser.convertSymbol2Idx(lstr->getConstant() + rstr->getConstant())
+                            << ")";
+                    } else {
+                        out << "symTable.encode(";
+                        if (lstr) {
+                            out << "R\"_(" << lstr->getConstant() << ")_\"";
+                        } else {
+                            out << "symTable.decode(";
+                            dispatch(*args[0], out);
+                            out << ")";
+                        }
+                        out << " + ";
+                        if (rstr) {
+                            out << "R\"_(" << rstr->getConstant() << ")_\"";
+                        } else {
+                            out << "symTable.decode(";
+                            dispatch(*args[1], out);
+                            out << ")";
+                        }
+                        out << ")";
+                    }
+                    break;
+                }
             }
             PRINT_END_COMMENT(out);
 
