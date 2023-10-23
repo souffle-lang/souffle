@@ -138,7 +138,7 @@ void DebugReport::addSection(DebugReportSection section) {
 static std::string codeToHtml(const std::string_view code) {
     return replaceAll(
             replaceAll(replaceAll(replaceAll(replaceAll(code, "&", "&nbsp;"), "<", "&lt;"), ">", "&gt;"),
-                    "\"", "&quot;"),
+                    "\"", "&ldquo;"),
             "'", "&lsquo");
 }
 
@@ -147,8 +147,8 @@ void DebugReport::addSection(std::string id, std::string title, const std::strin
             std::move(id), std::move(title), tfm::format("<pre>%s</pre>", codeToHtml(code))));
 }
 
-void DebugReport::addCodeSection(std::string id, std::string title, std::string_view language,
-        std::string_view prev, std::string_view curr) {
+void DebugReport::addCodeSection(std::string id, std::string title,
+        [[maybe_unused]] std::string_view language, std::string_view prev, std::string_view curr) {
     const std::string diff = (prev.empty() ? std::string(curr) : generateDiff(prev, curr));
     auto divId = nextUniqueId++;
     auto html = R"(
@@ -189,14 +189,14 @@ void DebugReport::print(std::ostream& out) const {
 </style>
 
 <link rel="stylesheet" href=
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/default.min.css">
+  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/styles/default.min.css">
 <script src=
-  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+  "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
 
 <link rel="stylesheet" type="text/css" href=
-    "https://cdn.jsdelivr.net/npm/diff2html@3.4.22/bundles/css/diff2html.min.css" />
+    "https://cdn.jsdelivr.net/npm/diff2html@3.4.34/bundles/css/diff2html.min.css" />
 <script type="text/javascript" src=
-    "https://cdn.jsdelivr.net/npm/diff2html@3.4.22/bundles/js/diff2html-ui-base.min.js"></script>
+    "https://cdn.jsdelivr.net/npm/diff2html@3.4.34/bundles/js/diff2html-ui-base.min.js"></script>
 
 <script>
   function toggleVisibility(id) {
