@@ -12,8 +12,11 @@
 #include <iterator>  // for end, begin
 #include <string>
 #include <vector>
+
+#ifndef _MSC_VER
 #include <termios.h>  // for termios, tcsetattr, tcgetattr, ECHO, ICANON, cc_t
 #include <unistd.h>   // for read
+#endif
 
 namespace souffle {
 namespace profile {
@@ -54,6 +57,7 @@ public:
     }
 
     void readchar() {
+#ifndef _MSC_VER
         char buf = 0;
         struct termios old = {};
         if (tcgetattr(0, &old) < 0) {
@@ -76,6 +80,13 @@ public:
         }
 
         current_char = buf;
+#else
+        char buf = 0;
+        if (_read(0, &buf, 1) < 0) {
+            perror("read()");
+        }
+        current_char = buf;
+#endif
     }
     std::string getInput() {
         output = "";
@@ -139,6 +150,7 @@ public:
 
         return output;
     }
+
     void setPrompt(std::string prompt) {
         this->prompt = prompt;
     }

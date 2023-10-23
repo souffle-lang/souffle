@@ -34,6 +34,7 @@
 #include "ast/analysis/typesystem/PolymorphicObjects.h"
 #include "ast/analysis/typesystem/SumTypeBranches.h"
 #include "ast/analysis/typesystem/Type.h"
+#include "ast/analysis/typesystem/TypeConstraints.h"
 #include "ast/analysis/typesystem/TypeEnvironment.h"
 #include "ast/analysis/typesystem/TypeSystem.h"
 #include "ast/utility/Utils.h"
@@ -124,7 +125,7 @@ private:
     /* Type checks */
     /** Check if declared types of the relation match deduced types. */
     void visit_(type_identity<Atom>, const Atom& atom) override;
-    void visit_(type_identity<Variable>, const Variable& var) override;
+    void visit_(type_identity<souffle::ast::Variable>, const souffle::ast::Variable& var) override;
     void visit_(type_identity<StringConstant>, const StringConstant& constant) override;
     void visit_(type_identity<NumericConstant>, const NumericConstant& constant) override;
     void visit_(type_identity<NilConstant>, const NilConstant& constant) override;
@@ -383,10 +384,12 @@ void TypeCheckerImpl::visit_(type_identity<Atom>, const Atom& atom) {
             // Declared attribute and deduced type agree if:
             // They are the same type, or
             // They are derived from the same constant type.
+            // They are equivalent types.
             bool validAttribute = all_of(argTypes, [&](const analysis::Type& type) {
-                return type == attributeType || any_of(typeEnv.getConstantTypes(), [&](auto& constantType) {
-                    return isSubtypeOf(attributeType, constantType) && isSubtypeOf(type, constantType);
-                });
+                return type == attributeType || areEquivalentTypes(type, attributeType) ||
+                       any_of(typeEnv.getConstantTypes(), [&](auto& constantType) {
+                           return isSubtypeOf(attributeType, constantType) && isSubtypeOf(type, constantType);
+                       });
             });
 
             if (!validAttribute) {
@@ -403,9 +406,14 @@ void TypeCheckerImpl::visit_(type_identity<Atom>, const Atom& atom) {
     }
 }
 
-void TypeCheckerImpl::visit_(type_identity<Variable>, const ast::Variable& var) {
+void TypeCheckerImpl::visit_(type_identity<souffle::ast::Variable>, const ast::Variable& var) {
     if (typeAnalysis.getTypes(&var).empty()) {
-        report.addError("Unable to deduce type for variable " + var.getName(), var.getSrcLoc());
+        if (typeAnalysis.errorAnalyzer) {
+            typeAnalysis.errorAnalyzer->explain(
+                    report, &var, "Unable to deduce type for variable " + var.getName());
+        } else {
+            report.addError("Unable to deduce type for variable " + var.getName(), var.getSrcLoc());
+        }
     }
 }
 

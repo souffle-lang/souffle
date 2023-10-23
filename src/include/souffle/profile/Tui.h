@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <iterator>
 #include <map>
@@ -39,9 +40,11 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#ifndef _MSC_VER
 #include <dirent.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#endif
 
 namespace souffle {
 namespace profile {
@@ -213,10 +216,11 @@ public:
         }
     }
 
-    void runProf() {
+    /// Return an exit status equal to 0 on success.
+    int runProf() {
         if (!loaded && !f_name.empty()) {
             std::cout << "Error: File cannot be loaded\n";
-            return;
+            return 1;
         }
         if (loaded) {
             std::cout << "SouffleProf\n";
@@ -253,6 +257,8 @@ public:
                 runCommand(c);
             }
         }
+
+        return 0;
     }
 
     std::stringstream& genJsonTop(std::stringstream& ss) {
@@ -633,47 +639,50 @@ public:
         return ss.str();
     }
 
-    void outputHtml(std::string filename = "profiler_html/") {
+    /// Return an exit status equal to 0 on success.
+    int outputHtml(std::string filename = "profiler_html/") {
         std::cout << "SouffleProf\n";
         std::cout << "Generating HTML files...\n";
 
-        DIR* dir;
-        bool exists = false;
-
-        if (filename.find('/') != std::string::npos) {
-            std::string path = filename.substr(0, filename.find('/'));
-            if ((dir = opendir(path.c_str())) != nullptr) {
-                exists = true;
-                closedir(dir);
+        std::filesystem::path filepath(filename);
+        if (filepath.has_parent_path()) {
+            std::error_code ec;
+            std::filesystem::create_directories(filepath.parent_path(), ec);
+            if (ec != std::error_code{}) {
+                std::cerr << "directory " << filepath.parent_path()
+                          << " could not be created. Please create it and try again.\n";
+                return 2;
             }
-            if (!exists) {
-                mode_t nMode = 0733;  // UNIX style permissions
-                int nError = 0;
-                nError = mkdir(path.c_str(), nMode);
-                if (nError != 0) {
-                    std::cerr << "directory " << path
-                              << " could not be created. Please create it and try again.";
-                    exit(2);
+        }
+
+        if (!filepath.has_filename()) {
+            // create a fresh filename
+            bool notfound = true;
+            unsigned i = 1;
+            while (i < 1000) {
+                std::filesystem::path freshPath = filepath;
+                freshPath /= std::to_string(i);
+                freshPath.replace_extension(".html");
+                if (!std::filesystem::exists(freshPath)) {
+                    filepath = freshPath;
+                    notfound = false;
+                    break;
                 }
+                ++i;
+            }
+            if (notfound) {
+                std::cerr << "Could not generate a fresh file name (1000 tested).\n";
+                return 2;
             }
         }
-        std::string filetype = ".html";
-        std::string newFile = filename;
 
-        if (filename.size() <= filetype.size() ||
-                !std::equal(filetype.rbegin(), filetype.rend(), filename.rbegin())) {
-            int i = 0;
-            do {
-                ++i;
-                newFile = filename + std::to_string(i) + ".html";
-            } while (Tools::file_exists(newFile));
-        }
-
-        std::ofstream outfile(newFile);
+        std::ofstream outfile(filepath);
 
         outfile << HtmlGenerator::getHtml(genJson());
 
-        std::cout << "file output to: " << newFile << std::endl;
+        std::cout << "file output to: " << filepath << std::endl;
+
+        return 0;
     }
 
     void quit() {
@@ -883,11 +892,13 @@ public:
         std::printf("%11s\n", Tools::formatTime(usages.rbegin()->usertime).c_str());
 
         // Add columns to the graph
-        char grid[height][width];
+        // char grid[height][width];
+        std::vector<std::vector<char>> grid;
+        grid.reserve(height);
+        grid.resize(height);
         for (uint32_t i = 0; i < height; ++i) {
-            for (uint32_t j = 0; j < width; ++j) {
-                grid[i][j] = ' ';
-            }
+            grid[i].reserve(width);
+            grid[i].resize(width, ' ');
         }
 
         previousUsage = {{}, 0, {}, {}};
@@ -944,11 +955,13 @@ public:
         uint64_t maxMaxRSS = 0;
 
         std::set<Usage> usages = getUsageStats(width);
-        char grid[height][width];
+        // char grid[height][width];
+        std::vector<std::vector<char>> grid;
+        grid.reserve(height);
+        grid.resize(height);
         for (uint32_t i = 0; i < height; ++i) {
-            for (uint32_t j = 0; j < width; ++j) {
-                grid[i][j] = ' ';
-            }
+            grid[i].reserve(width);
+            grid[i].resize(width, ' ');
         }
 
         for (auto& usage : usages) {
@@ -1471,10 +1484,14 @@ protected:
     }
 
     uint32_t getTermWidth() {
+#ifdef _MSC_VER
+        return 80;
+#else
         struct winsize w {};
         ioctl(0, TIOCGWINSZ, &w);
         uint32_t width = w.ws_col > 0 ? w.ws_col : 80;
         return width;
+#endif
     }
 };
 

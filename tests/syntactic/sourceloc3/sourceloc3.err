@@ -1,0 +1,4 @@
+Error: syntax error, unexpected $, expecting identifier in file sourceloc3.dl at line 1
+.type    $BAD
+---------^----
+1 errors generated, evaluation aborted

@@ -88,6 +88,14 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
     } else {
         translationStrategy = mk<seminaive::TranslationStrategy>();
     }
+
+    // populates deltaRel
+    for (const ast::Relation* rel : program->getRelations()) {
+        const auto delta = rel->getIsDeltaDebug();
+        if (delta.has_value()) {
+            deltaRel[program->getRelation(delta.value())] = rel;
+        }
+    }
 }
 
 TranslatorContext::~TranslatorContext() = default;
@@ -111,6 +119,14 @@ std::size_t TranslatorContext::getNumberOfSCCs() const {
 
 bool TranslatorContext::isRecursiveSCC(std::size_t scc) const {
     return sccGraph->isRecursive(scc);
+}
+
+const ast::Relation* TranslatorContext::getDeltaDebugRelation(const ast::Relation* rel) const {
+    const auto res = deltaRel.find(rel);
+    if (res != deltaRel.end()) {
+        return res->second;
+    }
+    return nullptr;
 }
 
 std::vector<ast::Directive*> TranslatorContext::getStoreDirectives(const ast::QualifiedName& name) const {

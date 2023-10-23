@@ -230,8 +230,7 @@ public:
     RelationVisitor(Relation& relation) : DSNVisitor(relation) {}
     void visit(DurationEntry& duration) override {
         if (duration.getKey() == "loadtime") {
-            auto loadtime = (duration.getEnd() - duration.getStart());
-            base.setLoadtime(loadtime);
+            base.setLoadtime(duration.getStart(), duration.getEnd());
         } else if (duration.getKey() == "savetime") {
             auto savetime = (duration.getEnd() - duration.getStart());
             base.setSavetime(savetime);

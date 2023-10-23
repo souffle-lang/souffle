@@ -415,6 +415,15 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
             }
         });
 
+        visit(node, [&](Relation& rel) {
+            if (rel.getIsDeltaDebug()) {
+                auto pos = relationNameMapping.find(rel.getIsDeltaDebug().value());
+                if (pos != relationNameMapping.end()) {
+                    rel.setIsDeltaDebug(pos->second);
+                }
+            }
+        });
+
         // rename directives
         visit(node, [&](Directive& directive) {
             auto pos = relationNameMapping.find(directive.getQualifiedName());

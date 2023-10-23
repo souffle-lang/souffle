@@ -59,6 +59,11 @@ public:
         return name;
     }
 
+    const QualifiedName& getPrettyName() const {
+        if (maybePrettyName) return *maybePrettyName;
+        return name;
+    }
+
     const TypeEnvironment& getTypeEnvironment() const {
         return environment;
     }
@@ -84,14 +89,16 @@ public:
     }
 
 protected:
-    Type(const TypeEnvironment& environment, QualifiedName name)
-            : environment(environment), name(std::move(name)) {}
+    Type(const TypeEnvironment& environment, QualifiedName name,
+            std::optional<QualifiedName> maybePrettyName = std::nullopt)
+            : environment(environment), name(std::move(name)), maybePrettyName(std::move(maybePrettyName)) {}
 
     /** Type environment of type */
     const TypeEnvironment& environment;
 
     /** Qualified type name */
     QualifiedName name;
+    std::optional<QualifiedName> maybePrettyName;
 };
 
 /**
@@ -104,7 +111,9 @@ protected:
  *                 FloatConstant | SymbolConstant
  */
 class ConstantType : public Type {
-    ConstantType(const TypeEnvironment& environment, const QualifiedName& name) : Type(environment, name) {}
+    ConstantType(const TypeEnvironment& environment, const QualifiedName& name,
+            std::optional<QualifiedName> maybePrettyName = std::nullopt)
+            : Type(environment, name, std::move(maybePrettyName)) {}
 
 private:
     friend class TypeEnvironment;

@@ -10,22 +10,17 @@ The argument's declared type is one in file union_types.dl at line 20
 Error: Unable to deduce type for variable X in file union_types.dl at line 36
 E(X) :- F(X), A(X), B(X). // error
 --^--------------------------------
-Error: Unable to deduce type for variable X in file union_types.dl at line 36
+Following constraints are incompatible:
+   Type of variable 'X' should be a subtype of 'one' in file union_types.dl at line 36
 E(X) :- F(X), A(X), B(X). // error
-----------^------------------------
-Error: Unable to deduce type for variable X in file union_types.dl at line 36
+--------------^--------------------
+   Type of variable 'X' should be a subtype of 'two' in file union_types.dl at line 36
 E(X) :- F(X), A(X), B(X). // error
-----------------^------------------
-Error: Unable to deduce type for variable X in file union_types.dl at line 36
-E(X) :- F(X), A(X), B(X). // error
-----------------------^------------
+--------------------^--------------
 Error: Unable to deduce type for variable X in file union_types.dl at line 38
 C(X) :- D(X), !A(X). // error
 --^---------------------------
-Error: Unable to deduce type for variable X in file union_types.dl at line 38
-C(X) :- D(X), !A(X). // error
-----------^-------------------
-Error: Unable to deduce type for variable X in file union_types.dl at line 38
-C(X) :- D(X), !A(X). // error
------------------^------------
-8 errors generated, evaluation aborted
+Following constraints are incompatible:
+   Type of variable 'X' should be a subtype of 'number'
+   Type of variable 'X' should be a subtype of 'symbol'
+3 errors generated, evaluation aborted

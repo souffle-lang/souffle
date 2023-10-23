@@ -1,0 +1,4 @@
+//
+.include "empty.dl"
+//
+.bad

@@ -27,6 +27,7 @@
 #include "ast/transform/ComponentChecker.h"
 #include "ast/transform/ComponentInstantiation.h"
 #include "ast/transform/Conditional.h"
+#include "ast/transform/DebugDeltaRelation.h"
 #include "ast/transform/ExecutionPlanChecker.h"
 #include "ast/transform/ExpandEqrels.h"
 #include "ast/transform/Fixpoint.h"
@@ -56,6 +57,7 @@
 #include "ast/transform/ResolveAnonymousRecordAliases.h"
 #include "ast/transform/SemanticChecker.h"
 #include "ast/transform/SimplifyAggregateTargetExpression.h"
+#include "ast/transform/SimplifyConstantBinaryConstraints.h"
 #include "ast/transform/SubsumptionQualifier.h"
 #include "ast/transform/UniqueAggregationVariables.h"
 #include "ast2ram/TranslationStrategy.h"
@@ -218,14 +220,39 @@ void compileToBinary(
 #endif
     auto exit = execute(interpreter, argv);
     if (!exit) throw std::invalid_argument(tfm::format("unable to execute tool <python3 %s>", command));
-    if (exit != 0) throw std::invalid_argument("failed to compile C++ sources");
+    if (*exit != 0) throw std::invalid_argument("failed to compile C++ sources");
 }
 
 class InputProvider {
 public:
     virtual ~InputProvider() {}
     virtual FILE* getInputStream() = 0;
+    virtual bool readInput(std::string& Buf) {
+        FILE* Stream = getInputStream();
+        if (Stream == nullptr) {
+            return false;
+        }
+        const size_t ChunkSize = 4096;
+        size_t TotalBytesRead = 0;
+        bool Success = false;
+        while (1) {
+            Buf.resize(TotalBytesRead + ChunkSize);
+            size_t ReadSize = fread(&Buf.data()[TotalBytesRead], 1, ChunkSize, Stream);
+            if (ReadSize < ChunkSize) {
+                Buf.resize(TotalBytesRead + ReadSize);
+                if (feof(Stream)) {
+                    Success = true;
+                    break;
+                } else if (ferror(Stream)) {
+                    break;
+                }
+            }
+            TotalBytesRead += ReadSize;
+        }
+        return Success && endInput();
+    }
     virtual bool endInput() = 0;
+    virtual bool reducedConsecutiveNonLeadingWhitespaces() const = 0;
 };
 
 class FileInput : public InputProvider {
@@ -255,6 +282,10 @@ public:
             Stream = nullptr;
             return true;
         }
+    }
+
+    bool reducedConsecutiveNonLeadingWhitespaces() const override {
+        return false;
     }
 
 private:
@@ -323,11 +354,16 @@ public:
         Stream = nullptr;
         if (Status == -1) {
             perror(nullptr);
-            throw std::runtime_error("failed to close pre-processor pipe");
+            std::cerr << "Failed to close pre-processor pipe\n";
+            return false;
         } else if (Status != 0) {
-            std::cerr << "Pre-processors command failed with code " << Status << ": '" << Cmd.str() << "'\n";
-            throw std::runtime_error("Pre-processor command failed");
+            std::cerr << "Pre-processor command failed with code " << Status << ": '" << Cmd.str() << "'\n";
+            return false;
         }
+        return true;
+    }
+
+    virtual bool reducedConsecutiveNonLeadingWhitespaces() const override {
         return true;
     }
 
@@ -355,6 +391,10 @@ public:
     static bool available() {
         return PreprocInput::available("gcc");
     }
+
+    bool reducedConsecutiveNonLeadingWhitespaces() const override {
+        return true;
+    }
 };
 
 class MCPPPreprocInput : public PreprocInput {
@@ -366,6 +406,10 @@ public:
 
     static bool available() {
         return PreprocInput::available("mcpp");
+    }
+
+    bool reducedConsecutiveNonLeadingWhitespaces() const override {
+        return true;
     }
 };
 
@@ -435,6 +479,7 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
     // Main pipeline
     auto pipeline = mk<ast::transform::PipelineTransformer>(mk<ast::transform::ComponentChecker>(),
             mk<ast::transform::ComponentInstantiationTransformer>(),
+            mk<ast::transform::DebugDeltaRelationTransformer>(),
             mk<ast::transform::IODefaultsTransformer>(),
             mk<ast::transform::SimplifyAggregateTargetExpressionTransformer>(),
             mk<ast::transform::UniqueAggregationVariablesTransformer>(),
@@ -455,6 +500,8 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
             mk<ast::transform::InlineUnmarkExcludedTransform>(),
             mk<ast::transform::InlineRelationsTransformer>(), mk<ast::transform::GroundedTermsChecker>(),
             mk<ast::transform::ResolveAliasesTransformer>(),
+            mk<ast::transform::SimplifyConstantBinaryConstraintsTransformer>(),
+            mk<ast::transform::RemoveBooleanConstraintsTransformer>(),
             mk<ast::transform::RemoveRedundantRelationsTransformer>(),
             mk<ast::transform::RemoveRelationCopiesTransformer>(),
             mk<ast::transform::RemoveEmptyRelationsTransformer>(),
@@ -850,11 +897,15 @@ int main(Global& glb, const char* souffle_executable) {
 
     // parse file
     ErrorReport errReport(process_warn_opts(glb));
-
     DebugReport debugReport(glb);
-    Own<ast::TranslationUnit> astTranslationUnit = ParserDriver::parseTranslationUnit(
-            glb, InputPath.string(), Input->getInputStream(), errReport, debugReport);
-    Input->endInput();
+    std::string sourceBuffer;
+    if (!Input->readInput(sourceBuffer)) {
+        throw std::runtime_error("Failed to read input");
+    }
+
+    Own<ast::TranslationUnit> astTranslationUnit =
+            ParserDriver::parseTranslationUnit(glb, InputPath.u8string(), sourceBuffer,
+                    Input->reducedConsecutiveNonLeadingWhitespaces(), errReport, debugReport);
 
     /* Report run-time of the parser if verbose flag is set */
     if (glb.config().has("verbose")) {
@@ -1127,4 +1178,3 @@ int main(Global& glb, const char* souffle_executable) {
 }
 
 }  // end of namespace souffle
-

@@ -45,10 +45,10 @@ void RecordType::print(std::ostream& out) const {
 }
 
 TypeSet TypeEnvironment::initializeConstantTypes() {
-    auto& signedConstant = createType<ConstantType>("__numberConstant");
-    auto& floatConstant = createType<ConstantType>("__floatConstant");
-    auto& symbolConstant = createType<ConstantType>("__symbolConstant");
-    auto& unsignedConstant = createType<ConstantType>("__unsignedConstant");
+    auto& signedConstant = createType<ConstantType>("__numberConstant", "number");
+    auto& floatConstant = createType<ConstantType>("__floatConstant", "float");
+    auto& symbolConstant = createType<ConstantType>("__symbolConstant", "symbol");
+    auto& unsignedConstant = createType<ConstantType>("__unsignedConstant", "unsigned");
 
     return TypeSet(signedConstant, floatConstant, symbolConstant, unsignedConstant);
 }

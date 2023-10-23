@@ -61,6 +61,9 @@ void Relation::print(std::ostream& os) const {
     if (!functionalDependencies.empty()) {
         os << " choice-domain " << join(functionalDependencies, ", ");
     }
+    if (isDeltaDebug) {
+        os << " delta_debug(" << isDeltaDebug.value() << ")";
+    }
 }
 
 bool Relation::equal(const Node& node) const {
@@ -68,7 +71,7 @@ bool Relation::equal(const Node& node) const {
     return name == other.name && equal_targets(attributes, other.attributes) &&
            qualifiers == other.qualifiers &&
            equal_targets(functionalDependencies, other.functionalDependencies) &&
-           representation == other.representation;
+           representation == other.representation && isDeltaDebug == other.isDeltaDebug;
 }
 
 Relation* Relation::cloning() const {
@@ -77,6 +80,7 @@ Relation* Relation::cloning() const {
     res->qualifiers = qualifiers;
     res->functionalDependencies = clone(functionalDependencies);
     res->representation = representation;
+    res->isDeltaDebug = isDeltaDebug;
     return res;
 }
 

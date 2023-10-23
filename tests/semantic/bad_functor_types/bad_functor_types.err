@@ -10,9 +10,11 @@ C(c) :- A(a), c = @good_functor(a, a).
 Error: Unable to deduce type for variable b in file bad_functor_types.dl at line 17
 C(c) :- B(b), c = @good_functor(b).
 ----------^-------------------------
-Error: Unable to deduce type for variable b in file bad_functor_types.dl at line 17
+Following constraints are incompatible:
+   Type of variable 'b' should be a subtype of 'number' in file bad_functor_types.dl at line 17
 C(c) :- B(b), c = @good_functor(b).
---------------------------------^---
+--------^---------------------------
+   Type of variable 'b' should be a subtype of 'symbol'
 Error: Unable to determine type for positional parameter 0 in file bad_functor_types.dl at line 17
 C(c) :- B(b), c = @good_functor(b).
 --------------------------------^---
@@ -28,4 +30,4 @@ Error: Functors which are not stateful cannot use UDTs in file bad_functor_types
 Error: Functors which are not stateful cannot use UDTs in file bad_functor_types.dl at line 23
 .functor bad_not_stateful(List): List
 ---------------------------------^----
-10 errors generated, evaluation aborted
+9 errors generated, evaluation aborted

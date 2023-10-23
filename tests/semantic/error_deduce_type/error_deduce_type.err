@@ -1,0 +1,9 @@
+Error: Unable to deduce type for variable a in file error_deduce_type.dl at line 5
+bar(a, b) :-
+----^--------
+Following constraints are incompatible:
+   Type of variable 'a' should be a subtype of 'symbol'
+   Type of variable 'a' should be a subtype of 'number' in file error_deduce_type.dl at line 6
+    foo(a, b).
+----^----------
+1 errors generated, evaluation aborted

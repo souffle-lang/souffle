@@ -39,7 +39,11 @@ void TypeConstraintsAnalysis::visit_(type_identity<Atom>, const Atom& atom) {
     }
 
     iterateOverAtom(atom, [&](const Argument& argument, const Type& attributeType) {
-        addConstraint(isSubtypeOf(getVar(argument), attributeType));
+        auto constraint = isSubtypeOf(getVar(argument), attributeType);
+        addConstraint(constraint);
+        if (errorAnalyzer) {
+            errorAnalyzer->localizeConstraint(constraint, atom.getSrcLoc());
+        }
     });
 }
 
@@ -168,6 +172,10 @@ void TypeConstraintsAnalysis::visit_(type_identity<UserDefinedFunctor>, const Us
 
 void TypeConstraintsAnalysis::visit_(type_identity<Counter>, const Counter& counter) {
     addConstraint(isSubtypeOf(getVar(counter), typeEnv.getConstantType(TypeAttribute::Signed)));
+}
+
+void TypeConstraintsAnalysis::visit_(type_identity<IterationCounter>, const IterationCounter& counter) {
+    addConstraint(isSubtypeOf(getVar(counter), typeEnv.getConstantType(TypeAttribute::Unsigned)));
 }
 
 void TypeConstraintsAnalysis::visit_(type_identity<TypeCast>, const ast::TypeCast& typeCast) {

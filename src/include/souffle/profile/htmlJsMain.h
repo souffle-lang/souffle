@@ -25,6 +25,14 @@ function changeSelectedRul(id) {
     genAtomVer();
 }
 
+function goBack() {
+    if (came_from==="rel") {
+        document.getElementById("rel_tab").click();
+    } else if (came_from==="rul") {
+        document.getElementById("rul_tab").click();
+    }
+}
+
 function highlightRow() {
     var i;
     for (i=0;i<document.getElementsByClassName("rel_row").length;i++) {
@@ -51,13 +59,13 @@ function graphRel() {
     graph_vals.labels = [];
     graph_vals.tot_t = [];
     graph_vals.tuples = [];
-    for (j = 0; j < data.rel[selected.rel][9].tot_t.length; j++) {
+    for (var j = 0; j < data.rel[selected.rel][10].tot_t.length; j++) {
         graph_vals.labels.push(j.toString());
         graph_vals.tot_t.push(
-            data.rel[selected.rel][9].tot_t[j]
+            data.rel[selected.rel][10].tot_t[j]
         );
         graph_vals.tuples.push(
-            data.rel[selected.rel][9].tuples[j]
+            data.rel[selected.rel][10].tuples[j]
         )
     }
 
@@ -76,13 +84,13 @@ function graphIterRul() {
     graph_vals.labels = [];
     graph_vals.tot_t = [];
     graph_vals.tuples = [];
-    for (j = 0; j < data.rul[selected.rul][9].tot_t.length; j++) {
+    for (var j = 0; j < data.rul[selected.rul][10].tot_t.length; j++) {
         graph_vals.labels.push(j.toString());
         graph_vals.tot_t.push(
-            data.rul[selected.rul][9].tot_t[j]
+            data.rul[selected.rul][10].tot_t[j]
         );
         graph_vals.tuples.push(
-            data.rul[selected.rul][9].tuples[j]
+            data.rul[selected.rul][10].tuples[j]
         )
     }
 
@@ -96,7 +104,7 @@ function graphUsages() {
     graph_vals.cpu = [];
     graph_vals.rss = [];
     var interval = Math.ceil(data.usage.length / 8);
-    for (j = 0; j < data.usage.length; j++) {
+    for (var j = 0; j < data.usage.length; j++) {
         graph_vals.labels.push(
             j % interval == 0 ? data.usage[j][0] : "");
         graph_vals.cpu.push(
@@ -149,7 +157,7 @@ function drawGraph() {
         height: "calc((100vh - 167px) / 2)",
         axisY: {
             labelInterpolationFnc: function (value) {
-                return humanise_time(value);
+                return humanise_time(value/1000000.0);
             }
         },
         axisX: {
@@ -164,7 +172,11 @@ function drawGraph() {
                 return value;
             }
         },
-        plugins: [Chartist.plugins.tooltip()]
+        plugins: [Chartist.plugins.tooltip({
+                  tooltipFnc: function(meta, value) {
+                    return humanise_time(value / 1000000.0);
+                  }
+                  })]
     };
 
     new Chartist.Bar(".ct-chart1", {
@@ -177,6 +189,11 @@ function drawGraph() {
             return minify_numbers(value);
         }
     };
+    options.plugins = [Chartist.plugins.tooltip({
+                  tooltipFnc: function(meta, value) {
+                    return minify_numbers(value) + " tuples";
+                  }
+                  })]
 
     new Chartist.Bar(".ct-chart2", {
         labels: graph_vals.labels,
@@ -552,6 +569,7 @@ function gen_code(highlight_row) {
     var list, row, text, target_row;
     list = document.getElementById("code-list");
     list.innerHTML = "";
+    if (!data.code) return;
     for (var i=0; i<data.code.length; i++) {
         row = document.createElement("li");
         row.className = "code-li";

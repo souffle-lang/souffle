@@ -11,10 +11,16 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 add_subdirectory(functor_fact)
+add_subdirectory(issue2373)
 
 
 function(positive_test NAME)
     souffle_positive_test(${NAME} semantic ${ARGN})
+endfunction()
+
+function(positive_output_stdout_test NAME)
+    souffle_run_test_helper(TEST_NAME ${NAME} CATEGORY semantic OUTPUT_STDOUT ${ARGV})
+    souffle_run_test_helper(TEST_NAME ${NAME} CATEGORY semantic OUTPUT_STDOUT ${ARGV} COMPILED)
 endfunction()
 
 function(negative_test NAME)
@@ -255,3 +261,10 @@ positive_test(instantiate_from_inherited)
 positive_test(instantiate_from_inherited_override)
 souffle_positive_functor_test(functor_fact CATEGORY semantic)
 positive_test(underscore5)
+negative_test(mutually_dependent_aggregate)
+positive_test(independent_aggregate)
+positive_test(independent_aggregate2)
+souffle_positive_functor_test(issue2373 CATEGORY semantic)
+negative_test(error_deduce_type)
+positive_output_stdout_test(output_stdout)
+positive_test(iteration_counter)

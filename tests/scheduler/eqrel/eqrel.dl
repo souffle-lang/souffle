@@ -1,0 +1,14 @@
+.decl idRel(A: unsigned, B: unsigned) eqrel
+idRel(0, 0).
+idRel(i + 1, j + 1) :-
+    i < 10,
+    idRel(i, j).
+
+.decl foo(A: unsigned)
+foo(0).
+foo(i + 1) :-
+    idRel(k, i),
+    idRel(k, k),
+    foo(i).
+
+.output foo

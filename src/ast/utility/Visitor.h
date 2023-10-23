@@ -38,6 +38,7 @@
 #include "ast/FunctorDeclaration.h"
 #include "ast/IntrinsicAggregator.h"
 #include "ast/IntrinsicFunctor.h"
+#include "ast/IterationCounter.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
@@ -88,6 +89,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
         SOUFFLE_VISITOR_FORWARD(Variable)
         SOUFFLE_VISITOR_FORWARD(UnnamedVariable)
         SOUFFLE_VISITOR_FORWARD(IntrinsicFunctor)
+        SOUFFLE_VISITOR_FORWARD(IterationCounter)
         SOUFFLE_VISITOR_FORWARD(UserDefinedFunctor)
         SOUFFLE_VISITOR_FORWARD(Counter)
         SOUFFLE_VISITOR_FORWARD(NumericConstant)
@@ -137,6 +139,7 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     SOUFFLE_VISITOR_LINK(Variable, Argument)
     SOUFFLE_VISITOR_LINK(UnnamedVariable, Argument)
     SOUFFLE_VISITOR_LINK(Counter, Argument)
+    SOUFFLE_VISITOR_LINK(IterationCounter, Argument)
     SOUFFLE_VISITOR_LINK(TypeCast, Argument)
     SOUFFLE_VISITOR_LINK(BranchInit, Argument)
 

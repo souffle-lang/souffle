@@ -1,0 +1,7 @@
+Error: Mutually dependent aggregate in file mutually_dependent_aggregate.dl at line 11
+  0 = count : { R1(x,j,z), x < i, z > h },
+------^------------------------------------
+Error: Mutually dependent aggregate in file mutually_dependent_aggregate.dl at line 12
+  0 = count : { R1(i,y,z), y < j, z > h }.
+------^------------------------------------
+2 errors generated, evaluation aborted

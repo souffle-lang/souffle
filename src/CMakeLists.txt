@@ -33,6 +33,7 @@ set(SOUFFLE_SOURCES
     ast/FunctorDeclaration.cpp
     ast/FunctionalConstraint.cpp
     ast/IntrinsicFunctor.cpp
+    ast/IterationCounter.cpp
     ast/Negation.cpp
     ast/NilConstant.cpp
     ast/Node.cpp
@@ -79,6 +80,7 @@ set(SOUFFLE_SOURCES
     ast/transform/ComponentChecker.cpp
     ast/transform/ComponentInstantiation.cpp
     ast/transform/DebugReporter.cpp
+    ast/transform/DebugDeltaRelation.cpp
     ast/transform/ExecutionPlanChecker.cpp
     ast/transform/ExpandEqrels.cpp
     ast/transform/FoldAnonymousRecords.cpp
@@ -104,6 +106,7 @@ set(SOUFFLE_SOURCES
     ast/transform/ResolveAliases.cpp
     ast/transform/ResolveAnonymousRecordAliases.cpp
     ast/transform/SemanticChecker.cpp
+    ast/transform/SimplifyConstantBinaryConstraints.cpp
     ast/transform/SubsumptionQualifier.cpp
     ast/transform/SimplifyAggregateTargetExpression.cpp
     ast/transform/Transformer.cpp
@@ -136,6 +139,7 @@ set(SOUFFLE_SOURCES
     parser/ParserDriver.cpp
     parser/ParserUtils.cpp
     parser/SrcLocation.cpp
+    parser/VirtualFileSystem.cpp
     ram/Node.cpp
     ram/TranslationUnit.cpp
     ram/analysis/Complexity.cpp
@@ -173,7 +177,7 @@ flex_target(scanner parser/scanner.ll ${CMAKE_CURRENT_BINARY_DIR}/parser/scanner
   COMPILE_FLAGS "${SCANNER_COMPILE_FLAGS} -d")
 
 bison_target(parser parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser/parser.cc
-             COMPILE_FLAGS "-Wall -Werror -Wno-error=deprecated -Wno-error=other -v -d")
+             COMPILE_FLAGS "-Wall -Wno-error=deprecated -Wno-error=other -v -d")
 add_flex_bison_dependency(scanner parser)
 
 
@@ -227,7 +231,7 @@ set_target_properties(compiled PROPERTIES CXX_EXTENSIONS OFF)
 set_target_properties(compiled PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if (NOT MSVC)
-  target_compile_options(libsouffle PUBLIC -Wall -Wextra -Werror -fwrapv)
+  target_compile_options(libsouffle PUBLIC -Wall -Wextra -fwrapv)
 else ()
   target_compile_options(libsouffle PUBLIC /W3 /WX)
 endif ()
@@ -332,16 +336,23 @@ endif()
 # be immediately found by the operating system.
 
 if (SOUFFLE_USE_SQLITE)
-add_custom_command(TARGET souffle POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${SQLite3_LIBRARY} ${ZLIB_LIBRARY_RELEASE}
-  $<TARGET_FILE_DIR:souffle>)
+  add_custom_command(TARGET souffle POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${SQLite3_LIBRARY}
+    $<TARGET_FILE_DIR:souffle>)
+  if (WIN32)
+    cmake_path(GET SQLite3_LIBRARY PARENT_PATH SQLite3_LIBRARY_DIR)
+    add_custom_command(TARGET souffle POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${SQLite3_LIBRARY_DIR}/../bin/sqlite3.dll
+      $<TARGET_FILE_DIR:souffle>)
+  endif ()
 endif ()
 
 if (SOUFFLE_USE_ZLIB)
 add_custom_command(TARGET souffle POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-  ${SQLite3_LIBRARY} ${ZLIB_LIBRARY_RELEASE}
+  ${ZLIB_LIBRARY_RELEASE}
   $<TARGET_FILE_DIR:souffle>)
 endif ()
 
@@ -356,16 +367,15 @@ endif ()
 # Souffle's profiler binary
 # --------------------------------------------------
 
-if (NOT WIN32)
-  add_executable(souffleprof
-    souffle_prof.cpp)
-  target_include_directories(souffleprof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-  install(TARGETS souffleprof DESTINATION bin)
 
-  # Set C++ standard to C++17
-  target_compile_features(souffleprof
-    PUBLIC cxx_std_17)
-endif()
+add_executable(souffleprof
+  souffle_prof.cpp)
+target_include_directories(souffleprof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+install(TARGETS souffleprof DESTINATION bin)
+
+# Set C++ standard to C++17
+target_compile_features(souffleprof
+  PUBLIC cxx_std_17)
 
 if (MSVC)
   target_compile_options(libsouffle PUBLIC /bigobj)
@@ -392,12 +402,15 @@ if (MSVC)
 
   target_compile_options(libsouffle PUBLIC /Zc:preprocessor)
   target_compile_options(compiled PUBLIC /Zc:preprocessor)
+  target_compile_options(souffleprof PUBLIC /Zc:preprocessor)
 
   target_compile_options(libsouffle PUBLIC /EHsc)
   target_compile_options(compiled PUBLIC /EHsc)
+  target_compile_options(souffleprof PUBLIC /EHsc)
 
   target_compile_definitions(libsouffle PUBLIC USE_CUSTOM_GETOPTLONG)
   target_compile_definitions(compiled PUBLIC USE_CUSTOM_GETOPTLONG)
+  target_compile_definitions(souffleprof PUBLIC USE_CUSTOM_GETOPTLONG)
 endif (MSVC)
 
 

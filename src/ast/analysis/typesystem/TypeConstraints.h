@@ -58,6 +58,13 @@ struct all_type_factory {
     }
 };
 
+template <>
+struct detail::default_is_valid_op<TypeSet> {
+    bool operator()(const TypeSet& a) {
+        return !a.empty();
+    }
+};
+
 /**
  * The type lattice forming the property space for the Type analysis. The
  * value set is given by sets of types and the meet operator is based on the
@@ -80,5 +87,7 @@ TypeConstraint satisfiesOverload(const TypeEnvironment& typeEnv, IntrinsicFuncto
         std::vector<TypeVar> args, bool subtypeResult);
 TypeConstraint isSubtypeOfComponent(
         const TypeVar& elementVariable, const TypeVar& recordVariable, std::size_t index);
+
+class TypeAnalysis::TypeErrorAnalyzer : public ErrorAnalyzer<TypeVar> {};
 
 }  // namespace souffle::ast::analysis

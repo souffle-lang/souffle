@@ -21,19 +21,26 @@
 namespace souffle {
 
 class LogStatement {
+private:
+    static std::string str(const SrcLocation& loc) {
+        return loc.getReportedPath() + " [" + std::to_string(loc.start.line) + ":" +
+               std::to_string(loc.start.column) + "-" + std::to_string(loc.end.line) + ":" +
+               std::to_string(loc.end.column) + "]";
+    }
+
 public:
     static const std::string tNonrecursiveRelation(
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@t-nonrecursive-relation";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";";
         return line.str();
     }
     static const std::string tRelationLoadTime(
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@t-relation-loadtime";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";loadtime;";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";loadtime;";
         return line.str();
     }
 
@@ -41,7 +48,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@t-relation-savetime";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";savetime;";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";savetime;";
         return line.str();
     }
 
@@ -49,7 +56,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@n-nonrecursive-relation";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";";
         return line.str();
     }
 
@@ -57,7 +64,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation, const std::string& datalogText) {
         const char* messageType = "@t-nonrecursive-rule";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";" << datalogText << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";" << datalogText << ";";
         return line.str();
     }
 
@@ -65,7 +72,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation, const std::string& datalogText) {
         const char* messageType = "@n-nonrecursive-rule";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";" << datalogText << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";" << datalogText << ";";
         return line.str();
     }
 
@@ -73,7 +80,7 @@ public:
             const SrcLocation& srcLocation, const std::string& datalogText) {
         const char* messageType = "@t-recursive-rule";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << version << ";" << srcLocation << ";"
+        line << messageType << ";" << relationName << ";" << version << ";" << str(srcLocation) << ";"
              << datalogText << ";";
         return line.str();
     }
@@ -82,7 +89,7 @@ public:
             const SrcLocation& srcLocation, const std::string& datalogText) {
         const char* messageType = "@n-recursive-rule";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << version << ";" << srcLocation << ";"
+        line << messageType << ";" << relationName << ";" << version << ";" << str(srcLocation) << ";"
              << datalogText << ";";
         return line.str();
     }
@@ -91,7 +98,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@t-recursive-relation";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";";
         return line.str();
     }
 
@@ -99,7 +106,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@n-recursive-relation";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";";
         return line.str();
     }
 
@@ -107,7 +114,7 @@ public:
             const std::string& relationName, const SrcLocation& srcLocation) {
         const char* messageType = "@c-recursive-relation";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";";
         return line.str();
     }
 
@@ -117,7 +124,7 @@ public:
         // messages are ignored
         const char* messageType = "#p-proof-counter";
         std::stringstream line;
-        line << messageType << ";" << relationName << ";" << srcLocation << ";" << datalogText << ";";
+        line << messageType << ";" << relationName << ";" << str(srcLocation) << ";" << datalogText << ";";
         // TODO (#590): the additional semicolon is added to maintain backwards compatibility and should
         // eventually be removed
         line << ";";

@@ -68,17 +68,22 @@
 
 #define yylloc yyget_extra(yyscanner)->yylloc
 
-#define yyfilename yyget_extra(yyscanner)->yyfilename
-
 #define yyinfo (*yyget_extra(yyscanner))
 
+    void update_location(YYLTYPE& loc, int leng, char* text) {
+        loc.start = loc.end;
+        for (int i = 0; i < leng; ++i) {
+          if (text[i] == '\n') {
+            loc.end.line += 1;
+            loc.end.column = 1;
+          } else {
+            loc.end.column += 1;
+          }
+        }
+    }
+
     /* Execute when matching */
-#define YY_USER_ACTION  { \
-    yylloc.start = Point({ yylineno, yycolumn }); \
-    yycolumn += yyleng;             \
-    yylloc.end   = Point({ yylineno, yycolumn }); \
-    yylloc.setFile(yyfilename); \
-}
+#define YY_USER_ACTION update_location(yylloc, yyleng, yytext);
 
     // scan a string with escape sequences, skipping surrounding double-quotes if any.
     std::string lexString(souffle::ParserDriver& driver, const SrcLocation& loc, const char* text) {
@@ -125,7 +130,7 @@
 WS [ \t\r\v\f]
 
 /* Add line number tracking */
-%option yylineno noyywrap nounput
+%option noyywrap nounput
 
 %%
 ".decl"/{WS}                          { return yy::parser::make_DECL(yylloc); }
@@ -148,13 +153,15 @@ WS [ \t\r\v\f]
                                       }
 ".once"                               {
                                         if (!driver.canEnterOnce(yylloc)) {
+                                          auto loc = yylloc;
                                           yypop_buffer_state(yyscanner);
                                           yyinfo.pop();
                                           if (!YY_CURRENT_BUFFER) {
-                                            return yy::parser::make_END(yylloc);
+                                            return yy::parser::make_END(loc);
                                           }
                                         }
                                       }
+"debug_delta"                         { return yy::parser::make_DEBUG_DELTA(yylloc); }
 "autoinc"                             { return yy::parser::make_AUTOINC(yylloc); }
 "band"                                { return yy::parser::make_BW_AND(yylloc); }
 "bor"                                 { return yy::parser::make_BW_OR(yylloc); }
@@ -203,10 +210,11 @@ WS [ \t\r\v\f]
 "to_string"                           { return yy::parser::make_TOSTRING(yylloc); }
 "to_unsigned"                         { return yy::parser::make_TOUNSIGNED(yylloc); }
 "choice-domain"                       { return yy::parser::make_CHOICEDOMAIN(yylloc); }
+"recursive_iteration_cnt"             { return yy::parser::make_ITERATION(yylloc); }
 "__FILE__"                            {
                                         return yy::parser::make_STRING(yylloc.file->Reported, yylloc);
                                       }
-"__LINE__"                            { return yy::parser::make_NUMBER(std::to_string(yylineno), yylloc); }
+"__LINE__"                            { return yy::parser::make_NUMBER(std::to_string(yylloc.start.line), yylloc); }
 "__INCL__"                            {
                                           std::string result;
                                           const IncludeStack* incl = yylloc.file.get();
@@ -316,24 +324,19 @@ WS [ \t\r\v\f]
 
                                             if (flag == 0) {
                                               // update
-                                              yyinfo.pop();
-                                              yyinfo.push(filename, yylloc);
-                                              yycolumn = 1;
-                                              yylineno = lineno-1;
-                                            } else if (flag == 1) {
-                                              yyinfo.push(filename, yylloc);
-                                              yycolumn = 1;
-                                              yylineno = lineno-1;
-                                            } else if (flag == 2) {
-                                              yyinfo.pop(); // leave
-                                              // update
                                               yyinfo.setReported(filename);
-                                              yycolumn = 1;
-                                              yylineno = lineno-1;
+                                              yylloc.start = yylloc.end = {lineno-1, 1};
+                                            } else if (flag == 1) {
+                                              yyinfo.push(filename, yylloc,
+                                                      yylloc.file->ReducedConsecutiveNonLeadingWhitespaces);
+                                              yylloc.start = yylloc.end = {lineno-1, 1};
+                                            } else if (flag == 2) {
+                                              yyinfo.pop();
+                                              yyinfo.setReported(filename);
+                                              yylloc.start = yylloc.end = {lineno-1, 1};
                                             }
                                           } else {
-                                            yycolumn = 1;
-                                            yylineno = lineno-1;
+                                              yylloc.start = yylloc.end = {lineno-1, 1};
                                           }
                                         }
                                       }
@@ -361,6 +364,16 @@ WS [ \t\r\v\f]
 [^*\n]+                               { yyinfo.CommentExtent += yylloc; yyinfo.CommentContent << yytext; }
 "*"                                   { yyinfo.CommentExtent += yylloc; yyinfo.CommentContent << yytext; }
 \n                                    { yyinfo.CommentExtent += yylloc; yyinfo.CommentContent << yytext; }
+<<EOF>>                               { /* unterminated comment */
+                                          yyinfo.CommentExtent += yylloc;
+                                          std::string X(yytext);
+                                          yyinfo.CommentContent << X;
+                                          driver.addComment(yyinfo.CommentExtent, yyinfo.CommentContent);
+                                          yyinfo.CommentContent.str("");
+
+                                          driver.error(yyinfo.CommentExtent, std::string("unterminated comment block"));
+                                          BEGIN(INITIAL);
+                                      }
 }
 <INCLUDE>{
 {WS}+                                 { }
@@ -368,27 +381,42 @@ WS [ \t\r\v\f]
                                         std::string path = lexString(driver, yylloc, yytext);
                                         std::optional<std::filesystem::path> maybePath = driver.searchIncludePath(path, yylloc);
                                         yyin = nullptr;
-                                        if (maybePath) {
-                                          yyin = fopen(maybePath->string().c_str(), "r");
-                                        }
-                                        if (!yyin) {
+
+                                        if (!maybePath) {
                                           driver.error(yylloc, std::string("cannot find include file ") + yytext);
                                           return yy::parser::make_END(yylloc);
                                         } else {
-                                          yyinfo.push(maybePath->string(), yyinfo.LastIncludeDirectiveLoc);
-                                          yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+                                          std::error_code ec;
+                                          auto code = driver.readFile(*maybePath, ec);
+
+                                          if (ec) {
+                                            driver.error(yylloc, std::string("cannot read file ") + maybePath->u8string());
+                                            return yy::parser::make_END(yylloc);
+                                          }
+
+                                          auto state = yy_create_buffer(nullptr, 32768, yyscanner);
+                                          yypush_buffer_state(state, yyscanner);
+                                          yy_scan_string(code->c_str(), yyscanner);
+                                          yy_delete_buffer(state, yyscanner);
+
+                                          yyinfo.holdInputBuffer(std::move(code));
+                                          yyinfo.push(*maybePath, yyinfo.LastIncludeDirectiveLoc,
+                                                  /* not using a C preprocessor, all whitespaces are
+                                                     maintained */
+                                                  false);
                                         }
                                         BEGIN(INITIAL);
                                       }
 .                                     { driver.error(yylloc, std::string("unexpected ") + yytext); }
 }
-\n                                    { yycolumn = 1; }
+\n                                    { }
 {WS}+                                 { }
 <<EOF>>                               {
+                                        auto loc = yylloc;
                                         yypop_buffer_state(yyscanner);
                                         yyinfo.pop();
                                         if (!YY_CURRENT_BUFFER) {
-                                          return yy::parser::make_END(yylloc);
+                                          return yy::parser::make_END(loc);
                                         }
                                       }
 .                                     { driver.error(yylloc, std::string("unexpected ") + yytext); }

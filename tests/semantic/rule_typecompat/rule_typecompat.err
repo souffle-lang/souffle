@@ -22,24 +22,26 @@ The argument's declared type is T in file rule_typecompat.dl at line 6
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 18
 A(x) :- F(x,x).
 --^-------------
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 18
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'R' in file rule_typecompat.dl at line 18
 A(x) :- F(x,x).
-----------^-----
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 18
+--------^-------
+   Type of variable 'x' should be a subtype of 'T' in file rule_typecompat.dl at line 18
 A(x) :- F(x,x).
-------------^---
+--------^-------
 Warning: Variable y only occurs once in file rule_typecompat.dl at line 20
 A(x) :- F(y,x).
 ----------^-----
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 23
 A(x) :- G(x,x).
 --^-------------
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 23
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'R' in file rule_typecompat.dl at line 23
 A(x) :- G(x,x).
-----------^-----
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 23
+--------^-------
+   Type of variable 'x' should be a subtype of 'T' in file rule_typecompat.dl at line 23
 A(x) :- G(x,x).
-------------^---
+--------^-------
 Warning: Variable y only occurs once in file rule_typecompat.dl at line 25
 A(x) :- G(x,y).
 ------------^---
@@ -52,18 +54,16 @@ The argument's declared type is R in file rule_typecompat.dl at line 12
 Error: Ungrounded variable y in file rule_typecompat.dl at line 30
 G(x,y) :- A(x).
 ----^-----------
-Warning: Variable y only occurs once in file rule_typecompat.dl at line 30
-G(x,y) :- A(x).
-----^-----------
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 33
 A(x) :- B(x), C(x).
 --^-----------------
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 33
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'Q' in file rule_typecompat.dl at line 33
 A(x) :- B(x), C(x).
-----------^---------
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 33
+--------------^-----
+   Type of variable 'x' should be a subtype of 'S' in file rule_typecompat.dl at line 33
 A(x) :- B(x), C(x).
-----------------^---
+--------^-----------
 Warning: Variable y only occurs once in file rule_typecompat.dl at line 36
 A(x) :- A(x), B(y), C(z).
 ----------------^---------
@@ -79,45 +79,52 @@ The argument's declared type is T in file rule_typecompat.dl at line 11
 Error: Ungrounded variable y in file rule_typecompat.dl at line 41
 F(x,y) :- F(x,z), G(z,x).
 ----^---------------------
-Warning: Variable y only occurs once in file rule_typecompat.dl at line 41
-F(x,y) :- F(x,z), G(z,x).
-----^---------------------
 Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 47
 F(x,y) :- F(x,v), F(w,y), A(v), D(v).
 --------------^-----------------------
+Following constraints are incompatible:
+   Type of variable 'v' should be a subtype of 'R' in file rule_typecompat.dl at line 47
+F(x,y) :- F(x,v), F(w,y), A(v), D(v).
+--------------------------------^-----
+   Type of variable 'v' should be a subtype of 'T' in file rule_typecompat.dl at line 47
+F(x,y) :- F(x,v), F(w,y), A(v), D(v).
+----------^---------------------------
 Warning: Variable w only occurs once in file rule_typecompat.dl at line 47
 F(x,y) :- F(x,v), F(w,y), A(v), D(v).
 --------------------^-----------------
-Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 47
-F(x,y) :- F(x,v), F(w,y), A(v), D(v).
-----------------------------^---------
-Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 47
-F(x,y) :- F(x,v), F(w,y), A(v), D(v).
-----------------------------------^---
 Warning: Variable v only occurs once in file rule_typecompat.dl at line 48
 F(x,y) :- F(x,v), F(w,y), A(w), D(w).
 --------------^-----------------------
 Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 48
 F(x,y) :- F(x,v), F(w,y), A(w), D(w).
 --------------------^-----------------
-Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 48
+Following constraints are incompatible:
+   Type of variable 'w' should be a subtype of 'R' in file rule_typecompat.dl at line 48
 F(x,y) :- F(x,v), F(w,y), A(w), D(w).
-----------------------------^---------
-Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 48
+------------------^-------------------
+   Type of variable 'w' should be a subtype of 'T' in file rule_typecompat.dl at line 48
 F(x,y) :- F(x,v), F(w,y), A(w), D(w).
-----------------------------------^---
+--------------------------^-----------
 Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 49
 F(x,y) :- F(x,v), F(w,y), A(w), D(v).
 --------------^-----------------------
+Following constraints are incompatible:
+   Type of variable 'v' should be a subtype of 'R' in file rule_typecompat.dl at line 49
+F(x,y) :- F(x,v), F(w,y), A(w), D(v).
+--------------------------------^-----
+   Type of variable 'v' should be a subtype of 'T' in file rule_typecompat.dl at line 49
+F(x,y) :- F(x,v), F(w,y), A(w), D(v).
+----------^---------------------------
 Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 49
 F(x,y) :- F(x,v), F(w,y), A(w), D(v).
 --------------------^-----------------
-Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 49
+Following constraints are incompatible:
+   Type of variable 'w' should be a subtype of 'R' in file rule_typecompat.dl at line 49
 F(x,y) :- F(x,v), F(w,y), A(w), D(v).
-----------------------------^---------
-Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 49
+------------------^-------------------
+   Type of variable 'w' should be a subtype of 'T' in file rule_typecompat.dl at line 49
 F(x,y) :- F(x,v), F(w,y), A(w), D(v).
-----------------------------------^---
+--------------------------^-----------
 Warning: Variable w only occurs once in file rule_typecompat.dl at line 52
 F(x,y) :- F(x,v), F(w,y), !H(v), !D(v).
 --------------------^-------------------
@@ -127,33 +134,23 @@ F(x,y) :- F(x,v), F(w,y), !H(w), !D(w).
 Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 57
 F(x,y) :- F(x,y), x > y.
 --^----------------------
+Following constraints are incompatible:
+   var(y) <: var(x)
 Error: Unable to deduce type for variable y in file rule_typecompat.dl at line 57
 F(x,y) :- F(x,y), x > y.
 ----^--------------------
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 57
-F(x,y) :- F(x,y), x > y.
-------------^------------
-Error: Unable to deduce type for variable y in file rule_typecompat.dl at line 57
-F(x,y) :- F(x,y), x > y.
---------------^----------
-Error: Unable to deduce type for variable x in file rule_typecompat.dl at line 57
-F(x,y) :- F(x,y), x > y.
-------------------^------
-Error: Unable to deduce type for variable y in file rule_typecompat.dl at line 57
-F(x,y) :- F(x,y), x > y.
-----------------------^--
+Following constraints are incompatible:
+   var(x) <: var(y)
 Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 59
 F(x,y) :- F(x,v), F(w,y), w != v.
 --------------^-------------------
+Following constraints are incompatible:
+   var(w) <: var(v)
 Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 59
 F(x,y) :- F(x,v), F(w,y), w != v.
 --------------------^-------------
-Error: Unable to deduce type for variable w in file rule_typecompat.dl at line 59
-F(x,y) :- F(x,v), F(w,y), w != v.
---------------------------^-------
-Error: Unable to deduce type for variable v in file rule_typecompat.dl at line 59
-F(x,y) :- F(x,v), F(w,y), w != v.
--------------------------------^--
+Following constraints are incompatible:
+   var(v) <: var(w)
 Error: Ungrounded variable t in file rule_typecompat.dl at line 62
 F(x,y) :- F(x,y), x > t.
 ----------------------^--
@@ -166,4 +163,4 @@ F(x,y) :- F(x,y), t < x.
 Warning: Variable t only occurs once in file rule_typecompat.dl at line 63
 F(x,y) :- F(x,y), t < x.
 ------------------^------
-36 errors generated, evaluation aborted
+18 errors generated, evaluation aborted

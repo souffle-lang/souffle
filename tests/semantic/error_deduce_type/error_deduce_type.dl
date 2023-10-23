@@ -1,0 +1,6 @@
+.decl foo(a: number, b: number)
+.decl bar(a: symbol, b: number)
+
+foo(1, 2).
+bar(a, b) :-
+    foo(a, b).

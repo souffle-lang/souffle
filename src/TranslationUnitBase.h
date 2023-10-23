@@ -22,6 +22,7 @@
 #include "souffle/utility/DynamicCasting.h"
 #include "souffle/utility/Types.h"
 #include <cassert>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -93,7 +94,7 @@ struct TranslationUnitBase {
             it = analyses.insert({A::name, mk<A>()}).first;
 
             auto& analysis = *it->second;
-            assert(analysis.getName() == A::name && "must be same pointer");
+            assert((std::strcmp(analysis.getName(), A::name) == 0) && "must be same pointer");
             analysis.run(static_cast<Impl const&>(*this));
             logAnalysis(analysis);
         }

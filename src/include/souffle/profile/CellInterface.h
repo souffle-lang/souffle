@@ -20,7 +20,7 @@ public:
 
     virtual double getDoubleVal() const = 0;
 
-    virtual long getLongVal() const = 0;
+    virtual int64_t getLongVal() const = 0;
 
     virtual std::string getStringVal() const = 0;
 

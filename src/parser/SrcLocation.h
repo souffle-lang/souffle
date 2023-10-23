@@ -16,10 +16,17 @@
 
 #pragma once
 
+#include "VirtualFileSystem.h"
+
+#include <filesystem>
+#include <list>
 #include <memory>
 #include <ostream>
 #include <sstream>
+#include <stack>
 #include <string>
+
+using YY_BUFFER_STATE = struct yy_buffer_state*;
 
 namespace souffle {
 
@@ -53,9 +60,11 @@ struct Point {
 
 /** A recursive include stack. */
 struct IncludeStack {
-    explicit IncludeStack(std::shared_ptr<IncludeStack> parent, Point includePos, const std::string& physical,
-            const std::string& reported)
-            : ParentStack(parent), IncludePos(includePos), Physical(physical), Reported(reported) {}
+    explicit IncludeStack(std::shared_ptr<IncludeStack> parent, Point includePos,
+            const std::filesystem::path& physical, const std::string& reported,
+            bool reducedConsecutiveNonLeadingWhitespaces = false)
+            : ParentStack(parent), IncludePos(includePos), Physical(physical), Reported(reported),
+              ReducedConsecutiveNonLeadingWhitespaces(reducedConsecutiveNonLeadingWhitespaces) {}
 
     /** The parent file. */
     const std::shared_ptr<IncludeStack> ParentStack;
@@ -64,23 +73,28 @@ struct IncludeStack {
     const Point IncludePos;
 
     /** This file. */
-    const std::string Physical;
+    const std::filesystem::path Physical;
 
-    /** The reported path for this file. */
+    /** The reported path for this file in UTF-8 encoding. */
     const std::string Reported;
+
+    /** Indicate if this input had consecutive non-leading whitespace
+     * characters replaced by a single space. */
+    const bool ReducedConsecutiveNonLeadingWhitespaces;
 };
 
 /** A class describing a range in an input file */
 class SrcLocation {
 public:
-    /** The file referred to */
+    /** Include stack of scanned files, top is the current scanned file. It's
+     * not necessarily reflecting the actual input buffers stack. */
     std::shared_ptr<IncludeStack> file;
 
     /** The start location */
-    Point start = {};
+    Point start = {1, 1};
 
     /** The End location */
-    Point end = {};
+    Point end = {1, 1};
 
     /** Return the shortened reported file name */
     std::string getReportedFilename() const;
@@ -112,11 +126,20 @@ public:
 
 /** Information struct for scanner */
 struct ScannerInfo {
+    ScannerInfo(std::shared_ptr<FileSystem> fs) : FS(fs) {}
+
     /** Scanner's current location */
     SrcLocation yylloc;
 
-    /** Include stack of scanned files, top is the current scanned file */
-    std::shared_ptr<IncludeStack> yyfilename;
+    /** Stack of source location cursors for each of the currently opened
+     * physical input sources. */
+    std::stack<SrcLocation> Frames;
+
+    /** Hold the input buffers for the lifetime of the scanner. */
+    std::list<std::shared_ptr<std::string>> InputBuffers;
+
+    /** File system abstraction for this parser. */
+    std::shared_ptr<FileSystem> FS;
 
     /** Location of last .include directive */
     SrcLocation LastIncludeDirectiveLoc;
@@ -128,13 +151,17 @@ struct ScannerInfo {
     std::stringstream CommentContent;
 
     /** Push a file on the include stack */
-    void push(const std::string& NewFile, const SrcLocation& IncludeLoc);
+    void push(const std::filesystem::path& PhysicalPath, const SrcLocation& IncludeLoc,
+            bool reducedWhitespaces = false);
 
     /** Pop a file from the include stack */
     void pop();
 
-    /** Set the reported path for the current file */
+    /** Set the reported path for the top of the include stack (current file) */
     void setReported(const std::string& Reported);
+
+    /** Hold the given input buffer for the lifetime of the scanner. */
+    void holdInputBuffer(std::unique_ptr<std::string> Buffer);
 };
 
 }  // end of namespace souffle

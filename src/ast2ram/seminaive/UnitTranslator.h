@@ -15,6 +15,7 @@
 #pragma once
 
 #include "ast2ram/UnitTranslator.h"
+#include "ram/Expression.h"
 #include "souffle/utility/ContainerUtil.h"
 #include <map>
 #include <set>
@@ -96,6 +97,9 @@ protected:
             const std::string& filterRelation) const;
     virtual Own<ram::Statement> generateEraseTuples(
             const ast::Relation* rel, const std::string& destRelation, const std::string& srcRelation) const;
+    virtual Own<ram::Statement> generateDebugRelation(const ast::Relation* rel,
+            const std::string& destRelation, const std::string& srcRelation,
+            Own<ram::Expression> iteration) const;
 
 private:
     std::map<std::string, Own<ram::Statement>> ramSubroutines;

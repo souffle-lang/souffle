@@ -43,6 +43,7 @@ class Clause;
 class Functor;
 class FunctorDeclaration;
 class IntrinsicFunctor;
+class IterationCounter;
 class NumericConstant;
 class Type;
 class UserDefinedFunctor;
@@ -60,9 +61,12 @@ class TypeEnvironment;
 
 class TypeAnalysis : public Analysis {
 public:
+    class TypeErrorAnalyzer;
+
     static constexpr const char* name = "type-analysis";
 
-    TypeAnalysis() : Analysis(name) {}
+    TypeAnalysis();
+    ~TypeAnalysis();
 
     void run(const TranslationUnit& translationUnit) override;
 
@@ -80,8 +84,8 @@ public:
      *
      * @return a map mapping each contained argument to a set of types
      */
-    static std::map<const Argument*, TypeSet> analyseTypes(
-            const TranslationUnit& tu, const Clause& clause, std::ostream* logs = nullptr);
+    static std::map<const Argument*, TypeSet> analyseTypes(const TranslationUnit& tu, const Clause& clause,
+            TypeErrorAnalyzer* errorAnalyzer = nullptr, std::ostream* logs = nullptr);
 
     // Checks whether an argument has been assigned a valid type
     bool hasValidTypeInfo(const Argument& argument) const;
@@ -119,6 +123,11 @@ private:
     TypeEnvironment const* typeEnv = nullptr;
     FunctorAnalysis const* functorAnalysis = nullptr;
     std::map<const Argument*, TypeSet> argumentTypes;
+
+public:
+    std::shared_ptr<TypeErrorAnalyzer> errorAnalyzer;
+
+private:
     VecOwn<Clause> annotatedClauses;
     std::stringstream analysisLogs;
     const TranslationUnit* translationUnit;
@@ -181,6 +190,7 @@ private:
     void print_(type_identity<IntrinsicFunctor>, const IntrinsicFunctor& fun);
     void print_(type_identity<UserDefinedFunctor>, const UserDefinedFunctor& fun);
     void print_(type_identity<Counter>, const Counter& counter);
+    void print_(type_identity<IterationCounter>, const IterationCounter& counter);
     void print_(type_identity<TypeCast>, const ast::TypeCast& typeCast);
     void print_(type_identity<RecordInit>, const RecordInit& record, const RecordType&);
     void print_(type_identity<BranchInit>, const BranchInit& adt);

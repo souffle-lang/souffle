@@ -60,6 +60,7 @@ struct RelationWrapper;
  */
 #define FOR_EACH_INTERPRETER_TOKEN(Forward, Expand)\
     Forward(NumericConstant)\
+    Forward(Variable)\
     Forward(StringConstant)\
     Forward(TupleElement)\
     Forward(AutoIncrement)\
@@ -100,6 +101,7 @@ struct RelationWrapper;
     Forward(Sequence)\
     Forward(Parallel)\
     Forward(Loop)\
+    Forward(Assign)\
     Forward(Exit)\
     Forward(LogRelationTimer)\
     Forward(LogTimer)\
@@ -422,6 +424,13 @@ private:
  * @class NumericConstant
  */
 class NumericConstant : public Node {
+    using Node::Node;
+};
+
+/**
+ * @class Variable
+ */
+class Variable : public Node {
     using Node::Node;
 };
 
@@ -854,6 +863,13 @@ class SubroutineReturn : public CompoundNode {
  */
 class Sequence : public CompoundNode {
     using CompoundNode::CompoundNode;
+};
+
+/**
+ * @class Assign
+ */
+class Assign : public BinaryNode {
+    using BinaryNode::BinaryNode;
 };
 
 /**

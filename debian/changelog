@@ -1,3 +1,18 @@
+souffle (2.4) stable; urgency=low
+ * New option --generate-many to split the generated C++ Code into multiple files (julienhenry)
+ * Purge input and intermediate relations (adamjseitz)
+ * Emscripten Build (philzook58)
+ * Improved parallel load balance in the interpreter (quentin)
+ * User defined aggregate (julienhenry)
+ * Improved loading of CSV (strRM, bmeck)
+ * Configurable warnings (langston-barrett)
+ * Performance improvements for regex matching (strRM)
+ * Expose main driver interface (quentin)
+ * Allow linking against multiple compiled Souffle programs (ruricolist, quentin)
+ * Misc fixes and refactoring (adamjseitz, ruricolist, quentin, b-scholz, mingodad, bmeck, strRM, fgauthie, julienhenry, SamArch27, luc-tielen, XiaowenHu96, Gueckmooh)
+
+ -- Quentin Sabah <quentin.sabah@gmail.com>  Sat, 18 Feb 2023 11:00:00 +0100
+
 souffle (2.3) stable; urgency=low
  * Auto-scheduler for rules (SamArch27)
  * Better scheduling heuristic (julienhenry)

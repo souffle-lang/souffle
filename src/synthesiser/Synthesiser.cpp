@@ -376,7 +376,10 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 out << "std::map<std::string, std::string> directiveMap(";
                 printDirectives(directives);
                 out << ");\n";
-                out << R"_(if (!outputDirectory.empty()) {)_";
+                out << R"_(if (outputDirectory == "-"){)_";
+                out << R"_(directiveMap["IO"] = "stdout"; directiveMap["headers"] = "true";)_";
+                out << "}\n";
+                out << R"_(else if (!outputDirectory.empty()) {)_";
                 out << R"_(directiveMap["output-dir"] = outputDirectory;)_";
                 out << "}\n";
                 out << "IOSystem::getInstance().getWriter(";
@@ -486,9 +489,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             PRINT_BEGIN_COMMENT(out);
 
             auto Relation = synthesiser.lookup(clear.getRelation());
-            bool isIntermediate = !contains(synthesiser.loadRelations, Relation->getName()) &&
-                                  !contains(synthesiser.storeRelations, Relation->getName()) &&
-                                  !Relation->isTemp();
+            bool isIntermediate =
+                    !contains(synthesiser.storeRelations, Relation->getName()) && !Relation->isTemp();
 
             if (isIntermediate) {
                 out << "if (pruneImdtRels) ";
@@ -561,6 +563,17 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             out << "}\n";
             out << "iter = 0;\n";
             PRINT_END_COMMENT(out);
+        }
+
+        void visit_(type_identity<Assign>, const Assign& assign, std::ostream& out) override {
+            if (assign.isInit()) {
+                out << "auto ";
+            }
+            dispatch(assign.getVariable(), out);
+            out << " = ";
+            dispatch(assign.getValue(), out);
+            assign.getValue();
+            out << ";\n";
         }
 
         void visit_(type_identity<Swap>, const Swap& swap, std::ostream& out) override {
@@ -831,7 +844,11 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             if (!keys.empty()) {
                 indexNumber = isa->getIndexSelection(estimateJoinSize.getRelation()).getLexOrderNum(keys);
             }
-            auto indexName = relName + "->ind_" + std::to_string(indexNumber);
+
+            auto relationType =
+                    Relation::getSynthesiserRelation(*rel, isa->getIndexSelection(rel->getName()));
+            const std::string& type = relationType->getTypeName();
+            auto indexName = relName + (type == "t_eqrel" ? "->ind" : "->ind_" + std::to_string(indexNumber));
 
             bool onlyConstants = true;
             for (auto col : estimateJoinSize.getKeyColumns()) {
@@ -1847,7 +1864,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
                 // strings
                 case BinaryConstraintOp::MATCH: {
-                    if (const StringConstant* str = dynamic_cast<const StringConstant*>(&rel.getLHS()); str) {
+                    if (const StringConstant* str = as<StringConstant>(&rel.getLHS()); str) {
                         const auto& regex = synthesiser.compileRegex(str->getConstant());
                         if (regex) {
                             out << "std::regex_match(symTable.decode(";
@@ -1867,7 +1884,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                     break;
                 }
                 case BinaryConstraintOp::NOT_MATCH: {
-                    if (const StringConstant* str = dynamic_cast<const StringConstant*>(&rel.getLHS()); str) {
+                    if (const StringConstant* str = as<StringConstant>(&rel.getLHS()); str) {
                         const auto& regex = synthesiser.compileRegex(str->getConstant());
                         if (regex) {
                             out << "!std::regex_match(symTable.decode(";
@@ -2047,6 +2064,10 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             PRINT_BEGIN_COMMENT(out);
             out << "RamSigned(" << synthesiser.convertSymbol2Idx(constant.getConstant()) << ")";
             PRINT_END_COMMENT(out);
+        }
+
+        void visit_(type_identity<Variable>, const Variable& v, std::ostream& out) override {
+            out << v.getName();
         }
 
         void visit_(type_identity<TupleElement>, const TupleElement& access, std::ostream& out) override {
@@ -2292,6 +2313,35 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 case FunctorOp::URANGE:
                 case FunctorOp::FRANGE:
                     fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", op.getOperator());
+
+                case FunctorOp::SSADD: {
+                    const StringConstant* lstr = as<StringConstant>(args[0]);
+                    const StringConstant* rstr = as<StringConstant>(args[1]);
+                    if (lstr && rstr) {
+                        out << "RamSigned("
+                            << synthesiser.convertSymbol2Idx(lstr->getConstant() + rstr->getConstant())
+                            << ")";
+                    } else {
+                        out << "symTable.encode(";
+                        if (lstr) {
+                            out << "R\"_(" << lstr->getConstant() << ")_\"";
+                        } else {
+                            out << "symTable.decode(";
+                            dispatch(*args[0], out);
+                            out << ")";
+                        }
+                        out << " + ";
+                        if (rstr) {
+                            out << "R\"_(" << rstr->getConstant() << ")_\"";
+                        } else {
+                            out << "symTable.decode(";
+                            dispatch(*args[1], out);
+                            out << ")";
+                        }
+                        out << ")";
+                    }
+                    break;
+                }
             }
             PRINT_END_COMMENT(out);
 
@@ -2618,6 +2668,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         db.usesDatastructure(mainClass, typeName);
     }
 
+    std::set<std::string> loadRelations;
     std::set<const IO*> loadIOs;
     std::set<const IO*> storeIOs;
 

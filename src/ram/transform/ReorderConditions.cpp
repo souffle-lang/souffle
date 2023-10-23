@@ -41,9 +41,10 @@ bool ReorderConditionsTransformer::transform(TranslationUnit& tu) {
             for (auto& cond : condList) {
                 sortedConds.emplace_back(cond->cloning());
             }
-            std::sort(sortedConds.begin(), sortedConds.end(), [&](Own<Condition>& a, Own<Condition>& b) {
-                return rca.getComplexity(a.get()) < rca.getComplexity(b.get());
-            });
+            std::stable_sort(sortedConds.begin(), sortedConds.end(),
+                    [&](const Own<Condition>& a, const Own<Condition>& b) {
+                        return rca.getComplexity(a.get()) < rca.getComplexity(b.get());
+                    });
             auto sorted_node = toCondition(sortedConds);
 
             if (sorted_node != node) {

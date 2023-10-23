@@ -109,6 +109,14 @@ public:
         return views[id].get();
     }
 
+    RamDomain getVariable(const std::string& name) {
+        return variables[name];
+    }
+
+    void setVariable(const std::string& name, RamDomain value) {
+        variables[name] = value;
+    }
+
 private:
     /** @brief Run-time value */
     std::vector<const RamDomain*> data;
@@ -120,6 +128,7 @@ private:
     VecOwn<RamDomain[]> allocatedDataContainer;
     /** @brief Views */
     VecOwn<ViewWrapper> views;
+    std::map<std::string, RamDomain> variables;
 };
 
 }  // namespace souffle::interpreter

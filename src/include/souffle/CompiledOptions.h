@@ -151,7 +151,7 @@ public:
                     break;
                 /* Output directory for resulting .csv files */
                 case 'D':
-                    if (*optarg && !existDir(optarg)) {
+                    if (*optarg && !existDir(optarg) && !dirIsStdout(optarg)) {
                         printf("Output directory %s does not exists!\n", optarg);
                         ok = false;
                     }
@@ -257,6 +257,13 @@ private:
             }
         }
         return false;
+    }
+
+    /**
+     *  Check whether the output is "-", for which the output should be stdout
+     */
+    bool dirIsStdout(const std::string& name) const {
+        return name == "-";
     }
 };
 

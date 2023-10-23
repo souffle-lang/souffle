@@ -202,12 +202,12 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
     // Define a comparator which orders all of the conditions nicely
     // 1. Equalities come before inequalities
     // 2. Conditions are ordered by the index of the constraint i.e. t0.0 comes before t0.1
-    auto cmp = [&](auto& c1, auto& c2) -> bool {
+    auto cmp = [&](const auto& c1, const auto& c2) -> bool {
         auto* cond1 = as<Constraint>(c1);
         auto* cond2 = as<Constraint>(c2);
         // place non-conditions at the end
         if (!cond1 && !cond2) {
-            return c1.get() < c2.get();
+            return false;
         }
         if (cond1 && !cond2) {
             return true;
@@ -221,7 +221,7 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
         bool rhsIndexable = isIndexableConstraint(cond2->getOperator());
 
         if (!lhsIndexable && !rhsIndexable) {
-            return c1.get() < c2.get();
+            return false;
         }
         if (lhsIndexable && !rhsIndexable) {
             return true;
@@ -248,7 +248,7 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
         bool rhsUndefined = isUndefValue(p2.first.get()) && isUndefValue(p2.second.get());
 
         if (lhsUndefined && rhsUndefined) {
-            return c1.get() < c2.get();
+            return false;
         }
 
         if (!lhsUndefined && rhsUndefined) {
@@ -263,7 +263,7 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
         return attr1 < attr2;
     };
 
-    std::sort(conditionList.begin(), conditionList.end(), cmp);
+    std::stable_sort(conditionList.begin(), conditionList.end(), cmp);
 
     // Build query pattern and remaining condition
     bool seenInequality = false;

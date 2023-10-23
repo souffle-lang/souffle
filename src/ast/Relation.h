@@ -97,6 +97,14 @@ public:
 
     void apply(const NodeMapper& map) override;
 
+    void setIsDeltaDebug(QualifiedName rel) {
+        isDeltaDebug = rel;
+    }
+
+    std::optional<QualifiedName> getIsDeltaDebug() const {
+        return isDeltaDebug;
+    }
+
 protected:
     void print(std::ostream& os) const override;
 
@@ -122,6 +130,8 @@ private:
 
     /** Datastructure to use for this relation */
     RelationRepresentation representation{RelationRepresentation::DEFAULT};
+
+    std::optional<QualifiedName> isDeltaDebug;
 };
 
 /**

@@ -62,7 +62,7 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
         }
 
         int visit_(type_identity<UserDefinedOperator>, const UserDefinedOperator&) override {
-            return 10;
+            return std::numeric_limits<int>::max();
         }
 
         // emptiness check
@@ -71,8 +71,17 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
             return (ra->lookup(emptiness.getRelation()).getArity() > 0) ? 1 : 0;
         }
 
+        int visit_(type_identity<AbstractOperator>, const AbstractOperator& op) override {
+            int exprComplexity = 0;
+            for (auto* expr : op.getArguments()) {
+                exprComplexity += dispatch(*expr);
+            }
+            return exprComplexity;
+        }
+
         // default rule
-        int visit_(type_identity<Node>, const Node&) override {
+        int visit_(type_identity<Node>, const Node& node) override {
+            (void)node;
             return 0;
         }
 
@@ -81,7 +90,8 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
     };
 
     assert((isA<Expression>(node) || isA<Condition>(node)) && "not an expression/condition/operation");
-    return ValueComplexityVisitor(ra).dispatch(*node);
+    const int complexity = ValueComplexityVisitor(ra).dispatch(*node);
+    return complexity;
 }
 
 }  // namespace souffle::ram::analysis

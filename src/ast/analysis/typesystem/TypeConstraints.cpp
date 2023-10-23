@@ -30,6 +30,7 @@ TypeConstraint isSubtypeOf(const TypeVar& a, const TypeVar& b) {
  * a are subtypes of type b.
  */
 TypeConstraint isSubtypeOf(const TypeVar& variable, const Type& type) {
+    // @here
     struct C : public Constraint<TypeVar> {
         TypeVar variable;
         const Type& type;
@@ -60,6 +61,13 @@ TypeConstraint isSubtypeOf(const TypeVar& variable, const Type& type) {
 
         void print(std::ostream& out) const override {
             out << variable << " <: " << type.getName();
+        }
+
+        std::optional<std::string> customMessage() const override {
+            std::stringstream ss;
+            ss << "Type of variable '" << variable.name() << "' should be a subtype of '"
+               << type.getPrettyName() << "'";
+            return ss.str();
         }
     };
 

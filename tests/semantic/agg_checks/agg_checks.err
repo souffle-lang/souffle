@@ -19,21 +19,18 @@ r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
 Error: Unable to deduce type for variable X in file agg_checks.dl at line 11
 r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
 --------------------^------------------------
+Following constraints are incompatible:
+   Type of variable 'X' should be a subtype of 'symbol'
+   var(min X : { X != Y0,!a(X,Y0) }) <: var(X)
 Error: Ungrounded variable X in file agg_checks.dl at line 11
 r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
 --------------------^------------------------
-Error: Unable to deduce type for variable X in file agg_checks.dl at line 11
-r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
---------------------------^------------------
 Error: Unable to deduce type for variable Y0 in file agg_checks.dl at line 11
 r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
 -------------------------------^-------------
 Error: Ungrounded variable Y0 in file agg_checks.dl at line 11
 r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
 -------------------------------^-------------
-Error: Unable to deduce type for variable X in file agg_checks.dl at line 11
-r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
--------------------------------------^-------
 Error: Unable to deduce type for variable Y0 in file agg_checks.dl at line 11
 r("X",Y) :- Y = min X : { X != Y, !a(X,Y) }.
 ---------------------------------------^-----
@@ -58,9 +55,11 @@ r("X",Y) :- Y = min X : a(X,_).
 Error: Unable to deduce type for variable X in file agg_checks.dl at line 20
 r("X",Y) :- Y = min X : a(X,_).
 --------------------^-----------
-Error: Unable to deduce type for variable X in file agg_checks.dl at line 20
+Following constraints are incompatible:
+   Type of variable 'X' should be a subtype of 'symbol' in file agg_checks.dl at line 20
 r("X",Y) :- Y = min X : a(X,_).
---------------------------^-----
+------------------------^-------
+   var(min X : { a(X,_) }) <: var(X)
 Error: Undefined relation nonexistent in file agg_checks.dl at line 31
 r("X",count: { nonexistent(_,_) }).
 ---------------^--------------------
@@ -74,4 +73,4 @@ Relation r in file agg_checks.dl at line 6
 has cyclic aggregation in file agg_checks.dl at line 28
 r("X",Y) :- Y = min Y : r("X",Y).
 ------------------------^---------
-22 errors generated, evaluation aborted
+19 errors generated, evaluation aborted

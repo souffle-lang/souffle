@@ -1,0 +1,17 @@
+
+.decl R1(i:number, j:number, h:number)
+R1(i,j,h) :-
+  i = range(0,3),
+  j = range(0,3),
+  h = (i % 2) * (j % 3) + i - j.
+
+.decl R2(i:number, j:number)
+R2(i,j) :-
+  R1(i,j,h),
+  ( 0 = count : { R1(x,j,z), x < i, z > h }
+  ; 0 = count : { R1(i,y,z), y < j, z > h }
+  ).
+
+.output R2()
+
+

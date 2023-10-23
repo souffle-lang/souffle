@@ -17,6 +17,7 @@
 #pragma once
 
 #include "RelationTag.h"
+#include "VirtualFileSystem.h"
 #include "ast/Clause.h"
 #include "ast/Component.h"
 #include "ast/ComponentInit.h"
@@ -43,7 +44,8 @@ namespace souffle {
 
 class ParserDriver {
 public:
-    ParserDriver(Global& g) : glb(g) {}
+    ParserDriver(Global& g);
+    ParserDriver(Global& g, std::shared_ptr<FileSystem> fs);
     virtual ~ParserDriver() = default;
 
     void addRelation(Own<ast::Relation> r);
@@ -67,36 +69,55 @@ public:
 
     Own<ast::Counter> addDeprecatedCounter(SrcLocation tagLoc);
 
-    Own<ast::TranslationUnit> parse(
-            const std::string& filename, FILE* in, ErrorReport& errorReport, DebugReport& debugReport);
+    Own<ast::TranslationUnit> parse(const std::string& filename, const std::string& codein,
+            bool reducedConsecutiveNonLeadingWhitespaces, ErrorReport& errorReport, DebugReport& debugReport);
     Own<ast::TranslationUnit> parse(
             const std::string& code, ErrorReport& errorReport, DebugReport& debugReport);
-    static Own<ast::TranslationUnit> parseTranslationUnit(Global& glb, const std::string& filename, FILE* in,
-            ErrorReport& errorReport, DebugReport& debugReport);
-    static Own<ast::TranslationUnit> parseTranslationUnit(
-            Global& glb, const std::string& code, ErrorReport& errorReport, DebugReport& debugReport);
+    Own<ast::TranslationUnit> parseFromFS(
+            const std::filesystem::path& path, ErrorReport& errorReport, DebugReport& debugReport);
+
+    static Own<ast::TranslationUnit> parseTranslationUnit(Global& glb, const std::string& filename,
+            const std::string& code, bool reducedConsecutiveNonLeadingWhitespaces, ErrorReport& errorReport,
+            DebugReport& debugReport, std::shared_ptr<FileSystem> vfs = nullptr);
+    static Own<ast::TranslationUnit> parseTranslationUnit(Global& glb, const std::string& code,
+            ErrorReport& errorReport, DebugReport& debugReport, std::shared_ptr<FileSystem> vfs = nullptr);
+    static Own<ast::TranslationUnit> parseTranslationUnitFromFS(Global& glb,
+            const std::filesystem::path& path, ErrorReport& errorReport, DebugReport& debugReport,
+            std::shared_ptr<FileSystem> vfs = nullptr);
 
     void warning(const WarnType warn, const SrcLocation& loc, const std::string& msg);
     void error(const SrcLocation& loc, const std::string& msg);
     void error(const std::string& msg);
 
+    std::unique_ptr<std::string> readFile(const std::filesystem::path& path, std::error_code& ec);
+
     std::optional<std::filesystem::path> searchIncludePath(
             const std::string& IncludeString, const SrcLocation& IncludeLoc);
 
+    // Return true if the given source location is visited for the first time by `.once`
+    // and record that source location so that next calls will return false.
+    //
+    // The source location column number is non-significant.
     bool canEnterOnce(const SrcLocation& onceLoc);
 
+    // Add a scanned comment.
     void addComment(const SrcLocation& Loc, const std::stringstream& Content);
 
     Own<ast::TranslationUnit> translationUnit;
 
     bool trace_scanning = false;
 
-    std::set<std::pair<std::filesystem::path, int>> VisitedLocations;
+    // Canonical path and line number of location that have already been
+    // visited by `.once`.
+    std::set<std::pair<std::filesystem::path, int>> VisitedOnceLocations;
 
+    // All the scanned comments.
     std::deque<std::pair<SrcLocation, std::string>> ScannedComments;
 
 private:
     Global& glb;
+
+    std::shared_ptr<FileSystem> vfs;
 };
 
 }  // end of namespace souffle

@@ -1,0 +1,16 @@
+//mini-rules.dl
+.type T = A {N: number} | B {S : symbol}
+
+.decl P(N: number, T: T)
+
+.functor blubb(symbol, symbol): number stateful
+.functor id(symbol): symbol stateful
+
+.output P
+
+P(1, $A(1000)).
+
+P(0, $B(?_p)) :-
+  (1-@blubb("60",?_p)) != 0,
+  (?_p != @id("40")),
+  P(1, $B(?_p)).

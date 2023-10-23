@@ -1,0 +1,7 @@
+nil
+[C, nil]
+[B, [C, nil]]
+[A, [B, [C, nil]]]
+[F, nil]
+[E, [F, nil]]
+[D, [E, [F, nil]]]

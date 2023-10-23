@@ -107,7 +107,8 @@ std::string SrcLocation::extloc() const {
             // Offset column to account for C preprocessor having reduced
             // consecutive non-leading whitespace chars to a single space.
             if (std::isspace(c) != 0) {
-                if (afterFirstNonSpace && prevWhitespace && offsetColumn >= lineLen) {
+                if (file->ReducedConsecutiveNonLeadingWhitespaces &&
+                        (afterFirstNonSpace && prevWhitespace && offsetColumn >= lineLen)) {
                     offsetColumn++;
                 }
                 prevWhitespace = true;
@@ -134,21 +135,31 @@ void SrcLocation::print(std::ostream& out) const {
     out << getReportedFilename() << " [" << start << "-" << end << "]";
 }
 
-void ScannerInfo::push(const std::string& Physical, const SrcLocation& IncludeLoc) {
-    yyfilename = std::make_shared<IncludeStack>(yyfilename, IncludeLoc.start, Physical, Physical);
+void ScannerInfo::push(
+        const std::filesystem::path& Physical, const SrcLocation& IncludeLoc, bool reducedWhitespaces) {
+    auto NewFile = std::make_shared<IncludeStack>(
+            yylloc.file, IncludeLoc.start, Physical, Physical.u8string(), reducedWhitespaces);
+    Frames.push(yylloc);
+    yylloc.file = NewFile;
+    yylloc.start = yylloc.end = {1, 1};
 }
 
 void ScannerInfo::pop() {
-    if (yyfilename) {
-        yyfilename = yyfilename->ParentStack;
+    if (!Frames.empty()) {
+        yylloc = Frames.top();
+        Frames.pop();
     }
 }
 
 void ScannerInfo::setReported(const std::string& Reported) {
-    if (yyfilename && yyfilename->Reported != Reported) {
-        yyfilename = std::make_shared<IncludeStack>(
-                yyfilename->ParentStack, yyfilename->IncludePos, yyfilename->Physical, Reported);
+    if (yylloc.file && yylloc.file->Reported != Reported) {
+        yylloc.file = std::make_shared<IncludeStack>(yylloc.file->ParentStack, yylloc.file->IncludePos,
+                yylloc.file->Physical, Reported, yylloc.file->ReducedConsecutiveNonLeadingWhitespaces);
     }
+}
+
+void ScannerInfo::holdInputBuffer(std::unique_ptr<std::string> Buffer) {
+    InputBuffers.push_back(std::move(Buffer));
 }
 
 }  // end of namespace souffle

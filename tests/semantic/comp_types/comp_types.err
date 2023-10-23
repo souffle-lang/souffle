@@ -1,37 +1,49 @@
 Error: Unable to deduce type for variable x in file comp_types.dl at line 32
 relX(x) :- relY(x).
 -----^--------------
-Error: Unable to deduce type for variable x in file comp_types.dl at line 32
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'x.inner'
+   Type of variable 'x' should be a subtype of 'y.inner' in file comp_types.dl at line 32
 relX(x) :- relY(x).
-----------------^---
+-----------^--------
 Error: Unable to deduce type for variable x in file comp_types.dl at line 33
 relX(x) :- relZ(x).
 -----^--------------
-Error: Unable to deduce type for variable x in file comp_types.dl at line 33
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'x.inner'
+   Type of variable 'x' should be a subtype of 'z.inner' in file comp_types.dl at line 33
 relX(x) :- relZ(x).
-----------------^---
+-----------^--------
 Error: Unable to deduce type for variable x in file comp_types.dl at line 35
 relY(x) :- relX(x).
 -----^--------------
-Error: Unable to deduce type for variable x in file comp_types.dl at line 35
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'x.inner' in file comp_types.dl at line 35
 relY(x) :- relX(x).
-----------------^---
+-----------^--------
+   Type of variable 'x' should be a subtype of 'y.inner'
 Error: Unable to deduce type for variable x in file comp_types.dl at line 37
 relY(x) :- relZ(x).
 -----^--------------
-Error: Unable to deduce type for variable x in file comp_types.dl at line 37
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'y.inner'
+   Type of variable 'x' should be a subtype of 'z.inner' in file comp_types.dl at line 37
 relY(x) :- relZ(x).
-----------------^---
+-----------^--------
 Error: Unable to deduce type for variable x in file comp_types.dl at line 39
 relZ(x) :- relX(x).
 -----^--------------
-Error: Unable to deduce type for variable x in file comp_types.dl at line 39
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'x.inner' in file comp_types.dl at line 39
 relZ(x) :- relX(x).
-----------------^---
+-----------^--------
+   Type of variable 'x' should be a subtype of 'z.inner'
 Error: Unable to deduce type for variable x in file comp_types.dl at line 40
 relZ(x) :- relY(x).
 -----^--------------
-Error: Unable to deduce type for variable x in file comp_types.dl at line 40
+Following constraints are incompatible:
+   Type of variable 'x' should be a subtype of 'y.inner' in file comp_types.dl at line 40
 relZ(x) :- relY(x).
-----------------^---
-12 errors generated, evaluation aborted
+-----------^--------
+   Type of variable 'x' should be a subtype of 'z.inner'
+6 errors generated, evaluation aborted

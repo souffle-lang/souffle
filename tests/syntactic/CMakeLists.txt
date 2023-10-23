@@ -66,6 +66,8 @@ positive_test(dot_identifiers)
 positive_test(input_adt_names1)
 positive_test(input_adt_names2)
 positive_test(input_directive_rfc4180)
+positive_test(equivalent_types_in_negation)
+negative_test(issue2408)
 if (NOT MSVC)
 # does not pass with Visual Studio pre-processor because it preserves all whitespaces
 positive_test(whitespaces)
@@ -91,4 +93,40 @@ souffle_run_test(
   CATEGORY syntactic
   INCLUDE_DIRS q1 q2
   NO_PREPROCESSOR
+  )
+souffle_run_test(
+  TEST_NAME sourceloc1
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc2
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc3
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc4
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME sourceloc5
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
+  )
+souffle_run_test(
+  TEST_NAME unterminated_comment
+  CATEGORY syntactic
+  NO_PREPROCESSOR
+  NEGATIVE
   )

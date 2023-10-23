@@ -1,0 +1,23 @@
+/// An aggregate with R1 & R2
+
+.decl R1(i:number, j:number, h:number)
+.input R1()
+
+.decl R2(i:number, j:number, v:number)
+R2(i, j, v) :-
+  R1(i, j, _),
+  v = count : { R1(x, j, h), i < x, h > 2 }.
+
+.output R2()
+
+/// An aggregate with R3 & R4
+
+.decl R3(i:number, j:number, h:number)
+.input R3()
+
+.decl R4(i:number, j:number, v:number)
+R4(i, j, v) :-
+  R3(i, j, _),
+  v = count : { R3(i, y, h), j < y, h > 2 }.
+
+.output R4()
