@@ -1,4 +1,4 @@
-.decl A(x:symbol,y:symbol,z:symbol)
+.decl A(x:symbol, y:symbol)
 .input A(rfc4180=true)
 .output A(rfc4180=true)
 

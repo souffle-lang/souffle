@@ -1,0 +1,4 @@
+.decl A(x:symbol)
+.input A(rfc4180=true)
+.output A()
+
