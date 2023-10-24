@@ -247,6 +247,15 @@ template <typename T>
 struct is_printable<T, typename std::conditional<false,
                                decltype(std::declval<std::ostream&>() << std::declval<T>()), void>::type>
         : public std::true_type {};
+
+template <typename T, typename filter = void>
+struct is_html_printable : public std::false_type {};
+
+template <typename T>
+struct is_html_printable<T,
+        typename std::conditional<false, decltype(std::declval<T>().printHTML(std::declval<std::ostream&>())),
+                void>::type> : public std::true_type {};
+
 }  // namespace detail
 
 /**
@@ -275,6 +284,20 @@ typename std::enable_if<!detail::is_printable<T>::value, std::string>::type toSt
     ss << typeid(T).name();
     ss << " not supported)";
     return ss.str();
+}
+
+template <typename T>
+auto toHtml(const T& obj) -> typename std::enable_if<detail::is_html_printable<T>::value, std::string>::type {
+    std::stringstream out;
+    obj.printHTML(out);
+    return out.str();
+}
+
+/** Fallback to `toString` */
+template <typename T>
+auto toHtml(const T& obj) ->
+        typename std::enable_if<not detail::is_html_printable<T>::value, std::string>::type {
+    return toString(obj);
 }
 
 // -------------------------------------------------------------------------------
