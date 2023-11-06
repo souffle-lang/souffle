@@ -21,19 +21,15 @@
 
 namespace souffle::interpreter {
 
-#define CREATE_BTREE_REL(Structure, Arity, ...)                        \
-    case (Arity): {                                                    \
-        return mk<Relation<Arity, interpreter::Btree>>(                \
-                id.getAuxiliaryArity(), id.getName(), indexSelection); \
+#define CREATE_BTREE_REL(Structure, Arity, AuxiliaryArity, ...)                                       \
+    if (id.getArity() == Arity && id.getAuxiliaryArity() == AuxiliaryArity) {                         \
+        return mk<Relation<Arity, AuxiliaryArity, interpreter::Btree>>(id.getName(), indexSelection); \
     }
 
 Own<RelationWrapper> createBTreeRelation(
         const ram::Relation& id, const ram::analysis::IndexCluster& indexSelection) {
-    switch (id.getArity()) {
-        FOR_EACH_BTREE(CREATE_BTREE_REL);
-
-        default: fatal("Requested arity not yet supported. Feel free to add it.");
-    }
+    FOR_EACH_BTREE(CREATE_BTREE_REL);
+    fatal("Requested arity not yet supported. Feel free to add it.");
 }
 
 }  // namespace souffle::interpreter

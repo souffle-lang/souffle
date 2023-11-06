@@ -48,15 +48,16 @@ Own<Relation> Relation::getSynthesiserRelation(
         const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection) {
     Relation* rel;
 
+    bool hasProvenance = ramRel.getAttributeNames().back() == "@level_number";
     // Handle the qualifier in souffle code
-    if (ramRel.getRepresentation() == RelationRepresentation::PROVENANCE) {
-        rel = new DirectRelation(ramRel, indexSelection, true, false);
+    if (ramRel.getAuxiliaryArity() > 0) {
+        rel = new DirectRelation(ramRel, indexSelection, true, hasProvenance, false);
     } else if (ramRel.isNullary()) {
         rel = new NullaryRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, false);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, false);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        rel = new DirectRelation(ramRel, indexSelection, false, true);
+        rel = new DirectRelation(ramRel, indexSelection, false, false, true);
     } else if (ramRel.getRepresentation() == RelationRepresentation::BRIE) {
         rel = new BrieRelation(ramRel, indexSelection);
     } else if (ramRel.getRepresentation() == RelationRepresentation::EQREL) {
@@ -68,7 +69,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         if (ramRel.getArity() > 6) {
             rel = new IndirectRelation(ramRel, indexSelection);
         } else {
-            rel = new DirectRelation(ramRel, indexSelection, false, false);
+            rel = new DirectRelation(ramRel, indexSelection, false, false, false);
         }
     }
 
@@ -137,7 +138,7 @@ void DirectRelation::computeIndices() {
         // we must expand all search orders to be full indices,
         // since weak/strong comparators and updaters need this,
         // and also add provenance annotations to the indices
-        if (isProvenance || hasErase) {
+        if (hasAuxiliary || hasErase) {
             // expand index to be full
             for (std::size_t i = 0; i < getArity() - relation.getAuxiliaryArity(); i++) {
                 if (curIndexElems.find(i) == curIndexElems.end()) {
@@ -145,21 +146,18 @@ void DirectRelation::computeIndices() {
                 }
             }
 
-            if (isProvenance) {
+            if (hasAuxiliary) {
                 // remove any provenance annotations already in the index order
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity() + 1) !=
-                        curIndexElems.end()) {
-                    ind.erase(
-                            std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity() + 1));
+                std::size_t n = getArity() - relation.getAuxiliaryArity();
+                for (std::size_t i = n; i < getArity(); i++) {
+                    if (curIndexElems.find(i) != curIndexElems.end()) {
+                        ind.erase(std::find(ind.begin(), ind.end(), i));
+                    }
                 }
-
-                if (curIndexElems.find(getArity() - relation.getAuxiliaryArity()) != curIndexElems.end()) {
-                    ind.erase(std::find(ind.begin(), ind.end(), getArity() - relation.getAuxiliaryArity()));
-                }
-
                 // add provenance annotations to the index, but in reverse order
-                ind.push_back(getArity() - relation.getAuxiliaryArity() + 1);
-                ind.push_back(getArity() - relation.getAuxiliaryArity());
+                for (std::size_t i = getArity(); i > n; i--) {
+                    ind.push_back(i-1);
+                }
             }
             masterIndex = 0;
         } else if (ind.size() == getArity()) {
@@ -182,11 +180,8 @@ std::string DirectRelation::getTypeNamespace() {
     }
 
     std::stringstream res;
-    if (hasErase) {
-        res << "t_btree_delete_";
-    } else {
-        res << "t_btree_";
-    }
+    res << "t_btree_";
+    res << hasErase << hasAuxiliary << hasProvenance << "_";
     res << getTypeAttributeString(relation.getAttributeTypes(), attributesUsed);
 
     for (auto& ind : getIndices()) {
@@ -233,13 +228,30 @@ void DirectRelation::generateTypeStruct(GenDb& db) {
     decl << "using t_tuple = Tuple<RamDomain, " << arity << ">;\n";
 
     // generate an updater class for provenance
-    if (isProvenance) {
+    if (hasAuxiliary) {
         decl << "struct updater {\n";
-        decl << "void update(t_tuple& old_t, const t_tuple& new_t) {\n";
-
-        for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
-            decl << "old_t[" << i << "] = new_t[" << i << "];\n";
+        decl << "bool update(t_tuple& old_t, const t_tuple& new_t) {\n";
+        decl << "bool changed = false;\n";
+        if (hasProvenance) {
+            assert(auxiliaryArity == 2);
+            auto rule = arity-2;
+            auto level = arity-1;
+            decl << "if (ramBitCast<RamSigned>(new_t[" << level << "]) < ramBitCast<RamSigned>(old_t[" << level << "])"
+                 << " || (ramBitCast<RamSigned>(new_t[" << level << "]) == ramBitCast<RamSigned>(old_t[" << level << "])"
+                 << " && ramBitCast<RamSigned>(new_t[" << rule << "]) < ramBitCast<RamSigned>(old_t[" << rule << "]))) {\n";
+            decl << "    old_t[" << rule << "] = new_t[" << rule << "];\n";
+            decl << "    old_t[" << level << "] = new_t[" << level << "];\n";
+            decl << "    changed = true;\n";
+            decl << "}\n";
+        } else {
+            for (std::size_t i = arity - auxiliaryArity; i < arity; i++) {
+                decl << "if (old_t[" << i << "] != new_t[" << i << "]) {\n";
+                decl << "    changed = true;\n";
+                decl << "    old_t[" << i << "] = new_t[" << i << "];\n";
+                decl << "}\n";
+            }
         }
+        decl << "return changed;\n";
 
         decl << "}\n";
         decl << "};\n";
@@ -324,7 +336,7 @@ void DirectRelation::generateTypeStruct(GenDb& db) {
         // for provenance, all indices must be full so we use btree_set
         // also strong/weak comparators and updater methods
 
-        if (isProvenance) {
+        if (hasAuxiliary) {
             std::string comparator_aux;
             if (provenanceIndexNumbers.find(i) == provenanceIndexNumbers.end()) {
                 // index for bottom up phase

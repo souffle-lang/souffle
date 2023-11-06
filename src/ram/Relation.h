@@ -16,6 +16,7 @@
 #pragma once
 
 #include "RelationTag.h"
+#include "ram/AbstractOperator.h"
 #include "ram/Node.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"
@@ -37,10 +38,12 @@ class Relation : public Node {
 public:
     Relation(std::string name, std::size_t arity, std::size_t auxiliaryArity,
             std::vector<std::string> attributeNames, std::vector<std::string> attributeTypes,
+            VecOwn<ram::AbstractOperator> auxiliaryAttributeMergers,
             RelationRepresentation representation)
             : representation(representation), name(std::move(name)), arity(arity),
               auxiliaryArity(auxiliaryArity), attributeNames(std::move(attributeNames)),
-              attributeTypes(std::move(attributeTypes)) {
+              attributeTypes(std::move(attributeTypes)),
+              auxiliaryAttributeMergers(std::move(auxiliaryAttributeMergers)) {
         assert(this->attributeNames.size() == arity && "arity mismatch for attributes");
         assert(this->attributeTypes.size() == arity && "arity mismatch for types");
         for (std::size_t i = 0; i < arity; i++) {
@@ -62,6 +65,11 @@ public:
     /** @brief Get attribute names */
     const std::vector<std::string>& getAttributeNames() const {
         return attributeNames;
+    }
+
+    /** @brief Get merger functors */
+    const std::vector<ram::AbstractOperator*> getAttributeMergers() const {
+        return toPtrVector(auxiliaryAttributeMergers);
     }
 
     /** @brief Is nullary relation */
@@ -95,7 +103,7 @@ public:
     }
 
     Relation* cloning() const override {
-        return new Relation(name, arity, auxiliaryArity, attributeNames, attributeTypes, representation);
+        return new Relation(name, arity, auxiliaryArity, attributeNames, attributeTypes, clone(auxiliaryAttributeMergers), representation);
     }
 
 protected:
@@ -107,7 +115,9 @@ protected:
                 out << ",";
                 out << attributeNames[i] << ":" << attributeTypes[i];
                 if (i >= arity - auxiliaryArity) {
-                    out << " auxiliary";
+                    out << " auxiliary:";
+                    const AbstractOperator& op = *auxiliaryAttributeMergers[i - (arity - auxiliaryArity)].get();
+                    out << op;
                 }
             }
             out << ")";
@@ -121,7 +131,7 @@ protected:
         const auto& other = asAssert<Relation>(node);
         return representation == other.representation && name == other.name && arity == other.arity &&
                auxiliaryArity == other.auxiliaryArity && attributeNames == other.attributeNames &&
-               attributeTypes == other.attributeTypes;
+               attributeTypes == other.attributeTypes && auxiliaryAttributeMergers == other.auxiliaryAttributeMergers;
     }
 
 protected:
@@ -142,6 +152,9 @@ protected:
 
     /** Type of attributes */
     const std::vector<std::string> attributeTypes;
+
+    /** Operator to merge auxiliary arities */
+    const VecOwn<ram::AbstractOperator> auxiliaryAttributeMergers;
 };
 
 /**

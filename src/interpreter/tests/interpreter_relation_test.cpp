@@ -46,7 +46,7 @@ TEST(Relation0, Construction) {
     OrderCollection orders = {emptyOrder};
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<0, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<0, 0, interpreter::Btree> rel("test", indexSelection);
 
     souffle::Tuple<RamDomain, 0> tuple;
     // add some values
@@ -68,7 +68,7 @@ TEST(Relation0, Iteration) {
     OrderCollection orders = {emptyOrder};
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<0, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<0, 0, interpreter::Btree> rel("test", indexSelection);
     RelationWrapper* wrapper = &rel;
 
     souffle::Tuple<RamDomain, 0> tuple;
@@ -95,7 +95,7 @@ TEST(Relation1, Construction) {
     mapping.insert({existenceCheck, fullOrder});
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<1, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<1, 0, interpreter::Btree> rel("test", indexSelection);
     RelInterface relInt(rel, symbolTable, "test", {"i"}, {"i"}, 0);
 
     tuple d1(&relInt, {1});
@@ -124,7 +124,7 @@ TEST(Basic, Iteration) {
     mapping.insert({existenceCheck, fullOrder});
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<1, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<1, 0, interpreter::Btree> rel("test", indexSelection);
     RelInterface relInt(rel, symbolTable, "test", {"i"}, {"i"}, 0);
 
     // add some values
@@ -159,7 +159,7 @@ TEST(Independence, Iteration) {
     mapping.insert({existenceCheck, fullOrder});
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<1, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<1, 0, interpreter::Btree> rel("test", indexSelection);
     RelInterface relInt(rel, symbolTable, "test", {"i"}, {"i"}, 0);
 
     // add a value
@@ -195,7 +195,7 @@ TEST(IndependentMoving, Iteration) {
     mapping.insert({existenceCheck, fullOrder});
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<1, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<1, 0, interpreter::Btree> rel("test", indexSelection);
     RelInterface relInt(rel, symbolTable, "test", {"i"}, {"i"}, 0);
 
     // add a value
@@ -226,7 +226,7 @@ TEST(IndependentCopying, Iteration) {
     mapping.insert({existenceCheck, fullOrder});
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<1, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<1, 0, interpreter::Btree> rel("test", indexSelection);
     RelInterface relInt(rel, symbolTable, "test", {"i"}, {"i"}, 0);
 
     // add a value
@@ -258,7 +258,7 @@ TEST(Reordering, Iteration) {
     mapping.insert({existenceCheck, fullOrder});
     IndexCluster indexSelection(mapping, searches, orders);
 
-    Relation<3, interpreter::Btree> rel(0, "test", indexSelection);
+    Relation<3, 0, interpreter::Btree> rel("test", indexSelection);
     souffle::Tuple<RamDomain, 3> tuple{0, 1, 2};
     rel.insert(tuple);
 

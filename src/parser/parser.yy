@@ -165,6 +165,7 @@
 %token INPUT_DECL                "input directives declaration"
 %token OUTPUT_DECL               "output directives declaration"
 %token DEBUG_DELTA               "debug_delta"
+%token UNIQUE                    "unique"
 %token PRINTSIZE_DECL            "printsize directives declaration"
 %token LIMITSIZE_DECL            "limitsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
@@ -552,6 +553,10 @@ attribute
   : IDENT[name] COLON qualified_name[type]
     {
       $$ = mk<ast::Attribute>($name, $type, @type);
+    }
+  | IDENT[name] COLON qualified_name[type] COLON IDENT[merge]
+    {
+      $$ = mk<ast::Attribute>($name, $type, $merge, @type);
     }
   ;
 

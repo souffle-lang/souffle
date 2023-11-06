@@ -1200,7 +1200,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                     default: return false;
                 }
             } else if (isA<ram::UserDefinedAggregator>(aggregator)) {
-                return false;
+                return true;
             }
             fatal("Unhandled aggregate operation");
         }

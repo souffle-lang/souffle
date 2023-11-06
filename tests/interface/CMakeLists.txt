@@ -7,6 +7,7 @@
 # Make sure that the functor library is built
 add_subdirectory(aggregates)
 add_subdirectory(functors)
+add_subdirectory(lub)
 add_subdirectory(graph_coloring)
 add_subdirectory(pathseq)
 
@@ -157,6 +158,7 @@ endfunction()
 
 souffle_positive_functor_test(aggregates CATEGORY interface)
 souffle_positive_functor_test(functors CATEGORY interface)
+souffle_positive_functor_test(lub CATEGORY interface)
 souffle_positive_functor_test(pathseq CATEGORY interface)
 souffle_positive_functor_test(graph_coloring CATEGORY interface)
 souffle_positive_cpp_test(contain_insert)

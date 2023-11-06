@@ -63,7 +63,7 @@ const std::string testInterpreterStore(
 
     VecOwn<ram::Relation> rels;
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", arity, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", arity, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(arity)},
@@ -252,7 +252,7 @@ TEST(IO_store, SignedChangedDelimiter) {
     std::vector<std::string> attribsTypes(len, "i");
 
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", len, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", len, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
@@ -322,7 +322,7 @@ TEST(IO_store, MixedTypes) {
     std::vector<std::string> attribsTypes{"i", "u", "f", "f", "s"};
 
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", 5, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", 5, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
@@ -393,7 +393,7 @@ TEST(IO_load, Signed) {
     std::vector<std::string> attribs = {"a", "b"};
     std::vector<std::string> attribsTypes = {"i", "i"};
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", 2, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", 2, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
@@ -454,7 +454,7 @@ TEST(IO_load, Float) {
     std::vector<std::string> attribs = {"a", "b"};
     std::vector<std::string> attribsTypes = {"f", "f"};
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", 2, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", 2, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
@@ -515,7 +515,7 @@ TEST(IO_load, Unsigned) {
     std::vector<std::string> attribs = {"a", "b"};
     std::vector<std::string> attribsTypes = {"u", "u"};
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", 2, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", 2, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},
@@ -576,7 +576,7 @@ TEST(IO_load, MixedTypesLoad) {
     std::vector<std::string> attribs = {"l", "u", "b", "a"};
     std::vector<std::string> attribsTypes = {"s", "i", "u", "f"};
     Own<ram::Relation> myrel =
-            mk<ram::Relation>("test", 4, 0, attribs, attribsTypes, RelationRepresentation::BTREE);
+            mk<ram::Relation>("test", 4, 0, attribs, attribsTypes, VecOwn<ram::AbstractOperator>{}, RelationRepresentation::BTREE);
 
     Json types = Json::object{
             {"relation", Json::object{{"arity", static_cast<long long>(attribsTypes.size())},

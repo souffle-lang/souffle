@@ -91,8 +91,8 @@ protected:
     /* -------------- updater utilities ------------- */
 
     mutable Updater upd;
-    void update(Key& old_k, const Key& new_k) {
-        upd.update(old_k, new_k);
+    bool update(Key& old_k, const Key& new_k) {
+        return upd.update(old_k, new_k);
     }
 
     /* -------------- the node type ----------------- */
@@ -1225,14 +1225,14 @@ public:
                     }
 
                     // update provenance information
-                    if (typeid(Comparator) != typeid(WeakComparator) && less(k, *pos)) {
+                    if (typeid(Comparator) != typeid(WeakComparator)) {
                         if (!cur->lock.try_upgrade_to_write(cur_lease)) {
                             // start again
                             return insert(k, hints);
                         }
-                        update(*pos, k);
+                        bool updated = update(*pos, k);
                         cur->lock.end_write();
-                        return true;
+                        return updated;
                     }
 
                     // we found the element => no check of lock necessary
@@ -1280,14 +1280,14 @@ public:
                 }
 
                 // update provenance information
-                if (typeid(Comparator) != typeid(WeakComparator) && less(k, *(pos - 1))) {
+                if (typeid(Comparator) != typeid(WeakComparator)) {
                     if (!cur->lock.try_upgrade_to_write(cur_lease)) {
                         // start again
                         return insert(k, hints);
                     }
-                    update(*(pos - 1), k);
+                    bool updated = update(*(pos - 1), k);
                     cur->lock.end_write();
-                    return true;
+                    return updated;
                 }
 
                 // we found the element => done
@@ -1432,9 +1432,8 @@ public:
                 // early exit for sets
                 if (isSet && pos != b && weak_equal(*pos, k)) {
                     // update provenance information
-                    if (typeid(Comparator) != typeid(WeakComparator) && less(k, *pos)) {
-                        update(*pos, k);
-                        return true;
+                    if (typeid(Comparator) != typeid(WeakComparator)) {
+                        return update(*pos, k);
                     }
 
                     return false;
@@ -1458,9 +1457,8 @@ public:
             // early exit for sets
             if (isSet && pos != a && weak_equal(*(pos - 1), k)) {
                 // update provenance information
-                if (typeid(Comparator) != typeid(WeakComparator) && less(k, *(pos - 1))) {
-                    update(*(pos - 1), k);
-                    return true;
+                if (typeid(Comparator) != typeid(WeakComparator)) {
+                    return update(*(pos - 1), k);
                 }
 
                 return false;

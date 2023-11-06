@@ -21,18 +21,15 @@
 
 namespace souffle::interpreter {
 
-#define CREATE_BTREE_DELETE_REL(Structure, Arity, ...)                                               \
-    case (Arity): {                                                                                  \
-        return mk<BtreeDeleteRelation<Arity>>(id.getAuxiliaryArity(), id.getName(), indexSelection); \
+#define CREATE_BTREE_DELETE_REL(Structure, Arity, AuxiliaryArity, ...)                       \
+    if (id.getArity() == Arity && id.getAuxiliaryArity() == AuxiliaryArity) {                \
+        return mk<BtreeDeleteRelation<Arity, AuxiliaryArity>>(id.getName(), indexSelection); \
     }
 
 Own<RelationWrapper> createBTreeDeleteRelation(
         const ram::Relation& id, const ram::analysis::IndexCluster& indexSelection) {
-    switch (id.getArity()) {
-        FOR_EACH_BTREE_DELETE(CREATE_BTREE_DELETE_REL);
-
-        default: fatal("Requested arity not yet supported. Feel free to add it.");
-    }
+    FOR_EACH_BTREE_DELETE(CREATE_BTREE_DELETE_REL);
+    fatal("Requested arity not yet supported. Feel free to add it.");
 }
 
 }  // namespace souffle::interpreter

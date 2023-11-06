@@ -39,6 +39,8 @@ class TranslatorContext;
 enum TranslationMode {
     DEFAULT,
 
+    Auxiliary,
+
     // Subsumptive clauses
     //
     //   R(x0) <= R(x1) :- body.

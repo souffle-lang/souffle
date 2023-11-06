@@ -82,7 +82,7 @@ public:
     ExpressionPair getExpressionPair(
             const Constraint* binRelOp, std::size_t& element, const std::optional<std::size_t>& identifier);
     ExpressionPair getLowerUpperExpression(Condition* c, std::size_t& element,
-            const std::optional<std::size_t>& level, RelationRepresentation rep);
+            const std::optional<std::size_t>& level, const ram::Relation& rel);
 
     /**
      * @param AttributeTypes to indicate type of each attribute in the relation
@@ -93,9 +93,8 @@ public:
      * @param RelationRepresentation identifying the data structure
      * @result Remaining conditions that could not be transformed to an index
      */
-    Own<Condition> constructPattern(const std::vector<std::string>& attributeTypes, RamPattern& queryPattern,
-            bool& indexable, VecOwn<Condition> conditionList, std::size_t identifier,
-            RelationRepresentation rep);
+    Own<Condition> constructPattern(const ram::Relation& rel, RamPattern& queryPattern,
+            bool& indexable, VecOwn<Condition> conditionList, std::size_t identifier);
 
     /**
      * @brief Rewrite a scan operation to an indexed scan operation

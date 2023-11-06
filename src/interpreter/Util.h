@@ -27,82 +27,78 @@
 namespace souffle::interpreter {
 // clang-format off
 
-#define FOR_EACH_PROVENANCE(func, ...) \
-    func(Provenance, 2, __VA_ARGS__)   \
-    func(Provenance, 3, __VA_ARGS__)   \
-    func(Provenance, 4, __VA_ARGS__)   \
-    func(Provenance, 5, __VA_ARGS__)   \
-    func(Provenance, 6, __VA_ARGS__)   \
-    func(Provenance, 7, __VA_ARGS__)   \
-    func(Provenance, 8, __VA_ARGS__)   \
-    func(Provenance, 9, __VA_ARGS__)   \
-    func(Provenance, 10, __VA_ARGS__)  \
-    func(Provenance, 11, __VA_ARGS__)  \
-    func(Provenance, 12, __VA_ARGS__)  \
-    func(Provenance, 13, __VA_ARGS__)  \
-    func(Provenance, 14, __VA_ARGS__)  \
-    func(Provenance, 15, __VA_ARGS__)  \
-    func(Provenance, 16, __VA_ARGS__)  \
-    func(Provenance, 17, __VA_ARGS__)  \
-    func(Provenance, 18, __VA_ARGS__)  \
-    func(Provenance, 19, __VA_ARGS__)  \
-    func(Provenance, 20, __VA_ARGS__)  \
-    func(Provenance, 21, __VA_ARGS__)  \
-    func(Provenance, 22, __VA_ARGS__)  \
-    func(Provenance, 23, __VA_ARGS__)  \
-    func(Provenance, 24, __VA_ARGS__)  \
-    func(Provenance, 25, __VA_ARGS__)  \
-    func(Provenance, 26, __VA_ARGS__)  \
-    func(Provenance, 27, __VA_ARGS__)  \
-    func(Provenance, 28, __VA_ARGS__)  \
-    func(Provenance, 29, __VA_ARGS__)  \
-    func(Provenance, 30, __VA_ARGS__)
 
+#define FOR_EACH_PROVENANCE(func, ...) \
+    func(Provenance, 2, 2, __VA_ARGS__)   \
+    func(Provenance, 3, 2, __VA_ARGS__)   \
+    func(Provenance, 4, 2, __VA_ARGS__)   \
+    func(Provenance, 5, 2, __VA_ARGS__)   \
+    func(Provenance, 6, 2, __VA_ARGS__)   \
+    func(Provenance, 7, 2, __VA_ARGS__)   \
+    func(Provenance, 8, 2, __VA_ARGS__)   \
+    func(Provenance, 9, 2, __VA_ARGS__)
 
 #define FOR_EACH_BTREE(func, ...)\
-    func(Btree, 0, __VA_ARGS__) \
-    func(Btree, 1, __VA_ARGS__) \
-    func(Btree, 2, __VA_ARGS__) \
-    func(Btree, 3, __VA_ARGS__) \
-    func(Btree, 4, __VA_ARGS__) \
-    func(Btree, 5, __VA_ARGS__) \
-    func(Btree, 6, __VA_ARGS__) \
-    func(Btree, 7, __VA_ARGS__) \
-    func(Btree, 8, __VA_ARGS__) \
-    func(Btree, 9, __VA_ARGS__) \
-    func(Btree, 10, __VA_ARGS__) \
-    func(Btree, 11, __VA_ARGS__) \
-    func(Btree, 12, __VA_ARGS__) \
-    func(Btree, 13, __VA_ARGS__) \
-    func(Btree, 14, __VA_ARGS__) \
-    func(Btree, 15, __VA_ARGS__) \
-    func(Btree, 16, __VA_ARGS__) \
-    func(Btree, 17, __VA_ARGS__) \
-    func(Btree, 18, __VA_ARGS__) \
-    func(Btree, 19, __VA_ARGS__) \
-    func(Btree, 20, __VA_ARGS__)
+    func(Btree, 0, 0, __VA_ARGS__) \
+    func(Btree, 1, 0, __VA_ARGS__) \
+    func(Btree, 2, 0, __VA_ARGS__) \
+    func(Btree, 3, 0, __VA_ARGS__) \
+    func(Btree, 4, 0, __VA_ARGS__) \
+    func(Btree, 5, 0, __VA_ARGS__) \
+    func(Btree, 6, 0, __VA_ARGS__) \
+    func(Btree, 7, 0, __VA_ARGS__) \
+    func(Btree, 8, 0, __VA_ARGS__) \
+    func(Btree, 9, 0, __VA_ARGS__) \
+    func(Btree, 10, 0, __VA_ARGS__) \
+    func(Btree, 11, 0, __VA_ARGS__) \
+    func(Btree, 12, 0, __VA_ARGS__) \
+    func(Btree, 13, 0, __VA_ARGS__) \
+    func(Btree, 14, 0, __VA_ARGS__) \
+    func(Btree, 15, 0, __VA_ARGS__) \
+    func(Btree, 16, 0, __VA_ARGS__) \
+    func(Btree, 17, 0, __VA_ARGS__) \
+    func(Btree, 18, 0, __VA_ARGS__) \
+    func(Btree, 19, 0, __VA_ARGS__) \
+    func(Btree, 20, 0, __VA_ARGS__) \
+    func(Btree, 1, 1, __VA_ARGS__)  \
+    func(Btree, 2, 1, __VA_ARGS__)  \
+    func(Btree, 2, 2, __VA_ARGS__)  \
+    func(Btree, 3, 1, __VA_ARGS__)  \
+    func(Btree, 3, 2, __VA_ARGS__)  \
+    func(Btree, 4, 1, __VA_ARGS__)  \
+    func(Btree, 4, 2, __VA_ARGS__)  \
+    func(Btree, 5, 1, __VA_ARGS__)  \
+    func(Btree, 5, 2, __VA_ARGS__)  \
+    func(Btree, 6, 1, __VA_ARGS__)  \
+    func(Btree, 6, 2, __VA_ARGS__)  \
+    func(Btree, 7, 1, __VA_ARGS__)  \
+    func(Btree, 7, 2, __VA_ARGS__)  \
+    func(Btree, 8, 1, __VA_ARGS__)  \
+    func(Btree, 8, 2, __VA_ARGS__)  \
+    func(Btree, 9, 1, __VA_ARGS__)  \
+    func(Btree, 9, 2, __VA_ARGS__)
 
 #define FOR_EACH_BTREE_DELETE(func, ...)\
-    func(BtreeDelete, 1, __VA_ARGS__) \
-    func(BtreeDelete, 2, __VA_ARGS__) \
-    func(BtreeDelete, 3, __VA_ARGS__) \
-    func(BtreeDelete, 4, __VA_ARGS__) \
-    func(BtreeDelete, 5, __VA_ARGS__) \
-    func(BtreeDelete, 6, __VA_ARGS__) \
-    func(BtreeDelete, 7, __VA_ARGS__) \
-    func(BtreeDelete, 8, __VA_ARGS__) \
-    func(BtreeDelete, 9, __VA_ARGS__) \
-    func(BtreeDelete, 10, __VA_ARGS__) \
-    func(BtreeDelete, 11, __VA_ARGS__) \
-    func(BtreeDelete, 12, __VA_ARGS__) \
-    func(BtreeDelete, 13, __VA_ARGS__) \
-    func(BtreeDelete, 14, __VA_ARGS__) \
-    func(BtreeDelete, 15, __VA_ARGS__) \
-    func(BtreeDelete, 16, __VA_ARGS__) \
-    func(BtreeDelete, 17, __VA_ARGS__) \
-    func(BtreeDelete, 18, __VA_ARGS__) \
-    func(BtreeDelete, 19, __VA_ARGS__) \
-    func(BtreeDelete, 20, __VA_ARGS__)
+    func(BtreeDelete, 1, 0, __VA_ARGS__) \
+    func(BtreeDelete, 2, 0, __VA_ARGS__) \
+    func(BtreeDelete, 3, 0, __VA_ARGS__) \
+    func(BtreeDelete, 4, 0, __VA_ARGS__) \
+    func(BtreeDelete, 5, 0, __VA_ARGS__) \
+    func(BtreeDelete, 6, 0, __VA_ARGS__) \
+    func(BtreeDelete, 7, 0, __VA_ARGS__) \
+    func(BtreeDelete, 8, 0, __VA_ARGS__) \
+    func(BtreeDelete, 9, 0, __VA_ARGS__) \
+    func(BtreeDelete, 10, 0, __VA_ARGS__) \
+    func(BtreeDelete, 11, 0, __VA_ARGS__) \
+    func(BtreeDelete, 12, 0, __VA_ARGS__) \
+    func(BtreeDelete, 13, 0, __VA_ARGS__) \
+    func(BtreeDelete, 14, 0, __VA_ARGS__) \
+    func(BtreeDelete, 15, 0, __VA_ARGS__) \
+    func(BtreeDelete, 16, 0, __VA_ARGS__) \
+    func(BtreeDelete, 17, 0, __VA_ARGS__) \
+    func(BtreeDelete, 18, 0, __VA_ARGS__) \
+    func(BtreeDelete, 19, 0, __VA_ARGS__) \
+    func(BtreeDelete, 20, 0, __VA_ARGS__)
 
 // Brie is disabled for now.
 #define FOR_EACH_BRIE(func, ...)
@@ -129,11 +125,11 @@ namespace souffle::interpreter {
     /* func(Brie, 20, __VA_ARGS__)   */
 
 #define FOR_EACH_EQREL(func, ...)\
-    func(Eqrel, 2, __VA_ARGS__)
+    func(Eqrel, 2, 0, __VA_ARGS__)
 
 #define FOR_EACH(func, ...)                 \
     FOR_EACH_BTREE(func, __VA_ARGS__)       \
-    FOR_EACH_BTREE_DELETE(func, __VA_ARGS__)       \
+    FOR_EACH_BTREE_DELETE(func, __VA_ARGS__)\
     FOR_EACH_BRIE(func, __VA_ARGS__)        \
     FOR_EACH_PROVENANCE(func, __VA_ARGS__)  \
     FOR_EACH_EQREL(func, __VA_ARGS__)
@@ -225,13 +221,6 @@ struct get_full_index<0> {
     using type = index<>;
 };
 
-// -- obtains a full provenance index for a given arity --
-template <unsigned arity>
-struct get_full_prov_index {
-    using type = typename extend<typename extend<typename get_full_index<arity - 2>::type, arity - 1>::type,
-            arity - 2>::type;
-};
-
 }  // namespace index_utils
 
 template <std::size_t Arity>
@@ -241,39 +230,66 @@ using t_tuple = typename souffle::Tuple<RamDomain, Arity>;
 template <std::size_t Arity>
 using comparator = typename index_utils::get_full_index<Arity>::type::comparator;
 
-template <std::size_t Arity>
-using prov_comparator = typename index_utils::get_full_prov_index<Arity>::type::comparator;
 
-// Alias for btree_set
-template <std::size_t Arity>
-using Btree = btree_set<t_tuple<Arity>, comparator<Arity>>;
-
-// Alias for btree_set
-template <std::size_t Arity>
-using BtreeDelete = btree_delete_set<t_tuple<Arity>, comparator<Arity>>;
-
-// Alias for Trie
-template <std::size_t Arity>
-using Brie = Trie<Arity>;
-
-// Updater for Provenance
-template <std::size_t Arity>
-struct ProvenanceUpdater {
-    void update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
-        old_t[Arity - 2] = new_t[Arity - 2];
-        old_t[Arity - 1] = new_t[Arity - 1];
+// Updater
+template <std::size_t Arity, std::size_t AuxiliaryArity>
+struct Updater {
+    bool update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
+        bool changed = false;
+        // todo: expand for loop using templates
+        constexpr std::size_t firstAux = Arity - AuxiliaryArity - 1;
+        for (std::size_t i = firstAux; i < Arity; i++) {
+            if (old_t[i] != new_t[i]) {
+                changed = true;
+                old_t[i] = new_t[i];
+            }
+        }
+        return changed;
     }
 };
 
-// Alias for Provenance
-template <std::size_t Arity>
-using Provenance = btree_set<t_tuple<Arity>, prov_comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
-        typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - 2>,
-        ProvenanceUpdater<Arity>>;
+// ProvenanceUpdater
+template <std::size_t Arity, std::size_t AuxiliaryArity>
+struct ProvenanceUpdater {
+    bool update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
+        constexpr std::size_t level = Arity-1;
+        constexpr std::size_t rule = Arity-2;
+        if (ramBitCast<RamSigned>(new_t[level]) < ramBitCast<RamSigned>(old_t[level])
+            || (ramBitCast<RamSigned>(new_t[level]) == ramBitCast<RamSigned>(old_t[level])
+            && ramBitCast<RamSigned>(new_t[rule]) < ramBitCast<RamSigned>(old_t[rule]))) {
+            old_t[level] = new_t[level];
+            old_t[rule] = new_t[rule];
+            return true;
+        }
+        return false;
+    }
+};
+
+// Alias for btree_set
+template <std::size_t Arity, std::size_t AuxiliaryArity>
+using Btree = btree_set<t_tuple<Arity>, comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
+        typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - AuxiliaryArity>,
+        Updater<Arity, AuxiliaryArity>>;
+
+
+// Alias for btree_delete_set
+template <std::size_t Arity, std::size_t AuxiliaryArity>
+using BtreeDelete = btree_delete_set<t_tuple<Arity>, comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
+        typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - AuxiliaryArity>,
+        Updater<Arity, AuxiliaryArity>>;
+
+// Alias for Trie
+template <std::size_t Arity, std::size_t AuxiliaryArity>
+using Brie = Trie<Arity>;
+
+template <std::size_t Arity, std::size_t AuxiliaryArity>
+using Provenance = btree_set<t_tuple<Arity>, comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
+        typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - AuxiliaryArity>,
+        ProvenanceUpdater<Arity, AuxiliaryArity>>;
 
 // Alias for Eqrel
 // Note: require Arity = 2.
-template <std::size_t Arity>
+template <std::size_t Arity, std::size_t AuxiliaryArity>
 using Eqrel = EquivalenceRelation<t_tuple<Arity>>;
 
 };  // namespace souffle::interpreter

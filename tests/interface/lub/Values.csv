@@ -1,0 +1,6 @@
+start	v	[0, 0]
+head	v	[0, 102]
+cond	v	[0, 100]
+incr	v	[2, 102]
+not cond	v	[101, 102]
+end	v	[101, 102]

@@ -35,6 +35,7 @@ namespace souffle::ast {
 class Attribute : public Node {
 public:
     Attribute(std::string n, QualifiedName t, SrcLocation loc = {});
+    Attribute(std::string n, QualifiedName t, std::optional<std::string> merger, SrcLocation loc = {});
 
     /** Return attribute name */
     const std::string& getName() const {
@@ -48,6 +49,10 @@ public:
 
     /** Set type name */
     void setTypeName(QualifiedName name);
+
+    const std::optional<std::string>& getMerger() const {
+        return merger;
+    }
 
 protected:
     void print(std::ostream& os) const override;
@@ -63,6 +68,8 @@ private:
 
     /** Type name */
     QualifiedName typeName;
+
+    std::optional<std::string> merger;
 };
 
 }  // namespace souffle::ast

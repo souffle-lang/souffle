@@ -24,12 +24,14 @@
 #include "ast2ram/utility/TranslatorContext.h"
 #include "ast2ram/utility/Utils.h"
 #include "ast2ram/utility/ValueIndex.h"
+#include "ram/AbstractOperator.h"
 #include "ram/Call.h"
 #include "ram/DebugInfo.h"
 #include "ram/ExistenceCheck.h"
 #include "ram/Expression.h"
 #include "ram/Filter.h"
 #include "ram/Insert.h"
+#include "ram/IntrinsicOperator.h"
 #include "ram/LogRelationTimer.h"
 #include "ram/MergeExtend.h"
 #include "ram/Negation.h"
@@ -69,18 +71,14 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
 
 Own<ram::Relation> UnitTranslator::createRamRelation(
         const ast::Relation* baseRelation, std::string ramRelationName) const {
-    auto arity = baseRelation->getArity();
 
-    // All relations in a provenance program should have a provenance data structure
-    auto representation = RelationRepresentation::PROVENANCE;
+    auto relation = seminaive::UnitTranslator::createRamRelation(baseRelation, ramRelationName);
 
-    // Add in base relation information
-    std::vector<std::string> attributeNames;
-    std::vector<std::string> attributeTypeQualifiers;
-    for (const auto& attribute : baseRelation->getAttributes()) {
-        attributeNames.push_back(attribute->getName());
-        attributeTypeQualifiers.push_back(context->getAttributeTypeQualifier(attribute->getTypeName()));
-    }
+    std::size_t arity = relation->getArity();
+    std::size_t auxiliaryArity = relation->getAuxiliaryArity();
+    std::vector<std::string> attributeNames = relation->getAttributeNames();
+    std::vector<std::string> attributeTypeQualifiers = relation->getAttributeTypes();
+    VecOwn<ram::AbstractOperator> attributeMergers = clone(relation->getAttributeMergers());
 
     // Add in provenance information
     attributeNames.push_back("@rule_number");
@@ -89,8 +87,12 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     attributeNames.push_back("@level_number");
     attributeTypeQualifiers.push_back("i:number");
 
+    ram::IntrinsicOperator minOperator(FunctorOp::MIN);
+    attributeMergers.push_back(clone(minOperator));
+    attributeMergers.push_back(clone(minOperator));
+
     return mk<ram::Relation>(
-            ramRelationName, arity + 2, 2, attributeNames, attributeTypeQualifiers, representation);
+            ramRelationName, arity + 2, auxiliaryArity + 2, attributeNames, attributeTypeQualifiers, std::move(attributeMergers), relation->getRepresentation());
 }
 
 std::string UnitTranslator::getInfoRelationName(const ast::Clause* clause) const {
@@ -137,9 +139,10 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
         attributeNames.push_back("clause_repr");
         attributeTypeQualifiers.push_back("s:symbol");
 
+        VecOwn<ram::AbstractOperator> attributeMerger;
         // Create the info relation
         ramRelations.push_back(mk<ram::Relation>(getInfoRelationName(clause), attributeNames.size(), 0,
-                attributeNames, attributeTypeQualifiers, RelationRepresentation::INFO));
+                attributeNames, attributeTypeQualifiers, std::move(attributeMerger), RelationRepresentation::INFO));
     }
 
     return ramRelations;

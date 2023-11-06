@@ -22,10 +22,12 @@ while(v <= 100) {
 .decl Restrict_Value_Lb(n:Node, v:Variable, lb:number)
 .decl Restrict_Value_Ub(n:Node, v:Variable, ub:number)
 
-Edge("start","head").
+Edge("start","start_to_head").
+Edge("start_to_head", "head").
 Edge("head","cond").
 Edge("cond","incr").
-Edge("incr","head").
+Edge("incr","incr_to_head").
+Edge("incr_to_head","head").
 Edge("head","not cond").
 Edge("not cond","end").
 
@@ -39,29 +41,45 @@ Increment_Value("incr", "v", 2).
 .functor ilub(a:Interval, b:Interval):Interval stateful
 .functor iwiden(a:Interval, b:Interval):Interval stateful
 
+//.functor ilub(a:Interval, b:Interval) : Interval {
+//    case ([a, b], [c, d]) => [min(a,c), max(b,d)]
+//    case (_, _) => nil
+//}
+
+//.lattice Interval<> {
+//    Bottom => [0, -1]       // optional
+//    Top    => [-1000, 1000] // optional
+//    Leq    => ileq          // optional
+//    Lub    => ilub
+//    Glb    => iglb
+//}
+//
+//.lattice Symbolic<> {
+//    Bottom => z3_false()
+//    Top    => z3_true()
+//    Leq    => z3_leq
+//    Lub    => z3_or
+//    glb    => z3_and
+//}
+
 // Possible values for v after statement n, expressed with an interval
 // for instance: Values("head", "v", [0, 50])
 .decl Values(
     n:Node,
     v:Variable,
-    i:Interval:ilub) //btree_delete
-
+    i:Interval:ilub)
 //.decl Values(
 //    n:Node,
 //    v:Variable,
-//    i:Interval:{loop_head(n) => @iwiden ; !loop_head(n) => @ilub} ) //btree_delete
-//    i:Interval:ilub:iwiden{loop_head(n)} ) //btree_delete
+//    i:Interval<>)
+
 .output Values
 
-//.lub Values(n, _, x) :-
-//    loop_head(n) => x:iwiden
-//    ;
-//    !loop_head(n) => x:ilub
-//    .
-
-//Values(n, v, [lb1, ub1]) <= Values(n, v, [lb2, ub2]) :-
-//    lb1 >= lb2,
-//    ub1 <= ub2.
+//Values(n, v, @iwiden(i2, i1)) :-
+//    Edge(n, "head"),
+//    Edge(pred, n),
+//    Values(n, v, i2),
+//    Values(pred, v, i1).
 
 Values(n, v, [x, x]) :-
     Set_Value(n, v, x).
@@ -93,8 +111,25 @@ Values(n, v, [lb, min_ub]) :-
     min_ub = min(x, ub),
     min_ub >= lb.
 
-//Values(n, v, [lb, ub]) :-
-//    Values(n, v, [lb1, ub1]),
-//    Values(n, v, [lb2, ub2]),
-//    lb = min(lb1, lb2),
-//    ub = max(ub1, ub2).
+
+.decl toto(
+    n:Node,
+    v:Variable,
+    i:Interval:ilub,
+    j:Interval:ilub)
+//.output toto()
+
+toto(s, v, [20, 30], [1, 2]),
+toto(s, v, [0, 10], [6,10]) :-
+    Set_Value(s, v, _).
+
+.decl titi(
+    n:Node,
+    v:Variable,
+    i:Interval,
+    j:Interval)
+//.output titi()
+
+titi(s, v, [20, 30], [1, 2]),
+titi(s, v, [0, 10], [6,10]) :-
+    Set_Value(s, v, _).

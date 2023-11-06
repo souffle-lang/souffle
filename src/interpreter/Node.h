@@ -117,8 +117,8 @@ struct RelationWrapper;
 
 #define SINGLE_TOKEN(tok) I_##tok,
 
-#define EXPAND_TOKEN(structure, arity, tok)\
-    I_##tok##_##structure##_##arity,
+#define EXPAND_TOKEN(structure, arity, auxiliaryArity, tok)\
+    I_##tok##_##structure##_##arity##_##auxiliaryArity,
 
 /*
  * Declares all the tokens.
@@ -134,30 +134,31 @@ enum NodeType {
 
 #define __TO_STRING(a) #a
 #define SINGLE_TOKEN_ENTRY(tok) {__TO_STRING(I_##tok), I_##tok},
-#define EXPAND_TOKEN_ENTRY(Structure, arity, tok) \
-    {__TO_STRING(I_##tok##_##Structure##_##arity), I_##tok##_##Structure##_##arity},
+#define EXPAND_TOKEN_ENTRY(Structure, arity, auxiliaryArity, tok) \
+    {__TO_STRING(I_##tok##_##Structure##_##arity##_##auxiliaryArity), I_##tok##_##Structure##_##arity##_##auxiliaryArity},
 
 /**
  * Construct interpreterNodeType by looking at the representation and the arity of the given rel.
  *
  * Add reflective from string to NodeType.
  */
-inline NodeType constructNodeType(Global& glb, std::string tokBase, const ram::Relation& rel) {
-    const bool isProvenance = glb.config().has("provenance");
+inline NodeType constructNodeType(Global&, std::string tokBase, const ram::Relation& rel) {
 
     static const std::unordered_map<std::string, NodeType> map = {
             FOR_EACH_INTERPRETER_TOKEN(SINGLE_TOKEN_ENTRY, EXPAND_TOKEN_ENTRY)
     };
 
     std::string arity = std::to_string(rel.getArity());
-    if (rel.getRepresentation() == RelationRepresentation::EQREL) {
-        return map.at("I_" + tokBase + "_Eqrel_" + arity);
+    std::string auxiliaryArity = std::to_string(rel.getAuxiliaryArity());
+    bool hasProvenance = rel.getAttributeNames().back() == "@level_number";
+    if (hasProvenance) {
+        return map.at("I_" + tokBase + "_Provenance_" + arity + "_" + auxiliaryArity);
+    } else if (rel.getRepresentation() == RelationRepresentation::EQREL) {
+        return map.at("I_" + tokBase + "_Eqrel_" + arity + "_" + auxiliaryArity);
     } else if(rel.getRepresentation() == RelationRepresentation::BTREE_DELETE) {
-        return map.at("I_" + tokBase + "_BtreeDelete_" + arity);
-    } else if (isProvenance) {
-        return map.at("I_" + tokBase + "_Provenance_" + arity);
+        return map.at("I_" + tokBase + "_BtreeDelete_" + arity + "_" + auxiliaryArity);
     } else  {
-        return map.at("I_" + tokBase + "_Btree_" + arity);
+        return map.at("I_" + tokBase + "_Btree_" + arity + "_" + auxiliaryArity);
     }
 
     fatal("Unrecognized node type: base:%s arity:%s.", tokBase, arity);

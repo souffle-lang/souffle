@@ -151,13 +151,14 @@ protected:
 /**
  * A relation, composed of a collection of indexes.
  */
-template <std::size_t _Arity, template <std::size_t> typename Structure>
+template <std::size_t _Arity, std::size_t _AuxiliaryArity, template <std::size_t, std::size_t> typename Structure>
 class Relation : public RelationWrapper {
 public:
     static constexpr std::size_t Arity = _Arity;
+    static constexpr std::size_t AuxiliaryArity = _AuxiliaryArity;
     using Attribute = std::size_t;
     using AttributeSet = std::set<Attribute>;
-    using Index = interpreter::Index<Arity, Structure>;
+    using Index = interpreter::Index<Arity, AuxiliaryArity, Structure>;
     using Tuple = souffle::Tuple<RamDomain, Arity>;
     using View = typename Index::View;
     using iterator = typename Index::iterator;
@@ -181,9 +182,9 @@ public:
     /**
      * Creates a relation, build all necessary indexes.
      */
-    Relation(std::size_t auxiliaryArity, const std::string& name,
+    Relation(const std::string& name,
             const ram::analysis::IndexCluster& indexSelection)
-            : RelationWrapper(Arity, auxiliaryArity, name) {
+            : RelationWrapper(Arity, AuxiliaryArity, name) {
         for (const auto& order : indexSelection.getAllOrders()) {
             ram::analysis::LexOrder fullOrder = order;
             // Expand the order to a total order
@@ -299,7 +300,7 @@ public:
     /**
      * Add all entries of the given relation to this relation.
      */
-    void insert(const Relation<Arity, Structure>& other) {
+    void insert(const Relation<Arity, AuxiliaryArity, Structure>& other) {
         for (const auto& tuple : other.scan()) {
             this->insert(tuple);
         }
@@ -354,7 +355,7 @@ public:
      * Swaps the content of this and the given relation, including the
      * installed indexes.
      */
-    void swap(Relation<Arity, Structure>& other) {
+    void swap(Relation<Arity, AuxiliaryArity, Structure>& other) {
         indexes.swap(other.indexes);
     }
 
@@ -393,8 +394,6 @@ public:
     }
 
 protected:
-    // Number of height parameters of relation
-    std::size_t auxiliaryArity;
 
     // a map of managed indexes
     VecOwn<Index> indexes;
@@ -403,19 +402,19 @@ protected:
     Index* main;
 };
 
-template <std::size_t _Arity>
-class BtreeDeleteRelation : public Relation<_Arity, BtreeDelete> {
+template <std::size_t _Arity, std::size_t _AuxiliaryArity>
+class BtreeDeleteRelation : public Relation<_Arity, _AuxiliaryArity, BtreeDelete> {
 public:
-    using Relation<_Arity, BtreeDelete>::Relation;
-    using Relation<_Arity, BtreeDelete>::main;
-    using Relation<_Arity, BtreeDelete>::indexes;
+    using Relation<_Arity, _AuxiliaryArity, BtreeDelete>::Relation;
+    using Relation<_Arity, _AuxiliaryArity, BtreeDelete>::main;
+    using Relation<_Arity, _AuxiliaryArity, BtreeDelete>::indexes;
     using Tuple = souffle::Tuple<RamDomain, _Arity>;
 
     /**
      * Erase the given tuple from this relation.
      */
     bool erase(const Tuple& tuple) {
-        using DeleteIndex = BtreeDeleteIndex<_Arity>;
+        using DeleteIndex = BtreeDeleteIndex<_Arity, _AuxiliaryArity>;
         if (!(static_cast<DeleteIndex*>(main))->erase(tuple)) {
             return false;
         }
@@ -426,9 +425,9 @@ public:
     }
 };
 
-class EqrelRelation : public Relation<2, Eqrel> {
+class EqrelRelation : public Relation<2, 0, Eqrel> {
 public:
-    using Relation<2, Eqrel>::Relation;
+    using Relation<2, 0, Eqrel>::Relation;
 
     void extendAndInsert(const EqrelRelation& rel) {
         auto src = static_cast<EqrelIndex*>(this->main);

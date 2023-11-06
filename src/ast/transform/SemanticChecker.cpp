@@ -244,10 +244,10 @@ void SemanticCheckerImpl::checkAtom(const Clause& parent, const Atom& atom) {
         report.addError("Undefined relation " + toString(atom.getQualifiedName()), atom.getSrcLoc());
         return;
     }
-
-    if (r->getArity() != atom.getArity()) {
+    std::size_t arity = r->getArity();
+    if (arity != atom.getArity()) {
         report.addError("Mismatching arity of relation " + toString(atom.getQualifiedName()) + " (expected " +
-                                toString(r->getArity()) + ", got " + toString(atom.getArity()) + ")",
+                                toString(arity) + ", got " + toString(atom.getArity()) + ")",
                 atom.getSrcLoc());
     }
 
@@ -660,9 +660,10 @@ void SemanticCheckerImpl::checkFunctorDeclaration(const FunctorDeclaration& decl
 
 void SemanticCheckerImpl::checkRelationDeclaration(const Relation& relation) {
     const auto& attributes = relation.getAttributes();
-    assert(attributes.size() == relation.getArity() && "mismatching attribute size and arity");
+    const std::size_t arity = relation.getArity();
+    assert(attributes.size() == arity && "mismatching attribute size and arity");
 
-    for (std::size_t i = 0; i < relation.getArity(); i++) {
+    for (std::size_t i = 0; i < arity; i++) {
         Attribute* attr = attributes[i];
         checkType(*attr);
 

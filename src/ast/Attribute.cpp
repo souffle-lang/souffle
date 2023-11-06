@@ -14,7 +14,10 @@
 namespace souffle::ast {
 
 Attribute::Attribute(std::string n, QualifiedName t, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)) {}
+        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), merger(std::nullopt) {}
+
+Attribute::Attribute(std::string n, QualifiedName t, std::optional<std::string> merger, SrcLocation loc)
+        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), merger(std::move(merger))  {}
 
 void Attribute::setTypeName(QualifiedName name) {
     typeName = std::move(name);
@@ -22,15 +25,18 @@ void Attribute::setTypeName(QualifiedName name) {
 
 void Attribute::print(std::ostream& os) const {
     os << name << ":" << typeName;
+    if (merger) {
+        os << ":" << *merger;
+    }
 }
 
 bool Attribute::equal(const Node& node) const {
     const auto& other = asAssert<Attribute>(node);
-    return name == other.name && typeName == other.typeName;
+    return name == other.name && typeName == other.typeName && merger == other.merger;
 }
 
 Attribute* Attribute::cloning() const {
-    return new Attribute(name, typeName, getSrcLoc());
+    return new Attribute(name, typeName, merger, getSrcLoc());
 }
 
 }  // namespace souffle::ast
