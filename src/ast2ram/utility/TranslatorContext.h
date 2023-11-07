@@ -23,6 +23,7 @@
 #include "ast/analysis/ProfileUse.h"
 #include "ast/analysis/typesystem/Type.h"
 #include "ast2ram/ClauseTranslator.h"
+#include "ram/Aggregator.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/TypeAttribute.h"
 #include "souffle/utility/ContainerUtil.h"
@@ -95,6 +96,9 @@ public:
     std::string getAttributeTypeQualifier(const ast::QualifiedName& name) const;
     bool hasSizeLimit(const ast::Relation* relation) const;
     std::size_t getSizeLimit(const ast::Relation* relation) const;
+
+    Own<ram::Aggregator> getLatticeTypeLubAggregator(const ast::QualifiedName& typeName, Own<ram::Expression> init) const;
+    Own<ram::AbstractOperator> getLatticeTypeLubFunctor(const ast::QualifiedName& typeName, VecOwn<ram::Expression> args) const;
 
     /** Associates a relation with its delta_debug relation if present */
     const ast::Relation* getDeltaDebugRelation(const ast::Relation* rel) const;
@@ -172,6 +176,7 @@ private:
     Own<ast::SipsMetric> sipsMetric;
     Own<TranslationStrategy> translationStrategy;
     std::map<const ast::Relation*, const ast::Relation*> deltaRel;
+    std::map<const ast::QualifiedName, const ast::Lattice*> lattices;
 };
 
 }  // namespace souffle::ast2ram

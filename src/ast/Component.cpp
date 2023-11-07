@@ -39,6 +39,15 @@ std::vector<Type*> Component::getTypes() const {
     return toPtrVector(types);
 }
 
+void Component::addLattice(Own<Lattice> t) {
+    assert(t != nullptr);
+    lattices.push_back(std::move(t));
+}
+
+std::vector<Lattice*> Component::getLattices() const {
+    return toPtrVector(lattices);
+}
+
 void Component::copyBaseComponents(const Component& other) {
     baseComponents = clone(other.baseComponents);
 }

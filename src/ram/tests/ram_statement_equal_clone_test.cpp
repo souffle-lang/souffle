@@ -64,7 +64,7 @@ namespace test {
 
 TEST(IO1, CloneAndEquals) {
     // IO A ()
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     std::map<std::string, std::string> ioEmptyA;
     std::map<std::string, std::string> ioEmptyB;
     IO a("A", std::move(ioEmptyA));
@@ -80,7 +80,7 @@ TEST(IO1, CloneAndEquals) {
 
 TEST(Clear, CloneAndEquals) {
     // CLEAR A
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     Clear a("A");
     Clear b("A");
     EXPECT_EQ(a, b);
@@ -94,8 +94,8 @@ TEST(Clear, CloneAndEquals) {
 
 TEST(MergeExtend, CloneAndEquals) {
     // MERGE B WITH A
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
-    Relation B("B", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
+    Relation B("B", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     MergeExtend a("B", "A");
     MergeExtend b("B", "A");
     EXPECT_EQ(a, b);
@@ -109,8 +109,8 @@ TEST(MergeExtend, CloneAndEquals) {
 
 TEST(Swap, CloneAndEquals) {
     // SWAP(A,B)
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
-    Relation B("B", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
+    Relation B("B", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     Swap a("A", "B");
     Swap b("A", "B");
     EXPECT_EQ(a, b);
@@ -123,8 +123,8 @@ TEST(Swap, CloneAndEquals) {
 }
 
 TEST(Query, CloneAndEquals) {
-    Relation A("A", 3, 1, {"a", "b", "c"}, {"i", "s", "i"}, {}, RelationRepresentation::DEFAULT);
-    Relation B("B", 2, 1, {"a", "c"}, {"i", "i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 3, 1, {"a", "b", "c"}, {"i", "s", "i"}, RelationRepresentation::DEFAULT);
+    Relation B("B", 2, 1, {"a", "c"}, {"i", "i"}, RelationRepresentation::DEFAULT);
     /*
      * QUERY
      *  FOR t0 IN A
@@ -193,7 +193,7 @@ TEST(Sequence, CloneAndEquals) {
     EXPECT_NE(&a, c);
     delete c;
 
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     // one statement in the sequence
     // CLEAR A
     Sequence d(mk<Clear>("A"));
@@ -223,8 +223,8 @@ TEST(Sequence, CloneAndEquals) {
 }
 
 TEST(Parallel, CloneAndEquals) {
-    Relation A("A", 3, 1, {"a", "b", "c"}, {"i", "s", "i"}, {}, RelationRepresentation::DEFAULT);
-    Relation B("B", 2, 1, {"a", "c"}, {"i", "i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 3, 1, {"a", "b", "c"}, {"i", "s", "i"}, RelationRepresentation::DEFAULT);
+    Relation B("B", 2, 1, {"a", "c"}, {"i", "i"}, RelationRepresentation::DEFAULT);
 
     /* PARALLEL
      *  QUERY
@@ -265,8 +265,8 @@ TEST(Parallel, CloneAndEquals) {
     delete c;
 }
 TEST(Loop, CloneAndEquals) {
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
-    Relation B("B", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
+    Relation B("B", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     /*
      * LOOP
      *  QUERY
@@ -303,7 +303,7 @@ TEST(Loop, CloneAndEquals) {
     delete c;
 }
 TEST(Exit, CloneAndEquals) {
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     // EXIT (A = ∅)
     Exit a(mk<EmptinessCheck>("A"));
     Exit b(mk<EmptinessCheck>("A"));
@@ -317,7 +317,7 @@ TEST(Exit, CloneAndEquals) {
 }
 
 TEST(LogRelationTimer, CloneAndEquals) {
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     /*
      * START_TIMER ON A "file.dl [8:1-8:8]"
      *   IO A()
@@ -337,7 +337,7 @@ TEST(LogRelationTimer, CloneAndEquals) {
 }
 
 TEST(LogTimer, CloneAndEquals) {
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     /*
      * START_TIMER "@runtime"
      *   IO .. (..)
@@ -358,9 +358,9 @@ TEST(LogTimer, CloneAndEquals) {
 
 TEST(DebugInfo, CloneAndEquals) {
     Relation edge(
-            "edge", 4, 1, {"src", "dest", "a", "b"}, {"i", "i", "i", "i"}, {}, RelationRepresentation::DEFAULT);
+            "edge", 4, 1, {"src", "dest", "a", "b"}, {"i", "i", "i", "i"}, RelationRepresentation::DEFAULT);
     Relation path(
-            "path", 4, 1, {"src", "dest", "a", "b"}, {"i", "i", "i", "i"}, {}, RelationRepresentation::DEFAULT);
+            "path", 4, 1, {"src", "dest", "a", "b"}, {"i", "i", "i", "i"}, RelationRepresentation::DEFAULT);
     /* BEGIN_DEBUG "path(x,y,1,(@level_num_0+1)) :- \n   edge(x,y,_,@level_num_0).\nin file /edge.dl
      * [17:1-17:26];" QUERY FOR t0 IN edge IF (NOT (edge = ∅)) IF (NOT (t0.0,t0.1,⊥,⊥) ∈ path) INSERT (t0.0,
      * t0.1, number(1), (t0.3+number(1))) INTO path END DEBUG
@@ -423,7 +423,7 @@ TEST(DebugInfo, CloneAndEquals) {
 }
 
 TEST(LogSize, CloneAndEquals) {
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     LogSize a("A", "Log message");
     LogSize b("A", "Log message");
     EXPECT_EQ(a, b);

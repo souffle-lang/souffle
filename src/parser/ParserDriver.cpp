@@ -245,6 +245,21 @@ void ParserDriver::addType(Own<ast::Type> type) {
     }
 }
 
+void ParserDriver::addLattice(Own<ast::Lattice> lattice) {
+    ast::Program& program = translationUnit->getProgram();
+    const auto& name = lattice->getQualifiedName();
+    auto* existingLattice = getIf(program.getLattices(),
+            [&](const ast::Lattice* current) { return current->getQualifiedName() == name; });
+    if (existingLattice != nullptr) {
+        Diagnostic err(Diagnostic::Type::ERROR,
+                DiagnosticMessage("Redefinition of lattice " + toString(name), lattice->getSrcLoc()),
+                {DiagnosticMessage("Previous definition", existingLattice->getSrcLoc())});
+        translationUnit->getErrorReport().addDiagnostic(err);
+    } else {
+        program.addLattice(std::move(lattice));
+    }
+}
+
 void ParserDriver::addClause(Own<ast::Clause> c) {
     ast::Program& program = translationUnit->getProgram();
     program.addClause(std::move(c));

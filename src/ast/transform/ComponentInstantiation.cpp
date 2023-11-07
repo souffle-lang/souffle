@@ -23,6 +23,7 @@
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
 #include "ast/Directive.h"
+#include "ast/Lattice.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
@@ -58,6 +59,7 @@ static const unsigned int MAX_INSTANTIATION_DEPTH = 100;
  */
 struct ComponentContent {
     VecOwn<ast::Type> types;
+    VecOwn<ast::Lattice> lattices;
     VecOwn<Relation> relations;
     VecOwn<Directive> directives;
     VecOwn<Clause> clauses;
@@ -75,6 +77,21 @@ struct ComponentContent {
             report.addDiagnostic(err);
         }
         types.push_back(std::move(type));
+    }
+
+    void add(Own<ast::Lattice>& lattice, ErrorReport& report) {
+        // add to result content (check existence first)
+        auto foundItem = std::find_if(lattices.begin(), lattices.end(), [&](const Own<ast::Lattice>& element) {
+            return (element->getQualifiedName() == lattice->getQualifiedName());
+        });
+        if (foundItem != lattices.end()) {
+            Diagnostic err(Diagnostic::Type::ERROR,
+                    DiagnosticMessage(
+                            "Redefinition of lattice " + toString(lattice->getQualifiedName()), lattice->getSrcLoc()),
+                    {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
+            report.addDiagnostic(err);
+        }
+        lattices.push_back(std::move(lattice));
     }
 
     void add(Own<Relation>& rel, ErrorReport& report) {
@@ -162,6 +179,11 @@ void collectContent(Program& program, const Component& component, const TypeBind
                 // process types
                 for (auto& type : content.types) {
                     res.add(type, report);
+                }
+
+                // process lattices
+                for (auto& lattice : content.lattices) {
+                    res.add(lattice, report);
                 }
 
                 // process relations
@@ -254,6 +276,17 @@ void collectContent(Program& program, const Component& component, const TypeBind
 
         // add to result list (check existence first)
         res.add(type, report);
+    }
+
+    for (const auto& cur : component.getLattices()) {
+        // create a clone
+        Own<ast::Lattice> lattice(clone(cur));
+
+        auto&& newName = binding.find(lattice->getQualifiedName());
+        if (!newName.empty()) {
+            lattice->setQualifiedName(newName);
+        }
+        res.add(lattice, report);
     }
 
     // and the local relations
@@ -355,6 +388,11 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
             res.add(type, report);
         }
 
+        // add types
+        for (auto& lattice : nestedContent.lattices) {
+            res.add(lattice, report);
+        }
+
         // add relations
         for (auto& rel : nestedContent.relations) {
             res.add(rel, report);
@@ -387,6 +425,11 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
             typeNameMapping[branchType.getBranchName()] = newName;
             branchType.setBranchName(newName);
         });
+    }
+
+    for (const auto& cur : res.lattices) {
+        auto newName = componentInit.getInstanceName() + cur->getQualifiedName();
+        cur->setQualifiedName(newName);
     }
 
     // update relation names
@@ -551,6 +594,9 @@ bool ComponentInstantiationTransformer::transform(TranslationUnit& translationUn
 
         for (auto& type : content.types) {
             program.addType(std::move(type));
+        }
+        for (auto& lattice : content.lattices) {
+            program.addLattice(std::move(lattice));
         }
         for (auto& rel : content.relations) {
             program.addRelation(std::move(rel));

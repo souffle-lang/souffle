@@ -20,6 +20,7 @@
 #include "ast/ComponentInit.h"
 #include "ast/ComponentType.h"
 #include "ast/Directive.h"
+#include "ast/Lattice.h"
 #include "ast/Node.h"
 #include "ast/Relation.h"
 #include "ast/Type.h"
@@ -63,6 +64,11 @@ public:
 
     /** Get types */
     std::vector<Type*> getTypes() const;
+
+    /** Add lattice */
+    void addLattice(Own<Lattice> lat);
+
+    std::vector<Lattice*> getLattices() const;
 
     /** Copy base components */
     void copyBaseComponents(const Component& other);
@@ -128,6 +134,9 @@ private:
 
     /** Types declarations */
     VecOwn<Type> types;
+
+    /** Types declarations */
+    VecOwn<Lattice> lattices;
 
     /** Relations */
     VecOwn<Relation> relations;

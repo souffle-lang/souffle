@@ -24,6 +24,7 @@
 #include "ast/Counter.h"
 #include "ast/Directive.h"
 #include "ast/FunctorDeclaration.h"
+#include "ast/Lattice.h"
 #include "ast/Pragma.h"
 #include "ast/QualifiedName.h"
 #include "ast/Relation.h"
@@ -54,6 +55,7 @@ public:
     void addType(Own<ast::Type> type);
     void addClause(Own<ast::Clause> c);
     void addComponent(Own<ast::Component> c);
+    void addLattice(Own<ast::Lattice> l);
     void addInstantiation(Own<ast::ComponentInit> ci);
     void addPragma(Own<ast::Pragma> p);
 

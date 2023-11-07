@@ -39,6 +39,7 @@
 #include "ast/IntrinsicAggregator.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/IterationCounter.h"
+#include "ast/Lattice.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
@@ -185,6 +186,8 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     SOUFFLE_VISITOR_LINK(Relation, Node);
     SOUFFLE_VISITOR_LINK(Pragma, Node);
     SOUFFLE_VISITOR_LINK(FunctorDeclaration, Node);
+    SOUFFLE_VISITOR_LINK(ast::Lattice, Node);
+
 };
 }  // namespace souffle::ast
 

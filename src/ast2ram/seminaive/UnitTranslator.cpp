@@ -614,18 +614,12 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
     Own<ram::Operation> op = mk<ram::Insert>(lubName, std::move(values));
 
     for (std::size_t i = arity-1; i >= firstAuxiliary; i--) {
-        auto merger = attributes[i]->getMerger();
-        assert(merger.has_value());
-        ast::UserDefinedFunctor udf(merger.value());
-        const auto typeAttributes = context->getFunctorParamTypeAtributes(udf);
-        const auto returnAttribute = context->getFunctorReturnTypeAttribute(udf);
-        bool stateful = context->isStatefulFunctor(udf);
+        const auto type = attributes[i]->getTypeName();
         std::size_t level = i-firstAuxiliary+1;
-        auto aggregator = mk<ram::UserDefinedAggregator>(merger.value(), mk<ram::TupleElement>(0,i), typeAttributes, returnAttribute, stateful);
+        auto aggregator = context->getLatticeTypeLubAggregator(type, mk<ram::TupleElement>(0,i));
         Own<ram::Condition> condition = mk<ram::Constraint>(BinaryConstraintOp::NE, mk<ram::TupleElement>(level,i), mk<ram::TupleElement>(0,i));
         for (std::size_t j = 0; j < attributes.size(); j++) {
-            auto merger = attributes[j]->getMerger();
-            if (merger) break;
+            if (attributes[j]->getIsLattice()) break;
             condition = mk<ram::Conjunction>(
                 std::move(condition),
                 mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(level,j), mk<ram::TupleElement>(0,j))
@@ -648,16 +642,12 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
         if (i < firstAuxiliary) {
             values.push_back(mk<ram::TupleElement>(0,i));
         } else {
-            auto merger = attributes[i]->getMerger();
-            assert(merger.has_value());
-            ast::UserDefinedFunctor udf(merger.value());
-            const auto typeAttributes = context->getFunctorParamTypeAtributes(udf);
-            const auto returnAttribute = context->getFunctorReturnTypeAttribute(udf);
-            bool stateful = true; // todo
+            assert(attributes[i]->getIsLattice());
+            const auto type = attributes[i]->getTypeName();
             VecOwn<ram::Expression> args;
             args.push_back(mk<ram::TupleElement>(0,i));
             args.push_back(mk<ram::TupleElement>(1,i));
-            auto lub = mk<ram::UserDefinedOperator>(merger.value(), typeAttributes, returnAttribute, stateful, std::move(args));
+            auto lub = context->getLatticeTypeLubFunctor(type, std::move(args));
             auto cst = mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(1,i), clone(lub));
             if (condition) {
                 condition = mk<ram::Conjunction>(std::move(condition), std::move(cst));
@@ -665,8 +655,6 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
                 condition = std::move(cst);
             }
             values.push_back(std::move(lub));
-
-
         }
     }
     op = mk<ram::Insert>(toName, std::move(values));
@@ -843,23 +831,13 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
 
     std::vector<std::string> attributeNames;
     std::vector<std::string> attributeTypeQualifiers;
-    VecOwn<ram::AbstractOperator> attributeMergers;
     for (const auto& attribute : baseRelation->getAttributes()) {
         attributeNames.push_back(attribute->getName());
         attributeTypeQualifiers.push_back(context->getAttributeTypeQualifier(attribute->getTypeName()));
-        const auto merger = attribute->getMerger();
-        if (mergeAuxiliary && merger) {
-            ast::UserDefinedFunctor udf(merger.value());
-            const auto typeAttributes = context->getFunctorParamTypeAtributes(udf);
-            const auto returnAttribute = context->getFunctorReturnTypeAttribute(udf);
-            bool stateful = context->isStatefulFunctor(udf);
-            VecOwn<ram::Expression> args;
-            attributeMergers.push_back(mk<ram::UserDefinedOperator>(merger.value(), typeAttributes, returnAttribute, stateful, std::move(args)));
-        }
     }
 
     return mk<ram::Relation>(
-            ramRelationName, arity, auxArity, attributeNames, attributeTypeQualifiers, std::move(attributeMergers), representation);
+            ramRelationName, arity, auxArity, attributeNames, attributeTypeQualifiers, representation);
 }
 
 VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::size_t>& sccOrdering) const {

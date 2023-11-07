@@ -38,6 +38,7 @@
 #include "ast/IntrinsicAggregator.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/IterationCounter.h"
+#include "ast/Lattice.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
@@ -124,6 +125,7 @@ private:
     void checkRelationFunctionalDependencies(const Relation& relation);
     void checkRelation(const Relation& relation);
     void checkType(ast::Attribute const& attr, std::string const& name = {});
+    void checkLatticeDeclaration(const Lattice& lattice);
     void checkFunctorDeclaration(const FunctorDeclaration& decl);
 
     void checkNamespaces();
@@ -172,6 +174,9 @@ SemanticCheckerImpl::SemanticCheckerImpl(TranslationUnit& tu) : tu(tu) {
     // check rules
     for (auto* rel : program.getRelations()) {
         checkRelation(*rel);
+    }
+    for (auto* lattice : program.getLattices()) {
+        checkLatticeDeclaration(*lattice);
     }
     for (auto* clause : program.getClauses()) {
         checkClause(*clause);
@@ -658,11 +663,38 @@ void SemanticCheckerImpl::checkFunctorDeclaration(const FunctorDeclaration& decl
     }
 }
 
+void SemanticCheckerImpl::checkLatticeDeclaration(const Lattice& lattice) {
+    const auto& name = lattice.getQualifiedName();
+    auto* existingType = getIf(
+            program.getTypes(), [&](const ast::Type* type) { return type->getQualifiedName() == name; });
+    if (!existingType) {
+        report.addError(
+            tfm::format("Undefined type %s", name), lattice.getSrcLoc());
+    }
+    if (!lattice.hasLub()) {
+        report.addError(
+            tfm::format("Lattice %s<> does not define Lub", name), lattice.getSrcLoc());
+    }
+    if (!lattice.hasGlb()) {
+        report.addWarning(WarnType::LatticeMissingOperator,
+            tfm::format("Lattice %s<> does not define Glb", name), lattice.getSrcLoc());
+    }
+    if (!lattice.hasBottom()) {
+        report.addWarning(WarnType::LatticeMissingOperator,
+            tfm::format("Lattice %s<> does not define Bottom", name), lattice.getSrcLoc());
+    }
+    if (!lattice.hasTop()) {
+        report.addWarning(WarnType::LatticeMissingOperator,
+            tfm::format("Lattice %s<> does not define Top", name), lattice.getSrcLoc());
+    }
+}
+
 void SemanticCheckerImpl::checkRelationDeclaration(const Relation& relation) {
     const auto& attributes = relation.getAttributes();
     const std::size_t arity = relation.getArity();
-    assert(attributes.size() == arity && "mismatching attribute size and arity");
+    std::size_t firstAuxiliary = arity-relation.getAuxiliaryArity();
 
+    assert(attributes.size() == arity && "mismatching attribute size and arity");
     for (std::size_t i = 0; i < arity; i++) {
         Attribute* attr = attributes[i];
         checkType(*attr);
@@ -671,6 +703,20 @@ void SemanticCheckerImpl::checkRelationDeclaration(const Relation& relation) {
         for (std::size_t j = 0; j < i; j++) {
             if (attr->getName() == attributes[j]->getName()) {
                 report.addError(tfm::format("Doubly defined attribute name %s", *attr), attr->getSrcLoc());
+            }
+        }
+
+        /* check that lattice elements are always the last */
+        if (i < firstAuxiliary && attr->getIsLattice()) {
+            report.addError(tfm::format("Lattice attribute %s should be placed after all non-lattice attributes", *attr), attr->getSrcLoc());
+        }
+
+        /* check that lattice attributes have a correct lattice definition */
+        if (attr->getIsLattice()) {
+            const auto& typeName = attr->getTypeName();
+            auto* existingType = getIf(program.getLattices(), [&](const ast::Lattice* lattice) { return lattice->getQualifiedName() == typeName; });
+            if (!existingType) {
+                report.addError(tfm::format("Missing lattice definition for type %s", typeName), attr->getSrcLoc());
             }
         }
     }

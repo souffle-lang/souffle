@@ -60,6 +60,7 @@
     #include "ast/FunctorDeclaration.h"
     #include "ast/IntrinsicFunctor.h"
     #include "ast/IterationCounter.h"
+    #include "ast/Lattice.h"
     #include "ast/Literal.h"
     #include "ast/NilConstant.h"
     #include "ast/NumericConstant.h"
@@ -87,6 +88,7 @@
     #include <ostream>
     #include <string>
     #include <vector>
+    #include <map>
 
     using namespace souffle;
 
@@ -170,6 +172,7 @@
 %token LIMITSIZE_DECL            "limitsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
 %token TYPE                      "type declaration"
+%token LATTICE                   "lattice declaration"
 %token COMPONENT                 "component declaration"
 %token INSTANTIATE               "component instantiation"
 %token NUMBER_TYPE               "numeric type declaration"
@@ -284,7 +287,9 @@
 %type <Mov<std::vector<ast::QualifiedName>>>   union_type_list
 %type <Mov<VecOwn<ast::BranchType>>>    adt_branch_list
 %type <Mov<Own<ast::BranchType>>>       adt_branch
-
+%type <Mov<Own<ast::Lattice>>>                 lattice_decl
+%type <Mov<std::pair<ast::LatticeOperator, Own<ast::Argument>>>>                 lattice_operator
+%type <Mov<std::map<ast::LatticeOperator, Own<ast::Argument>>>>      lattice_operator_list
 /* -- Operator precedence -- */
 %left L_OR
 %left L_XOR
@@ -345,6 +350,10 @@ unit
   | unit type_decl
     {
       driver.addType($type_decl);
+    }
+  | unit lattice_decl
+    {
+      driver.addLattice($lattice_decl);
     }
   | unit functor_decl
     {
@@ -462,6 +471,37 @@ adt_branch
   ;
 
 /**
+ * Lattice Declarations
+ */
+
+lattice_decl
+  : LATTICE IDENT[name] LT GT LBRACE lattice_operator_list RBRACE
+    {
+      $$ = mk<ast::Lattice>($name, std::move($lattice_operator_list), @$);
+    }
+
+lattice_operator_list
+  : lattice_operator COMMA lattice_operator_list
+    {
+      $$ = $3;
+      $$.emplace($lattice_operator);
+    }
+  | lattice_operator
+    {
+      $$.emplace($lattice_operator);
+    }
+
+lattice_operator
+  : IDENT MINUS GT arg
+    {
+      auto op = ast::latticeOperatorFromString($IDENT);
+      if (!op.has_value()) {
+        driver.error(@$, "Lattice operator not recognized");
+      }
+      $$ = std::make_pair(op.value(), std::move($arg));
+    }
+
+/**
  * Relations
  */
 
@@ -554,9 +594,9 @@ attribute
     {
       $$ = mk<ast::Attribute>($name, $type, @type);
     }
-  | IDENT[name] COLON qualified_name[type] COLON IDENT[merge]
+  | IDENT[name] COLON qualified_name[type] LT GT
     {
-      $$ = mk<ast::Attribute>($name, $type, $merge, @type);
+      $$ = mk<ast::Attribute>($name, $type, true, @type);
     }
   ;
 
@@ -1355,6 +1395,11 @@ component_body
     {
       $$ = $1;
       $$->addType($2);
+    }
+  | component_body lattice_decl
+    {
+      $$ = $1;
+      $$->addLattice($2);
     }
   | component_body relation_decl
     {

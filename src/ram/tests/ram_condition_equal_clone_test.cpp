@@ -153,7 +153,7 @@ TEST(Constraint, CloneAndEquals) {
 
 TEST(ExistenceCheck, CloneAndEquals) {
     // N(1) in relation N(x:number)
-    Relation N("N", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation N("N", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     VecOwn<Expression> tuple_a;
     tuple_a.emplace_back(new SignedConstant(1));
     ExistenceCheck a("N", std::move(tuple_a));
@@ -172,7 +172,7 @@ TEST(ExistenceCheck, CloneAndEquals) {
     delete c;
 
     // edge(1,2) in relation edge(x:number,y:number)
-    Relation edge("edge", 2, 1, {"x", "y"}, {"i", "i"}, {}, RelationRepresentation::BRIE);
+    Relation edge("edge", 2, 1, {"x", "y"}, {"i", "i"}, RelationRepresentation::BRIE);
     VecOwn<Expression> tuple_d;
     tuple_d.emplace_back(new SignedConstant(1));
     tuple_d.emplace_back(new SignedConstant(2));
@@ -194,7 +194,7 @@ TEST(ExistenceCheck, CloneAndEquals) {
 }
 
 TEST(RamProvenanceExistCheck, CloneAndEquals) {
-    Relation N("N", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation N("N", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     VecOwn<Expression> tuple_a;
     tuple_a.emplace_back(new SignedConstant(1));
     ExistenceCheck a("N", std::move(tuple_a));
@@ -213,8 +213,7 @@ TEST(RamProvenanceExistCheck, CloneAndEquals) {
     delete c;
 
     // address(state:symbol, postCode:number, street:symbol)
-    Relation address("address", 3, 1, {"state", "postCode", "street"}, {"s", "i", "s"}, {},
-            RelationRepresentation::DEFAULT);
+    Relation address("address", 3, 1, {"state", "postCode", "street"}, {"s", "i", "s"}, RelationRepresentation::DEFAULT);
     VecOwn<Expression> tuple_d;
     tuple_d.emplace_back(new SignedConstant(0));
     tuple_d.emplace_back(new SignedConstant(2000));
@@ -239,7 +238,7 @@ TEST(RamProvenanceExistCheck, CloneAndEquals) {
 
 TEST(EmptinessCheck, CloneAndEquals) {
     // Check A(x:number)
-    Relation A("A", 1, 1, {"x"}, {"i"}, {}, RelationRepresentation::DEFAULT);
+    Relation A("A", 1, 1, {"x"}, {"i"}, RelationRepresentation::DEFAULT);
     EmptinessCheck a("A");
     EmptinessCheck b("A");
     EXPECT_EQ(a, b);

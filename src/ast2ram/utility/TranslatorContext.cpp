@@ -14,9 +14,12 @@
 
 #include "ast2ram/utility/TranslatorContext.h"
 #include "Global.h"
+#include "ast/Aggregator.h"
 #include "ast/Atom.h"
 #include "ast/BranchInit.h"
 #include "ast/Directive.h"
+#include "ast/Functor.h"
+#include "ast/IntrinsicFunctor.h"
 #include "ast/QualifiedName.h"
 #include "ast/SubsumptiveClause.h"
 #include "ast/TranslationUnit.h"
@@ -39,11 +42,18 @@
 #include "ast2ram/provenance/TranslationStrategy.h"
 #include "ast2ram/seminaive/TranslationStrategy.h"
 #include "ast2ram/utility/SipsMetric.h"
+#include "ram/AbstractOperator.h"
 #include "ram/Condition.h"
 #include "ram/Expression.h"
+#include "ram/IntrinsicAggregator.h"
+#include "ram/IntrinsicOperator.h"
 #include "ram/Statement.h"
+#include "ram/UndefValue.h"
+#include "ram/UserDefinedAggregator.h"
+#include "ram/UserDefinedOperator.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/StringUtil.h"
+#include <optional>
 #include <set>
 
 namespace souffle::ast2ram {
@@ -96,6 +106,11 @@ TranslatorContext::TranslatorContext(const ast::TranslationUnit& tu) {
             deltaRel[program->getRelation(delta.value())] = rel;
         }
     }
+
+    // populates map type name -> lattice
+    for (const ast::Lattice* lattice : program->getLattices()) {
+        lattices.emplace(lattice->getQualifiedName(), lattice);
+    }
 }
 
 TranslatorContext::~TranslatorContext() = default;
@@ -111,6 +126,35 @@ std::size_t TranslatorContext::getClauseNum(const ast::Clause* clause) const {
 
 std::string TranslatorContext::getAttributeTypeQualifier(const ast::QualifiedName& name) const {
     return getTypeQualifier(typeEnv->getType(name));
+}
+
+Own<ram::AbstractOperator> TranslatorContext::getLatticeTypeLubFunctor(const ast::QualifiedName& typeName, VecOwn<ram::Expression> args) const {
+    const ast::Lattice* lattice = lattices.at(typeName);
+    if (const auto* lub = as<ast::UserDefinedFunctor>(lattice->getLub())) {
+        const auto typeAttributes = getFunctorParamTypeAtributes(*lub);
+        const auto returnAttribute = getFunctorReturnTypeAttribute(*lub);
+        bool stateful = isStatefulFunctor(*lub);
+        return mk<ram::UserDefinedOperator>(lub->getName(), typeAttributes, returnAttribute, stateful, std::move(args));
+    } else if (const auto* lub = as<ast::IntrinsicFunctor>(lattice->getLub())) {
+        assert(false && lub && "intrinsic functors not yet supported in lattice");
+        //return mk<ram::IntrinsicOperator>(getOverloadedFunctorOp(lub->getBaseFunctionOp()), std::move(args));
+    }
+    assert(false);
+    return {};
+}
+
+Own<ram::Aggregator> TranslatorContext::getLatticeTypeLubAggregator(const ast::QualifiedName& typeName, Own<ram::Expression> init) const {
+    const ast::Lattice* lattice = lattices.at(typeName);
+    if (const auto* lub = as<ast::UserDefinedFunctor>(lattice->getLub())) {
+        const auto typeAttributes = getFunctorParamTypeAtributes(*lub);
+        const auto returnAttribute = getFunctorReturnTypeAttribute(*lub);
+        bool stateful = isStatefulFunctor(*lub);
+        return mk<ram::UserDefinedAggregator>(lub->getName(), std::move(init), typeAttributes, returnAttribute, stateful);
+    } else if (const auto* lub = as<ast::IntrinsicFunctor>(lattice->getLub())) {
+        assert(false && lub && "intrinsic aggregators not yet supported in lattice");
+    }
+    assert(false);
+    return {};
 }
 
 std::size_t TranslatorContext::getNumberOfSCCs() const {

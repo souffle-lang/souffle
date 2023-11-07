@@ -78,7 +78,6 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     std::size_t auxiliaryArity = relation->getAuxiliaryArity();
     std::vector<std::string> attributeNames = relation->getAttributeNames();
     std::vector<std::string> attributeTypeQualifiers = relation->getAttributeTypes();
-    VecOwn<ram::AbstractOperator> attributeMergers = clone(relation->getAttributeMergers());
 
     // Add in provenance information
     attributeNames.push_back("@rule_number");
@@ -87,12 +86,8 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     attributeNames.push_back("@level_number");
     attributeTypeQualifiers.push_back("i:number");
 
-    ram::IntrinsicOperator minOperator(FunctorOp::MIN);
-    attributeMergers.push_back(clone(minOperator));
-    attributeMergers.push_back(clone(minOperator));
-
     return mk<ram::Relation>(
-            ramRelationName, arity + 2, auxiliaryArity + 2, attributeNames, attributeTypeQualifiers, std::move(attributeMergers), relation->getRepresentation());
+            ramRelationName, arity + 2, auxiliaryArity + 2, attributeNames, attributeTypeQualifiers, relation->getRepresentation());
 }
 
 std::string UnitTranslator::getInfoRelationName(const ast::Clause* clause) const {
@@ -139,10 +134,9 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
         attributeNames.push_back("clause_repr");
         attributeTypeQualifiers.push_back("s:symbol");
 
-        VecOwn<ram::AbstractOperator> attributeMerger;
         // Create the info relation
         ramRelations.push_back(mk<ram::Relation>(getInfoRelationName(clause), attributeNames.size(), 0,
-                attributeNames, attributeTypeQualifiers, std::move(attributeMerger), RelationRepresentation::INFO));
+                attributeNames, attributeTypeQualifiers, RelationRepresentation::INFO));
     }
 
     return ramRelations;

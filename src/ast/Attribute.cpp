@@ -14,10 +14,10 @@
 namespace souffle::ast {
 
 Attribute::Attribute(std::string n, QualifiedName t, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), merger(std::nullopt) {}
+        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(false) {}
 
-Attribute::Attribute(std::string n, QualifiedName t, std::optional<std::string> merger, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), merger(std::move(merger))  {}
+Attribute::Attribute(std::string n, QualifiedName t, bool isLattice, SrcLocation loc)
+        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(isLattice)  {}
 
 void Attribute::setTypeName(QualifiedName name) {
     typeName = std::move(name);
@@ -25,18 +25,18 @@ void Attribute::setTypeName(QualifiedName name) {
 
 void Attribute::print(std::ostream& os) const {
     os << name << ":" << typeName;
-    if (merger) {
-        os << ":" << *merger;
+    if (isLattice) {
+        os << "<>";
     }
 }
 
 bool Attribute::equal(const Node& node) const {
     const auto& other = asAssert<Attribute>(node);
-    return name == other.name && typeName == other.typeName && merger == other.merger;
+    return name == other.name && typeName == other.typeName && isLattice == other.isLattice;
 }
 
 Attribute* Attribute::cloning() const {
-    return new Attribute(name, typeName, merger, getSrcLoc());
+    return new Attribute(name, typeName, isLattice, getSrcLoc());
 }
 
 }  // namespace souffle::ast

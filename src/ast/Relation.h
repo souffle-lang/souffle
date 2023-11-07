@@ -58,7 +58,7 @@ public:
     std::size_t getAuxiliaryArity() const {
         std::size_t arity = 0;
         for (const auto& a : attributes) {
-            arity += a->getMerger() ? 1 : 0;
+            arity += a->getIsLattice() ? 1 : 0;
         }
         return arity;
     }
