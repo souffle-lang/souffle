@@ -218,6 +218,7 @@
 %token LE                        "<="
 %token GE                        ">="
 %token NE                        "!="
+%token MAPSTO                    "->"
 %token BW_AND                    "band"
 %token BW_OR                     "bor"
 %token BW_XOR                    "bxor"
@@ -481,7 +482,7 @@ lattice_decl
     }
 
 lattice_operator_list
-  : lattice_operator COMMA lattice_operator_list
+  :  lattice_operator COMMA lattice_operator_list
     {
       $$ = $3;
       $$.emplace($lattice_operator);
@@ -492,7 +493,7 @@ lattice_operator_list
     }
 
 lattice_operator
-  : IDENT MINUS GT arg
+  : IDENT MAPSTO arg
     {
       auto op = ast::latticeOperatorFromString($IDENT);
       if (!op.has_value()) {

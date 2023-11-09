@@ -242,6 +242,7 @@ WS [ \t\r\v\f]
 "]"                                   { return yy::parser::make_RBRACKET(yylloc); }
 "$"                                   { return yy::parser::make_DOLLAR(yylloc); }
 "+"                                   { return yy::parser::make_PLUS(yylloc); }
+"->"                                  { return yy::parser::make_MAPSTO(yylloc); }
 "-"                                   { return yy::parser::make_MINUS(yylloc); }
 "("                                   { return yy::parser::make_LPAREN(yylloc); }
 ")"                                   { return yy::parser::make_RPAREN(yylloc); }

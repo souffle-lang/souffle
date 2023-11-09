@@ -211,8 +211,6 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
             }
         }
         clause->addToBody(std::move(constraints));
-
-        std::cout << "clause:\n" << *clause << std::endl;
     }
 
     return changed;

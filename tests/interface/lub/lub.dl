@@ -4,132 +4,263 @@
 // - https://opensource.org/licenses/UPL
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-// Simple Interval Analysis for analyzing value ranges of program variables
 
-.type Node <: symbol
-.type Variable <: symbol
+.type I = [lb:number, ub:number]
+.functor lub(a:I, b:I):I stateful
+.functor glb(a:I, b:I):I stateful
 
-/* Encoding the program:
-v = 0;
-while(v <= 100) {
-    v = v + 2;
+.init ex1 = _ex1
+.init ex2 = _ex2
+.init ex3 = _ex3
+.init ex4 = _ex4
+.init ex5 = _ex5
+.init ex6 = _ex6
+
+.comp _ex1 {
+    // Simple Interval Analysis for analyzing value ranges of program variables
+    .type Interval = I
+
+    .type Node <: symbol
+    .type Variable <: symbol
+
+    .decl Edge(n:Node,succ: Node)
+    .decl Set_Value(n:Node,v:Variable, value:number)
+    .decl Increment_Value(n:Node,v:Variable,inc:number)
+    .decl Restrict_Value_Lb(n:Node, v:Variable, lb:number)
+    .decl Restrict_Value_Ub(n:Node, v:Variable, ub:number)
+
+    /* Encoding the program:
+    v = 0;
+    while(v <= 100) {
+        v = v + 2;
+    }
+    */
+    Edge("start","start_to_head").
+    Edge("start_to_head", "head").
+    Edge("head","cond").
+    Edge("cond","incr").
+    Edge("incr","incr_to_head").
+    Edge("incr_to_head","head").
+    Edge("head","not cond").
+    Edge("not cond","end").
+
+    Set_Value("start","v", 0).
+    Restrict_Value_Ub("cond","v", 100).
+    Restrict_Value_Lb("not cond","v", 101).
+    Increment_Value("incr", "v", 2).
+
+    .lattice Interval<> {
+        Lub    -> @lub(_,_)
+    }
+
+    // Possible values for v after statement n, expressed with an interval
+    // for instance: Values("head", "v", [0, 50])
+    .decl Values(
+        n:Node,
+        v:Variable,
+        i:Interval<>)
+
+    .output Values
+
+    Values(n, v, [x, x]) :-
+        Set_Value(n, v, x).
+
+    Values(n, v, i) :-
+        Values(pred, v, i),
+        Edge(pred, n),
+        !Set_Value(n, v, _),
+        !Increment_Value(n, v, _),
+        !Restrict_Value_Lb(n, v, _),
+        !Restrict_Value_Ub(n, v, _).
+
+    Values(n, v, [lb+x, ub+x]) :-
+        Values(pred, v, [lb, ub]),
+        Edge(pred, n),
+        Increment_Value(n, v, x).
+
+    Values(n, v, [max_lb, ub]) :-
+        Values(pred, v, [lb, ub]),
+        Edge(pred, n),
+        Restrict_Value_Lb(n, v, x),
+        max_lb = max(x, lb),
+        max_lb <= ub.
+
+    Values(n, v, [lb, min_ub]) :-
+        Values(pred, v, [lb, ub]),
+        Edge(pred, n),
+        Restrict_Value_Ub(n, v, x),
+        min_ub = min(x, ub),
+        min_ub >= lb.
 }
-*/
 
-.decl Edge(n:Node,succ: Node)
-.decl Set_Value(n:Node,v:Variable, value:number)
-.decl Increment_Value(n:Node,v:Variable,inc:number)
-.decl Restrict_Value_Lb(n:Node, v:Variable, lb:number)
-.decl Restrict_Value_Ub(n:Node, v:Variable, ub:number)
+.comp _ex2 {
+    // testing lub on a non-recursive relation Y
 
-Edge("start","start_to_head").
-Edge("start_to_head", "head").
-Edge("head","cond").
-Edge("cond","incr").
-Edge("incr","incr_to_head").
-Edge("incr_to_head","head").
-Edge("head","not cond").
-Edge("not cond","end").
+    .type Interval = I
 
-Set_Value("start","v", 0).
-Restrict_Value_Ub("cond","v", 100).
-Restrict_Value_Lb("not cond","v", 101).
-Increment_Value("incr", "v", 2).
+    .lattice Interval<> {
+        Lub    -> @lub(_,_)
+    }
 
-.type Interval = [lb:number, ub:number]
+    .decl X(x:number)
 
-.functor ilub(a:Interval, b:Interval):Interval stateful
-.functor iwiden(a:Interval, b:Interval):Interval stateful
+    .decl R(
+        x:number,
+        i:Interval<>,
+        j:Interval<>)
+    .output R()
 
-//.functor ilub(a:Interval, b:Interval) : Interval {
-//    case ([a, b], [c, d]) => [min(a,c), max(b,d)]
-//    case (_, _) => nil
-//}
+    X(42).
 
-//.lattice Interval<> {
-//    Bottom => [0, -1]       // optional
-//    Top    => [-1000, 1000] // optional
-//    Leq    => ileq          // optional
-//    Lub    => ilub
-//    Glb    => iglb
-//}
-//
-//.lattice Symbolic<> {
-//    Bottom => z3_false()
-//    Top    => z3_true()
-//    Leq    => z3_leq
-//    Lub    => z3_or
-//    glb    => z3_and
-//}
+    R(x, [20, 30], [1, 2]),
+    R(x, [0, 10], [6,10]) :-
+        X(x).
+}
 
-// Possible values for v after statement n, expressed with an interval
-// for instance: Values("head", "v", [0, 50])
-.decl Values(
-    n:Node,
-    v:Variable,
-    i:Interval:ilub)
-//.decl Values(
-//    n:Node,
-//    v:Variable,
-//    i:Interval<>)
+.comp _ex3 {
+    // testing lub on a recursive relation Y with non-recursive clauses
 
-.output Values
+    .type Interval = I
 
-//Values(n, v, @iwiden(i2, i1)) :-
-//    Edge(n, "head"),
-//    Edge(pred, n),
-//    Values(n, v, i2),
-//    Values(pred, v, i1).
+    .lattice Interval<> {
+        Lub    -> @lub(_,_)
+    }
 
-Values(n, v, [x, x]) :-
-    Set_Value(n, v, x).
+    .decl X(x:number)
 
-Values(n, v, i) :-
-    Values(pred, v, i),
-    Edge(pred, n),
-    !Set_Value(n, v, _),
-    !Increment_Value(n, v, _),
-    !Restrict_Value_Lb(n, v, _),
-    !Restrict_Value_Ub(n, v, _).
+    .decl R(
+        x:number,
+        i:Interval<>,
+        j:Interval<>)
+    .output R()
 
-Values(n, v, [lb+x, ub+x]) :-
-    Values(pred, v, [lb, ub]),
-    Edge(pred, n),
-    Increment_Value(n, v, x).
+    X(42).
 
-Values(n, v, [max_lb, ub]) :-
-    Values(pred, v, [lb, ub]),
-    Edge(pred, n),
-    Restrict_Value_Lb(n, v, x),
-    max_lb = max(x, lb),
-    max_lb <= ub.
+    R(x, [20, 30], [1, 2]),
+    R(x, [0, 10], [6,10]) :-
+        X(x).
 
-Values(n, v, [lb, min_ub]) :-
-    Values(pred, v, [lb, ub]),
-    Edge(pred, n),
-    Restrict_Value_Ub(n, v, x),
-    min_ub = min(x, ub),
-    min_ub >= lb.
+    // after non-recursive clause, we should have
+    // R(42, [0, 30], [1, 10])
+    // so this should iterate until
+    // R(42, [0, 50], [1, 30])
+    R(x, [a, b+1], [c, d+1]) :-
+        R(x, [a,b], [c, d]),
+        b < 50,
+        d < 50.
+
+}
+
+.comp _ex4 {
+    // testing glb
+
+    .type Interval = I
+
+    .lattice Interval<> {
+        Bottom -> [0, -1],
+        Lub    -> @lub(_,_),
+        Glb    -> @glb(_,_)
+    }
+
+    .decl X(x:number, i:Interval<>)
+    .decl Y(x:number, i:Interval<>)
+    .decl R(x:number, i:Interval<>)
+    .output R()
+
+    X(0, [0,100]).
+    Y(0, [50, 150]).
+
+    R(x, i) :-
+        X(x, i),
+        Y(x, i).
+
+}
+
+.comp _ex5 {
+    // testing glb
+
+    .type Interval = I
+
+    .lattice Interval<> {
+        Bottom -> [0, -1],
+        Lub    -> @lub(_,_),
+        Glb    -> @glb(_,_)
+    }
+
+    .decl X(i:Interval<>)
+    .decl Y(i:Interval)
+    .decl R(i:Interval<>)
+    .output R()
+
+    X([0,100]).
+    Y([50, 150]).
+
+    R(i) :-
+        X(i),
+        Y(i).
+
+    .decl A(i:Interval<>)
+    .decl B(i:Interval<>)
+    .decl C(i:Interval<>)
+    .output C()
+
+    A([-10, -1]).
+    B([1, 100]).
+    C(i) :- A(i), B(i).
+
+}
 
 
-.decl toto(
-    n:Node,
-    v:Variable,
-    i:Interval:ilub,
-    j:Interval:ilub)
-//.output toto()
+.functor sign_lub(a:S, b:S):S stateful
+.functor sign_glb(a:S, b:S):S stateful
 
-toto(s, v, [20, 30], [1, 2]),
-toto(s, v, [0, 10], [6,10]) :-
-    Set_Value(s, v, _).
+.type S =
+    Bottom{}
+  | Negative{}
+  | Positive{}
+  | Top{}
+  | Zero{}
 
-.decl titi(
-    n:Node,
-    v:Variable,
-    i:Interval,
-    j:Interval)
-//.output titi()
+.comp _ex6 {
 
-titi(s, v, [20, 30], [1, 2]),
-titi(s, v, [0, 10], [6,10]) :-
-    Set_Value(s, v, _).
+    .type Sign = S
+
+    .lattice Sign<> {
+        Bottom -> $Bottom(),
+        Top -> $Top(),
+        Lub -> @sign_lub(_,_),
+        Glb -> @sign_glb(_,_)
+    }
+
+    .decl N(n:number)
+
+    N(x) :- x = range(-10, 10).
+
+    .decl S(n:number, s:Sign<>)
+
+    S(n, s) :-
+        N(n),
+        (
+            n = 0, s = $Zero();
+            n > 0, s = $Positive();
+            n < 0, s = $Negative()
+        ).
+
+    .decl R(n:symbol, s:Sign<>)
+    .output R()
+
+    R("pos", s) :-
+        S(x, s), x > 0.
+
+    R("neg", s) :-
+        S(x, s), x < 0.
+
+    R("top", s) :-
+        S(_, s).
+
+    .decl R2(n:symbol)
+    .output R2()
+
+    R2(x) :-
+        R(x, $Top()).
+}
