@@ -101,6 +101,7 @@ enum class FunctorOp {
     FMIN,                // min of two floats
     SMAX,                // max of two symbols
     SMIN,                // min of two symbols
+    SSADD,               // string-string concatenation
 
     // Produces values within a numeric range. Format is `range(bgn, endExcl, step = 1)`.
     // e.g. `range(0, 5)` produces the sequence `0, 1, 2, 3, 4`.

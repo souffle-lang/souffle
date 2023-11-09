@@ -50,8 +50,13 @@ public:
         return name_as_cstr_literal;
     }
 
-    /** @brief Print the analysis result in HTML format */
+    /** @brief Print the analysis result in textual format */
     virtual void print(std::ostream& /* os */) const {}
+
+    /** @brief Print the analysis result in HTML format (or fallback to textual format) */
+    virtual void printHTML(std::ostream& os) const {
+        print(os);
+    }
 
 private:
     char const* const name_as_cstr_literal;
