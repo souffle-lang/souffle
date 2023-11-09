@@ -36,32 +36,14 @@ Increment_Value("incr", "v", 2).
 
 .type Interval = [lb:number, ub:number]
 
-.functor ilub(a:Interval, b:Interval):Interval stateful
-.functor iwiden(a:Interval, b:Interval):Interval stateful
-
 // Possible values for v after statement n, expressed with an interval
 // for instance: Values("head", "v", [0, 50])
-.decl Values(
-    n:Node,
-    v:Variable,
-    i:Interval:ilub) //btree_delete
-
-//.decl Values(
-//    n:Node,
-//    v:Variable,
-//    i:Interval:{loop_head(n) => @iwiden ; !loop_head(n) => @ilub} ) //btree_delete
-//    i:Interval:ilub:iwiden{loop_head(n)} ) //btree_delete
+.decl Values(n:Node, v:Variable, i:Interval) btree_delete
 .output Values
 
-//.lub Values(n, _, x) :-
-//    loop_head(n) => x:iwiden
-//    ;
-//    !loop_head(n) => x:ilub
-//    .
-
-//Values(n, v, [lb1, ub1]) <= Values(n, v, [lb2, ub2]) :-
-//    lb1 >= lb2,
-//    ub1 <= ub2.
+Values(n, v, [lb1, ub1]) <= Values(n, v, [lb2, ub2]) :-
+    lb1 >= lb2,
+    ub1 <= ub2.
 
 Values(n, v, [x, x]) :-
     Set_Value(n, v, x).
@@ -93,8 +75,8 @@ Values(n, v, [lb, min_ub]) :-
     min_ub = min(x, ub),
     min_ub >= lb.
 
-//Values(n, v, [lb, ub]) :-
-//    Values(n, v, [lb1, ub1]),
-//    Values(n, v, [lb2, ub2]),
-//    lb = min(lb1, lb2),
-//    ub = max(ub1, ub2).
+Values(n, v, [lb, ub]) :-
+    Values(n, v, [lb1, ub1]),
+    Values(n, v, [lb2, ub2]),
+    lb = min(lb1, lb2),
+    ub = max(ub1, ub2).

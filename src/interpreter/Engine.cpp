@@ -359,7 +359,7 @@ void Engine::createRelation(const ram::Relation& id, const std::size_t idx) {
     }
 
     RelationHandle res;
-    bool hasProvenance = id.getAttributeNames().back() == "@level_number";
+    bool hasProvenance = id.getArity() > 0 && id.getAttributeNames().back() == "@level_number";
     if (hasProvenance) {
         res = createProvenanceRelation(id, isa.getIndexSelection(id.getName()));
     } else if (id.getRepresentation() == RelationRepresentation::EQREL) {
@@ -794,7 +794,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 }
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            {UNREACHABLE_BAD_CASE_ANALYSIS}
 
 #undef BINARY_OP_LOGICAL
 #undef BINARY_OP_INTEGRAL
@@ -828,7 +828,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 case ram::NestedIntrinsicOp::FRANGE: return RUN_RANGE(RamFloat);
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            {UNREACHABLE_BAD_CASE_ANALYSIS}
 #undef RUN_RANGE
         ESAC(NestedIntrinsicOperator)
 
@@ -1112,7 +1112,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 }
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            {UNREACHABLE_BAD_CASE_ANALYSIS}
 
 #undef COMPARE_NUMERIC
 #undef COMPARE_STRING

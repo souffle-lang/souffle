@@ -150,7 +150,7 @@ inline NodeType constructNodeType(Global&, std::string tokBase, const ram::Relat
 
     std::string arity = std::to_string(rel.getArity());
     std::string auxiliaryArity = std::to_string(rel.getAuxiliaryArity());
-    bool hasProvenance = rel.getAttributeNames().back() == "@level_number";
+    bool hasProvenance = rel.getArity() > 0 && rel.getAttributeNames().back() == "@level_number";
     if (hasProvenance) {
         return map.at("I_" + tokBase + "_Provenance_" + arity + "_" + auxiliaryArity);
     } else if (rel.getRepresentation() == RelationRepresentation::EQREL) {

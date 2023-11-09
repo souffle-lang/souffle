@@ -670,10 +670,20 @@ void SemanticCheckerImpl::checkLatticeDeclaration(const Lattice& lattice) {
     if (!existingType) {
         report.addError(tfm::format("Undefined type %s", name), lattice.getSrcLoc());
     }
-    if (!lattice.hasLub()) {
+    if (lattice.hasLub()) {
+        if (!isA<UserDefinedFunctor>(lattice.getLub())) {
+            report.addError(
+                    tfm::format("Lattice operator Lub must be a user-defined functor"), lattice.getSrcLoc());
+        }
+    } else {
         report.addError(tfm::format("Lattice %s<> does not define Lub", name), lattice.getSrcLoc());
     }
-    if (!lattice.hasGlb()) {
+    if (lattice.hasGlb()) {
+        if (!isA<UserDefinedFunctor>(lattice.getGlb())) {
+            report.addError(
+                    tfm::format("Lattice operator Glb must be a user-defined functor"), lattice.getSrcLoc());
+        }
+    } else {
         report.addWarning(WarnType::LatticeMissingOperator,
                 tfm::format("Lattice %s<> does not define Glb", name), lattice.getSrcLoc());
     }
@@ -778,7 +788,21 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
     }
     if (relation.getRepresentation() == RelationRepresentation::BTREE_DELETE && relation.getArity() == 0) {
         report.addError("Subsumptive relation \"" + toString(relation.getQualifiedName()) +
-                                "\"  must not be a nullary relation",
+                                "\" must not be a nullary relation",
+                relation.getSrcLoc());
+    }
+
+    if (hasSubsumptiveRule && relation.getAuxiliaryArity()) {
+        report.addError("Relation \"" + toString(relation.getQualifiedName()) +
+                                "\" must not have both subsumptive rules and lattice arguments",
+                relation.getSrcLoc());
+    }
+
+    if (relation.getAuxiliaryArity() &&
+            (relation.getRepresentation() != RelationRepresentation::BTREE &&
+                    relation.getRepresentation() != RelationRepresentation::DEFAULT)) {
+        report.addError(
+                "Relation \"" + toString(relation.getQualifiedName()) + "\" must have a btree representation",
                 relation.getSrcLoc());
     }
 

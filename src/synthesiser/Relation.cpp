@@ -48,7 +48,7 @@ Own<Relation> Relation::getSynthesiserRelation(
         const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection) {
     Relation* rel;
 
-    bool hasProvenance = ramRel.getAttributeNames().back() == "@level_number";
+    bool hasProvenance = ramRel.getArity() > 0 && ramRel.getAttributeNames().back() == "@level_number";
     // Handle the qualifier in souffle code
     if (ramRel.getAuxiliaryArity() > 0) {
         rel = new DirectRelation(ramRel, indexSelection, true, hasProvenance, false);
