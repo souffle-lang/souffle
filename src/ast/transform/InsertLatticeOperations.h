@@ -25,7 +25,7 @@
 namespace souffle::ast::transform {
 
 /**
- * Transformation pass to inline marked relations
+ * Transformation pass to insert GLBs and checks != Bottom on lattice type attributes
  */
 class LatticeTransformer : public Transformer {
 public:

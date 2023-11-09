@@ -31,8 +31,8 @@ enum LatticeOperator { Bottom = 0, Top, Lub, Glb, Leq };
 std::optional<LatticeOperator> latticeOperatorFromString(const std::string& str);
 
 /**
- *  @class Type
- *  @brief An abstract base class for types
+ *  @class Lattice
+ *  @brief An class to define Lattice attributes for a type
  */
 class Lattice : public Node {
 public:
