@@ -784,6 +784,14 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 case FunctorOp::URANGE:
                 case FunctorOp::FRANGE:
                     fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", cur.getOperator());
+
+                case FunctorOp::SSADD: {
+                    auto sleft = execute(shadow.getChild(0), ctxt);
+                    auto sright = execute(shadow.getChild(1), ctxt);
+                    const std::string& strleft = getSymbolTable().decode(sleft);
+                    const std::string& strright = getSymbolTable().decode(sright);
+                    return getSymbolTable().encode(strleft + strright);
+                }
             }
 
             { UNREACHABLE_BAD_CASE_ANALYSIS }

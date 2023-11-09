@@ -43,7 +43,7 @@ public:
     /** Output precedence graph in text format to a given stream */
     void print(std::ostream& os) const override;
 
-    /** Output precedence graph in graphviz format to a given stream */
+    /** Output precedence graph in image format to a given stream */
     void printHTML(std::ostream& os) const;
 
     const Graph<const Relation*, NameComparison>& graph() const {

@@ -201,6 +201,12 @@ protected:
                         pos = 0;
                         end = line.length();
                     }
+                    if (pos == end) {
+                        // this means we've got a blank line and we need to read
+                        // more
+                        continue;
+                    }
+
                     char c = line[pos++];
                     if (c == '"' && (pos < end) && line[pos] == '"') {
                         // two double-quote => one double-quote
