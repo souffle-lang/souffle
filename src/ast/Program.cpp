@@ -237,8 +237,9 @@ void Program::addType(Own<Type> type) {
 
 void Program::addLattice(Own<Lattice> lattice) {
     assert(lattice != nullptr);
-    [[maybe_unused]] auto* existingLattice = getIf(getLattices(),
-            [&](const Lattice* current) { return current->getQualifiedName() == lattice->getQualifiedName(); });
+    [[maybe_unused]] auto* existingLattice = getIf(getLattices(), [&](const Lattice* current) {
+        return current->getQualifiedName() == lattice->getQualifiedName();
+    });
     assert(existingLattice == nullptr && "Redefinition of lattice!");
     lattices.push_back(std::move(lattice));
 }

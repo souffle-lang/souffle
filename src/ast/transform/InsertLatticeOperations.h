@@ -41,7 +41,6 @@ private:
     bool transform(TranslationUnit& translationUnit) override;
 
     std::map<const ast::QualifiedName, const ast::Lattice*> lattices;
-
 };
 
-} // namespace souffle::ast::transform
+}  // namespace souffle::ast::transform

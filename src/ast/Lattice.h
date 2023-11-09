@@ -6,7 +6,6 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-
 /************************************************************************
  *
  * @file Lattice.h
@@ -17,17 +16,17 @@
 
 #pragma once
 
-#include "ast/Node.h"
 #include "ast/Argument.h"
+#include "ast/Node.h"
 #include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
 
-#include <optional>
 #include <map>
+#include <optional>
 
 namespace souffle::ast {
 
-enum LatticeOperator {Bottom = 0, Top, Lub, Glb, Leq};
+enum LatticeOperator { Bottom = 0, Top, Lub, Glb, Leq };
 
 std::optional<LatticeOperator> latticeOperatorFromString(const std::string& str);
 
@@ -37,7 +36,8 @@ std::optional<LatticeOperator> latticeOperatorFromString(const std::string& str)
  */
 class Lattice : public Node {
 public:
-    Lattice(QualifiedName name, std::map<LatticeOperator, Own<ast::Argument>> operators, SrcLocation loc = {});
+    Lattice(QualifiedName name, std::map<LatticeOperator, Own<ast::Argument>> operators,
+            SrcLocation loc = {});
 
     /** Return type name */
     const QualifiedName& getQualifiedName() const {
@@ -72,7 +72,6 @@ private:
     QualifiedName name;
 
     const std::map<LatticeOperator, Own<ast::Argument>> operators;
-
 };
 
 }  // namespace souffle::ast

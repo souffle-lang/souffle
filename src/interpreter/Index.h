@@ -142,7 +142,8 @@ struct ViewWrapper {
 /**
  * An index is an abstraction of a data structure
  */
-template <std::size_t _Arity, std::size_t _AuxiliaryArity, template <std::size_t, std::size_t> typename Structure>
+template <std::size_t _Arity, std::size_t _AuxiliaryArity,
+        template <std::size_t, std::size_t> typename Structure>
 class Index {
 public:
     static constexpr std::size_t Arity = _Arity;

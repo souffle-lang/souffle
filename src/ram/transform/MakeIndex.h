@@ -93,8 +93,8 @@ public:
      * @param RelationRepresentation identifying the data structure
      * @result Remaining conditions that could not be transformed to an index
      */
-    Own<Condition> constructPattern(const ram::Relation& rel, RamPattern& queryPattern,
-            bool& indexable, VecOwn<Condition> conditionList, std::size_t identifier);
+    Own<Condition> constructPattern(const ram::Relation& rel, RamPattern& queryPattern, bool& indexable,
+            VecOwn<Condition> conditionList, std::size_t identifier);
 
     /**
      * @brief Rewrite a scan operation to an indexed scan operation

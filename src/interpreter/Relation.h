@@ -151,7 +151,8 @@ protected:
 /**
  * A relation, composed of a collection of indexes.
  */
-template <std::size_t _Arity, std::size_t _AuxiliaryArity, template <std::size_t, std::size_t> typename Structure>
+template <std::size_t _Arity, std::size_t _AuxiliaryArity,
+        template <std::size_t, std::size_t> typename Structure>
 class Relation : public RelationWrapper {
 public:
     static constexpr std::size_t Arity = _Arity;
@@ -182,8 +183,7 @@ public:
     /**
      * Creates a relation, build all necessary indexes.
      */
-    Relation(const std::string& name,
-            const ram::analysis::IndexCluster& indexSelection)
+    Relation(const std::string& name, const ram::analysis::IndexCluster& indexSelection)
             : RelationWrapper(Arity, AuxiliaryArity, name) {
         for (const auto& order : indexSelection.getAllOrders()) {
             ram::analysis::LexOrder fullOrder = order;
@@ -394,7 +394,6 @@ public:
     }
 
 protected:
-
     // a map of managed indexes
     VecOwn<Index> indexes;
 

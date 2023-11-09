@@ -17,7 +17,7 @@ Attribute::Attribute(std::string n, QualifiedName t, SrcLocation loc)
         : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(false) {}
 
 Attribute::Attribute(std::string n, QualifiedName t, bool isLattice, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(isLattice)  {}
+        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(isLattice) {}
 
 void Attribute::setTypeName(QualifiedName name) {
     typeName = std::move(name);

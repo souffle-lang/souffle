@@ -537,7 +537,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             [[maybe_unused]] const auto& shadow = *static_cast<const interpreter::Kind*>(node); \
             [[maybe_unused]] const auto& cur = *static_cast<const ram::Kind*>(node->getShadow());
 // EXTEND_CASE also defer the relation type
-#define EXTEND_CASE(Kind, Structure, Arity, AuxiliaryArity)    \
+#define EXTEND_CASE(Kind, Structure, Arity, AuxiliaryArity)       \
     case (I_##Kind##_##Structure##_##Arity##_##AuxiliaryArity): { \
         return [&]() -> RamDomain { \
             [[maybe_unused]] const auto& shadow = *static_cast<const interpreter::Kind*>(node); \
@@ -786,7 +786,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     fatal("ICE: functor `%s` must map onto `NestedIntrinsicOperator`", cur.getOperator());
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            { UNREACHABLE_BAD_CASE_ANALYSIS }
 
 #undef BINARY_OP_LOGICAL
 #undef BINARY_OP_INTEGRAL
@@ -820,7 +820,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 case ram::NestedIntrinsicOp::FRANGE: return RUN_RANGE(RamFloat);
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            { UNREACHABLE_BAD_CASE_ANALYSIS }
 #undef RUN_RANGE
         ESAC(NestedIntrinsicOperator)
 
@@ -978,8 +978,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return !execute(shadow.getChild(), ctxt);
         ESAC(Negation)
 
-#define EMPTINESS_CHECK(Structure, Arity, AuxiliaryArity, ...)                          \
-    CASE(EmptinessCheck, Structure, Arity, AuxiliaryArity)                              \
+#define EMPTINESS_CHECK(Structure, Arity, AuxiliaryArity, ...)          \
+    CASE(EmptinessCheck, Structure, Arity, AuxiliaryArity)              \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return rel.empty();                                             \
     ESAC(EmptinessCheck)
@@ -987,8 +987,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(EMPTINESS_CHECK)
 #undef EMPTINESS_CHECK
 
-#define RELATION_SIZE(Structure, Arity, AuxiliaryArity, ...)                            \
-    CASE(RelationSize, Structure, Arity, AuxiliaryArity)                                \
+#define RELATION_SIZE(Structure, Arity, AuxiliaryArity, ...)            \
+    CASE(RelationSize, Structure, Arity, AuxiliaryArity)                \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return rel.size();                                              \
     ESAC(RelationSize)
@@ -996,17 +996,17 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(RELATION_SIZE)
 #undef RELATION_SIZE
 
-#define EXISTENCE_CHECK(Structure, Arity, AuxiliaryArity, ...)            \
-    CASE(ExistenceCheck, Structure, Arity, AuxiliaryArity)                \
-        return evalExistenceCheck<RelType>(shadow, ctxt); \
+#define EXISTENCE_CHECK(Structure, Arity, AuxiliaryArity, ...) \
+    CASE(ExistenceCheck, Structure, Arity, AuxiliaryArity)     \
+        return evalExistenceCheck<RelType>(shadow, ctxt);      \
     ESAC(ExistenceCheck)
 
         FOR_EACH(EXISTENCE_CHECK)
 #undef EXISTENCE_CHECK
 
-#define PROVENANCE_EXISTENCE_CHECK(Structure, Arity, AuxiliaryArity, ...)           \
-    CASE(ProvenanceExistenceCheck, Structure, Arity, AuxiliaryArity)                \
-        return evalProvenanceExistenceCheck<RelType>(shadow, ctxt); \
+#define PROVENANCE_EXISTENCE_CHECK(Structure, Arity, AuxiliaryArity, ...) \
+    CASE(ProvenanceExistenceCheck, Structure, Arity, AuxiliaryArity)      \
+        return evalProvenanceExistenceCheck<RelType>(shadow, ctxt);       \
     ESAC(ProvenanceExistenceCheck)
 
         FOR_EACH_PROVENANCE(PROVENANCE_EXISTENCE_CHECK)
@@ -1104,7 +1104,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                 }
             }
 
-        {UNREACHABLE_BAD_CASE_ANALYSIS}
+            { UNREACHABLE_BAD_CASE_ANALYSIS }
 
 #undef COMPARE_NUMERIC
 #undef COMPARE_STRING
@@ -1127,8 +1127,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return result;
         ESAC(TupleOperation)
 
-#define SCAN(Structure, Arity, AuxiliaryArity, ...)                                     \
-    CASE(Scan, Structure, Arity, AuxiliaryArity)                                        \
+#define SCAN(Structure, Arity, AuxiliaryArity, ...)                     \
+    CASE(Scan, Structure, Arity, AuxiliaryArity)                        \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalScan(rel, cur, shadow, ctxt);                        \
     ESAC(Scan)
@@ -1136,24 +1136,24 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(SCAN)
 #undef SCAN
 
-#define PARALLEL_SCAN(Structure, Arity, AuxiliaryArity, ...)                            \
-    CASE(ParallelScan, Structure, Arity, AuxiliaryArity)                                \
+#define PARALLEL_SCAN(Structure, Arity, AuxiliaryArity, ...)            \
+    CASE(ParallelScan, Structure, Arity, AuxiliaryArity)                \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalParallelScan(rel, cur, shadow, ctxt);                \
     ESAC(ParallelScan)
         FOR_EACH(PARALLEL_SCAN)
 #undef PARALLEL_SCAN
 
-#define INDEX_SCAN(Structure, Arity, AuxiliaryArity, ...)                 \
-    CASE(IndexScan, Structure, Arity, AuxiliaryArity)                     \
+#define INDEX_SCAN(Structure, Arity, AuxiliaryArity, ...) \
+    CASE(IndexScan, Structure, Arity, AuxiliaryArity)     \
         return evalIndexScan<RelType>(cur, shadow, ctxt); \
     ESAC(IndexScan)
 
         FOR_EACH(INDEX_SCAN)
 #undef INDEX_SCAN
 
-#define PARALLEL_INDEX_SCAN(Structure, Arity, AuxiliaryArity, ...)                      \
-    CASE(ParallelIndexScan, Structure, Arity, AuxiliaryArity)                           \
+#define PARALLEL_INDEX_SCAN(Structure, Arity, AuxiliaryArity, ...)      \
+    CASE(ParallelIndexScan, Structure, Arity, AuxiliaryArity)           \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalParallelIndexScan(rel, cur, shadow, ctxt);           \
     ESAC(ParallelIndexScan)
@@ -1161,8 +1161,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(PARALLEL_INDEX_SCAN)
 #undef PARALLEL_INDEX_SCAN
 
-#define IFEXISTS(Structure, Arity, AuxiliaryArity, ...)                                 \
-    CASE(IfExists, Structure, Arity, AuxiliaryArity)                                    \
+#define IFEXISTS(Structure, Arity, AuxiliaryArity, ...)                 \
+    CASE(IfExists, Structure, Arity, AuxiliaryArity)                    \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalIfExists(rel, cur, shadow, ctxt);                    \
     ESAC(IfExists)
@@ -1170,8 +1170,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(IFEXISTS)
 #undef IFEXISTS
 
-#define PARALLEL_IFEXISTS(Structure, Arity, AuxiliaryArity, ...)                        \
-    CASE(ParallelIfExists, Structure, Arity, AuxiliaryArity)                            \
+#define PARALLEL_IFEXISTS(Structure, Arity, AuxiliaryArity, ...)        \
+    CASE(ParallelIfExists, Structure, Arity, AuxiliaryArity)            \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalParallelIfExists(rel, cur, shadow, ctxt);            \
     ESAC(ParallelIfExists)
@@ -1179,16 +1179,16 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(PARALLEL_IFEXISTS)
 #undef PARALLEL_IFEXISTS
 
-#define INDEX_IFEXISTS(Structure, Arity, AuxiliaryArity, ...)                 \
-    CASE(IndexIfExists, Structure, Arity, AuxiliaryArity)                     \
+#define INDEX_IFEXISTS(Structure, Arity, AuxiliaryArity, ...) \
+    CASE(IndexIfExists, Structure, Arity, AuxiliaryArity)     \
         return evalIndexIfExists<RelType>(cur, shadow, ctxt); \
     ESAC(IndexIfExists)
 
         FOR_EACH(INDEX_IFEXISTS)
 #undef INDEX_IFEXISTS
 
-#define PARALLEL_INDEX_IFEXISTS(Structure, Arity, AuxiliaryArity, ...)                  \
-    CASE(ParallelIndexIfExists, Structure, Arity, AuxiliaryArity)                       \
+#define PARALLEL_INDEX_IFEXISTS(Structure, Arity, AuxiliaryArity, ...)  \
+    CASE(ParallelIndexIfExists, Structure, Arity, AuxiliaryArity)       \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalParallelIndexIfExists(rel, cur, shadow, ctxt);       \
     ESAC(ParallelIndexIfExists)
@@ -1215,8 +1215,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return execute(shadow.getNestedOperation(), ctxt);
         ESAC(UnpackRecord)
 
-#define PARALLEL_AGGREGATE(Structure, Arity, AuxiliaryArity, ...)                       \
-    CASE(ParallelAggregate, Structure, Arity, AuxiliaryArity)                           \
+#define PARALLEL_AGGREGATE(Structure, Arity, AuxiliaryArity, ...)       \
+    CASE(ParallelAggregate, Structure, Arity, AuxiliaryArity)           \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalParallelAggregate(rel, cur, shadow, ctxt);           \
     ESAC(ParallelAggregate)
@@ -1224,8 +1224,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(PARALLEL_AGGREGATE)
 #undef PARALLEL_AGGREGATE
 
-#define AGGREGATE(Structure, Arity, AuxiliaryArity, ...)                                \
-    CASE(Aggregate, Structure, Arity, AuxiliaryArity)                                   \
+#define AGGREGATE(Structure, Arity, AuxiliaryArity, ...)                \
+    CASE(Aggregate, Structure, Arity, AuxiliaryArity)                   \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalAggregate(cur, shadow, rel.scan(), ctxt);            \
     ESAC(Aggregate)
@@ -1233,16 +1233,16 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(AGGREGATE)
 #undef AGGREGATE
 
-#define PARALLEL_INDEX_AGGREGATE(Structure, Arity, AuxiliaryArity, ...)                \
-    CASE(ParallelIndexAggregate, Structure, Arity, AuxiliaryArity)                     \
-        return evalParallelIndexAggregate<RelType>(cur, shadow, ctxt); \
+#define PARALLEL_INDEX_AGGREGATE(Structure, Arity, AuxiliaryArity, ...) \
+    CASE(ParallelIndexAggregate, Structure, Arity, AuxiliaryArity)      \
+        return evalParallelIndexAggregate<RelType>(cur, shadow, ctxt);  \
     ESAC(ParallelIndexAggregate)
 
         FOR_EACH(PARALLEL_INDEX_AGGREGATE)
 #undef PARALLEL_INDEX_AGGREGATE
 
-#define INDEX_AGGREGATE(Structure, Arity, AuxiliaryArity, ...)                 \
-    CASE(IndexAggregate, Structure, Arity, AuxiliaryArity)                     \
+#define INDEX_AGGREGATE(Structure, Arity, AuxiliaryArity, ...) \
+    CASE(IndexAggregate, Structure, Arity, AuxiliaryArity)     \
         return evalIndexAggregate<RelType>(cur, shadow, ctxt); \
     ESAC(IndexAggregate)
 
@@ -1275,8 +1275,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return result;
         ESAC(Filter)
 
-#define GUARDED_INSERT(Structure, Arity, AuxiliaryArity, ...)                     \
-    CASE(GuardedInsert, Structure, Arity, AuxiliaryArity)                         \
+#define GUARDED_INSERT(Structure, Arity, AuxiliaryArity, ...)     \
+    CASE(GuardedInsert, Structure, Arity, AuxiliaryArity)         \
         auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalGuardedInsert(rel, shadow, ctxt);              \
     ESAC(GuardedInsert)
@@ -1284,8 +1284,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(GUARDED_INSERT)
 #undef GUARDED_INSERT
 
-#define INSERT(Structure, Arity, AuxiliaryArity, ...)                             \
-    CASE(Insert, Structure, Arity, AuxiliaryArity)                                \
+#define INSERT(Structure, Arity, AuxiliaryArity, ...)             \
+    CASE(Insert, Structure, Arity, AuxiliaryArity)                \
         auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalInsert(rel, shadow, ctxt);                     \
     ESAC(Insert)
@@ -1295,9 +1295,9 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
 #define ERASE(Structure, Arity, AuxiliaryArity, ...)                                                 \
     CASE(Erase, Structure, Arity, AuxiliaryArity)                                                    \
-        void(static_cast<RelType*>(shadow.getRelation()));                           \
-        auto& rel = *static_cast<BtreeDeleteRelation<Arity,AuxiliaryArity>*>(shadow.getRelation()); \
-        return evalErase(rel, shadow, ctxt);                                         \
+        void(static_cast<RelType*>(shadow.getRelation()));                                           \
+        auto& rel = *static_cast<BtreeDeleteRelation<Arity, AuxiliaryArity>*>(shadow.getRelation()); \
+        return evalErase(rel, shadow, ctxt);                                                         \
     ESAC(Erase)
 
         FOR_EACH_BTREE_DELETE(ERASE)
@@ -1361,8 +1361,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return execute(shadow.getChild(), ctxt);
         ESAC(DebugInfo)
 
-#define CLEAR(Structure, Arity, AuxiliaryArity, ...)                              \
-    CASE(Clear, Structure, Arity, AuxiliaryArity)                                 \
+#define CLEAR(Structure, Arity, AuxiliaryArity, ...)              \
+    CASE(Clear, Structure, Arity, AuxiliaryArity)                 \
         auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         rel.__purge();                                            \
         return true;                                              \
@@ -1371,8 +1371,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         FOR_EACH(CLEAR)
 #undef CLEAR
 
-#define ESTIMATEJOINSIZE(Structure, Arity, AuxiliaryArity, ...)                         \
-    CASE(EstimateJoinSize, Structure, Arity, AuxiliaryArity)                            \
+#define ESTIMATEJOINSIZE(Structure, Arity, AuxiliaryArity, ...)         \
+    CASE(EstimateJoinSize, Structure, Arity, AuxiliaryArity)            \
         const auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
         return evalEstimateJoinSize<RelType>(rel, cur, shadow, ctxt);   \
     ESAC(EstimateJoinSize)

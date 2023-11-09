@@ -86,7 +86,8 @@ protected:
     Own<ram::Statement> generateStratumLoopBody(const ast::RelationSet& scc) const;
     Own<ram::Statement> generateStratumTableUpdates(const ast::RelationSet& scc) const;
     Own<ram::Statement> generateStratumExitSequence(const ast::RelationSet& scc) const;
-    Own<ram::Statement> generateStratumLubSequence(const ast::Relation& rel, const std::string& fromName, const std::string& toName) const;
+    Own<ram::Statement> generateStratumLubSequence(
+            const ast::Relation& rel, const std::string& fromName, const std::string& toName) const;
 
     /** Other helper generations */
     virtual Own<ram::Statement> generateClearExpiredRelations(const ast::RelationSet& expiredRelations) const;

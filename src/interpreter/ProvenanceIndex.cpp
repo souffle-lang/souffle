@@ -18,8 +18,8 @@
 
 namespace souffle::interpreter {
 
-#define CREATE_PROVENANCE_REL(Structure, Arity, AuxiliaryArity, ...)                           \
-    if (id.getArity() == Arity && id.getAuxiliaryArity() == AuxiliaryArity) {                \
+#define CREATE_PROVENANCE_REL(Structure, Arity, AuxiliaryArity, ...)                                       \
+    if (id.getArity() == Arity && id.getAuxiliaryArity() == AuxiliaryArity) {                              \
         return mk<Relation<Arity, AuxiliaryArity, interpreter::Provenance>>(id.getName(), indexSelection); \
     }
 

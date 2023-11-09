@@ -230,7 +230,6 @@ using t_tuple = typename souffle::Tuple<RamDomain, Arity>;
 template <std::size_t Arity>
 using comparator = typename index_utils::get_full_index<Arity>::type::comparator;
 
-
 // Updater
 template <std::size_t Arity, std::size_t AuxiliaryArity>
 struct Updater {
@@ -252,11 +251,11 @@ struct Updater {
 template <std::size_t Arity, std::size_t AuxiliaryArity>
 struct ProvenanceUpdater {
     bool update(t_tuple<Arity>& old_t, const t_tuple<Arity>& new_t) {
-        constexpr std::size_t level = Arity-1;
-        constexpr std::size_t rule = Arity-2;
-        if (ramBitCast<RamSigned>(new_t[level]) < ramBitCast<RamSigned>(old_t[level])
-            || (ramBitCast<RamSigned>(new_t[level]) == ramBitCast<RamSigned>(old_t[level])
-            && ramBitCast<RamSigned>(new_t[rule]) < ramBitCast<RamSigned>(old_t[rule]))) {
+        constexpr std::size_t level = Arity - 1;
+        constexpr std::size_t rule = Arity - 2;
+        if (ramBitCast<RamSigned>(new_t[level]) < ramBitCast<RamSigned>(old_t[level]) ||
+                (ramBitCast<RamSigned>(new_t[level]) == ramBitCast<RamSigned>(old_t[level]) &&
+                        ramBitCast<RamSigned>(new_t[rule]) < ramBitCast<RamSigned>(old_t[rule]))) {
             old_t[level] = new_t[level];
             old_t[rule] = new_t[rule];
             return true;
@@ -270,7 +269,6 @@ template <std::size_t Arity, std::size_t AuxiliaryArity>
 using Btree = btree_set<t_tuple<Arity>, comparator<Arity>, std::allocator<t_tuple<Arity>>, 256,
         typename detail::default_strategy<t_tuple<Arity>>::type, comparator<Arity - AuxiliaryArity>,
         Updater<Arity, AuxiliaryArity>>;
-
 
 // Alias for btree_delete_set
 template <std::size_t Arity, std::size_t AuxiliaryArity>

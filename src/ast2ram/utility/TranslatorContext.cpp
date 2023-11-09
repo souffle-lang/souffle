@@ -128,28 +128,33 @@ std::string TranslatorContext::getAttributeTypeQualifier(const ast::QualifiedNam
     return getTypeQualifier(typeEnv->getType(name));
 }
 
-Own<ram::AbstractOperator> TranslatorContext::getLatticeTypeLubFunctor(const ast::QualifiedName& typeName, VecOwn<ram::Expression> args) const {
+Own<ram::AbstractOperator> TranslatorContext::getLatticeTypeLubFunctor(
+        const ast::QualifiedName& typeName, VecOwn<ram::Expression> args) const {
     const ast::Lattice* lattice = lattices.at(typeName);
     if (const auto* lub = as<ast::UserDefinedFunctor>(lattice->getLub())) {
         const auto typeAttributes = getFunctorParamTypeAtributes(*lub);
         const auto returnAttribute = getFunctorReturnTypeAttribute(*lub);
         bool stateful = isStatefulFunctor(*lub);
-        return mk<ram::UserDefinedOperator>(lub->getName(), typeAttributes, returnAttribute, stateful, std::move(args));
+        return mk<ram::UserDefinedOperator>(
+                lub->getName(), typeAttributes, returnAttribute, stateful, std::move(args));
     } else if (const auto* lub = as<ast::IntrinsicFunctor>(lattice->getLub())) {
         assert(false && lub && "intrinsic functors not yet supported in lattice");
-        //return mk<ram::IntrinsicOperator>(getOverloadedFunctorOp(lub->getBaseFunctionOp()), std::move(args));
+        // return mk<ram::IntrinsicOperator>(getOverloadedFunctorOp(lub->getBaseFunctionOp()),
+        // std::move(args));
     }
     assert(false);
     return {};
 }
 
-Own<ram::Aggregator> TranslatorContext::getLatticeTypeLubAggregator(const ast::QualifiedName& typeName, Own<ram::Expression> init) const {
+Own<ram::Aggregator> TranslatorContext::getLatticeTypeLubAggregator(
+        const ast::QualifiedName& typeName, Own<ram::Expression> init) const {
     const ast::Lattice* lattice = lattices.at(typeName);
     if (const auto* lub = as<ast::UserDefinedFunctor>(lattice->getLub())) {
         const auto typeAttributes = getFunctorParamTypeAtributes(*lub);
         const auto returnAttribute = getFunctorReturnTypeAttribute(*lub);
         bool stateful = isStatefulFunctor(*lub);
-        return mk<ram::UserDefinedAggregator>(lub->getName(), std::move(init), typeAttributes, returnAttribute, stateful);
+        return mk<ram::UserDefinedAggregator>(
+                lub->getName(), std::move(init), typeAttributes, returnAttribute, stateful);
     } else if (const auto* lub = as<ast::IntrinsicFunctor>(lattice->getLub())) {
         assert(false && lub && "intrinsic aggregators not yet supported in lattice");
     }

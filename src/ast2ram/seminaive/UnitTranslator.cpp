@@ -436,8 +436,7 @@ Own<ram::Statement> UnitTranslator::generateNonRecursiveDelete(const ast::Relati
         }
 
         // Translate subsumptive clause
-        Own<ram::Statement> rule =
-                context->translateNonRecursiveClause(*clause, SubsumeDeleteCurrentCurrent);
+        Own<ram::Statement> rule = context->translateNonRecursiveClause(*clause, SubsumeDeleteCurrentCurrent);
 
         // Add logging for subsumptive clause
         if (glb->config().has("profile")) {
@@ -521,11 +520,9 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         // swap new and and delta relation and clear new relation afterwards (if not a subsumptive relation)
         Own<ram::Statement> updateRelTable;
         if (rel->getAuxiliaryArity() > 0) {
-            updateRelTable =mk<ram::Sequence>(
-                mk<ram::Clear>(deltaRelation),
-                generateStratumLubSequence(*rel, newRelation, deltaRelation),
-                generateMergeRelations(rel, mainRelation, deltaRelation)
-            );
+            updateRelTable = mk<ram::Sequence>(mk<ram::Clear>(deltaRelation),
+                    generateStratumLubSequence(*rel, newRelation, deltaRelation),
+                    generateMergeRelations(rel, mainRelation, deltaRelation));
         } else if (!context->hasSubsumptiveClause(rel->getQualifiedName())) {
             updateRelTable = mk<ram::Sequence>(generateMergeRelations(rel, mainRelation, newRelation),
                     mk<ram::Swap>(deltaRelation, newRelation), mk<ram::Clear>(newRelation));
@@ -588,7 +585,8 @@ Own<ram::Statement> UnitTranslator::generateStratumLoopBody(const ast::RelationS
 
 /// assuming the @new() relation is populated with new tuples, generate RAM code
 /// to populate the @delta() relation with the lubbed elements from @new()
-Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relation& rel, const std::string& fromName, const std::string& toName) const {
+Own<ram::Statement> UnitTranslator::generateStratumLubSequence(
+        const ast::Relation& rel, const std::string& fromName, const std::string& toName) const {
     VecOwn<ram::Statement> stmts;
     assert(rel.getAuxiliaryArity() > 0);
 
@@ -607,27 +605,27 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
 
     for (std::size_t i = 0; i < arity; i++) {
         if (i >= firstAuxiliary) {
-            values.push_back(mk<ram::TupleElement>(i-firstAuxiliary+1,0));
+            values.push_back(mk<ram::TupleElement>(i - firstAuxiliary + 1, 0));
         } else {
-            values.push_back(mk<ram::TupleElement>(0,i));
+            values.push_back(mk<ram::TupleElement>(0, i));
         }
     }
     Own<ram::Operation> op = mk<ram::Insert>(lubName, std::move(values));
 
-    for (std::size_t i = arity; i >= firstAuxiliary+1; i--) {
-        const auto type = attributes[i-1]->getTypeName();
-        std::size_t level = i-firstAuxiliary;
-        auto aggregator = context->getLatticeTypeLubAggregator(type, mk<ram::TupleElement>(0,i-1));
-        Own<ram::Condition> condition = mk<ram::Constraint>(BinaryConstraintOp::NE, mk<ram::TupleElement>(level,i-1), mk<ram::TupleElement>(0,i-1));
+    for (std::size_t i = arity; i >= firstAuxiliary + 1; i--) {
+        const auto type = attributes[i - 1]->getTypeName();
+        std::size_t level = i - firstAuxiliary;
+        auto aggregator = context->getLatticeTypeLubAggregator(type, mk<ram::TupleElement>(0, i - 1));
+        Own<ram::Condition> condition = mk<ram::Constraint>(
+                BinaryConstraintOp::NE, mk<ram::TupleElement>(level, i - 1), mk<ram::TupleElement>(0, i - 1));
         for (std::size_t j = 0; j < attributes.size(); j++) {
             if (attributes[j]->getIsLattice()) break;
-            condition = mk<ram::Conjunction>(
-                std::move(condition),
-                mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(level,j), mk<ram::TupleElement>(0,j))
-            );
+            condition = mk<ram::Conjunction>(std::move(condition),
+                    mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(level, j),
+                            mk<ram::TupleElement>(0, j)));
         }
         op = mk<ram::Aggregate>(std::move(op), std::move(aggregator), fromName,
-            mk<ram::TupleElement>(level,i-1), std::move(condition), level);
+                mk<ram::TupleElement>(level, i - 1), std::move(condition), level);
     }
 
     op = mk<ram::Scan>(fromName, 0, std::move(op));
@@ -641,15 +639,15 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
     Own<ram::Condition> condition;
     for (std::size_t i = 0; i < arity; i++) {
         if (i < firstAuxiliary) {
-            values.push_back(mk<ram::TupleElement>(0,i));
+            values.push_back(mk<ram::TupleElement>(0, i));
         } else {
             assert(attributes[i]->getIsLattice());
             const auto type = attributes[i]->getTypeName();
             VecOwn<ram::Expression> args;
-            args.push_back(mk<ram::TupleElement>(0,i));
-            args.push_back(mk<ram::TupleElement>(1,i));
+            args.push_back(mk<ram::TupleElement>(0, i));
+            args.push_back(mk<ram::TupleElement>(1, i));
             auto lub = context->getLatticeTypeLubFunctor(type, std::move(args));
-            auto cst = mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(1,i), clone(lub));
+            auto cst = mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(1, i), clone(lub));
             if (condition) {
                 condition = mk<ram::Conjunction>(std::move(condition), std::move(cst));
             } else {
@@ -662,7 +660,8 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
     op = mk<ram::Filter>(mk<ram::Negation>(std::move(condition)), std::move(op));
 
     for (std::size_t i = 0; i < arity - auxiliaryArity; i++) {
-        auto cst = mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(0,i), mk<ram::TupleElement>(1,i));
+        auto cst = mk<ram::Constraint>(
+                BinaryConstraintOp::EQ, mk<ram::TupleElement>(0, i), mk<ram::TupleElement>(1, i));
         if (condition) {
             condition = mk<ram::Conjunction>(std::move(condition), std::move(cst));
         } else {
@@ -678,12 +677,12 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(const ast::Relati
 
     // Step 3 : populate @delta() from @lub() for tuples that have nothing to lub in @concrete
     for (std::size_t i = 0; i < arity; i++) {
-        values.push_back(mk<ram::TupleElement>(0,i));
+        values.push_back(mk<ram::TupleElement>(0, i));
     }
     op = mk<ram::Insert>(toName, std::move(values));
     for (std::size_t i = 0; i < arity; i++) {
         if (i < firstAuxiliary) {
-            values.push_back(mk<ram::TupleElement>(0,i));
+            values.push_back(mk<ram::TupleElement>(0, i));
         } else {
             values.push_back(mk<ram::UndefValue>());
         }

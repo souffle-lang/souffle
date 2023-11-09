@@ -6,7 +6,6 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-
 /************************************************************************
  *
  * @file InsertLatticeOperations.cpp
@@ -15,31 +14,31 @@
  *
  ***********************************************************************/
 
- #include "ast/transform/InsertLatticeOperations.h"
+#include "ast/transform/InsertLatticeOperations.h"
+#include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
+#include "ast/Clause.h"
 #include "ast/Constraint.h"
 #include "ast/QualifiedName.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/UserDefinedFunctor.h"
 #include "ast/Variable.h"
-#include "ast/Atom.h"
-#include "ast/Clause.h"
-#include "ast/Clause.h"
 #include "ast/utility/Visitor.h"
 #include <utility>
 
 namespace souffle::ast::transform {
 
-
 struct ReplaceNonVariableLatticeArguments : public NodeMapper {
-    ReplaceNonVariableLatticeArguments(std::map<const ast::Argument*, const ast::Lattice*>& toReplace, VecOwn<ast::Literal>& newConstraints):
-    toReplace(toReplace), newConstraints(newConstraints) {};
+    ReplaceNonVariableLatticeArguments(std::map<const ast::Argument*, const ast::Lattice*>& toReplace,
+            VecOwn<ast::Literal>& newConstraints)
+            : toReplace(toReplace), newConstraints(newConstraints){};
 
     Own<Node> operator()(Own<Node> node) const override {
         if (auto arg = as<ast::Argument>(node)) {
             if (toReplace.count(arg) > 0) {
                 Point p = arg->getSrcLoc().start;
-                std::string varName = "<lattice" + std::to_string(p.line) + "_" + std::to_string(p.column) + ">";
+                std::string varName =
+                        "<lattice" + std::to_string(p.line) + "_" + std::to_string(p.column) + ">";
                 // add Glb constraint
                 assert(toReplace.count(arg) > 0);
                 const ast::Lattice* lattice = toReplace.at(arg);
@@ -49,7 +48,8 @@ struct ReplaceNonVariableLatticeArguments : public NodeMapper {
                 args.push_back(mk<Variable>(varName, arg->getSrcLoc()));
                 args.push_back(clone(arg));
                 auto glb = mk<UserDefinedFunctor>(glbName, std::move(args), arg->getSrcLoc());
-                newConstraints.push_back(mk<BinaryConstraint>(BinaryConstraintOp::NE, std::move(glb), clone(lattice->getBottom()), arg->getSrcLoc()));
+                newConstraints.push_back(mk<BinaryConstraint>(BinaryConstraintOp::NE, std::move(glb),
+                        clone(lattice->getBottom()), arg->getSrcLoc()));
                 return mk<Variable>(varName, arg->getSrcLoc());
             } else {
                 return node;
@@ -58,11 +58,11 @@ struct ReplaceNonVariableLatticeArguments : public NodeMapper {
         node->apply(*this);
         return node;
     }
-    private:
-        std::map<const ast::Argument*, const ast::Lattice*> toReplace;
-        VecOwn<ast::Literal>& newConstraints;
-};
 
+private:
+    std::map<const ast::Argument*, const ast::Lattice*> toReplace;
+    VecOwn<ast::Literal>& newConstraints;
+};
 
 struct varInfo {
     const ast::Lattice* lattice;
@@ -72,8 +72,7 @@ struct varInfo {
 };
 
 struct ReplaceVariableLatticeArguments : public NodeMapper {
-    ReplaceVariableLatticeArguments(varInfo& infos):
-    isHead(false), infos(infos) {};
+    ReplaceVariableLatticeArguments(varInfo& infos) : isHead(false), infos(infos){};
 
     Own<Node> operator()(Own<Node> node) const override {
         if (auto arg = as<ast::Variable>(node)) {
@@ -105,10 +104,9 @@ struct ReplaceVariableLatticeArguments : public NodeMapper {
 
     bool isHead;
 
-    private:
-        varInfo& infos;
+private:
+    varInfo& infos;
 };
-
 
 bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
     bool changed = false;
@@ -122,7 +120,7 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
     for (const ast::Lattice* lattice : program.getLattices()) {
         // We ignore lattices lacking a definition for Glb and Bottom
         if (lattice->hasGlb() && lattice->hasBottom()) {
-           lattices.emplace(lattice->getQualifiedName(), lattice);
+            lattices.emplace(lattice->getQualifiedName(), lattice);
         }
     }
 
@@ -133,7 +131,8 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
             if (attributes[i]->getIsLattice()) {
                 const auto type = attributes[i]->getTypeName();
                 if (lattices.count(type)) {
-                    latticeAttributes.emplace(std::make_pair(rel->getQualifiedName(), std::make_pair(i, type)));
+                    latticeAttributes.emplace(
+                            std::make_pair(rel->getQualifiedName(), std::make_pair(i, type)));
                 }
             }
         }
@@ -143,7 +142,6 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
     }
 
     for (Clause* clause : program.getClauses()) {
-
         std::map<const ast::Argument*, const ast::Lattice*> nonVariablelatticeArguments;
         std::map<std::string, varInfo> infos;
 
@@ -158,7 +156,7 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
                 if (isA<UnnamedVariable>(arg)) {
                     // skip
                 } else if (const auto* var = as<Variable>(arg)) {
-                    //variableLatticeArguments.insert(std::make_pair(var, lattice));
+                    // variableLatticeArguments.insert(std::make_pair(var, lattice));
                     infos[var->getName()].latticeVariables.insert(var);
                     infos[var->getName()].lattice = lattice;
                 } else {
@@ -178,14 +176,14 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
         VecOwn<ast::Literal> constraints;
 
         ReplaceNonVariableLatticeArguments update(nonVariablelatticeArguments, constraints);
-        for (auto* literal: clause->getBodyLiterals()) {
+        for (auto* literal : clause->getBodyLiterals()) {
             literal->apply(update);
         }
 
-        for(auto [name, s] : infos) {
-            if(s.variables.size() > 1) {
+        for (auto [name, s] : infos) {
+            if (s.variables.size() > 1) {
                 ReplaceVariableLatticeArguments update(infos.at(name));
-                for (auto* literal: clause->getBodyLiterals()) {
+                for (auto* literal : clause->getBodyLiterals()) {
                     literal->apply(update);
                 }
                 update.isHead = true;
@@ -206,8 +204,12 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
                         current = mk<UserDefinedFunctor>(glbName, std::move(args), clause->getSrcLoc());
                     }
                 }
-                constraints.push_back(mk<BinaryConstraint>(BinaryConstraintOp::EQ, mk<Variable>(name + "_<lattice>", clause->getSrcLoc()), std::move(current), clause->getSrcLoc()));
-                constraints.push_back(mk<BinaryConstraint>(BinaryConstraintOp::NE, mk<Variable>(name + "_<lattice>", clause->getSrcLoc()), clone(lattice->getBottom()), clause->getSrcLoc()));
+                constraints.push_back(mk<BinaryConstraint>(BinaryConstraintOp::EQ,
+                        mk<Variable>(name + "_<lattice>", clause->getSrcLoc()), std::move(current),
+                        clause->getSrcLoc()));
+                constraints.push_back(mk<BinaryConstraint>(BinaryConstraintOp::NE,
+                        mk<Variable>(name + "_<lattice>", clause->getSrcLoc()), clone(lattice->getBottom()),
+                        clause->getSrcLoc()));
             }
         }
         clause->addToBody(std::move(constraints));
@@ -216,4 +218,4 @@ bool LatticeTransformer::transform(TranslationUnit& translationUnit) {
     return changed;
 }
 
-} // namespace souffle::ast::transform
+}  // namespace souffle::ast::transform

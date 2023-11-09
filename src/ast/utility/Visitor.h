@@ -187,7 +187,6 @@ struct Visitor : souffle::detail::VisitorBase<R, NodeType, Params...> {
     SOUFFLE_VISITOR_LINK(Pragma, Node);
     SOUFFLE_VISITOR_LINK(FunctorDeclaration, Node);
     SOUFFLE_VISITOR_LINK(ast::Lattice, Node);
-
 };
 }  // namespace souffle::ast
 

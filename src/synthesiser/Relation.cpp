@@ -156,7 +156,7 @@ void DirectRelation::computeIndices() {
                 }
                 // add provenance annotations to the index, but in reverse order
                 for (std::size_t i = getArity(); i > n; i--) {
-                    ind.push_back(i-1);
+                    ind.push_back(i - 1);
                 }
             }
             masterIndex = 0;
@@ -234,11 +234,14 @@ void DirectRelation::generateTypeStruct(GenDb& db) {
         decl << "bool changed = false;\n";
         if (hasProvenance) {
             assert(auxiliaryArity == 2);
-            auto rule = arity-2;
-            auto level = arity-1;
-            decl << "if (ramBitCast<RamSigned>(new_t[" << level << "]) < ramBitCast<RamSigned>(old_t[" << level << "])"
-                 << " || (ramBitCast<RamSigned>(new_t[" << level << "]) == ramBitCast<RamSigned>(old_t[" << level << "])"
-                 << " && ramBitCast<RamSigned>(new_t[" << rule << "]) < ramBitCast<RamSigned>(old_t[" << rule << "]))) {\n";
+            auto rule = arity - 2;
+            auto level = arity - 1;
+            decl << "if (ramBitCast<RamSigned>(new_t[" << level << "]) < ramBitCast<RamSigned>(old_t["
+                 << level << "])"
+                 << " || (ramBitCast<RamSigned>(new_t[" << level << "]) == ramBitCast<RamSigned>(old_t["
+                 << level << "])"
+                 << " && ramBitCast<RamSigned>(new_t[" << rule << "]) < ramBitCast<RamSigned>(old_t[" << rule
+                 << "]))) {\n";
             decl << "    old_t[" << rule << "] = new_t[" << rule << "];\n";
             decl << "    old_t[" << level << "] = new_t[" << level << "];\n";
             decl << "    changed = true;\n";

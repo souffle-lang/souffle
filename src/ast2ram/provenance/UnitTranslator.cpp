@@ -71,7 +71,6 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
 
 Own<ram::Relation> UnitTranslator::createRamRelation(
         const ast::Relation* baseRelation, std::string ramRelationName) const {
-
     auto relation = seminaive::UnitTranslator::createRamRelation(baseRelation, ramRelationName);
 
     std::size_t arity = relation->getArity();
@@ -86,8 +85,8 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     attributeNames.push_back("@level_number");
     attributeTypeQualifiers.push_back("i:number");
 
-    return mk<ram::Relation>(
-            ramRelationName, arity + 2, auxiliaryArity + 2, attributeNames, attributeTypeQualifiers, relation->getRepresentation());
+    return mk<ram::Relation>(ramRelationName, arity + 2, auxiliaryArity + 2, attributeNames,
+            attributeTypeQualifiers, relation->getRepresentation());
 }
 
 std::string UnitTranslator::getInfoRelationName(const ast::Clause* clause) const {

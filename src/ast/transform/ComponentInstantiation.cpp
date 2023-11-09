@@ -81,13 +81,14 @@ struct ComponentContent {
 
     void add(Own<ast::Lattice>& lattice, ErrorReport& report) {
         // add to result content (check existence first)
-        auto foundItem = std::find_if(lattices.begin(), lattices.end(), [&](const Own<ast::Lattice>& element) {
-            return (element->getQualifiedName() == lattice->getQualifiedName());
-        });
+        auto foundItem =
+                std::find_if(lattices.begin(), lattices.end(), [&](const Own<ast::Lattice>& element) {
+                    return (element->getQualifiedName() == lattice->getQualifiedName());
+                });
         if (foundItem != lattices.end()) {
             Diagnostic err(Diagnostic::Type::ERROR,
-                    DiagnosticMessage(
-                            "Redefinition of lattice " + toString(lattice->getQualifiedName()), lattice->getSrcLoc()),
+                    DiagnosticMessage("Redefinition of lattice " + toString(lattice->getQualifiedName()),
+                            lattice->getSrcLoc()),
                     {DiagnosticMessage("Previous definition", (*foundItem)->getSrcLoc())});
             report.addDiagnostic(err);
         }

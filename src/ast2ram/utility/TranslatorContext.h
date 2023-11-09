@@ -97,8 +97,10 @@ public:
     bool hasSizeLimit(const ast::Relation* relation) const;
     std::size_t getSizeLimit(const ast::Relation* relation) const;
 
-    Own<ram::Aggregator> getLatticeTypeLubAggregator(const ast::QualifiedName& typeName, Own<ram::Expression> init) const;
-    Own<ram::AbstractOperator> getLatticeTypeLubFunctor(const ast::QualifiedName& typeName, VecOwn<ram::Expression> args) const;
+    Own<ram::Aggregator> getLatticeTypeLubAggregator(
+            const ast::QualifiedName& typeName, Own<ram::Expression> init) const;
+    Own<ram::AbstractOperator> getLatticeTypeLubFunctor(
+            const ast::QualifiedName& typeName, VecOwn<ram::Expression> args) const;
 
     /** Associates a relation with its delta_debug relation if present */
     const ast::Relation* getDeltaDebugRelation(const ast::Relation* rel) const;

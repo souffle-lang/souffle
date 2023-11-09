@@ -213,7 +213,8 @@ TEST(RamProvenanceExistCheck, CloneAndEquals) {
     delete c;
 
     // address(state:symbol, postCode:number, street:symbol)
-    Relation address("address", 3, 1, {"state", "postCode", "street"}, {"s", "i", "s"}, RelationRepresentation::DEFAULT);
+    Relation address("address", 3, 1, {"state", "postCode", "street"}, {"s", "i", "s"},
+            RelationRepresentation::DEFAULT);
     VecOwn<Expression> tuple_d;
     tuple_d.emplace_back(new SignedConstant(0));
     tuple_d.emplace_back(new SignedConstant(2000));

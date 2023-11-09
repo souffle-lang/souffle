@@ -6,7 +6,6 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 
-
 #include "ast/Lattice.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
@@ -36,8 +35,8 @@ std::string latticeOperatorToString(const LatticeOperator op) {
     return "";
 }
 
-Lattice::Lattice(QualifiedName name, std::map<LatticeOperator, Own<ast::Argument>> ops, SrcLocation loc):
-    Node(std::move(loc)), name(std::move(name)), operators(std::move(ops)) {}
+Lattice::Lattice(QualifiedName name, std::map<LatticeOperator, Own<ast::Argument>> ops, SrcLocation loc)
+        : Node(std::move(loc)), name(std::move(name)), operators(std::move(ops)) {}
 
 void Lattice::setQualifiedName(QualifiedName name) {
     this->name = std::move(name);
