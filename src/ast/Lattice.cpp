@@ -97,7 +97,7 @@ void Lattice::print(std::ostream& os) const {
 
 bool Lattice::equal(const Node& node) const {
     const auto& other = asAssert<Lattice>(node);
-    return getQualifiedName() == other.getQualifiedName() /*TODO*/;
+    return getQualifiedName() == other.getQualifiedName() && equal_targets(operators, other.operators);
 }
 
 Lattice* Lattice::cloning() const {

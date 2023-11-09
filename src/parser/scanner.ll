@@ -162,7 +162,6 @@ WS [ \t\r\v\f]
                                           }
                                         }
                                       }
-"unique"                              { return yy::parser::make_UNIQUE(yylloc); }
 "debug_delta"                         { return yy::parser::make_DEBUG_DELTA(yylloc); }
 "autoinc"                             { return yy::parser::make_AUTOINC(yylloc); }
 "band"                                { return yy::parser::make_BW_AND(yylloc); }
