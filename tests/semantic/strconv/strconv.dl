@@ -12,6 +12,12 @@
 
 A(x) :- x=to_number("10").
 A(x) :- x=to_number("-10").
+A(x) :- x=to_number("0xcafe").
+A(x) :- x=to_number("-0xcafe").
+A(x) :- x=to_number("0xBEEF").
+A(x) :- x=to_number("-0xBEEF").
+A(x) :- x=to_number("0b100").
+A(x) :- x=to_number("-0b100").
 
 .output A
 
