@@ -262,5 +262,5 @@
     .output R2()
 
     R2(x) :-
-        R(x, $Top()).
+        R(x, $Positive()).
 }

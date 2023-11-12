@@ -19,6 +19,7 @@
 #include "ast/QualifiedName.h"
 #include "ast/TranslationUnit.h"
 #include "ast/transform/Transformer.h"
+#include "parser/ParserUtils.h"
 #include <set>
 #include <string>
 
@@ -38,8 +39,13 @@ private:
         return new LatticeTransformer();
     }
 
+    bool translateClause(TranslationUnit& translationUnit, ErrorReport& report, ast::Clause* clause);
+
     bool transform(TranslationUnit& translationUnit) override;
 
+    RuleBody translateNegatedAtom(ast::Atom& atom);
+
+    std::multimap<const QualifiedName, std::pair<std::size_t, const QualifiedName>> latticeAttributes;
     std::map<const ast::QualifiedName, const ast::Lattice*> lattices;
 };
 

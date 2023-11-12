@@ -32,6 +32,6 @@ namespace souffle::ast::analysis {
  * @return a map mapping each contained argument to a boolean indicating
  *      whether the argument represents a grounded value or not
  */
-std::map<const Argument*, bool> getGroundedTerms(const TranslationUnit& tu, const Clause& clause);
+std::map<const Argument*, bool> getGroundedTerms(const TranslationUnit& tu, const Clause& clause, bool isLatticeTransformerPass = false);
 
 }  // namespace souffle::ast::analysis
