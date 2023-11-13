@@ -18,8 +18,8 @@
 
 extern "C" {
 
-enum Z {Cst = 0, Inf, MinusInf};
-enum Interval {Bottom = 0, I};
+enum Z { Cst = 0, Inf, MinusInf };
+enum Interval { Bottom = 0, I };
 
 souffle::RamDomain minZ(souffle::RecordTable* recordTable, souffle::RamDomain arg1, souffle::RamDomain arg2) {
     const souffle::RamDomain* t1 = recordTable->unpack(arg1, 2);
@@ -73,8 +73,8 @@ souffle::RamDomain plusZ(souffle::RecordTable* recordTable, souffle::RamDomain a
     return recordTable->pack(res, 2);
 }
 
-souffle::RamDomain lub(souffle::SymbolTable*, souffle::RecordTable* recordTable,
-        souffle::RamDomain arg1, souffle::RamDomain arg2) {
+souffle::RamDomain lub(souffle::SymbolTable*, souffle::RecordTable* recordTable, souffle::RamDomain arg1,
+        souffle::RamDomain arg2) {
     const souffle::RamDomain* a1 = recordTable->unpack(arg1, 2);
     const souffle::RamDomain* a2 = recordTable->unpack(arg2, 2);
 
@@ -92,8 +92,8 @@ souffle::RamDomain lub(souffle::SymbolTable*, souffle::RecordTable* recordTable,
     return recordTable->pack(interval, 2);
 }
 
-souffle::RamDomain glb(souffle::SymbolTable*, souffle::RecordTable* recordTable,
-        souffle::RamDomain arg1, souffle::RamDomain arg2) {
+souffle::RamDomain glb(souffle::SymbolTable*, souffle::RecordTable* recordTable, souffle::RamDomain arg1,
+        souffle::RamDomain arg2) {
     const souffle::RamDomain* a1 = recordTable->unpack(arg1, 2);
     const souffle::RamDomain* a2 = recordTable->unpack(arg2, 2);
 
@@ -119,8 +119,8 @@ souffle::RamDomain glb(souffle::SymbolTable*, souffle::RecordTable* recordTable,
     return recordTable->pack(interval, 2);
 }
 
-souffle::RamDomain incr(souffle::SymbolTable*, souffle::RecordTable* recordTable,
-        souffle::RamDomain arg, souffle::RamDomain x) {
+souffle::RamDomain incr(souffle::SymbolTable*, souffle::RecordTable* recordTable, souffle::RamDomain arg,
+        souffle::RamDomain x) {
     const souffle::RamDomain* a = recordTable->unpack(arg, 2);
 
     if (a[0] == Bottom) return arg;

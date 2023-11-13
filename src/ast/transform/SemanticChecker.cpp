@@ -691,10 +691,6 @@ void SemanticCheckerImpl::checkLatticeDeclaration(const Lattice& lattice) {
         report.addWarning(WarnType::LatticeMissingOperator,
                 tfm::format("Lattice %s<> does not define Bottom", name), lattice.getSrcLoc());
     }
-    if (!lattice.hasTop()) {
-        report.addWarning(WarnType::LatticeMissingOperator,
-                tfm::format("Lattice %s<> does not define Top", name), lattice.getSrcLoc());
-    }
 }
 
 void SemanticCheckerImpl::checkRelationDeclaration(const Relation& relation) {
