@@ -36,7 +36,20 @@ namespace souffle::interpreter {
     func(Provenance, 6, 2, __VA_ARGS__)   \
     func(Provenance, 7, 2, __VA_ARGS__)   \
     func(Provenance, 8, 2, __VA_ARGS__)   \
-    func(Provenance, 9, 2, __VA_ARGS__)
+    func(Provenance, 9, 2, __VA_ARGS__)   \
+    func(Provenance, 10, 2, __VA_ARGS__)  \
+    func(Provenance, 11, 2, __VA_ARGS__)  \
+    func(Provenance, 12, 2, __VA_ARGS__)  \
+    func(Provenance, 13, 2, __VA_ARGS__)  \
+    func(Provenance, 14, 2, __VA_ARGS__)  \
+    func(Provenance, 15, 2, __VA_ARGS__)  \
+    func(Provenance, 16, 2, __VA_ARGS__)  \
+    func(Provenance, 17, 2, __VA_ARGS__)  \
+    func(Provenance, 18, 2, __VA_ARGS__)  \
+    func(Provenance, 19, 2, __VA_ARGS__)  \
+    func(Provenance, 20, 2, __VA_ARGS__)  \
+    func(Provenance, 21, 2, __VA_ARGS__)  \
+    func(Provenance, 22, 2, __VA_ARGS__)
 
 #define FOR_EACH_BTREE(func, ...)\
     func(Btree, 0, 0, __VA_ARGS__) \
