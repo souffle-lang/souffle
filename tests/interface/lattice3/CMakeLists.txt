@@ -4,29 +4,29 @@
 # - https://opensource.org/licenses/UPL
 # - <souffle root>/licenses/SOUFFLE-UPL.txt
 
-add_library(lubfunctors SHARED functors.cpp)
-target_include_directories(lubfunctors PRIVATE "${CMAKE_SOURCE_DIR}/src/include")
+add_library(lattice3functors SHARED functors.cpp)
+target_include_directories(lattice3functors PRIVATE "${CMAKE_SOURCE_DIR}/src/include")
 
-target_compile_features(lubfunctors
+target_compile_features(lattice3functors
                         PUBLIC cxx_std_17)
 
-set_target_properties(lubfunctors PROPERTIES CXX_EXTENSIONS OFF)
-set_target_properties(lubfunctors PROPERTIES OUTPUT_NAME "functors")
-set_target_properties(lubfunctors PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set_target_properties(lattice3functors PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(lattice3functors PROPERTIES OUTPUT_NAME "functors")
+set_target_properties(lattice3functors PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 if (OPENMP_FOUND)
-    target_link_libraries(lubfunctors PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(lattice3functors PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 if (Threads_FOUND)
-  target_link_libraries(lubfunctors PUBLIC Threads::Threads)
+  target_link_libraries(lattice3functors PUBLIC Threads::Threads)
 endif ()
 
 if (NOT MSVC)
-target_compile_options(lubfunctors
+target_compile_options(lattice3functors
                        PUBLIC "-Wall;-Wextra;-Werror;-fwrapv")
 else ()
-  target_compile_options(lubfunctors PUBLIC /W3 /WX)
+  target_compile_options(lattice3functors PUBLIC /W3 /WX)
 endif()
 
 if (WIN32)
@@ -38,6 +38,6 @@ if (WIN32)
 endif ()
 
 if (SOUFFLE_DOMAIN_64BIT)
-    target_compile_definitions(lubfunctors
+    target_compile_definitions(lattice3functors
                                PUBLIC RAM_DOMAIN_SIZE=64)
 endif()

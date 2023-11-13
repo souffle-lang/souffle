@@ -1,0 +1,69 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2021, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+
+.type Sign =
+    Bottom{}
+  | Negative{}
+  | Positive{}
+  | Top{}
+  | Zero{}
+
+.functor lub(a:Sign, b:Sign):Sign stateful
+.functor glb(a:Sign, b:Sign):Sign stateful
+
+.lattice Sign<> {
+    Bottom -> $Bottom(),
+    Top -> $Top(),
+    Lub -> @lub(_,_),
+    Glb -> @glb(_,_)
+}
+
+.comp _ex1 {
+
+    .decl N(n:number)
+
+    N(x) :- x = range(-10, 10).
+
+    .decl S(n:number, s:Sign<>)
+
+    S(n, s) :-
+        N(n),
+        (
+            n = 0, s = $Zero();
+            n > 0, s = $Positive();
+            n < 0, s = $Negative()
+        ).
+
+    .decl R(n:symbol, s:Sign<>)
+    .output R()
+
+    R("pos", s) :-
+        S(x, s), x > 0.
+
+    R("neg", s) :-
+        S(x, s), x < 0.
+
+    R("top", s) :-
+        S(_, s).
+
+    .decl R2(n:symbol)
+    .output R2()
+
+    R2(x) :-
+        R(x, $Positive()).
+
+    // testing negation
+
+    .decl R3(n:number)
+    .output R3()
+
+    R3(x) :-
+        N(x),
+        !S(x, $Negative()).
+
+}
+.init ex1 = _ex1

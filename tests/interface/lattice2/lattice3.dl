@@ -5,7 +5,8 @@
 // - <souffle root>/licenses/SOUFFLE-UPL.txt
 
 
-.type I = [lb:number, ub:number]
+.type Z = Cst{n:number} | Inf{} | MinusInf{}
+.type Interval = [lb:number, ub:number]
 .functor lub(a:I, b:I):I stateful
 .functor glb(a:I, b:I):I stateful
 
@@ -16,9 +17,14 @@
 .init ex5 = _ex5
 .init ex6 = _ex6
 
+.lattice Interval<> {
+    Bottom -> [0, -1],
+    Lub    -> @lub(_,_),
+    Glb    -> @glb(_,_)
+}
+
 .comp _ex1 {
     // Simple Interval Analysis for analyzing value ranges of program variables
-    .type Interval = I
 
     .type Node <: symbol
     .type Variable <: symbol
@@ -48,10 +54,6 @@
     Restrict_Value_Ub("cond","v", 100).
     Restrict_Value_Lb("not cond","v", 101).
     Increment_Value("incr", "v", 2).
-
-    .lattice Interval<> {
-        Lub    -> @lub(_,_)
-    }
 
     // Possible values for v after statement n, expressed with an interval
     // for instance: Values("head", "v", [0, 50])

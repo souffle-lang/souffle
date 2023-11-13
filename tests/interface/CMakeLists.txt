@@ -7,9 +7,11 @@
 # Make sure that the functor library is built
 add_subdirectory(aggregates)
 add_subdirectory(functors)
-add_subdirectory(lub)
 add_subdirectory(graph_coloring)
 add_subdirectory(pathseq)
+add_subdirectory(lattice1)
+add_subdirectory(lattice2)
+add_subdirectory(lattice3)
 
 # swig test which will run python, java or both
 function(SOUFFLE_POSITIVE_FUNCTOR_TEST TEST_NAME)
@@ -158,9 +160,11 @@ endfunction()
 
 souffle_positive_functor_test(aggregates CATEGORY interface)
 souffle_positive_functor_test(functors CATEGORY interface)
-souffle_positive_functor_test(lub CATEGORY interface)
 souffle_positive_functor_test(pathseq CATEGORY interface)
 souffle_positive_functor_test(graph_coloring CATEGORY interface)
+souffle_positive_functor_test(lattice1 CATEGORY interface)
+souffle_positive_functor_test(lattice2 CATEGORY interface)
+souffle_positive_functor_test(lattice3 CATEGORY interface)
 souffle_positive_cpp_test(contain_insert)
 souffle_positive_cpp_test(get_symboltabletype)
 souffle_positive_cpp_test(insert_for)

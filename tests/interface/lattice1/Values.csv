@@ -1,0 +1,8 @@
+start	v	$I($Cst(0), $Cst(0))
+start_to_head	v	$I($Cst(0), $Cst(0))
+head	v	$I($Cst(0), $Cst(102))
+cond	v	$I($Cst(0), $Cst(100))
+incr	v	$I($Cst(2), $Cst(102))
+incr_to_head	v	$I($Cst(2), $Cst(102))
+not cond	v	$I($Cst(101), $Cst(102))
+end	v	$I($Cst(101), $Cst(102))

@@ -1,0 +1,3 @@
+Warning: Lattice Interval<> does not define Top in file lattice3.dl at line 16
+.lattice Interval<> {
+^---------------------
