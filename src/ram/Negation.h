@@ -63,7 +63,7 @@ protected:
     }
 
     void print_sexpr(std::ostream& os) const override {
-        os << "(NOT " << *operand << "))";
+        os << "(NOT " << *operand << ")";
     }
 
     bool equal(const Node& node) const override {

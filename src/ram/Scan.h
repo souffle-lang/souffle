@@ -61,7 +61,7 @@ protected:
         os << times(" ", tabpos);
         os << "(FOR_IN t" << getTupleId();
         os << " " << relation << ")" << std::endl;
-        RelationOperation::print(os, tabpos + 1);
+        RelationOperation::print_sexpr(os, tabpos + 1);
     }
 };
 

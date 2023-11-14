@@ -109,6 +109,7 @@ public:
      */
     friend std::ostream& operator<<(std::ostream& out, const Node& node) {
         node.print_sexpr(out);
+        // node.print(out);
         return out;
     }
 

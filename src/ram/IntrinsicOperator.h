@@ -65,7 +65,7 @@ protected:
     }
 
     void print_sexpr(std::ostream& os) const override {
-        os << "(INTRINSIC " << operation << " " << join(arguments) << ")";
+        os << "(INTRINSIC " << operation << " " << join(arguments, " ") << ")";
     }
 
     bool equal(const Node& node) const override {

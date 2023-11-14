@@ -46,6 +46,18 @@ public:
         return res;
     }
 
+    int get_non_empty_size() const {
+        int non_empty_size = 0;
+        for (const auto& stmt : statements) {
+            if (!isA<Sequence>(stmt.get())) {
+                non_empty_size++;
+            } else {
+                non_empty_size += as<Sequence>(stmt.get())->get_non_empty_size();
+            }
+        }
+        return non_empty_size;
+    }
+
 protected:
     void print(std::ostream& os, int tabpos) const override {
         for (const auto& stmt : statements) {
@@ -54,7 +66,17 @@ protected:
     }
 
     void print_sexpr(std::ostream& os, int tabpos) const override {
-        os << "(";
+        int non_empty_size = get_non_empty_size();
+        if (non_empty_size == 0) {
+            return;
+        }
+        if (non_empty_size == 1) {
+            if (isA<Sequence>(statements[0].get())) {
+                Statement::print_sexpr(statements[0].get(), os, tabpos);
+                return;
+            }
+        }
+        os << "(STMTS ";
         for (const auto& stmt : statements) {
             Statement::print_sexpr(stmt.get(), os, tabpos);
             os << " ";

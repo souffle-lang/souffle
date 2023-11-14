@@ -59,8 +59,8 @@ protected:
     }
 
     void print_sexpr(std::ostream& os, int tabpos) const override {
-        os << times(" ", tabpos) << "(DEBUG \"" << stringify(message) << "\"";
-        Statement::print(statement.get(), os, tabpos + 1);
+        os << times(" ", tabpos) << "(DEBUG \n \"" << stringify(message) << "\" \n";
+        Statement::print_sexpr(statement.get(), os, tabpos + 1);
         os << times(" ", tabpos) << ")" << std::endl;
     }
 
