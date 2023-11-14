@@ -82,6 +82,16 @@ protected:
         }
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const {
+        os << "(AGGRAGTE_FUNCTION ";
+        function->print_sexpr(os, tabpos);
+        os << " ";
+        if (expression) {
+            os << *expression << " ";
+        }
+        os << ")";
+    }
+
     bool equal(const Node& node) const {
         const auto& other = asAssert<AbstractAggregate, AllowCrossCast>(node);
         return equal_ptr(function, other.function) && equal_ptr(expression, other.expression) &&

@@ -50,6 +50,10 @@ protected:
         os << "ARGUMENT(" << number << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(ARGUMENT " << number << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<SubroutineArgument>(node);
         return number == other.number;

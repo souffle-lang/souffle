@@ -84,6 +84,18 @@ protected:
            << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(USER_FUNCTOR " << name << "_" << argsTypes;
+        os << "_" << returnType;
+        if (stateful) {
+            os << " TRUE ";
+        } else {
+            os << " FALSE ";
+        }
+        os << " (" << join(arguments, " ", [](std::ostream& out, const Own<Expression>& arg) { out << *arg; })
+           << "))";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<UserDefinedOperator>(node);
         return AbstractOperator::equal(node) && name == other.name && argsTypes == other.argsTypes &&

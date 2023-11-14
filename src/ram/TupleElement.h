@@ -57,6 +57,10 @@ protected:
         os << "t" << identifier << "." << element;
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(TUPLE " << identifier << " " << element << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<TupleElement>(node);
         return identifier == other.identifier && element == other.element;

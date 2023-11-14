@@ -51,6 +51,8 @@ public:
     virtual Aggregator* cloning() const = 0;
 
     virtual void print(std::ostream& os, int tabpos) const = 0;
+
+    virtual void print_sexpr(std::ostream& os, int tabpos) const = 0;
 };
 
 }  // namespace souffle::ram

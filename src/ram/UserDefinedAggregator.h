@@ -77,6 +77,10 @@ public:
         os << name << " INIT " << *initValue << " ";
     }
 
+    void print_sexpr(std::ostream& os, int /* tabpos */) const override {
+        os << "(USER_AGGREGATOR " << name << " INIT " << *initValue << ") ";
+    }
+
 protected:
     /** Aggregation function */
     const std::string name;

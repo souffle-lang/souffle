@@ -78,6 +78,21 @@ protected:
         RelationOperation::print(os, tabpos + 1);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(AGGRAGTE " << "t" <<  getTupleId() << " ";
+        AbstractAggregate::print(os, tabpos);
+        os << " t" <<  getTupleId();
+        os << " " << getRelation();
+        if (!isTrue(condition.get())) {
+            os << " " << getCondition();
+        } else {
+            os << " TRUE ";
+        }
+        os << std::endl;
+        RelationOperation::print_sexpr(os, tabpos + 1);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Aggregate>(node);
         return RelationOperation::equal(other) && AbstractAggregate::equal(node);

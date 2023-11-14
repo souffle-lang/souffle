@@ -82,6 +82,24 @@ protected:
         IndexOperation::print(os, tabpos + 1);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(INDEX_AGGREGATE (= (T t" << getTupleId() << " 0) ";
+        AbstractAggregate::print_sexpr(os, tabpos);
+        os << ") ";
+        os << " t" << getTupleId() << " " << relation;
+        printIndexSexpr(os);
+        if (!isTrue(condition.get())) {
+            os << " ";
+            os << getCondition();
+        } else {
+            os << " TRUE ";
+        }
+        os << std::endl;
+        IndexOperation::print_sexpr(os, tabpos + 1);
+        os << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IndexAggregate>(node);
         return IndexOperation::equal(other) && AbstractAggregate::equal(other);

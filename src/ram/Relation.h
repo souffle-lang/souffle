@@ -117,6 +117,24 @@ protected:
         }
     }
 
+    void print_sexpr(std::ostream& out) const override {
+        out << "(RELATION " << name;
+        if (arity > 0) {
+            out << "(ATTRIBUTE " << attributeNames[0] << " " << attributeTypes[0] << ")";
+            for (std::size_t i = 1; i < arity; i++) {
+                if (i >= arity - auxiliaryArity) {
+                    out << " (AUXILIARY " << attributeNames[i] << " " << attributeTypes[i] << ")";
+                } else {
+                    out << " (ATTRIBUTE " << attributeNames[i] << " " << attributeTypes[i] << ")";
+                }
+            }
+            out << ")";
+            out << " " << representation;
+        } else {
+            out << " ()";
+        }
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Relation>(node);
         return representation == other.representation && name == other.name && arity == other.arity &&

@@ -33,12 +33,23 @@ protected:
     void print(std::ostream& os) const override {
         print(os, 0);
     }
+
+    void print_sexpr(std::ostream& os) const override {
+        print_sexpr(os, 0);
+    }
+
     /** @brief Pretty print with indentation */
     virtual void print(std::ostream& os, int tabpos) const = 0;
+
+    virtual void print_sexpr(std::ostream& os, int tabpos) const = 0;
 
     /** @brief Pretty print jump-bed */
     static void print(const Operation* operation, std::ostream& os, int tabpos) {
         operation->print(os, tabpos);
+    }
+
+    static void print_sexpr(const Operation* operation, std::ostream& os, int tabpos) {
+        operation->print_sexpr(os, tabpos);
     }
 
     friend class Query;

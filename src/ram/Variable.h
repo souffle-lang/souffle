@@ -49,6 +49,10 @@ protected:
         os << "VARIABLE(" << getName() << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(VARIABLE " << getName() << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Variable>(node);
         return name == other.name;

@@ -49,6 +49,10 @@ protected:
     void print(std::ostream& os) const override {
         os << "FLOAT(" << getValue() << ")";
     }
+    
+    void print_sexpr(std::ostream& os) const override {
+        os << "(FLOAT " << getValue() << ")";
+    }
 };
 
 }  // namespace souffle::ram

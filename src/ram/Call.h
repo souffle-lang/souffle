@@ -54,6 +54,10 @@ protected:
         os << times(" ", tabpos) << "CALL " << name << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(CALL " << name << ")" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Call>(node);
         return name == other.name;

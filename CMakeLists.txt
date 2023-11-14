@@ -79,7 +79,7 @@ endif()
 # --------------------------------------------------
 # User options available from the command line/cache
 # --------------------------------------------------
-option(SOUFFLE_DOMAIN_64BIT "Enable/Disable 64-bit number values in Datalog tuples" OFF)
+option(SOUFFLE_DOMAIN_64BIT "Enable/Disable 64-bit number values in Datalog tuples" ON)
 option(SOUFFLE_USE_CURSES "Enable/Disable ncurses-based provenance display" ON)
 option(SOUFFLE_SWIG "Enable/Disable all SWIG builds" OFF)
 option(SOUFFLE_SWIG_PYTHON "Enable/Disable Python SWIG" OFF)

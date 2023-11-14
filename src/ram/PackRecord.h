@@ -64,6 +64,11 @@ protected:
            << join(arguments, ",", [](std::ostream& out, const Own<Expression>& arg) { out << *arg; }) << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override  {
+        os << "(PACK "
+           << join(arguments, " ", [](std::ostream& out, const Own<Expression>& arg) { out << *arg; }) << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<PackRecord>(node);
         return equal_targets(arguments, other.arguments);

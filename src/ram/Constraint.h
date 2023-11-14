@@ -83,6 +83,12 @@ protected:
         os << " " << *rhs << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(CONSTRAINT " << toBinaryConstraintSymbol(op) << " ";
+        os << *lhs << " ";
+        os << " " << *rhs << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Constraint>(node);
         return op == other.op && equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);

@@ -52,6 +52,15 @@ protected:
             Statement::print(stmt.get(), os, tabpos);
         }
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << "(";
+        for (const auto& stmt : statements) {
+            Statement::print_sexpr(stmt.get(), os, tabpos);
+            os << " ";
+        }
+        os << ")";
+    }
 };
 
 }  // namespace souffle::ram

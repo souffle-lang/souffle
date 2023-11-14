@@ -326,6 +326,9 @@ add_executable(souffle
                souffle.cpp)
 target_link_libraries(souffle libsouffle)
 install(TARGETS souffle DESTINATION bin)
+# add_executable(ram2se
+#                ram2se.cpp)
+# target_link_libraries(ram2se libsouffle)
 
 if (EMSCRIPTEN)
 target_link_libraries(souffle -sMODULARIZE=1

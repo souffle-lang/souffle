@@ -76,6 +76,16 @@ protected:
         RelationOperation::print(os, tabpos + 1);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(IF_EXISTS t" << getTupleId();
+        os << " " << relation;
+        os << " " << getCondition() << " ";
+        os << std::endl;
+        RelationOperation::print(os, tabpos + 1);
+        os << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IfExists>(node);
         return RelationOperation::equal(other) && AbstractIfExists::equal(other);

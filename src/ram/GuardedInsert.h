@@ -78,6 +78,17 @@ protected:
         }
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(GUARDED_INSERT (" << join(expressions, " ", print_deref<Own<Expression>>()) << ") " << relation;
+        if (!isTrue(condition.get())) {
+            os << *condition;
+        } else {
+            os << "TRUE";
+        }
+        os << ")" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<GuardedInsert>(node);
         return relation == other.relation && equal_targets(expressions, other.expressions) &&

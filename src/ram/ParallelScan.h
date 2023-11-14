@@ -21,6 +21,7 @@
 #include "ram/Relation.h"
 #include "ram/RelationOperation.h"
 #include "ram/Scan.h"
+#include "souffle/TypeAttribute.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StreamUtil.h"
 #include <iosfwd>
@@ -58,6 +59,12 @@ protected:
         os << "PARALLEL FOR t" << getTupleId();
         os << " IN " << relation << std::endl;
         RelationOperation::print(os, tabpos + 1);
+    }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << "(PARALLEL_FOR " << relation << " t" << getTupleId() << " ";
+        RelationOperation::print_sexpr(os, tabpos + 1);
+        os << ")";
     }
 };
 }  // namespace souffle::ram

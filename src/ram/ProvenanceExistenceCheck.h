@@ -50,6 +50,12 @@ protected:
         os << "PROV ";
         AbstractExistenceCheck::print(os);
     }
+
+    void print_sexpr(std::ostream& os) const override {
+        os << "(PROV ";
+        AbstractExistenceCheck::print_sexpr(os);
+        os << ")";
+    }
 };
 
 }  // namespace souffle::ram

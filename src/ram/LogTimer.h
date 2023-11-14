@@ -66,6 +66,13 @@ protected:
         os << times(" ", tabpos) << "END TIMER" << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(TIMER \"" << stringify(message) << "\"";
+        os << std::endl;
+        Statement::print(statement.get(), os, tabpos + 1);
+        os << times(" ", tabpos) << ")" << std::endl;
+    }
+
     NodeVec getChildren() const override {
         return AbstractLog::getChildren();
     }

@@ -124,6 +124,24 @@ protected:
         out << "END PROGRAM" << std::endl;
     }
 
+    void print_sexpr(std::ostream& out) const override {
+        out << "(PROGRAM \n";
+        out << "  (DECLARATION \n";
+        for (const auto& rel : relations) {
+            out << "    " << *rel << "\n";
+        }
+        out << "  )\n";
+        for (const auto& sub : subroutines) {
+            out << "  (SUBROUTINE " << sub.first << "\n";
+            sub.second->print_sexpr(out, 4);
+            out << "  )\n";
+        }
+        out << "  (MAIN \n";
+        main->print_sexpr(out, 4);
+        out << "  )\n";
+        out << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Program>(node);
         return equal_targets(relations, other.relations) && equal_ptr(main, other.main) &&

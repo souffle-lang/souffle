@@ -57,6 +57,10 @@ protected:
         os << "SIZE(" << relation << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(SIZE " << relation << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<RelationSize>(node);
         return relation == other.relation;

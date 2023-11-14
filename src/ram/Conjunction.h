@@ -74,6 +74,10 @@ protected:
         os << "(" << *lhs << " AND " << *rhs << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(AND " << *lhs << " " << *rhs << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Conjunction>(node);
         return equal_ptr(lhs, other.lhs) && equal_ptr(rhs, other.rhs);

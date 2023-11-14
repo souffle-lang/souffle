@@ -57,6 +57,13 @@ protected:
         os << "IF " << getCondition() << std::endl;
         NestedOperation::print(os, tabpos + 1);
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(IF " << getCondition() << std::endl;
+        NestedOperation::print_sexpr(os, tabpos + 1);
+        os << times(" ", tabpos) << ")";
+    }
 };
 
 }  // namespace souffle::ram

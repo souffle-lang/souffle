@@ -64,6 +64,16 @@ protected:
         os << std::endl;
         RelationOperation::print(os, tabpos + 1);
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(PARALLEL_IF_EXISTS t" << getTupleId();
+        os << " " << relation;
+        os << " " << getCondition() << " ";
+        os << std::endl;
+        RelationOperation::print(os, tabpos + 1);
+        os << ")";
+    }
 };
 
 }  // namespace souffle::ram

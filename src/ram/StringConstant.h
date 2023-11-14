@@ -47,6 +47,10 @@ protected:
         os << "STRING(\"" << stringify(constant) << "\")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(STRING \"" << stringify(constant) << "\")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<StringConstant>(node);
         return constant == other.constant;

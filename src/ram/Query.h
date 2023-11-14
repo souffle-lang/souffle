@@ -69,6 +69,12 @@ protected:
         os << times(" ", tabpos) << "END QUERY" << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(" << "QUERY" << std::endl;
+        operation->print_sexpr(os, tabpos + 1);
+        os << times(" ", tabpos) << ")" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Query>(node);
         return equal_ptr(operation, other.operation);

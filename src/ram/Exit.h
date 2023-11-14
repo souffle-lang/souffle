@@ -64,6 +64,10 @@ protected:
         os << times(" ", tabpos) << "EXIT " << getCondition() << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(EXIT " << getCondition() << ")" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Exit>(node);
         return equal_ptr(condition, other.condition);

@@ -108,7 +108,7 @@ public:
      * Print RAM on a stream
      */
     friend std::ostream& operator<<(std::ostream& out, const Node& node) {
-        node.print(out);
+        node.print_sexpr(out);
         return out;
     }
 
@@ -117,6 +117,11 @@ protected:
      * @brief Print RAM node
      */
     virtual void print(std::ostream& out = std::cout) const = 0;
+
+    /**
+     * @brief Print RAM node as  sexpr 
+     */
+    virtual void print_sexpr(std::ostream& out = std::cout) const = 0;
 
     /**
      * @brief Equality check for two RAM nodes.

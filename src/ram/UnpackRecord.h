@@ -77,6 +77,13 @@ protected:
         NestedOperation::print(os, tabpos + 1);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(UNPACK t" << getTupleId() << " " << arity << " " << *expression << "\n";
+        NestedOperation::print(os, tabpos + 1);
+        os << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<UnpackRecord>(node);
         return TupleOperation::equal(other) && equal_ptr(expression, other.expression) &&

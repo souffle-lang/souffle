@@ -94,6 +94,16 @@ protected:
         IndexOperation::print(os, tabpos + 1);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(INDEXED_IF_EXISTS t" << getTupleId() << " " << relation;
+        printIndex(os);
+        os << " " << getCondition();
+        os << std::endl;
+        IndexOperation::print(os, tabpos + 1);
+        os << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IndexIfExists>(node);
         return IndexOperation::equal(other) && AbstractIfExists::equal(other);

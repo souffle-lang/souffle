@@ -129,6 +129,49 @@ public:
         }
     }
 
+    void printIndexSexpr(std::ostream& os) const {
+        os << "(INDICES ";
+        for (std::size_t i = 0; i < queryPattern.first.size(); ++i) {
+            // early exit if no upper/lower bounds are defined
+            if (isUndefValue(queryPattern.first[i].get()) && isUndefValue(queryPattern.second[i].get())) {
+                continue;
+            }
+            os << " ";
+
+            // both bounds defined and equal => equality
+            if (!isUndefValue(queryPattern.first[i].get()) && !isUndefValue(queryPattern.second[i].get())) {
+                // print equality when lower bound = upper bound
+                if (*(queryPattern.first[i]) == *(queryPattern.second[i])) {
+                    os << "(= ";
+                    os << "(T t" << getTupleId() << " ";
+                    os << i << ") ";
+                    os << *(queryPattern.first[i]);
+                    os << ")";
+                    continue;
+                }
+            }
+            // at least one bound defined => inequality
+            if (!isUndefValue(queryPattern.first[i].get()) || !isUndefValue(queryPattern.second[i].get())) {
+                os << "(<= ";
+                if (!isUndefValue(queryPattern.first[i].get())) {
+                    os << *(queryPattern.first[i]) << " ";
+                }
+
+                os << "(T t" << getTupleId() << " ";
+                os << i;
+                os << ") ";
+
+                if (!isUndefValue(queryPattern.second[i].get())) {
+                    os << *(queryPattern.second[i]);
+                }
+                os << ")";
+
+                continue;
+            }
+        }
+        os << ")";
+    }
+
 protected:
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IndexOperation>(node);

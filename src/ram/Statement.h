@@ -35,13 +35,25 @@ protected:
     void print(std::ostream& os) const override {
         print(os, 0);
     }
+
+    void print_sexpr(std::ostream& os) const override {
+        print_sexpr(os, 0);
+    }
+
     /** @brief Pretty print with indentation */
     virtual void print(std::ostream& os, int tabpos) const = 0;
+
+    virtual void print_sexpr(std::ostream& os, int tabpos) const = 0;
 
     /** @brief Pretty print jump-bed */
     static void print(const Statement* statement, std::ostream& os, int tabpos) {
         assert(statement != nullptr && "statement is a null-pointer");
         statement->print(os, tabpos);
+    }
+
+    static void print_sexpr(const Statement* statement, std::ostream& os, int tabpos) {
+        assert(statement != nullptr && "statement is a null-pointer");
+        statement->print_sexpr(os, tabpos);
     }
 
     friend class Program;

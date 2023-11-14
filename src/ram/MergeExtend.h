@@ -59,6 +59,12 @@ protected:
         os << "MERGE-EXTEND " << getTargetRelation() << " WITH " << getSourceRelation();
         os << std::endl;
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(MERGE_EXTEND " << getTargetRelation() << " " << getSourceRelation() << ")";
+        os << std::endl;
+    }
 };
 
 }  // namespace souffle::ram

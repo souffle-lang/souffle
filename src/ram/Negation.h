@@ -62,6 +62,10 @@ protected:
         os << "(NOT " << *operand << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(NOT " << *operand << "))";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Negation>(node);
         return equal_ptr(operand, other.operand);

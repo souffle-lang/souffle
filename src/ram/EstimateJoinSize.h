@@ -94,6 +94,24 @@ protected:
         os << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(ESTIMATEJOINSIZE " << (recursiveRelation ? "REC" : "NONREC") << " " << relation
+           << " ";
+        bool first = true;
+        for (auto k : keyColumns) {
+            if (first) {
+                first = false;
+            } else {
+                os << "( ";
+            }
+            os << "A" << k;
+            if (constantsMap.count(k)) {
+                os << " " << *constantsMap.at(k);
+            }
+        }
+        os << "))" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<EstimateJoinSize>(node);
         return RelationStatement::equal(other) && keyColumns == other.getKeyColumns() &&

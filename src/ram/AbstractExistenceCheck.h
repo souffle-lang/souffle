@@ -69,6 +69,10 @@ protected:
         os << "(" << join(values, ",") << ") IN " << relation;
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(EXISTS " << relation << " (" << join(values, " ") << "))";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<AbstractExistenceCheck>(node);
         return relation == other.relation && equal_targets(values, other.values);

@@ -66,6 +66,14 @@ protected:
         }
         os << times(" ", tabpos) << "END PARALLEL" << std::endl;
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(PARALLEL " << std::endl;
+        for (auto const& stmt : statements) {
+            Statement::print_sexpr(stmt.get(), os, tabpos + 1);
+        }
+        os << times(" ", tabpos) << ")" << std::endl;
+    }
 };
 
 }  // namespace souffle::ram

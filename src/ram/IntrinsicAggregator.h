@@ -60,6 +60,22 @@ public:
         }
     }
 
+    void print_sexpr(std::ostream& os, int /* tabpos */) const override {
+        switch (function) {
+            case AggregateOp::MIN:
+            case AggregateOp::FMIN:
+            case AggregateOp::UMIN: os << "MIN "; break;
+            case AggregateOp::MAX:
+            case AggregateOp::UMAX:
+            case AggregateOp::FMAX: os << "MAX "; break;
+            case AggregateOp::SUM:
+            case AggregateOp::FSUM:
+            case AggregateOp::USUM: os << "SUM "; break;
+            case AggregateOp::COUNT: os << "COUNT "; break;
+            case AggregateOp::MEAN: os << "MEAN "; break;
+        }
+    }
+
 protected:
     /** Aggregation function */
     const AggregateOp function;

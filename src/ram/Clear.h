@@ -53,6 +53,11 @@ protected:
         os << times(" ", tabpos);
         os << "CLEAR " << relation << std::endl;
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(CLEAR " << relation << ")" << std::endl;
+    }
 };
 
 }  // namespace souffle::ram

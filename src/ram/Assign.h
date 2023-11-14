@@ -72,6 +72,11 @@ protected:
         os << *variable.get() << " := " << *value.get() << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(ASSIGN ";
+        os << *variable.get() << " " << *value.get() << ")" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<Assign>(node);
         return equal_ptr(variable, other.variable) && equal_ptr(value, other.value);

@@ -60,6 +60,10 @@ protected:
         os << "ISEMPTY(" << relation << ")";
     }
 
+    void print_sexpr(std::ostream& os) const override {
+        os << "(ISEMPTY " << relation << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<EmptinessCheck>(node);
         return relation == other.relation;

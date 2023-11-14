@@ -37,6 +37,9 @@ protected:
     void print(std::ostream& os) const override {
         os << "UNDEF";
     }
+    void print_sexpr(std::ostream& os) const override {
+        os << "UNDEF";
+    }
 };
 
 }  // namespace souffle::ram

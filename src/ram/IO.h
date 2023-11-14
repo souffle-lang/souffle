@@ -64,6 +64,15 @@ protected:
         os << ")" << std::endl;
     };
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(IO " << relation << " (";
+        os << join(directives, " ", [](std::ostream& out, const auto& arg) {
+            out << "(= " << arg.first << " \"" << escape(arg.second) << "\"" << ")";
+        });
+        os << "))" << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<IO>(node);
         return RelationStatement::equal(other) && directives == other.directives;

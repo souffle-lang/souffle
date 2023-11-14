@@ -52,6 +52,12 @@ protected:
         os << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos) << "(LOGSIZE " << relation;
+        os << " \"" << stringify(message) << "\")";
+        os << std::endl;
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<LogSize>(node);
         return RelationStatement::equal(other) && message == other.message;

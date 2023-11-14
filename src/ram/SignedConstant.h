@@ -49,6 +49,10 @@ protected:
     void print(std::ostream& os) const override {
         os << "NUMBER(" << constant << ")";
     }
+
+    void print_sexpr(std::ostream& os) const override {
+        os << "(NUMBER " << constant << ")";
+    }
 };
 
 }  // namespace souffle::ram

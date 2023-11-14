@@ -49,6 +49,10 @@ protected:
     void print(std::ostream& os) const override {
         os << "UNSIGNED(" << getValue() << ")";
     }
+
+    void print_sexpr(std::ostream& os) const override {
+        os << "(UNSIGNED " << getValue() << ")";
+    }
 };
 
 }  // namespace souffle::ram

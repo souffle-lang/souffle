@@ -72,6 +72,10 @@ protected:
         Operation::print(nestedOperation.get(), os, tabpos);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        Operation::print_sexpr(nestedOperation.get(), os, tabpos);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<NestedOperation>(node);
         return equal_ptr(nestedOperation, other.nestedOperation) && profileText == other.profileText;

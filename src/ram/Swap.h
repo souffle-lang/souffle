@@ -50,6 +50,12 @@ protected:
         os << "SWAP (" << getFirstRelation() << ", " << getSecondRelation() << ")";
         os << std::endl;
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(SWAP " << getFirstRelation() << " " << getSecondRelation() << ")";
+        os << std::endl;
+    }
 };
 
 }  // namespace souffle::ram

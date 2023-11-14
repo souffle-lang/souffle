@@ -77,6 +77,12 @@ protected:
         os << ")" << std::endl;
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(RETURN ";
+        os << join(expressions, " ") << ")";
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<SubroutineReturn>(node);
         return equal_targets(expressions, other.expressions);

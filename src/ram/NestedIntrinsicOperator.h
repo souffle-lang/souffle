@@ -87,6 +87,12 @@ protected:
         NestedOperation::print(os, tabpos + 1);
     }
 
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(INTRINSIC (" << op << " " << join(args, " ", print_deref<Own<Expression>>()) << ") t" << getTupleId() << ")"
+           << "\n";
+    }
+
     bool equal(const Node& node) const override {
         auto&& other = asAssert<NestedIntrinsicOperator>(node);
         return TupleOperation::equal(node) && op == other.op && equal_targets(args, other.args);

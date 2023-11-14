@@ -77,6 +77,24 @@ protected:
         os << std::endl;
         IndexOperation::print(os, tabpos + 1);
     }
+
+    void print_sexpr(std::ostream& os, int tabpos) const override {
+        os << times(" ", tabpos);
+        os << "(PARALLEL_INDEX_AGGREGATE (= (T t" << getTupleId() << " 0) ";
+        AbstractAggregate::print_sexpr(os, tabpos);
+        os << ") ";
+        os << " t" << getTupleId() << " " << relation;
+        printIndexSexpr(os);
+        if (!isTrue(condition.get())) {
+            os << " ";
+            os << getCondition();
+        } else {
+            os << " TRUE ";
+        }
+        os << std::endl;
+        IndexOperation::print_sexpr(os, tabpos + 1);
+        os << ")";
+    }
 };
 
 }  // namespace souffle::ram
