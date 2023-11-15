@@ -109,6 +109,9 @@ public:
     /** Return types */
     std::vector<Type*> getTypes() const;
 
+    /** Return lattices */
+    std::vector<Lattice*> getLattices() const;
+
     /** Return relations */
     std::vector<Relation*> getRelations() const;
 
@@ -183,6 +186,9 @@ public:
     /** Add a type declaration */
     void addType(Own<Type> type);
 
+    /** Add a lattice declaration */
+    void addLattice(Own<Lattice> lattice);
+
     /**
      * Remove a clause by identity. The clause must be owned by the program.
      * It is not expected that there are useful cases where some are not owned, and it is often
@@ -239,6 +245,9 @@ private:
 private:
     /** Program types  */
     VecOwn<Type> types;
+
+    /** Program lattices */
+    VecOwn<Lattice> lattices;
 
     /** Program relation declartions, clauses, and directives */
     RelationInfoMap relations;

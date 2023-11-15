@@ -16,6 +16,7 @@
 #pragma once
 
 #include "RelationTag.h"
+#include "ram/AbstractOperator.h"
 #include "ram/Node.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/MiscUtil.h"

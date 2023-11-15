@@ -115,8 +115,9 @@ public:
 class DirectRelation : public Relation {
 public:
     DirectRelation(const ram::Relation& ramRel, const ram::analysis::IndexCluster& indexSelection,
-            bool isProvenance, bool hasErase)
-            : Relation(ramRel, indexSelection), isProvenance(isProvenance), hasErase(hasErase) {}
+            bool hasAuxiliary, bool hasProvenance, bool hasErase)
+            : Relation(ramRel, indexSelection), hasAuxiliary(hasAuxiliary), hasProvenance(hasProvenance),
+              hasErase(hasErase) {}
 
     void computeIndices() override;
     std::string getTypeNamespace();
@@ -124,7 +125,8 @@ public:
     void generateTypeStruct(GenDb& db) override;
 
 private:
-    const bool isProvenance;
+    const bool hasAuxiliary;
+    const bool hasProvenance;
     const bool hasErase;
 };
 

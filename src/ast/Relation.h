@@ -54,6 +54,15 @@ public:
         return attributes.size();
     }
 
+    /** Return the arity of this relation */
+    std::size_t getAuxiliaryArity() const {
+        std::size_t arity = 0;
+        for (const auto& a : attributes) {
+            arity += a->getIsLattice() ? 1 : 0;
+        }
+        return arity;
+    }
+
     /** Set relation attributes */
     void setAttributes(VecOwn<Attribute> attrs);
 

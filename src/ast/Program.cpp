@@ -118,6 +118,10 @@ std::vector<Type*> Program::getTypes() const {
     return toPtrVector(types);
 }
 
+std::vector<Lattice*> Program::getLattices() const {
+    return toPtrVector(lattices);
+}
+
 std::vector<Relation*> Program::getRelations() const {
     return toPtrVector(relations, &RelationInfo::decls);
 }
@@ -231,6 +235,15 @@ void Program::addType(Own<Type> type) {
     types.push_back(std::move(type));
 }
 
+void Program::addLattice(Own<Lattice> lattice) {
+    assert(lattice != nullptr);
+    [[maybe_unused]] auto* existingLattice = getIf(getLattices(), [&](const Lattice* current) {
+        return current->getQualifiedName() == lattice->getQualifiedName();
+    });
+    assert(existingLattice == nullptr && "Redefinition of lattice!");
+    lattices.push_back(std::move(lattice));
+}
+
 void Program::addPragma(Own<Pragma> pragma) {
     assert(pragma && "NULL pragma");
     pragmas.push_back(std::move(pragma));
@@ -259,6 +272,7 @@ void Program::apply(const NodeMapper& map) {
     mapAll(instantiations, map);
     mapAll(functors, map);
     mapAll(types, map);
+    mapAll(lattices, map);
     mapAll(relations, &RelationInfo::decls, map);
     mapAll(relations, &RelationInfo::clauses, map);
     mapAll(relations, &RelationInfo::directives, map);
@@ -271,6 +285,7 @@ Node::NodeVec Program::getChildren() const {
     append(res, makePtrRange(instantiations));
     append(res, makePtrRange(functors));
     append(res, makePtrRange(types));
+    append(res, makePtrRange(lattices));
     append(res, relations, &RelationInfo::decls);
     append(res, relations, &RelationInfo::clauses);
     append(res, relations, &RelationInfo::directives);
@@ -286,6 +301,7 @@ void Program::print(std::ostream& os) const {
     show(components);
     show(instantiations);
     show(types);
+    show(lattices);
     show(functors);
     show(getRelations());
     show(getClauses(), "\n\n");
@@ -300,6 +316,7 @@ bool Program::equal(const Node& node) const {
            equal_targets(instantiations, other.instantiations) &&
            equal_targets(functors, other.functors) &&
            equal_targets(types, other.types) &&
+           equal_targets(lattices, other.lattices) &&
            equal_targets_map(relations, other.relations, [](auto& a, auto& b) {
                 return  equal_targets(a.decls     , b.decls     ) &&
                         equal_targets(a.clauses   , b.clauses   ) &&
@@ -324,6 +341,7 @@ Program* Program::cloning() const {
     res->components = clone(components);
     res->instantiations = clone(instantiations);
     res->types = clone(types);
+    res->lattices = clone(lattices);
     res->functors = clone(functors);
     res->relations = clone(relations);
     return res;

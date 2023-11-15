@@ -37,6 +37,7 @@
 #include "ast/transform/IOAttributes.h"
 #include "ast/transform/IODefaults.h"
 #include "ast/transform/InlineRelations.h"
+#include "ast/transform/InsertLatticeOperations.h"
 #include "ast/transform/MagicSet.h"
 #include "ast/transform/MaterializeAggregationQueries.h"
 #include "ast/transform/MaterializeSingletonAggregation.h"
@@ -479,6 +480,7 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
     // Main pipeline
     auto pipeline = mk<ast::transform::PipelineTransformer>(mk<ast::transform::ComponentChecker>(),
             mk<ast::transform::ComponentInstantiationTransformer>(),
+            mk<ast::transform::LatticeTransformer>(),
             mk<ast::transform::DebugDeltaRelationTransformer>(),
             mk<ast::transform::IODefaultsTransformer>(),
             mk<ast::transform::SimplifyAggregateTargetExpressionTransformer>(),

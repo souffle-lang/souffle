@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -153,6 +154,34 @@ struct Mov<std::vector<A>> {
         return value.empty();
     }
 };
+
+template <typename K, typename V>
+struct Mov<std::map<K, V>> {
+    mutable std::map<K, V> value;
+
+    Mov() = default;
+    Mov(Mov&&) = default;
+    template <typename B>
+    Mov(B value) : value(std::move(value)) {}
+
+    // CRIMES AGAINST COMPUTING HAPPENS HERE
+    // HACK: Pretend you can copy it, but actually move it. Keeps Bison 3.0.2 happy.
+    Mov(const Mov& x) : value(std::move(x.value)) {}
+    Mov& operator=(Mov x) {
+        value = std::move(x.value);
+        return *this;
+    }
+
+    // detach/convert implicitly.
+    operator std::map<K, V>() {
+        return std::move(value);
+    }
+
+    void emplace(std::pair<K, V> p) {
+        value.emplace(std::make_pair(p.first, std::move(p.second)));
+    }
+};
+
 }  // namespace parser
 
 template <typename A>

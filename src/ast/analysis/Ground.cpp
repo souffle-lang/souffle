@@ -154,8 +154,24 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 struct GroundednessAnalysis : public ConstraintAnalysis<BoolDisjunctVar> {
     Program& program;
     std::set<const Atom*> ignore;
+    std::map<const QualifiedName, std::set<std::size_t>> latticeAttributes;
+    bool isLatticeTransformerPass;
 
-    GroundednessAnalysis(const TranslationUnit& tu) : program(tu.getProgram()) {}
+    GroundednessAnalysis(const TranslationUnit& tu, bool isLatticeTransformerPass)
+            : program(tu.getProgram()), isLatticeTransformerPass(isLatticeTransformerPass) {
+        if (isLatticeTransformerPass) {
+            for (const Relation* rel : program.getRelations()) {
+                const auto attributes = rel->getAttributes();
+                const auto& name = rel->getQualifiedName();
+                for (std::size_t i = 0; i < attributes.size(); i++) {
+                    if (attributes[i]->getIsLattice()) {
+                        const auto type = attributes[i]->getTypeName();
+                        latticeAttributes[name].insert(i);
+                    }
+                }
+            }
+        }
+    }
 
     // atoms are producing grounded variables
     void visit_(type_identity<Atom>, const Atom& cur) override {
@@ -164,9 +180,14 @@ struct GroundednessAnalysis : public ConstraintAnalysis<BoolDisjunctVar> {
             return;
         }
 
-        // all arguments are grounded
-        for (const auto& arg : cur.getArguments()) {
-            addConstraint(isTrue(getVar(arg)));
+        // all arguments are grounded except lattice arguments
+        const auto& name = cur.getQualifiedName();
+        const auto& args = cur.getArguments();
+        for (std::size_t i = 0; i < cur.getArity(); i++) {
+            if (!isLatticeTransformerPass || !latticeAttributes.count(name) ||
+                    !latticeAttributes[name].count(i)) {
+                addConstraint(isTrue(getVar(args[i])));
+            }
         }
     }
 
@@ -265,9 +286,10 @@ struct GroundednessAnalysis : public ConstraintAnalysis<BoolDisjunctVar> {
 /***
  * computes for variables in the clause whether they are grounded
  */
-std::map<const Argument*, bool> getGroundedTerms(const TranslationUnit& tu, const Clause& clause) {
+std::map<const Argument*, bool> getGroundedTerms(
+        const TranslationUnit& tu, const Clause& clause, bool isLatticeTransformerPass) {
     // run analysis on given clause
-    return GroundednessAnalysis(tu).analyse(clause);
+    return GroundednessAnalysis(tu, isLatticeTransformerPass).analyse(clause);
 }
 
 }  // namespace souffle::ast::analysis

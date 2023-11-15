@@ -34,6 +34,7 @@ set(SOUFFLE_SOURCES
     ast/FunctionalConstraint.cpp
     ast/IntrinsicFunctor.cpp
     ast/IterationCounter.cpp
+    ast/Lattice.cpp
     ast/Negation.cpp
     ast/NilConstant.cpp
     ast/Node.cpp
@@ -87,6 +88,7 @@ set(SOUFFLE_SOURCES
     ast/transform/GroundedTermsChecker.cpp
     ast/transform/GroundWitnesses.cpp
     ast/transform/InlineRelations.cpp
+    ast/transform/InsertLatticeOperations.cpp
     ast/transform/MagicSet.cpp
     ast/transform/MaterializeAggregationQueries.cpp
     ast/transform/MaterializeSingletonAggregation.cpp

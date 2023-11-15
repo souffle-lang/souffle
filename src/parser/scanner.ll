@@ -147,6 +147,7 @@ WS [ \t\r\v\f]
 ".override"/{WS}                      { return yy::parser::make_OVERRIDE(yylloc); }
 ".pragma"/{WS}                        { return yy::parser::make_PRAGMA(yylloc); }
 ".plan"/{WS}                          { return yy::parser::make_PLAN(yylloc); }
+".lattice"/{WS}                       { return yy::parser::make_LATTICE(yylloc); }
 ".include"                            {
                                         yyinfo.LastIncludeDirectiveLoc = yylloc;
                                         BEGIN(INCLUDE);
@@ -240,6 +241,7 @@ WS [ \t\r\v\f]
 "]"                                   { return yy::parser::make_RBRACKET(yylloc); }
 "$"                                   { return yy::parser::make_DOLLAR(yylloc); }
 "+"                                   { return yy::parser::make_PLUS(yylloc); }
+"->"                                  { return yy::parser::make_MAPSTO(yylloc); }
 "-"                                   { return yy::parser::make_MINUS(yylloc); }
 "("                                   { return yy::parser::make_LPAREN(yylloc); }
 ")"                                   { return yy::parser::make_RPAREN(yylloc); }

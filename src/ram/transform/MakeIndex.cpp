@@ -88,12 +88,13 @@ ExpressionPair MakeIndexTransformer::getExpressionPair(
 // Retrieves the <expr1> <= Tuple[level, element] <= <expr2> part of the constraint as a pair { <expr1>,
 // <expr2> }
 ExpressionPair MakeIndexTransformer::getLowerUpperExpression(Condition* c, std::size_t& element,
-        const std::optional<std::size_t>& identifier, RelationRepresentation rep) {
+        const std::optional<std::size_t>& identifier, const ram::Relation& rel) {
     if (auto* binRelOp = as<Constraint>(c)) {
         const bool interpreter = !glb->config().has("compile") && !glb->config().has("dl-program") &&
                                  !glb->config().has("generate") && !glb->config().has("generate-many") &&
                                  !glb->config().has("swig");
-        bool provenance = rep == RelationRepresentation::PROVENANCE;
+        bool provenance = rel.getAuxiliaryArity() > 0;  // rep == RelationRepresentation::PROVENANCE;
+        auto rep = rel.getRepresentation();
         bool btree = (rep == RelationRepresentation::BTREE || rep == RelationRepresentation::DEFAULT ||
                       rep == RelationRepresentation::BTREE_DELETE);
         auto op = binRelOp->getOperator();
@@ -139,9 +140,8 @@ ExpressionPair MakeIndexTransformer::getLowerUpperExpression(Condition* c, std::
     return {mk<UndefValue>(), mk<UndefValue>()};
 }
 
-Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::string>& attributeTypes,
-        RamPattern& queryPattern, bool& indexable, VecOwn<Condition> conditionList, std::size_t identifier,
-        RelationRepresentation rep) {
+Own<Condition> MakeIndexTransformer::constructPattern(const ram::Relation& rel, RamPattern& queryPattern,
+        bool& indexable, VecOwn<Condition> conditionList, std::size_t identifier) {
     // Remaining conditions which cannot be handled by an index
     Own<Condition> condition;
     auto addCondition = [&](Own<Condition> c) {
@@ -286,7 +286,7 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
         Own<Expression> lowerExpression;
         Own<Expression> upperExpression;
         std::tie(lowerExpression, upperExpression) =
-                getLowerUpperExpression(cond.get(), element, identifier, rep);
+                getLowerUpperExpression(cond.get(), element, identifier, rel);
 
         // we have new bounds if at least one is defined
         if (!isUndefValue(lowerExpression.get()) || !isUndefValue(upperExpression.get())) {
@@ -313,7 +313,7 @@ Own<Condition> MakeIndexTransformer::constructPattern(const std::vector<std::str
                 continue;
             }
 
-            auto type = attributeTypes[element];
+            auto type = rel.getAttributeTypes()[element];
             indexable = true;
             if (firstConstraint) {
                 // equality
@@ -414,8 +414,8 @@ Own<Operation> MakeIndexTransformer::rewriteAggregate(const Aggregate* agg) {
         }
 
         bool indexable = false;
-        Own<Condition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
-                toConjunctionList(&agg->getCondition()), identifier, rel.getRepresentation());
+        Own<Condition> condition = constructPattern(
+                rel, queryPattern, indexable, toConjunctionList(&agg->getCondition()), identifier);
         if (indexable) {
             return mk<IndexAggregate>(clone(agg->getOperation()), clone(agg->getAggregator()),
                     agg->getRelation(), clone(agg->getExpression()), std::move(condition),
@@ -436,8 +436,8 @@ Own<Operation> MakeIndexTransformer::rewriteScan(const Scan* scan) {
         }
 
         bool indexable = false;
-        Own<Condition> condition = constructPattern(rel.getAttributeTypes(), queryPattern, indexable,
-                toConjunctionList(&filter->getCondition()), identifier, rel.getRepresentation());
+        Own<Condition> condition = constructPattern(
+                rel, queryPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
         if (indexable) {
             Own<Operation> op = clone(filter->getOperation());
             if (!isTrue(condition.get())) {
@@ -461,8 +461,8 @@ Own<Operation> MakeIndexTransformer::rewriteIndexScan(const IndexScan* iscan) {
 
         bool indexable = false;
         // strengthen the pattern with construct pattern
-        Own<Condition> condition = constructPattern(rel.getAttributeTypes(), strengthenedPattern, indexable,
-                toConjunctionList(&filter->getCondition()), identifier, rel.getRepresentation());
+        Own<Condition> condition = constructPattern(
+                rel, strengthenedPattern, indexable, toConjunctionList(&filter->getCondition()), identifier);
 
         if (indexable) {
             // Merge Index Pattern here

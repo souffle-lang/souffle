@@ -1,4 +1,4 @@
-Error: Subsumptive relation "A"  must not be a nullary relation in file subsumption.dl at line 9
+Error: Subsumptive relation "A" must not be a nullary relation in file subsumption.dl at line 9
 .decl A() btree_delete
 ------^----------------
 Warning: No subsumptive rule for relation C in file subsumption.dl at line 17

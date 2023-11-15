@@ -149,6 +149,7 @@ enum class WarnType : std::size_t {
     DeprecatedTypeDecl,
     DeprecatedQualifier,
     DollarSign,
+    LatticeMissingOperator,
     NoRulesNorFacts,
     NoSubsumptiveRule,
     // This last element is used as the size parameter to std::bitset in the

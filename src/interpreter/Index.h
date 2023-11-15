@@ -142,11 +142,13 @@ struct ViewWrapper {
 /**
  * An index is an abstraction of a data structure
  */
-template <std::size_t _Arity, template <std::size_t> typename Structure>
+template <std::size_t _Arity, std::size_t _AuxiliaryArity,
+        template <std::size_t, std::size_t> typename Structure>
 class Index {
 public:
     static constexpr std::size_t Arity = _Arity;
-    using Data = Structure<Arity>;
+    static constexpr std::size_t AuxiliaryArity = _AuxiliaryArity;
+    using Data = Structure<Arity, AuxiliaryArity>;
     using Tuple = typename souffle::Tuple<RamDomain, Arity>;
     using iterator = typename Data::iterator;
     using Hints = typename Data::operation_hints;
@@ -239,7 +241,7 @@ public:
     /**
      * Inserts all elements of the given index.
      */
-    void insert(const Index<Arity, Structure>& src) {
+    void insert(const Index<Arity, AuxiliaryArity, Structure>& src) {
         for (const auto& tuple : src) {
             this->insert(tuple);
         }
@@ -316,8 +318,8 @@ public:
  * A partial specialize template for nullary indexes.
  * No complex data structure is required.
  */
-template <template <std::size_t> typename Structure>
-class Index<0, Structure> {
+template <template <std::size_t, std::size_t> typename Structure>
+class Index<0, 0, Structure> {
 public:
     static constexpr std::size_t Arity = 0;
     using Tuple = typename souffle::Tuple<RamDomain, 0>;
@@ -452,9 +454,9 @@ public:
 /**
  * For EqrelIndex we do inheritence since EqrelIndex only diff with one extra function.
  */
-class EqrelIndex : public interpreter::Index<2, Eqrel> {
+class EqrelIndex : public interpreter::Index<2, 0, Eqrel> {
 public:
-    using Index<2, Eqrel>::Index;
+    using Index<2, 0, Eqrel>::Index;
 
     /**
      * Extend this relation with another index, expanding this index and
@@ -475,12 +477,12 @@ public:
 /**
  * A BtreeDelete index
  */
-template <std::size_t _Arity>
-class BtreeDeleteIndex : public interpreter::Index<_Arity, BtreeDelete> {
+template <std::size_t _Arity, std::size_t _AuxiliaryArity>
+class BtreeDeleteIndex : public interpreter::Index<_Arity, _AuxiliaryArity, BtreeDelete> {
 public:
-    using Index<_Arity, BtreeDelete>::Index;
-    using Index<_Arity, BtreeDelete>::data;
-    using Index<_Arity, BtreeDelete>::order;
+    using Index<_Arity, _AuxiliaryArity, BtreeDelete>::Index;
+    using Index<_Arity, _AuxiliaryArity, BtreeDelete>::data;
+    using Index<_Arity, _AuxiliaryArity, BtreeDelete>::order;
     using Tuple = typename souffle::Tuple<RamDomain, _Arity>;
 
     /**

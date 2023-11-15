@@ -35,6 +35,7 @@ namespace souffle::ast {
 class Attribute : public Node {
 public:
     Attribute(std::string n, QualifiedName t, SrcLocation loc = {});
+    Attribute(std::string n, QualifiedName t, bool isLattice, SrcLocation loc = {});
 
     /** Return attribute name */
     const std::string& getName() const {
@@ -48,6 +49,10 @@ public:
 
     /** Set type name */
     void setTypeName(QualifiedName name);
+
+    bool getIsLattice() const {
+        return isLattice;
+    }
 
 protected:
     void print(std::ostream& os) const override;
@@ -63,6 +68,9 @@ private:
 
     /** Type name */
     QualifiedName typeName;
+
+    /** Is lattice element */
+    bool isLattice;
 };
 
 }  // namespace souffle::ast

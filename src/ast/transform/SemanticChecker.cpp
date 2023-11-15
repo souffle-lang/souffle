@@ -38,6 +38,7 @@
 #include "ast/IntrinsicAggregator.h"
 #include "ast/IntrinsicFunctor.h"
 #include "ast/IterationCounter.h"
+#include "ast/Lattice.h"
 #include "ast/Literal.h"
 #include "ast/Negation.h"
 #include "ast/NilConstant.h"
@@ -124,6 +125,7 @@ private:
     void checkRelationFunctionalDependencies(const Relation& relation);
     void checkRelation(const Relation& relation);
     void checkType(ast::Attribute const& attr, std::string const& name = {});
+    void checkLatticeDeclaration(const Lattice& lattice);
     void checkFunctorDeclaration(const FunctorDeclaration& decl);
 
     void checkNamespaces();
@@ -172,6 +174,9 @@ SemanticCheckerImpl::SemanticCheckerImpl(TranslationUnit& tu) : tu(tu) {
     // check rules
     for (auto* rel : program.getRelations()) {
         checkRelation(*rel);
+    }
+    for (auto* lattice : program.getLattices()) {
+        checkLatticeDeclaration(*lattice);
     }
     for (auto* clause : program.getClauses()) {
         checkClause(*clause);
@@ -244,10 +249,10 @@ void SemanticCheckerImpl::checkAtom(const Clause& parent, const Atom& atom) {
         report.addError("Undefined relation " + toString(atom.getQualifiedName()), atom.getSrcLoc());
         return;
     }
-
-    if (r->getArity() != atom.getArity()) {
+    std::size_t arity = r->getArity();
+    if (arity != atom.getArity()) {
         report.addError("Mismatching arity of relation " + toString(atom.getQualifiedName()) + " (expected " +
-                                toString(r->getArity()) + ", got " + toString(atom.getArity()) + ")",
+                                toString(arity) + ", got " + toString(atom.getArity()) + ")",
                 atom.getSrcLoc());
     }
 
@@ -658,11 +663,43 @@ void SemanticCheckerImpl::checkFunctorDeclaration(const FunctorDeclaration& decl
     }
 }
 
+void SemanticCheckerImpl::checkLatticeDeclaration(const Lattice& lattice) {
+    const auto& name = lattice.getQualifiedName();
+    auto* existingType = getIf(
+            program.getTypes(), [&](const ast::Type* type) { return type->getQualifiedName() == name; });
+    if (!existingType) {
+        report.addError(tfm::format("Undefined type %s", name), lattice.getSrcLoc());
+    }
+    if (lattice.hasLub()) {
+        if (!isA<UserDefinedFunctor>(lattice.getLub())) {
+            report.addError(
+                    tfm::format("Lattice operator Lub must be a user-defined functor"), lattice.getSrcLoc());
+        }
+    } else {
+        report.addError(tfm::format("Lattice %s<> does not define Lub", name), lattice.getSrcLoc());
+    }
+    if (lattice.hasGlb()) {
+        if (!isA<UserDefinedFunctor>(lattice.getGlb())) {
+            report.addError(
+                    tfm::format("Lattice operator Glb must be a user-defined functor"), lattice.getSrcLoc());
+        }
+    } else {
+        report.addWarning(WarnType::LatticeMissingOperator,
+                tfm::format("Lattice %s<> does not define Glb", name), lattice.getSrcLoc());
+    }
+    if (!lattice.hasBottom()) {
+        report.addWarning(WarnType::LatticeMissingOperator,
+                tfm::format("Lattice %s<> does not define Bottom", name), lattice.getSrcLoc());
+    }
+}
+
 void SemanticCheckerImpl::checkRelationDeclaration(const Relation& relation) {
     const auto& attributes = relation.getAttributes();
-    assert(attributes.size() == relation.getArity() && "mismatching attribute size and arity");
+    const std::size_t arity = relation.getArity();
+    std::size_t firstAuxiliary = arity - relation.getAuxiliaryArity();
 
-    for (std::size_t i = 0; i < relation.getArity(); i++) {
+    assert(attributes.size() == arity && "mismatching attribute size and arity");
+    for (std::size_t i = 0; i < arity; i++) {
         Attribute* attr = attributes[i];
         checkType(*attr);
 
@@ -670,6 +707,25 @@ void SemanticCheckerImpl::checkRelationDeclaration(const Relation& relation) {
         for (std::size_t j = 0; j < i; j++) {
             if (attr->getName() == attributes[j]->getName()) {
                 report.addError(tfm::format("Doubly defined attribute name %s", *attr), attr->getSrcLoc());
+            }
+        }
+
+        /* check that lattice elements are always the last */
+        if (i < firstAuxiliary && attr->getIsLattice()) {
+            report.addError(
+                    tfm::format(
+                            "Lattice attribute %s should be placed after all non-lattice attributes", *attr),
+                    attr->getSrcLoc());
+        }
+
+        /* check that lattice attributes have a correct lattice definition */
+        if (attr->getIsLattice()) {
+            const auto& typeName = attr->getTypeName();
+            auto* existingType = getIf(program.getLattices(),
+                    [&](const ast::Lattice* lattice) { return lattice->getQualifiedName() == typeName; });
+            if (!existingType) {
+                report.addError(
+                        tfm::format("Missing lattice definition for type %s", typeName), attr->getSrcLoc());
             }
         }
     }
@@ -728,7 +784,21 @@ void SemanticCheckerImpl::checkRelation(const Relation& relation) {
     }
     if (relation.getRepresentation() == RelationRepresentation::BTREE_DELETE && relation.getArity() == 0) {
         report.addError("Subsumptive relation \"" + toString(relation.getQualifiedName()) +
-                                "\"  must not be a nullary relation",
+                                "\" must not be a nullary relation",
+                relation.getSrcLoc());
+    }
+
+    if (hasSubsumptiveRule && relation.getAuxiliaryArity()) {
+        report.addError("Relation \"" + toString(relation.getQualifiedName()) +
+                                "\" must not have both subsumptive rules and lattice arguments",
+                relation.getSrcLoc());
+    }
+
+    if (relation.getAuxiliaryArity() &&
+            (relation.getRepresentation() != RelationRepresentation::BTREE &&
+                    relation.getRepresentation() != RelationRepresentation::DEFAULT)) {
+        report.addError(
+                "Relation \"" + toString(relation.getQualifiedName()) + "\" must have a btree representation",
                 relation.getSrcLoc());
     }
 

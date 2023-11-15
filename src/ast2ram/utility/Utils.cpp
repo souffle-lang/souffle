@@ -23,6 +23,7 @@
 #include "ast/UnnamedVariable.h"
 #include "ast/Variable.h"
 #include "ast/utility/Utils.h"
+#include "ast2ram/ClauseTranslator.h"
 #include "ast2ram/utility/Location.h"
 #include "ram/Clear.h"
 #include "ram/Condition.h"
@@ -77,6 +78,9 @@ std::string getAtomName(const ast::Clause& clause, const ast::Atom* atom,
     }
 
     if (!isRecursive) {
+        if (mode == Auxiliary && clause.getHead() == atom) {
+            return getNewRelationName(atom->getQualifiedName());
+        }
         return getConcreteRelationName(atom->getQualifiedName());
     }
     if (clause.getHead() == atom) {
@@ -98,6 +102,10 @@ std::string getDeltaRelationName(const ast::QualifiedName& name) {
 
 std::string getNewRelationName(const ast::QualifiedName& name) {
     return getConcreteRelationName(name, "@new_");
+}
+
+std::string getLubRelationName(const ast::QualifiedName& name) {
+    return getConcreteRelationName(name, "@lub_");
 }
 
 std::string getRejectRelationName(const ast::QualifiedName& name) {
