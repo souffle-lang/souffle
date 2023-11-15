@@ -44,7 +44,6 @@ const Component* ComponentLookupAnalysis::getComponent(
     // forward according to binding (we do not do this recursively on purpose)
     QualifiedName boundName = activeBinding.find(name);
     if (boundName.empty()) {
-        // compName is not bound to anything => just just compName
         boundName = name;
     }
 
