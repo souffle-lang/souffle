@@ -1,3 +1,21 @@
+souffle (2.4.1) stable; urgency=low
+ * Remove escapes in arch build (XiaowenHu96)
+ * fix windows CI (quentin)
+ * Fix subsumption (julienhenry)
+ * remove -Werror from CMakeLists.txt (ammkrn)
+ * Provide way to debug delta relations and expose iteration counter (julienhenry)
+ * fix "variable only occurs once" checker (quentin)
+ * fix bad source location for END token (quentin)
+ * Fix generated code for eqrel when emitting statistics (fangyi-zhou)
+ * do not consider debug_delta relations as empty (julienhenry)
+ * Fix auto-scheduler profile mismatch (fangyi-zhou)
+ * fixes souffleprof and enable build on Windows (quentin)
+ * Enabling souffle-lang/souffle GitHub dependency graph with vcpk (#2427) (quentin)
+ * fix sqlite reading of empty values (dbueno)
+ * symbol concatenation with binary `+` (quentin)
+
+ -- Quentin Sabah <quentin.sabah@gmail.com>  Web, 11 Oct 2023 11:00:00 +0100
+
 souffle (2.4) stable; urgency=low
  * New option --generate-many to split the generated C++ Code into multiple files (julienhenry)
  * Purge input and intermediate relations (adamjseitz)
