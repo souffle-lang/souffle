@@ -70,9 +70,9 @@ A symbol2numeric(const std::string& src) {
         if constexpr (std::is_same_v<RamFloat, A>) {
             return RamFloatFromString(src);
         } else if constexpr (std::is_same_v<RamSigned, A>) {
-            return RamSignedFromString(src);
+            return RamSignedFromString(src, nullptr, 0);
         } else if constexpr (std::is_same_v<RamUnsigned, A>) {
-            return RamUnsignedFromString(src);
+            return RamUnsignedFromString(src, nullptr, 0);
         } else {
             static_assert(sizeof(A) == 0, "Invalid type specified for symbol2Numeric");
         }
