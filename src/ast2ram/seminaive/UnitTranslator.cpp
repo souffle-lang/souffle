@@ -188,7 +188,7 @@ Own<ram::Statement> UnitTranslator::generateStratum(std::size_t scc) const {
             std::string newRelation = getNewRelationName(rel->getQualifiedName());
             std::string deltaRelation = getDeltaRelationName(rel->getQualifiedName());
             appendStmt(current, generateStratumLubSequence(*rel, false));
-                    std::map<std::string, std::string> directives;
+            std::map<std::string, std::string> directives;
             appendStmt(current, mk<ram::Clear>(newRelation));
         }
 
@@ -521,9 +521,9 @@ Own<ram::Statement> UnitTranslator::generateStratumTableUpdates(const ast::Relat
         // swap new and and delta relation and clear new relation afterwards (if not a subsumptive relation)
         Own<ram::Statement> updateRelTable;
         if (rel->getAuxiliaryArity() > 0) {
-            updateRelTable = mk<ram::Sequence>(mk<ram::Clear>(deltaRelation),
-                    generateStratumLubSequence(*rel, true),
-                    generateMergeRelations(rel, mainRelation, deltaRelation));
+            updateRelTable =
+                    mk<ram::Sequence>(mk<ram::Clear>(deltaRelation), generateStratumLubSequence(*rel, true),
+                            generateMergeRelations(rel, mainRelation, deltaRelation));
         } else if (!context->hasSubsumptiveClause(rel->getQualifiedName())) {
             updateRelTable = mk<ram::Sequence>(generateMergeRelations(rel, mainRelation, newRelation),
                     mk<ram::Swap>(deltaRelation, newRelation), mk<ram::Clear>(newRelation));
@@ -637,63 +637,65 @@ Own<ram::Statement> UnitTranslator::generateStratumLubSequence(
     appendStmt(stmts, mk<ram::Clear>(newName));
 
     if (inRecursiveLoop) {
-    // Step 2 : populate @delta() from @lub() for tuples that have to be lubbed with @concrete
-    std::string deltaName = getDeltaRelationName(rel.getQualifiedName());
+        // Step 2 : populate @delta() from @lub() for tuples that have to be lubbed with @concrete
+        std::string deltaName = getDeltaRelationName(rel.getQualifiedName());
 
-    Own<ram::Condition> condition;
-    for (std::size_t i = 0; i < arity; i++) {
-        if (i < firstAuxiliary) {
-            values.push_back(mk<ram::TupleElement>(0, i));
-        } else {
-            assert(attributes[i]->getIsLattice());
-            const auto type = attributes[i]->getTypeName();
-            VecOwn<ram::Expression> args;
-            args.push_back(mk<ram::TupleElement>(0, i));
-            args.push_back(mk<ram::TupleElement>(1, i));
-            auto lub = context->getLatticeTypeLubFunctor(type, std::move(args));
-            auto cst = mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(1, i), clone(lub));
+        Own<ram::Condition> condition;
+        for (std::size_t i = 0; i < arity; i++) {
+            if (i < firstAuxiliary) {
+                values.push_back(mk<ram::TupleElement>(0, i));
+            } else {
+                assert(attributes[i]->getIsLattice());
+                const auto type = attributes[i]->getTypeName();
+                VecOwn<ram::Expression> args;
+                args.push_back(mk<ram::TupleElement>(0, i));
+                args.push_back(mk<ram::TupleElement>(1, i));
+                auto lub = context->getLatticeTypeLubFunctor(type, std::move(args));
+                auto cst =
+                        mk<ram::Constraint>(BinaryConstraintOp::EQ, mk<ram::TupleElement>(1, i), clone(lub));
+                if (condition) {
+                    condition = mk<ram::Conjunction>(std::move(condition), std::move(cst));
+                } else {
+                    condition = std::move(cst);
+                }
+                values.push_back(std::move(lub));
+            }
+        }
+        op = mk<ram::Insert>(deltaName, std::move(values));
+        op = mk<ram::Filter>(mk<ram::Negation>(std::move(condition)), std::move(op));
+
+        for (std::size_t i = 0; i < arity - auxiliaryArity; i++) {
+            auto cst = mk<ram::Constraint>(
+                    BinaryConstraintOp::EQ, mk<ram::TupleElement>(0, i), mk<ram::TupleElement>(1, i));
             if (condition) {
                 condition = mk<ram::Conjunction>(std::move(condition), std::move(cst));
             } else {
                 condition = std::move(cst);
             }
-            values.push_back(std::move(lub));
         }
-    }
-    op = mk<ram::Insert>(deltaName, std::move(values));
-    op = mk<ram::Filter>(mk<ram::Negation>(std::move(condition)), std::move(op));
-
-    for (std::size_t i = 0; i < arity - auxiliaryArity; i++) {
-        auto cst = mk<ram::Constraint>(
-                BinaryConstraintOp::EQ, mk<ram::TupleElement>(0, i), mk<ram::TupleElement>(1, i));
         if (condition) {
-            condition = mk<ram::Conjunction>(std::move(condition), std::move(cst));
-        } else {
-            condition = std::move(cst);
+            op = mk<ram::Filter>(std::move(condition), std::move(op));
         }
-    }
-    if (condition) {
-        op = mk<ram::Filter>(std::move(condition), std::move(op));
-    }
-    op = mk<ram::Scan>(name, 1, std::move(op));
-    op = mk<ram::Scan>(lubName, 0, std::move(op));
-    appendStmt(stmts, mk<ram::Query>(std::move(op)));
+        op = mk<ram::Scan>(name, 1, std::move(op));
+        op = mk<ram::Scan>(lubName, 0, std::move(op));
+        appendStmt(stmts, mk<ram::Query>(std::move(op)));
 
-    // Step 3 : populate @delta() from @lub() for tuples that have nothing to lub in @concrete
-    for (std::size_t i = 0; i < arity; i++) {
-        values.push_back(mk<ram::TupleElement>(0, i));
-    }
-    op = mk<ram::Insert>(deltaName, std::move(values));
-    for (std::size_t i = 0; i < arity; i++) {
-        if (i < firstAuxiliary) {
+        // Step 3 : populate @delta() from @lub() for tuples that have nothing to lub in @concrete
+        for (std::size_t i = 0; i < arity; i++) {
             values.push_back(mk<ram::TupleElement>(0, i));
-        } else {
-            values.push_back(mk<ram::UndefValue>());
         }
-    }
-    op = mk<ram::Filter>(mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
-    op = mk<ram::Scan>(lubName, 0, std::move(op));
-    appendStmt(stmts, mk<ram::Query>(std::move(op)));
+        op = mk<ram::Insert>(deltaName, std::move(values));
+        for (std::size_t i = 0; i < arity; i++) {
+            if (i < firstAuxiliary) {
+                values.push_back(mk<ram::TupleElement>(0, i));
+            } else {
+                values.push_back(mk<ram::UndefValue>());
+            }
+        }
+        op = mk<ram::Filter>(
+                mk<ram::Negation>(mk<ram::ExistenceCheck>(name, std::move(values))), std::move(op));
+        op = mk<ram::Scan>(lubName, 0, std::move(op));
+        appendStmt(stmts, mk<ram::Query>(std::move(op)));
     } else {
         // we are not in the recursive loop, so the concrete relation is empty for now
         // we can just insert the content of the @lub relation into the concrete one
