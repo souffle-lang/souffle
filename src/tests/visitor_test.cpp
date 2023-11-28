@@ -44,7 +44,7 @@ namespace {
 template <typename A, typename... XS>
 auto asVec(XS&&... xs) {
     vector<A> v;
-    (v.push_back(forward<XS>(xs)), ...);
+    (v.push_back(std::forward<XS>(xs)), ...);
     return v;
 }
 
@@ -54,7 +54,7 @@ struct Node {
     VecOwn<Node> kids;
 
     template <typename... A>
-    Node(A&&... xs) : kids(asVec<Own<Node>>(forward<A>(xs)...)) {}
+    Node(A&&... xs) : kids(asVec<Own<Node>>(std::forward<A>(xs)...)) {}
 
     virtual vector<Node const*> getChildNodes() const {
         return toPtrVector<Node const>(kids);
@@ -151,7 +151,7 @@ template <typename A, typename B>
 void TEST_INSTANTIATION_MAPPER() {
     A x;
     mapPost(x, [&](Own<B> x) { return x; });
-    mapFrontier(x, [&](Own<B> x) { return pair{move(x), false}; });
+    mapFrontier(x, [&](Own<B> x) { return pair{std::move(x), false}; });
 }
 
 // Check that visitor function instantiates successfully.
@@ -209,7 +209,7 @@ TEST(NodeMapper, mapPrePost_BarToFoo) {
 
     auto go = [](Own<NBar> n) {
         auto x = mk<NFoo>();
-        x->kids = move(n->kids);
+        x->kids = std::move(n->kids);
         return x;
     };
     EXPECT_EQ(*expected, *mapPre(mkTree(), go));
@@ -229,8 +229,8 @@ TEST(NodeMapper, mapFrontier_FooToBar) {
 
     auto go = [](Own<NFoo> n) {
         auto x = mk<NBar>();
-        x->kids = move(n->kids);
-        return pair{move(x), true};
+        x->kids = std::move(n->kids);
+        return pair{std::move(x), true};
     };
     auto&& [produced, n] = mapFrontier(mkTree(), go);
 
