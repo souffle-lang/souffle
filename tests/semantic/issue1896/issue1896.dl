@@ -1,0 +1,12 @@
+.decl wisb(A:symbol, B:number)
+.decl fwnb(A:symbol)
+.decl ocfz(A:symbol, B:number)
+.decl folv(A:symbol, B:symbol)
+.decl linj(A:number)
+.decl epce(A:symbol, B:symbol, C:symbol)
+.decl utfi(A:symbol, B:number, C:symbol)
+
+linj(A) :- wisb(B, A), A > min AAA : { wisb(CCC, AAA), wisb(BBB, AAA), fwnb(BBB), to_number("-10") = AAA}. 
+utfi(C, min(A*A*A,0), B), folv(B, B), ocfz(B, A) :- linj(A), fwnb(C), epce(C, B, B),  A = count : {epce(AAA, AAA, AAA), AxF="GnBBBBB", AAA=substr(AxF,0,1)}.
+.output utfi()
+.output linj()

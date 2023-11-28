@@ -27,9 +27,11 @@ std::vector<Literal*> Aggregator::getBodyLiterals() const {
     return toPtrVector(body);
 }
 
-void Aggregator::setBodyLiterals(VecOwn<Literal> bodyLiterals) {
+VecOwn<Literal> Aggregator::setBodyLiterals(VecOwn<Literal> bodyLiterals) {
     assert(allValidPtrs(body));
+    auto oldBody = std::move(body);
     body = std::move(bodyLiterals);
+    return oldBody;
 }
 
 void Aggregator::apply(const NodeMapper& map) {
