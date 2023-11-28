@@ -16,7 +16,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Find all changed files in the diff
 for f in $(git diff --name-only --diff-filter=ACMRTUXB $1); do
-  if echo "$f" | egrep -q "[.](cpp|h)$"; then
+  if echo "$f" | grep -E -q "[.](cpp|h)$"; then
     $CLANGFORMAT -style=file "$f" -i
     d=$(git diff --minimal --color=always --ws-error-highlight=all $f) || true
     if [ -n "$d" ]; then
@@ -27,7 +27,7 @@ for f in $(git diff --name-only --diff-filter=ACMRTUXB $1); do
       echo
       fail=1
     fi
-  elif echo "$f" | egrep -q "[.](dl)$"; then
+  elif echo "$f" | grep -E -q "[.](dl)$"; then
     sed -i 's/[ \t]*$//' "$f" || true
     d=$(git diff --minimal --color=always --ws-error-highlight=all $f) || true
     if [ -n "$d" ]; then

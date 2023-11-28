@@ -1,0 +1,15 @@
+Warning: No rules/facts defined for relation wisb in file issue1896.dl at line 1
+.decl wisb(A:symbol, B:number)
+------^------------------------
+Warning: No rules/facts defined for relation fwnb in file issue1896.dl at line 2
+.decl fwnb(A:symbol)
+------^--------------
+Warning: No rules/facts defined for relation epce in file issue1896.dl at line 6
+.decl epce(A:symbol, B:symbol, C:symbol)
+------^----------------------------------
+Warning: Variable B only occurs once in file issue1896.dl at line 9
+linj(A) :- wisb(B, A), A > min AAA : { wisb(CCC, AAA), wisb(BBB, AAA), fwnb(BBB), to_number("-10") = AAA}.
+----------------^------------------------------------------------------------------------------------------
+Warning: Variable CCC only occurs once in file issue1896.dl at line 9
+linj(A) :- wisb(B, A), A > min AAA : { wisb(CCC, AAA), wisb(BBB, AAA), fwnb(BBB), to_number("-10") = AAA}.
+--------------------------------------------^--------------------------------------------------------------

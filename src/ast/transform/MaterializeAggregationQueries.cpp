@@ -272,6 +272,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
         return true;
     });
 
+    // keep literals alive while we use the type analysis, issue (#1896).
+    VecOwn<Literal> oldBodyLiterals;
+
     for (auto&& cl : program.getClauses()) {
         auto& clause = *cl;
         visit(clause, [&](Aggregator& agg) {
@@ -345,7 +348,9 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
 
             VecOwn<Literal> newBody;
             newBody.push_back(std::move(aggAtom));
-            agg.setBodyLiterals(std::move(newBody));
+            VecOwn<Literal> oldBody = agg.setBodyLiterals(std::move(newBody));
+            oldBodyLiterals.insert(oldBodyLiterals.end(), std::make_move_iterator(oldBody.begin()),
+                    std::make_move_iterator(oldBody.end()));
             // Now we can just add these new things (relation and its single clause) to the program
             program.addClause(std::move(aggClause));
             program.addRelation(std::move(aggRel));
