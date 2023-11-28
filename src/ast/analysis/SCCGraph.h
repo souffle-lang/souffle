@@ -205,7 +205,7 @@ public:
     void print(std::ostream& os) const override;
 
     /** Print the SCC graph in HTML format. */
-    void printHTML(std::ostream& os) const;
+    void printHTML(std::ostream& os) const override;
 
 private:
     PrecedenceGraphAnalysis* precedenceGraph = nullptr;

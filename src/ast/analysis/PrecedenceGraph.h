@@ -44,7 +44,7 @@ public:
     void print(std::ostream& os) const override;
 
     /** Output precedence graph in image format to a given stream */
-    void printHTML(std::ostream& os) const;
+    void printHTML(std::ostream& os) const override;
 
     const Graph<const Relation*, NameComparison>& graph() const {
         return backingGraph;
