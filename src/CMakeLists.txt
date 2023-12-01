@@ -380,6 +380,10 @@ target_compile_features(souffleprof
   PUBLIC cxx_std_17)
 
 if (MSVC)
+  target_compile_options(libsouffle PUBLIC /Zc:__cplusplus)
+  target_compile_options(compiled PUBLIC /Zc:__cplusplus)
+  target_compile_options(souffleprof PUBLIC /Zc:__cplusplus)
+
   target_compile_options(libsouffle PUBLIC /bigobj)
   target_compile_options(compiled PUBLIC /bigobj)
 

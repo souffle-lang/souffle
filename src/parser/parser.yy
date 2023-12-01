@@ -14,7 +14,7 @@
  *
  ***********************************************************************/
 %skeleton "lalr1.cc"
-%require "3.0.2"
+%require "3.2"
 
 %defines
 %define api.token.constructor
@@ -22,15 +22,11 @@
 %define parse.assert
 %define api.location.type {SrcLocation}
 
-// Defined in version 3.2. This would solve a lot of the verbose `std::move`s.
-// NOTE:  Turns out becaue of another unspeakable hack (see below),
-//        we dont need as many of these `std::move`s anymore.
-// %define api.value.automove
-
 %locations
 
 %define parse.trace
 %define parse.error verbose
+%define api.value.automove
 
 /* -- Dependencies -- */
 %code requires {
@@ -78,7 +74,6 @@
     #include "ast/UnnamedVariable.h"
     #include "ast/UserDefinedFunctor.h"
     #include "ast/Variable.h"
-    #include "parser/Helper.h"
     #include "parser/ParserUtils.h"
     #include "souffle/RamTypes.h"
     #include "souffle/BinaryConstraintOps.h"
@@ -92,9 +87,14 @@
 
     using namespace souffle;
 
-    using namespace souffle::parser;
+    namespace souffle {
+        class ParserDriver;
+        namespace parser {
+        }
+    }
 
     using yyscan_t = void*;
+
 
     #define YY_NULLPTR nullptr
 
@@ -233,64 +233,63 @@
 %token FOLD                      "fold"
 
 /* -- Non-Terminal Types -- */
-%type <Mov<RuleBody>>                          aggregate_body
+%type <RuleBody>                          aggregate_body
 %type <AggregateOp>                            aggregate_func
-%type <Mov<Own<ast::Argument>>>                arg
-%type <Mov<VecOwn<ast::Argument>>>             arg_list
-%type <Mov<Own<ast::Atom>>>                    atom
-%type <Mov<VecOwn<ast::Attribute>>>            attributes_list
-%type <Mov<RuleBody>>                          body
-%type <Mov<Own<ast::ComponentType>>>           component_type
-%type <Mov<Own<ast::ComponentInit>>>           component_init
-%type <Mov<Own<ast::Component>>>               component_decl
-%type <Mov<Own<ast::Component>>>               component_body
-%type <Mov<Own<ast::Component>>>               component_head
-%type <Mov<RuleBody>>                          conjunction
-%type <Mov<Own<ast::Constraint>>>              constraint
-%type <Mov<Own<ast::FunctionalConstraint>>>    dependency
-%type <Mov<VecOwn<ast::FunctionalConstraint>>> dependency_list
-%type <Mov<VecOwn<ast::FunctionalConstraint>>> dependency_list_aux
-%type <Mov<RuleBody>>                          disjunction
-%type <Mov<Own<ast::ExecutionOrder>>>          plan_order
-%type <Mov<Own<ast::ExecutionPlan>>>           query_plan
-%type <Mov<Own<ast::ExecutionPlan>>>           query_plan_list
-%type <Mov<Own<ast::Clause>>>                  fact
-%type <Mov<VecOwn<ast::Attribute>>>            functor_arg_type_list
-%type <Mov<std::string>>                       functor_built_in
-%type <Mov<Own<ast::FunctorDeclaration>>>      functor_decl
-%type <Mov<VecOwn<ast::Atom>>>                 head
-%type <Mov<ast::QualifiedName>>                qualified_name
-%type <Mov<VecOwn<ast::Directive>>>            directive_list
-%type <Mov<VecOwn<ast::Directive>>>            directive_head
+%type <Own<ast::Argument>>                arg
+%type <VecOwn<ast::Argument>>             arg_list
+%type <Own<ast::Atom>>                    atom
+%type <VecOwn<ast::Attribute>>            attributes_list
+%type <RuleBody>                          body
+%type <Own<ast::ComponentType>>           component_type
+%type <Own<ast::ComponentInit>>           component_init
+%type <Own<ast::Component>>               component_decl
+%type <Own<ast::Component>>               component_body
+%type <Own<ast::Component>>               component_head
+%type <RuleBody>                          conjunction
+%type <Own<ast::Constraint>>              constraint
+%type <Own<ast::FunctionalConstraint>>    dependency
+%type <VecOwn<ast::FunctionalConstraint>> dependency_list
+%type <VecOwn<ast::FunctionalConstraint>> dependency_list_aux
+%type <RuleBody>                          disjunction
+%type <Own<ast::ExecutionOrder>>          plan_order
+%type <Own<ast::ExecutionPlan>>           query_plan
+%type <Own<ast::ExecutionPlan>>           query_plan_list
+%type <Own<ast::Clause>>                  fact
+%type <VecOwn<ast::Attribute>>            functor_arg_type_list
+%type <std::string>                       functor_built_in
+%type <Own<ast::FunctorDeclaration>>      functor_decl
+%type <VecOwn<ast::Atom>>                 head
+%type <ast::QualifiedName>                qualified_name
+%type <VecOwn<ast::Directive>>            directive_list
+%type <VecOwn<ast::Directive>>            directive_head
 %type <ast::DirectiveType>                     directive_head_decl
-%type <Mov<VecOwn<ast::Directive>>>            relation_directive_list
-%type <Mov<std::string>>                       kvp_value
-%type <Mov<VecOwn<ast::Argument>>>             non_empty_arg_list
-%type <Mov<Own<ast::Attribute>>>               attribute
-%type <Mov<VecOwn<ast::Attribute>>>            non_empty_attributes
-%type <Mov<std::vector<std::string>>>          non_empty_attribute_names
-%type <Mov<ast::ExecutionOrder::ExecOrder>>    non_empty_plan_order_list
-%type <Mov<VecOwn<ast::Attribute>>>            non_empty_functor_arg_type_list
-%type <Mov<Own<ast::Attribute>>>               functor_attribute;
-%type <Mov<std::vector<std::pair
-            <std::string, std::string>>>>      non_empty_key_value_pairs
-%type <Mov<VecOwn<ast::Relation>>>             relation_names
-%type <Mov<Own<ast::Pragma>>>                  pragma
-%type <Mov<VecOwn<ast::Attribute>>>            record_type_list
-%type <Mov<VecOwn<ast::Relation>>>             relation_decl
+%type <VecOwn<ast::Directive>>            relation_directive_list
+%type <std::string>                       kvp_value
+%type <VecOwn<ast::Argument>>             non_empty_arg_list
+%type <Own<ast::Attribute>>               attribute
+%type <VecOwn<ast::Attribute>>            non_empty_attributes
+%type <std::vector<std::string>>          non_empty_attribute_names
+%type <ast::ExecutionOrder::ExecOrder>    non_empty_plan_order_list
+%type <VecOwn<ast::Attribute>>            non_empty_functor_arg_type_list
+%type <Own<ast::Attribute>>               functor_attribute;
+%type <std::vector<std::pair<std::string, std::string>>>      non_empty_key_value_pairs
+%type <VecOwn<ast::Relation>>             relation_names
+%type <Own<ast::Pragma>>                  pragma
+%type <VecOwn<ast::Attribute>>            record_type_list
+%type <VecOwn<ast::Relation>>             relation_decl
 %type <std::set<RelationTag>>                  relation_tags
-%type <Mov<VecOwn<ast::Clause>>>               rule
-%type <Mov<VecOwn<ast::Clause>>>               rule_def
-%type <Mov<RuleBody>>                          term
-%type <Mov<Own<ast::Type>>>                    type_decl
-%type <Mov<std::vector<ast::QualifiedName>>>   component_type_params
-%type <Mov<std::vector<ast::QualifiedName>>>   component_param_list
-%type <Mov<std::vector<ast::QualifiedName>>>   union_type_list
-%type <Mov<VecOwn<ast::BranchType>>>    adt_branch_list
-%type <Mov<Own<ast::BranchType>>>       adt_branch
-%type <Mov<Own<ast::Lattice>>>                 lattice_decl
-%type <Mov<std::pair<ast::LatticeOperator, Own<ast::Argument>>>>                 lattice_operator
-%type <Mov<std::map<ast::LatticeOperator, Own<ast::Argument>>>>      lattice_operator_list
+%type <VecOwn<ast::Clause>>               rule
+%type <VecOwn<ast::Clause>>               rule_def
+%type <RuleBody>                          term
+%type <Own<ast::Type>>                    type_decl
+%type <std::vector<ast::QualifiedName>>   component_type_params
+%type <std::vector<ast::QualifiedName>>   component_param_list
+%type <std::vector<ast::QualifiedName>>   union_type_list
+%type <VecOwn<ast::BranchType>>    adt_branch_list
+%type <Own<ast::BranchType>>       adt_branch
+%type <Own<ast::Lattice>>                 lattice_decl
+%type <std::pair<ast::LatticeOperator, Own<ast::Argument>>>                 lattice_operator
+%type <std::map<ast::LatticeOperator, Own<ast::Argument>>>      lattice_operator_list
 /* -- Operator precedence -- */
 %left L_OR
 %left L_XOR
@@ -380,7 +379,7 @@ qualified_name
     }
   | qualified_name DOT IDENT
     {
-      $$ = $1; $$->append($IDENT);
+      $$ = $1; $$.append($IDENT);
     }
   ;
 
@@ -394,11 +393,13 @@ type_decl
     }
   | TYPE IDENT EQUALS union_type_list
     {
-      if ($union_type_list.size() > 1) {
-         $$ = mk<ast::UnionType>($IDENT, $union_type_list, @$);
+      auto utl = $union_type_list;
+      auto id = $IDENT;
+      if (utl.size() > 1) {
+         $$ = mk<ast::UnionType>(id, utl, @$);
       } else {
-         assert($union_type_list.size() == 1 && "qualified name missing for alias type");
-         $$ = mk<ast::AliasType>($IDENT, $union_type_list[0], @$);
+         assert(utl.size() == 1 && "qualified name missing for alias type");
+         $$ = mk<ast::AliasType>(id, utl[0], @$);
       }
     }
   | TYPE IDENT EQUALS record_type_list
@@ -723,7 +724,7 @@ dependency_list
 fact
   : atom DOT
     {
-      $$ = mk<ast::Clause>($atom, Mov<VecOwn<ast::Literal>> {}, nullptr, @$);
+      $$ = mk<ast::Clause>($atom, VecOwn<ast::Literal> {}, nullptr, @$);
     }
   ;
 
@@ -745,7 +746,7 @@ rule
     }
    | atom[less] LE atom[greater] IF body DOT 
     {
-      auto bodies = $body->toClauseBodies();
+      auto bodies = $body.toClauseBodies();
       Own<ast::Atom> lt = nameUnnamedVariables(std::move($less));
       Own<ast::Atom> gt = std::move($greater);
       for (auto&& body : bodies) {
@@ -761,7 +762,7 @@ rule
     }
    | atom[less] LE atom[greater] IF body DOT query_plan
     {
-      auto bodies = $body->toClauseBodies();
+      auto bodies = $body.toClauseBodies();
       Own<ast::Atom> lt = nameUnnamedVariables(std::move($less));
       Own<ast::Atom> gt = std::move($greater);
       for (auto&& body : bodies) {
@@ -784,7 +785,7 @@ rule
 rule_def
   : head[heads] IF body DOT
     {
-      auto bodies = $body->toClauseBodies();
+      auto bodies = $body.toClauseBodies();
       for (auto&& head : $heads) {
         for (auto&& body : bodies) {
           auto cur = clone(body);
@@ -828,7 +829,7 @@ disjunction
   | disjunction SEMICOLON conjunction
     {
       $$ = $1;
-      $$->disjunct($conjunction);
+      $$.disjunct($conjunction);
     }
   ;
 
@@ -840,7 +841,7 @@ conjunction
   | conjunction COMMA term
     {
       $$ = $1;
-      $$->conjunct($term);
+      $$.conjunct($term);
     }
   ;
 
@@ -862,7 +863,7 @@ term
     }
   | EXCLAMATION term
     {
-      $$ = $2->negated();
+      $$ = $2.negated();
     }
   ;
 
@@ -1014,11 +1015,11 @@ arg
     }
   | AT IDENT LPAREN arg_list RPAREN
     {
-      $$ = mk<ast::UserDefinedFunctor>($IDENT, *$arg_list, @$);
+      $$ = mk<ast::UserDefinedFunctor>($IDENT, $arg_list, @$);
     }
   | functor_built_in LPAREN arg_list RPAREN
     {
-      $$ = mk<ast::IntrinsicFunctor>($functor_built_in, *$arg_list, @$);
+      $$ = mk<ast::IntrinsicFunctor>($functor_built_in, $arg_list, @$);
     }
 
     /* some aggregates have the same name as functors */
@@ -1050,8 +1051,8 @@ arg
   | MINUS arg[nested_arg] %prec NEG
     {
       // If we have a constant that is not already negated we just negate the constant value.
-      auto nested_arg = *$nested_arg;
-      const auto* asNumeric = as<ast::NumericConstant>(*nested_arg);
+      auto nested_arg = $nested_arg;
+      const auto* asNumeric = as<ast::NumericConstant>(nested_arg);
       if (asNumeric && !isPrefix("-", asNumeric->getConstant())) {
         $$ = mk<ast::NumericConstant>("-" + asNumeric->getConstant(), asNumeric->getFixedType(), @nested_arg);
       } else { // Otherwise, create a functor.
@@ -1131,30 +1132,33 @@ arg
     /* -- User-defined aggregators -- */
   | AT AT IDENT arg_list[rest] COLON arg[first] COMMA aggregate_body
     {
-      auto bodies = $aggregate_body->toClauseBodies();
+      auto bodies = $aggregate_body.toClauseBodies();
       if (bodies.size() != 1) {
         driver.error("ERROR: disjunctions in aggregation clauses are currently not supported");
       }
-      auto expr = $rest.empty() ? nullptr : std::move($rest[0]);
+      auto rest = $rest;
+      auto expr = rest.empty() ? nullptr : std::move(rest[0]);
       auto body = (bodies.size() == 1) ? clone(bodies[0]->getBodyLiterals()) : VecOwn<ast::Literal> {};
       $$ = mk<ast::UserDefinedAggregator>($IDENT, std::move($first), std::move(expr), std::move(body), @$);
     }
     /* -- aggregators -- */
   | aggregate_func arg_list COLON aggregate_body
     {
-      auto bodies = $aggregate_body->toClauseBodies();
+      auto aggregate_func = $aggregate_func;
+      auto arg_list = $arg_list;
+      auto bodies = $aggregate_body.toClauseBodies();
       if (bodies.size() != 1) {
         driver.error("ERROR: disjunctions in aggregation clauses are currently not supported");
       }
       // TODO: move this to a semantic check when aggs are extended to multiple exprs
-      auto given    = $arg_list.size();
-      auto required = aggregateArity($aggregate_func);
+      auto given    = arg_list.size();
+      auto required = aggregateArity(aggregate_func);
       if (given < required.first || required.second < given) {
         driver.error("ERROR: incorrect expression arity for given aggregate mode");
       }
-      auto expr = $arg_list.empty() ? nullptr : std::move($arg_list[0]);
+      auto expr = arg_list.empty() ? nullptr : std::move(arg_list[0]);
       auto body = (bodies.size() == 1) ? clone(bodies[0]->getBodyLiterals()) : VecOwn<ast::Literal> {};
-      $$ = mk<ast::IntrinsicAggregator>($aggregate_func, std::move(expr), std::move(body), @$);
+      $$ = mk<ast::IntrinsicAggregator>(aggregate_func, std::move(expr), std::move(body), @$);
     }
   ;
 
@@ -1288,7 +1292,7 @@ component_decl
       auto head = $component_head;
       $$ = $component_body;
       $$->setComponentType(clone(head->getComponentType()));
-      $$->copyBaseComponents(**head);
+      $$->copyBaseComponents(*head);
       $$->setSrcLoc(@$);
     }
   ;
