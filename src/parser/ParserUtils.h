@@ -29,10 +29,6 @@ namespace souffle {
 
 class RuleBody {
 public:
-    RuleBody() = default;
-    RuleBody(RuleBody&&) = default;
-    RuleBody& operator=(RuleBody&&) = default;
-
     RuleBody negated() const;
 
     void conjunct(RuleBody other);
