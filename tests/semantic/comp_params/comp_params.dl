@@ -1,0 +1,26 @@
+
+.comp A {
+  .decl x(s:symbol)
+  x("A").
+}
+
+.comp B {
+  .decl x(s:symbol)
+  x("B").
+}
+
+.comp _Top<Z> {
+
+  .comp _Foo<Z> : _Bar<Z> {
+  }
+
+  .comp _Bar<Q> {
+    .init X = Q
+    .output X.x()
+  }
+
+  .init Foo = _Foo<Z>
+}
+
+.init TopA = _Top<A>
+.init TopB = _Top<B>

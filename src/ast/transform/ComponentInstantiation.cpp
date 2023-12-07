@@ -370,6 +370,8 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
 
     if (component == nullptr) {
         // this component is not defined => will trigger a semantic error
+        report.addError("Component " + componentInit.getComponentType()->getName() + " not found",
+                componentInit.getComponentType()->getSrcLoc());
         return res;
     }
 

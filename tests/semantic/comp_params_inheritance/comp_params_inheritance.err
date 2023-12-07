@@ -1,4 +1,4 @@
-Error: Undefined relation impl.R in file comp_params_inheritance.dl at line 10
-    Base(x) :- impl.R(x).
----------------^----------
+Error: Component T not found in file comp_params_inheritance.dl at line 8
+    .init impl = T
+-----------------^-
 1 errors generated, evaluation aborted
