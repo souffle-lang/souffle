@@ -22,6 +22,8 @@
 #include <set>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -293,6 +295,18 @@ ostream& operator<<(ostream& out, const multiset<K, C, A>& s) {
  */
 template <typename K, typename T, typename C, typename A>
 ostream& operator<<(ostream& out, const map<K, T, C, A>& m) {
+    return out << "{" << souffle::join(m, ",", [](ostream& out, const pair<K, T>& cur) {
+        out << cur.first << "->" << cur.second;
+    }) << "}";
+}
+
+template <typename K, typename H, typename A>
+ostream& operator<<(ostream& out, const unordered_set<K, H, A>& s) {
+    return out << "{" << souffle::join(s) << "}";
+}
+
+template <typename K, typename T, typename H, typename E, typename A>
+ostream& operator<<(ostream& out, const unordered_map<K, T, H, E, A>& m) {
     return out << "{" << souffle::join(m, ",", [](ostream& out, const pair<K, T>& cur) {
         out << cur.first << "->" << cur.second;
     }) << "}";

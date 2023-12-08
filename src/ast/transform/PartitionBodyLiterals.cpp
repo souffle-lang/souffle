@@ -150,7 +150,7 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
             static int disconnectedCount = 0;
             std::stringstream nextName;
             nextName << "+disconnected" << disconnectedCount;
-            QualifiedName newRelationName = nextName.str();
+            QualifiedName newRelationName = QualifiedName::fromString(nextName.str());
             disconnectedCount++;
 
             // Create the extracted relation and clause for the component

@@ -77,7 +77,7 @@ public:
     }
 
     bool operator<(const Type& other) const {
-        return name < other.name;
+        return name.lexicalLess(other.name);
     }
 
     virtual void print(std::ostream& out) const {
@@ -311,7 +311,7 @@ public:
     void setBranches(std::vector<Branch> bs) {
         branches = std::move(bs);
         std::sort(branches.begin(), branches.end(),
-                [](const Branch& left, const Branch& right) { return left.name < right.name; });
+                [](const Branch& left, const Branch& right) { return left.name.lexicalLess(right.name); });
     }
 
     const std::vector<const Type*>& getBranchTypes(const QualifiedName& name) const {
@@ -518,12 +518,12 @@ public:
 
     const Type& getConstantType(TypeAttribute type) const {
         switch (type) {
-            case TypeAttribute::Signed: return getType("__numberConstant");
-            case TypeAttribute::Unsigned: return getType("__unsignedConstant");
-            case TypeAttribute::Float: return getType("__floatConstant");
-            case TypeAttribute::Symbol: return getType("__symbolConstant");
-            case TypeAttribute::Record: return getType("__numberConstant");
-            case TypeAttribute::ADT: return getType("__numberConstant");
+            case TypeAttribute::Signed: return getType(QualifiedName::fromString("__numberConstant"));
+            case TypeAttribute::Unsigned: return getType(QualifiedName::fromString("__unsignedConstant"));
+            case TypeAttribute::Float: return getType(QualifiedName::fromString("__floatConstant"));
+            case TypeAttribute::Symbol: return getType(QualifiedName::fromString("__symbolConstant"));
+            case TypeAttribute::Record: return getType(QualifiedName::fromString("__numberConstant"));
+            case TypeAttribute::ADT: return getType(QualifiedName::fromString("__numberConstant"));
         }
         fatal("Unhandled type");
     }
@@ -571,11 +571,12 @@ private:
     TypeSet initializeConstantTypes();
 
     /** Map for storing named types */
-    std::map<QualifiedName, Own<Type>> types;
+    UnorderedQualifiedNameMap<Own<Type>> types;
 
     const TypeSet constantTypes = initializeConstantTypes();
-    const TypeSet constantNumericTypes =
-            TypeSet(getType("__numberConstant"), getType("__unsignedConstant"), getType("__floatConstant"));
+    const TypeSet constantNumericTypes = TypeSet(getType(QualifiedName::fromString("__numberConstant")),
+            getType(QualifiedName::fromString("__unsignedConstant")),
+            getType(QualifiedName::fromString("__floatConstant")));
 
     const TypeSet primitiveTypes = initializePrimitiveTypes();
 };

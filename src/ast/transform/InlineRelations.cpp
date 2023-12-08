@@ -151,10 +151,10 @@ bool normaliseInlinedHeads(Program& program) {
 bool nameInlinedUnderscores(Program& program) {
     struct M : public NodeMapper {
         mutable bool changed = false;
-        const std::set<QualifiedName> inlinedRelations;
+        const UnorderedQualifiedNameSet inlinedRelations;
         bool replaceUnderscores;
 
-        M(std::set<QualifiedName> inlinedRelations, bool replaceUnderscores)
+        M(UnorderedQualifiedNameSet inlinedRelations, bool replaceUnderscores)
                 : inlinedRelations(std::move(inlinedRelations)), replaceUnderscores(replaceUnderscores) {}
 
         Own<Node> operator()(Own<Node> node) const override {
@@ -188,7 +188,7 @@ bool nameInlinedUnderscores(Program& program) {
     };
 
     // Store the names of all relations to be inlined
-    std::set<QualifiedName> inlinedRelations;
+    UnorderedQualifiedNameSet inlinedRelations;
     for (Relation* rel : program.getRelations()) {
         if (rel->hasQualifier(RelationQualifier::INLINE)) {
             inlinedRelations.insert(rel->getQualifiedName());
@@ -1031,7 +1031,7 @@ ExcludedRelations InlineRelationsTransformer::excluded(Global& glb) {
     ExcludedRelations xs;
     auto addAll = [&](const std::string& name) {
         for (auto&& r : splitString(glb.config().get(name), ','))
-            xs.insert(QualifiedName(r));
+            xs.insert(QualifiedName::fromString(r));
     };
 
     addAll("inline-exclude");

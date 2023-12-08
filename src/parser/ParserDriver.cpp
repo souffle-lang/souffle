@@ -335,6 +335,11 @@ Own<ast::SubsetType> ParserDriver::mkDeprecatedSubType(
 void ParserDriver::warning(const WarnType type, const SrcLocation& loc, const std::string& msg) {
     translationUnit->getErrorReport().addWarning(type, msg, loc);
 }
+
+ast::QualifiedName ParserDriver::mkQN(std::string_view s) {
+    return ast::QualifiedName::fromString(s);
+}
+
 void ParserDriver::error(const SrcLocation& loc, const std::string& msg) {
     translationUnit->getErrorReport().addError(msg, loc);
 }

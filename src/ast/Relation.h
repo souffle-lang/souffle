@@ -153,7 +153,16 @@ private:
 struct NameComparison {
     bool operator()(const Relation* x, const Relation* y) const {
         if (x != nullptr && y != nullptr) {
-            return x->getQualifiedName() < y->getQualifiedName();
+            return x->getQualifiedName().lexicalLess(y->getQualifiedName());
+        }
+        return y != nullptr;
+    }
+};
+
+struct UnorderedNameComparison {
+    bool operator()(const Relation* x, const Relation* y) const {
+        if (x != nullptr && y != nullptr) {
+            return x->getQualifiedName().getIndex() < y->getQualifiedName().getIndex();
         }
         return y != nullptr;
     }
@@ -161,5 +170,21 @@ struct NameComparison {
 
 /** Relation set */
 using RelationSet = std::set<const Relation*, NameComparison>;
+using UnorderedRelationSet = std::set<const Relation*, UnorderedNameComparison>;
+
+/// Return an unordered set of relations corresponding to the given relations.
+template <typename Container>
+UnorderedRelationSet unorderedRelationSet(const Container& cont) {
+    return UnorderedRelationSet(cont.cbegin(), cont.cend());
+}
+
+/// Return an unordered set of relations corresponding to the given relations.
+template <typename Container>
+UnorderedRelationSet unorderedRelationSet(Container& cont) {
+    return UnorderedRelationSet(cont.begin(), cont.end());
+}
+
+/// Return an ordered set of relations corresponding to the given relations.
+RelationSet orderedRelationSet(const UnorderedRelationSet& cont);
 
 }  // namespace souffle::ast

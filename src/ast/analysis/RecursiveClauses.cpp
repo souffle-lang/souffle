@@ -10,9 +10,10 @@
  *
  * @file RecursiveClauses.cpp
  *
- * Implements method of precedence graph to build the precedence graph,
- * compute strongly connected components of the precedence graph, and
- * build the strongly connected component graph.
+ * Compute the set of recursive clauses.
+ *
+ * A recursive clause is a clause of a rule R that depends directly or
+ * transitively on that rule R.
  *
  ***********************************************************************/
 
@@ -26,7 +27,9 @@
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
 #include "souffle/utility/StreamUtil.h"
+
 #include <algorithm>
+#include <map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -35,66 +38,68 @@ namespace souffle::ast::analysis {
 
 void RecursiveClausesAnalysis::run(const TranslationUnit& translationUnit) {
     Program& program = translationUnit.getProgram();
-    visit(program, [&](const Clause& clause) {
-        if (computeIsRecursive(clause, translationUnit)) {
-            recursiveClauses.insert(&clause);
-        }
-    });
-}
 
-void RecursiveClausesAnalysis::print(std::ostream& os) const {
-    os << recursiveClauses << std::endl;
-}
+    // Mapping from a relation to the set of relations that it depends on directly.
+    //
+    // It is the adjacency list of the relations dependency graph.
+    std::map<uint32_t, std::set<uint32_t>> relationUseRelation;
 
-bool RecursiveClausesAnalysis::computeIsRecursive(
-        const Clause& clause, const TranslationUnit& translationUnit) const {
-    const Program& program = translationUnit.getProgram();
+    // Mapping from a clause to the set of relations that it depends on directly.
+    std::map<const Clause*, std::set<uint32_t>> clauseUseRelation;
 
-    // we want to reach the atom of the head through the body
-    const Relation* trg = program.getRelation(clause);
+    // Mapping from a clause to its relations.
+    std::map<const Clause*, uint32_t> clauseRelation;
 
-    RelationSet reached;
-    std::vector<const Relation*> worklist;
+    std::vector<uint32_t> relations;
 
-    // set up start list
-    for (const auto* cur : getBodyLiterals<Atom>(clause)) {
-        auto rel = program.getRelation(*cur);
-        if (rel == trg) {
-            return true;
-        }
-        worklist.push_back(rel);
-    }
-
-    // process remaining elements
-    while (!worklist.empty()) {
-        // get next to process
-        const Relation* cur = worklist.back();
-        worklist.pop_back();
-
-        // skip null pointers (errors in the input code)
-        if (cur == nullptr) {
-            continue;
-        }
-
-        // check whether this one has been checked before
-        if (!reached.insert(cur).second) {
-            continue;
-        }
-
-        // check all atoms in the relations
-        for (auto&& cl : program.getClauses(*cur)) {
-            for (const Atom* at : getBodyLiterals<Atom>(*cl)) {
-                auto rel = program.getRelation(*at);
-                if (rel == trg) {
-                    return true;
-                }
-                worklist.push_back(rel);
+    // gather dependencies
+    for (const auto& qninfo : program.getRelationInfo()) {
+        const uint32_t head = qninfo.first.getIndex();
+        relations.emplace_back(head);
+        for (const auto& clause : qninfo.second.clauses) {
+            clauseRelation.emplace(clause.get(), head);
+            for (const auto& atom : getBodyLiterals<Atom>(*clause)) {
+                const uint32_t rhs = atom->getQualifiedName().getIndex();
+                relationUseRelation[head].emplace(rhs);
+                clauseUseRelation[clause.get()].emplace(rhs);
             }
         }
     }
 
-    // no cycles found
-    return false;
+    // Mapping from a relation to the set of transitively reachable relations
+    // it depends on, including itself.
+    std::map<uint32_t, std::set<uint32_t>> reachableRelation;
+
+    // called when we discoved that `head` transitively reach `reached`.
+    const std::function<void(uint32_t, uint32_t)> dfs = [&](uint32_t head, uint32_t reached) {
+        reachableRelation[head].emplace(reached);
+        for (uint32_t rel : relationUseRelation[reached]) {
+            if (reachableRelation[head].emplace(rel).second) {
+                // discovered that relation `rel` is reachabel from `head`
+                dfs(head, rel);
+            }
+        }
+    };
+
+    // Compute the transitive closure of reachable (dependencies) relations from each relation.
+    for (const uint32_t head : relations) {
+        // include itself in the closure
+        dfs(head, head);
+    }
+
+    for (const auto& [clause, rel] : clauseRelation) {
+        for (const uint32_t used : clauseUseRelation[clause]) {
+            if (reachableRelation[used].count(rel) > 0) {
+                // clause is recursive
+                recursiveClauses.emplace(clause);
+                break;
+            }
+        }
+    }
+}
+
+void RecursiveClausesAnalysis::print(std::ostream& os) const {
+    os << recursiveClauses << std::endl;
 }
 
 }  // namespace souffle::ast::analysis

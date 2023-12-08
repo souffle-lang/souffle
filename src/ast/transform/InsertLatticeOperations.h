@@ -45,8 +45,8 @@ private:
 
     RuleBody translateNegatedAtom(ast::Atom& atom);
 
-    std::multimap<const QualifiedName, std::pair<std::size_t, const QualifiedName>> latticeAttributes;
-    std::map<const ast::QualifiedName, const ast::Lattice*> lattices;
+    UnorderedQualifiedNameMultimap<std::pair<std::size_t, const QualifiedName>> latticeAttributes;
+    UnorderedQualifiedNameMap<const ast::Lattice*> lattices;
 };
 
 }  // namespace souffle::ast::transform

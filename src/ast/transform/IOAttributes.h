@@ -158,8 +158,8 @@ private:
         return changed;
     }
 
-    std::string getRelationName(const Directive* node) {
-        return toString(join(node->getQualifiedName().getQualifiers(), "."));
+    const std::string& getRelationName(const Directive* node) {
+        return node->getQualifiedName().toString();
     }
 
     /**

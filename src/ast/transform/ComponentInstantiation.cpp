@@ -317,7 +317,7 @@ void collectContent(Program& program, const Component& component, const TypeBind
     }
 
     // index the available relations
-    std::map<QualifiedName, Relation*> index;
+    UnorderedQualifiedNameMap<Relation*> index;
     for (const auto& cur : res.relations) {
         index[cur->getQualifiedName()] = cur.get();
     }
@@ -417,7 +417,7 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
             componentLookup, res, orphans, overridden, report, maxDepth);
 
     // update user-defined type names
-    std::map<QualifiedName, QualifiedName> typeNameMapping;
+    UnorderedQualifiedNameMap<QualifiedName> typeNameMapping;
     for (const auto& cur : res.types) {
         auto newName = componentInit.getInstanceName() + cur->getQualifiedName();
         typeNameMapping[cur->getQualifiedName()] = newName;
@@ -436,7 +436,7 @@ ComponentContent getInstantiatedContent(Program& program, const ComponentInit& c
     }
 
     // update relation names
-    std::map<QualifiedName, QualifiedName> relationNameMapping;
+    UnorderedQualifiedNameMap<QualifiedName> relationNameMapping;
     for (const auto& cur : res.relations) {
         auto newName = componentInit.getInstanceName() + cur->getQualifiedName();
         relationNameMapping[cur->getQualifiedName()] = newName;

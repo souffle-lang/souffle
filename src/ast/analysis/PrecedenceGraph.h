@@ -46,13 +46,13 @@ public:
     /** Output precedence graph in image format to a given stream */
     void printHTML(std::ostream& os) const override;
 
-    const Graph<const Relation*, NameComparison>& graph() const {
+    const Graph<const Relation*, UnorderedNameComparison>& graph() const {
         return backingGraph;
     }
 
 private:
     /** Adjacency list of precedence graph (determined by the dependencies of the relations) */
-    Graph<const Relation*, NameComparison> backingGraph;
+    Graph<const Relation*, UnorderedNameComparison> backingGraph;
 
     /** Output precedence graph in text format to a given stringstream */
     void printRaw(std::stringstream& ss) const;

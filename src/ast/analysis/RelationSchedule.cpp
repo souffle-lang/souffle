@@ -53,22 +53,25 @@ void RelationScheduleAnalysisStep::print(std::ostream& os) const {
 void RelationScheduleAnalysis::run(const TranslationUnit& translationUnit) {
     topsortSCCGraphAnalysis = &translationUnit.getAnalysis<TopologicallySortedSCCGraphAnalysis>();
     precedenceGraph = &translationUnit.getAnalysis<PrecedenceGraphAnalysis>();
+    sccGraph = &translationUnit.getAnalysis<SCCGraphAnalysis>();
 
-    std::size_t numSCCs = translationUnit.getAnalysis<SCCGraphAnalysis>().getNumberOfSCCs();
-    std::vector<RelationSet> relationExpirySchedule = computeRelationExpirySchedule(translationUnit);
+    const std::size_t numSCCs = sccGraph->getNumberOfSCCs();
+    std::vector<RelationSet> relationExpirySchedule = computeRelationExpirySchedule();
 
     relationSchedule.clear();
     for (std::size_t i = 0; i < numSCCs; i++) {
-        auto scc = topsortSCCGraphAnalysis->order()[i];
-        const RelationSet computedRelations =
-                translationUnit.getAnalysis<SCCGraphAnalysis>().getInternalRelations(scc);
-        relationSchedule.emplace_back(computedRelations, relationExpirySchedule[i],
-                translationUnit.getAnalysis<SCCGraphAnalysis>().isRecursive(scc));
+        const auto scc = topsortSCCGraphAnalysis->order()[i];
+        const RelationSet computedRelations = sccGraph->getInternalRelations(scc);
+        relationSchedule.emplace_back(
+                computedRelations, relationExpirySchedule[i], sccGraph->isRecursive(scc));
     }
+
+    topsortSCCGraphAnalysis = nullptr;
+    precedenceGraph = nullptr;
+    sccGraph = nullptr;
 }
 
-std::vector<RelationSet> RelationScheduleAnalysis::computeRelationExpirySchedule(
-        const TranslationUnit& translationUnit) {
+std::vector<RelationSet> RelationScheduleAnalysis::computeRelationExpirySchedule() {
     std::vector<RelationSet> relationExpirySchedule;
     /* Compute for each step in the reverse topological order
        of evaluating the SCC the set of alive relations. */
@@ -78,7 +81,6 @@ std::vector<RelationSet> RelationScheduleAnalysis::computeRelationExpirySchedule
     std::vector<RelationSet> alive(numSCCs);
     /* Resize expired relations sets */
     relationExpirySchedule.resize(numSCCs);
-    const auto& sccGraph = translationUnit.getAnalysis<SCCGraphAnalysis>();
 
     /* Compute all alive relations by iterating over all steps in reverse order
        determine the dependencies */
@@ -88,7 +90,7 @@ std::vector<RelationSet> RelationScheduleAnalysis::computeRelationExpirySchedule
 
         /* Add predecessors of relations computed in this step */
         auto scc = topsortSCCGraphAnalysis->order()[numSCCs - orderedSCC];
-        for (const Relation* r : sccGraph.getInternalRelations(scc)) {
+        for (const Relation* r : sccGraph->getInternalRelations(scc)) {
             for (const Relation* predecessor : precedenceGraph->graph().predecessors(r)) {
                 alive[orderedSCC].insert(predecessor);
             }
@@ -96,11 +98,10 @@ std::vector<RelationSet> RelationScheduleAnalysis::computeRelationExpirySchedule
 
         /* Compute expired relations in reverse topological order using the set difference of the alive sets
            between steps. */
-        std::set_difference(alive[orderedSCC].begin(), alive[orderedSCC].end(), alive[orderedSCC - 1].begin(),
-                alive[orderedSCC - 1].end(),
+        std::copy_if(alive[orderedSCC].begin(), alive[orderedSCC].end(),
                 std::inserter(relationExpirySchedule[numSCCs - orderedSCC],
                         relationExpirySchedule[numSCCs - orderedSCC].end()),
-                NameComparison());
+                [&](const Relation* r) { return alive[orderedSCC - 1].count(r) == 0; });
     }
 
     return relationExpirySchedule;
@@ -110,21 +111,6 @@ void RelationScheduleAnalysis::print(std::ostream& os) const {
     os << "begin schedule\n";
     for (const RelationScheduleAnalysisStep& step : relationSchedule) {
         os << step;
-        os << "computed: ";
-        for (const Relation* compRel : step.computed()) {
-            os << compRel->getQualifiedName() << ", ";
-        }
-        os << "\nexpired: ";
-        for (const Relation* compRel : step.expired()) {
-            os << compRel->getQualifiedName() << ", ";
-        }
-        os << "\n";
-        if (step.recursive()) {
-            os << "recursive";
-        } else {
-            os << "not recursive";
-        }
-        os << "\n";
     }
     os << "end schedule\n";
 }

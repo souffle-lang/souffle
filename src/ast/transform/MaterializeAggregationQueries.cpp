@@ -138,7 +138,7 @@ void MaterializeAggregationQueriesTransformer::groundInjectedParameters(
     };
 
     auto aggClauseInnerAggregatesMasked = clone(aggClause);
-    aggClauseInnerAggregatesMasked->setHead(mk<Atom>("*"));
+    aggClauseInnerAggregatesMasked->setHead(mk<Atom>(QualifiedName::fromString("*")));
     NegateAggregateAtoms update;
     aggClauseInnerAggregatesMasked->apply(update);
 
@@ -192,7 +192,7 @@ void MaterializeAggregationQueriesTransformer::groundInjectedParameters(
                 continue;
             }
             // 2. Variable must be grounded by this literal.
-            auto singleLiteralClause = mk<Clause>("*");
+            auto singleLiteralClause = mk<Clause>(QualifiedName::fromString("*"));
             singleLiteralClause->addToBody(clone(lit));
             bool variableGroundedByLiteral = false;
             for (const auto& argPair : analysis::getGroundedTerms(translationUnit, *singleLiteralClause)) {
@@ -288,7 +288,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             // begin materialisation process
             auto aggregateBodyRelationName = analysis::findUniqueRelationName(program, "__agg_subclause");
             // quickly copy in all the literals from the aggregate body
-            auto aggClause = mk<Clause>(aggregateBodyRelationName);
+            auto aggClause = mk<Clause>(QualifiedName::fromString(aggregateBodyRelationName));
             aggClause->setBodyLiterals(clone(agg.getBodyLiterals()));
             if (const auto* intrinsicAgg = as<IntrinsicAggregator>(agg)) {
                 if (intrinsicAgg->getBaseOperator() == AggregateOp::COUNT) {
@@ -307,7 +307,7 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
                 aggClauseHead->addArgument(mk<Variable>(variableName));
             }
             // add them to the relation as well (need to do a bit of type analysis to make this work)
-            auto aggRel = mk<Relation>(aggregateBodyRelationName);
+            auto aggRel = mk<Relation>(QualifiedName::fromString(aggregateBodyRelationName));
             std::map<const Argument*, analysis::TypeSet> argTypes =
                     analysis::TypeAnalysis::analyseTypes(translationUnit, *aggClause);
 

@@ -210,7 +210,7 @@ void negateConstraintInPlace(Constraint& constraint) {
     }
 }
 
-bool renameAtoms(Own<Clause>& clause, const std::map<QualifiedName, QualifiedName>& oldToNew) {
+bool renameAtoms(Own<Clause>& clause, const UnorderedQualifiedNameMap<QualifiedName>& oldToNew) {
     bool changed = false;
     visit(clause, [&](Atom& atom) {
         auto it = oldToNew.find(atom.getQualifiedName());
@@ -222,7 +222,7 @@ bool renameAtoms(Own<Clause>& clause, const std::map<QualifiedName, QualifiedNam
     return changed;
 }
 
-bool renameAtoms(Program& program, const std::map<QualifiedName, QualifiedName>& oldToNew) {
+bool renameAtoms(Program& program, const UnorderedQualifiedNameMap<QualifiedName>& oldToNew) {
     bool changed = false;
 
     // Can't rename clause head atoms while the clause is attached w/o invalidating by-name lookup tables.
@@ -253,7 +253,7 @@ bool renameAtoms(Program& program, const std::map<QualifiedName, QualifiedName>&
 }
 
 bool renameAtoms(Program& program, QualifiedName const& relation,
-        const std::map<QualifiedName, QualifiedName>& oldToNew) {
+        const UnorderedQualifiedNameMap<QualifiedName>& oldToNew) {
     auto info = program.getRelationInfo(relation);
     if (!info) return false;
 

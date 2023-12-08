@@ -40,8 +40,10 @@ namespace souffle::ast::analysis {
 
 namespace {
 
-Graph<QualifiedName> createTypeDependencyGraph(const std::vector<ast::Type*>& programTypes) {
-    Graph<QualifiedName> typeDependencyGraph;
+using QNGraph = GraphLabeled<QualifiedName, Unit, UnorderedQualifiedNameLess>;
+
+QNGraph createTypeDependencyGraph(const std::vector<ast::Type*>& programTypes) {
+    QNGraph typeDependencyGraph;
     for (const auto* astType : programTypes) {
         if (auto type = as<ast::SubsetType>(astType)) {
             typeDependencyGraph.insert(type->getQualifiedName(), type->getBaseType());
@@ -77,9 +79,9 @@ Graph<QualifiedName> createTypeDependencyGraph(const std::vector<ast::Type*>& pr
 /**
  * Find all the type with a cyclic definition (in terms of being a subtype/alias)
  */
-std::set<QualifiedName> analyseCyclicTypes(
-        const Graph<QualifiedName>& dependencyGraph, const std::vector<ast::Type*>& programTypes) {
-    std::set<QualifiedName> cyclicTypes;
+UnorderedQualifiedNameSet analyseCyclicTypes(
+        const QNGraph& dependencyGraph, const std::vector<ast::Type*>& programTypes) {
+    UnorderedQualifiedNameSet cyclicTypes;
     for (const auto& astType : programTypes) {
         QualifiedName typeName = astType->getQualifiedName();
         if (dependencyGraph.reaches(typeName, typeName)) {
@@ -92,10 +94,10 @@ std::set<QualifiedName> analyseCyclicTypes(
 /**
  * Find all the primitive types that are the subtypes of the union types.
  */
-std::map<QualifiedName, std::set<QualifiedName>> analysePrimitiveTypesInUnion(
-        const Graph<QualifiedName>& dependencyGraph, const std::vector<ast::Type*>& programTypes,
+UnorderedQualifiedNameMap<UnorderedQualifiedNameSet> analysePrimitiveTypesInUnion(
+        const QNGraph& dependencyGraph, const std::vector<ast::Type*>& programTypes,
         const TypeEnvironment& env) {
-    std::map<QualifiedName, std::set<QualifiedName>> primitiveTypesInUnions;
+    UnorderedQualifiedNameMap<UnorderedQualifiedNameSet> primitiveTypesInUnions;
 
     for (const auto& astType : programTypes) {
         auto* unionType = as<ast::UnionType>(astType);
@@ -129,13 +131,13 @@ void TypeEnvironmentAnalysis::run(const TranslationUnit& translationUnit) {
     const Program& program = translationUnit.getProgram();
 
     auto rawProgramTypes = program.getTypes();
-    Graph<QualifiedName> typeDependencyGraph{createTypeDependencyGraph(rawProgramTypes)};
+    QNGraph typeDependencyGraph{createTypeDependencyGraph(rawProgramTypes)};
 
     cyclicTypes = analyseCyclicTypes(typeDependencyGraph, rawProgramTypes);
 
     primitiveTypesInUnions = analysePrimitiveTypesInUnion(typeDependencyGraph, rawProgramTypes, env);
 
-    std::map<QualifiedName, const ast::Type*> nameToType;
+    UnorderedQualifiedNameMap<const ast::Type*> nameToType;
 
     // Filter redefined primitive types and cyclic types.
     std::vector<ast::Type*> programTypes;
@@ -153,7 +155,7 @@ void TypeEnvironmentAnalysis::run(const TranslationUnit& translationUnit) {
 }
 
 const Type* TypeEnvironmentAnalysis::createType(
-        const QualifiedName& typeName, const std::map<QualifiedName, const ast::Type*>& nameToType) {
+        const QualifiedName& typeName, const UnorderedQualifiedNameMap<const ast::Type*>& nameToType) {
     // base case
     if (env.isType(typeName)) {
         return &env.getType(typeName);

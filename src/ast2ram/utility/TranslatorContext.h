@@ -178,7 +178,7 @@ private:
     Own<ast::SipsMetric> sipsMetric;
     Own<TranslationStrategy> translationStrategy;
     std::map<const ast::Relation*, const ast::Relation*> deltaRel;
-    std::map<const ast::QualifiedName, const ast::Lattice*> lattices;
+    ast::UnorderedQualifiedNameMap<const ast::Lattice*> lattices;
 };
 
 }  // namespace souffle::ast2ram

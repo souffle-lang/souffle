@@ -67,7 +67,7 @@ private:
      * Key value pair. Keys are names that should be forwarded to value,
      * which is the actual name. Example T->MyImplementation.
      */
-    std::map<QualifiedName, QualifiedName> binding;
+    UnorderedQualifiedNameMap<QualifiedName> binding;
 };
 
 class ComponentLookupAnalysis : public Analysis {

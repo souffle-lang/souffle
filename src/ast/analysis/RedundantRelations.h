@@ -44,13 +44,13 @@ public:
 
     void print(std::ostream& os) const override;
 
-    const std::set<QualifiedName>& getRedundantRelations() const {
+    const UnorderedQualifiedNameSet& getRedundantRelations() const {
         return redundantRelations;
     }
 
 private:
     PrecedenceGraphAnalysis* precedenceGraph = nullptr;
-    std::set<QualifiedName> redundantRelations;
+    UnorderedQualifiedNameSet redundantRelations;
 };
 
 }  // namespace analysis

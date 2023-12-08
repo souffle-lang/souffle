@@ -28,6 +28,8 @@
 
 namespace souffle::ast::analysis {
 
+TopologicallySortedSCCGraphAnalysis::TopologicallySortedSCCGraphAnalysis() : Analysis(name) {}
+
 int TopologicallySortedSCCGraphAnalysis::topologicalOrderingCost(
         const std::vector<std::size_t>& permutationOfSCCs) const {
     // create variables to hold the cost of the current SCC and the permutation as a whole
@@ -67,86 +69,73 @@ int TopologicallySortedSCCGraphAnalysis::topologicalOrderingCost(
 }
 
 void TopologicallySortedSCCGraphAnalysis::computeTopologicalOrdering(
-        std::size_t scc, std::vector<bool>& visited) {
-    // create a flag to indicate that a successor was visited (by default it hasn't been)
-    bool found = false;
-    bool hasUnvisitedSuccessor = false;
-    bool hasUnvisitedPredecessor = false;
-    // for each successor of the input scc
-    const auto& successorsToVisit = sccGraph->getSuccessorSCCs(scc);
-    for (const auto scc_i : successorsToVisit) {
-        if (visited[scc_i]) {
-            continue;
-        }
-        hasUnvisitedPredecessor = false;
-        const auto& successorsPredecessors = sccGraph->getPredecessorSCCs(scc_i);
-        for (const auto scc_j : successorsPredecessors) {
-            if (!visited[scc_j]) {
-                hasUnvisitedPredecessor = true;
-                break;
-            }
-        }
-        if (!hasUnvisitedPredecessor) {
-            // give it a temporary marking
-            visited[scc_i] = true;
-            // add it to the permanent ordering
-            sccOrder.push_back(scc_i);
-            // and use it as a root node in a recursive call to this function
-            computeTopologicalOrdering(scc_i, visited);
-            // finally, indicate that a successor has been found for this node
-            found = true;
-        }
-    }
-    // return at once if no valid successors have been found; as either it has none or they all have a
-    // better predecessor
-    if (!found) {
+        std::size_t scc, std::vector<int>& visited) {
+    if (visited[scc] >= 0) {
         return;
     }
-    hasUnvisitedPredecessor = false;
+
+    int maxDist = 0;
     const auto& predecessors = sccGraph->getPredecessorSCCs(scc);
-    for (const auto scc_j : predecessors) {
-        if (!visited[scc_j]) {
-            hasUnvisitedPredecessor = true;
-            break;
+    for (const auto pred : predecessors) {
+        if (visited[pred] < 0) {
+            // has an unvisited predecessor
+            return;
+        } else {
+            maxDist = std::max(maxDist, visited[pred] + 1);
         }
     }
-    hasUnvisitedSuccessor = false;
-    const auto& successors = sccGraph->getSuccessorSCCs(scc);
-    for (const auto scc_j : successors) {
-        if (!visited[scc_j]) {
-            hasUnvisitedSuccessor = true;
-            break;
-        }
-    }
-    // otherwise, if more white successors remain for the current scc, use it again as the root node in a
-    // recursive call to this function
-    if (hasUnvisitedSuccessor && !hasUnvisitedPredecessor) {
-        computeTopologicalOrdering(scc, visited);
+
+    visited[scc] = maxDist;
+    sccDistance.emplace(scc, maxDist);
+    sccOrder.emplace_back(scc);
+
+    for (const auto succ : sccGraph->getSuccessorSCCs(scc)) {
+        computeTopologicalOrdering(succ, visited);
     }
 }
 
 void TopologicallySortedSCCGraphAnalysis::run(const TranslationUnit& translationUnit) {
     // obtain the scc graph
     sccGraph = &translationUnit.getAnalysis<SCCGraphAnalysis>();
+
     // clear the list of ordered sccs
     sccOrder.clear();
-    std::vector<bool> visited;
+    sccDistance.clear();
+
+    // Compute the maximum distance from the root scc(s) to each scc.
+    //
+    // visited[scc] < 0 when the scc distance from the root(s) is not known yet
+    // visited[scc] >= 0 is the maximum distance of the scc from a root
+    //
+    // this provides a partial order between sccs, several sccs may have the
+    // same maximum distance from the roots.
+    std::vector<int> visited;
     visited.resize(sccGraph->getNumberOfSCCs());
-    std::fill(visited.begin(), visited.end(), false);
-    // generate topological ordering using forwards algorithm (like Khan's algorithm)
-    // for each of the sccs in the graph
+    std::fill(visited.begin(), visited.end(), -1);
     for (std::size_t scc = 0; scc < sccGraph->getNumberOfSCCs(); ++scc) {
-        // if that scc has no predecessors
-        if (sccGraph->getPredecessorSCCs(scc).empty()) {
-            // put it in the ordering
-            sccOrder.push_back(scc);
-            visited[scc] = true;
-            // if the scc has successors
-            if (!sccGraph->getSuccessorSCCs(scc).empty()) {
-                computeTopologicalOrdering(scc, visited);
-            }
-        }
+        computeTopologicalOrdering(scc, visited);
     }
+
+    // find the least relation qualified name of each scc, using the lexicographic order.
+    std::vector<QualifiedName> sccLeastQN;
+    sccLeastQN.resize(sccGraph->getNumberOfSCCs());
+    for (std::size_t scc = 0; scc < sccGraph->getNumberOfSCCs(); ++scc) {
+        sccLeastQN[scc] = (*sccGraph->getInternalRelations(scc).begin())->getQualifiedName();
+    }
+
+    // sort sccs by distance from roots and then by lexicographic order of the least
+    // relation qualified name in each scc.
+    //
+    // this provides a deterministic total order between sccs.
+    std::sort(sccOrder.begin(), sccOrder.end(), [&](std::size_t lhs, std::size_t rhs) {
+        if (sccDistance[lhs] < sccDistance[rhs]) {
+            return true;
+        } else if (sccDistance[lhs] > sccDistance[rhs]) {
+            return false;
+        } else {
+            return sccLeastQN[lhs].lexicalLess(sccLeastQN[rhs]);
+        }
+    });
 }
 
 void TopologicallySortedSCCGraphAnalysis::print(std::ostream& os) const {
@@ -173,6 +162,29 @@ void TopologicallySortedSCCGraphAnalysis::print(std::ostream& os) const {
     os << std::endl;
     os << "--- statistics of topological order ---" << std::endl;
     os << "cost: " << topologicalOrderingCost(sccOrder) << std::endl;
+}
+
+const std::vector<std::size_t>& TopologicallySortedSCCGraphAnalysis::order() const {
+    return sccOrder;
+}
+
+std::size_t TopologicallySortedSCCGraphAnalysis::sccOfIndex(const std::size_t index) const {
+    return sccOrder.at(index);
+}
+
+std::size_t TopologicallySortedSCCGraphAnalysis::indexOfScc(const std::size_t scc) const {
+    auto it = std::find(sccOrder.begin(), sccOrder.end(), scc);
+    assert(it != sccOrder.end());
+    return (std::size_t)std::distance(sccOrder.begin(), it);
+}
+
+std::set<std::size_t> TopologicallySortedSCCGraphAnalysis::indexOfScc(
+        const std::set<std::size_t>& sccs) const {
+    std::set<std::size_t> indices;
+    for (const auto scc : sccs) {
+        indices.insert(indexOfScc(scc));
+    }
+    return indices;
 }
 
 }  // namespace souffle::ast::analysis

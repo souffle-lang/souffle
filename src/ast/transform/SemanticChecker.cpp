@@ -154,13 +154,9 @@ SemanticCheckerImpl::SemanticCheckerImpl(TranslationUnit& tu) : tu(tu) {
         } else {
             // mute only the given relations (if they exist)
             for (auto& relname : suppressedRelations) {
-                const std::vector<std::string> comps = splitString(relname, '.');
-                if (!comps.empty()) {
+                if (!relname.empty()) {
                     // generate the relation identifier
-                    QualifiedName relid(comps[0]);
-                    for (std::size_t i = 1; i < comps.size(); i++) {
-                        relid.append(comps[i]);
-                    }
+                    QualifiedName relid = QualifiedName::fromString(relname);
 
                     // update suppressed qualifier if the relation is found
                     if (Relation* rel = program.getRelation(relid)) {
@@ -212,19 +208,19 @@ SemanticCheckerImpl::SemanticCheckerImpl(TranslationUnit& tu) : tu(tu) {
 
     // - stratification --
     // check for cyclic dependencies
-    for (Relation* cur : program.getRelations()) {
+    for (const Relation* cur : program.getRelations()) {
         std::size_t scc = sccGraph.getSCC(cur);
         if (sccGraph.isRecursive(scc)) {
-            for (const Relation* cyclicRelation : sccGraph.getInternalRelations(scc)) {
+            const RelationSet& relSet = sccGraph.getInternalRelations(scc);
+            for (const Relation* cyclicRelation : relSet) {
                 // Negations and aggregations need to be stratified
                 const Literal* foundLiteral = nullptr;
                 bool hasNegation = hasClauseWithNegatedRelation(cyclicRelation, cur, &program, foundLiteral);
-                if (hasNegation ||
-                        hasClauseWithAggregatedRelation(cyclicRelation, cur, &program, foundLiteral)) {
-                    auto const& relSet = sccGraph.getInternalRelations(scc);
-                    RelationSet sortedRelSet(relSet.begin(), relSet.end());
+                bool hasAggregate =
+                        hasClauseWithAggregatedRelation(cyclicRelation, cur, &program, foundLiteral);
+                if (hasNegation || hasAggregate) {
                     // Negations and aggregations need to be stratified
-                    std::string relationsListStr = toString(join(sortedRelSet, ",",
+                    std::string relationsListStr = toString(join(relSet, ",",
                             [](std::ostream& out, const Relation* r) { out << r->getQualifiedName(); }));
                     std::vector<DiagnosticMessage> messages;
                     messages.push_back(DiagnosticMessage(
@@ -355,7 +351,8 @@ bool SemanticCheckerImpl::isDependent(const Clause& agg1, const Clause& agg2) {
 
 void SemanticCheckerImpl::checkAggregator(const Clause& parent, const Aggregator& aggregator) {
     auto& report = tu.getErrorReport();
-    Clause dummyClauseAggregator("dummy");
+    const QualifiedName dummyQN = QualifiedName::fromString("dummy");
+    Clause dummyClauseAggregator(dummyQN);
 
     visit(parent, [&](const Literal& parentLiteral) {
         visit(parentLiteral, [&](const Aggregator& candidateAggregate) {
@@ -371,7 +368,7 @@ void SemanticCheckerImpl::checkAggregator(const Clause& parent, const Aggregator
     visit(parent, [&](const Literal& parentLiteral) {
         visit(parentLiteral, [&](const Aggregator& /* otherAggregate */) {
             // Create the other aggregate's dummy clause
-            Clause dummyClauseOther("dummy");
+            Clause dummyClauseOther(dummyQN);
             dummyClauseOther.addToBody(clone(parentLiteral));
             // Check dependency between the aggregator and this one
             if (isDependent(dummyClauseAggregator, dummyClauseOther) &&
@@ -865,7 +862,7 @@ static const std::vector<SrcLocation> usesInvalidWitness(
         return invalidWitnessLocations;  // ie empty result
     }
 
-    auto aggregateSubclause = mk<Clause>("*");
+    auto aggregateSubclause = mk<Clause>(QualifiedName::fromString("*"));
     aggregateSubclause->setBodyLiterals(clone(aggregate.getBodyLiterals()));
 
     struct InnerAggregateMasker : public NodeMapper {
@@ -956,7 +953,7 @@ std::vector<QualifiedName> findInlineCycle(const PrecedenceGraphAnalysis& preced
     }
 
     // Check neighbours
-    const RelationSet& successors = precedenceGraph.graph().successors(current);
+    const RelationSet& successors = orderedRelationSet(precedenceGraph.graph().successors(current));
     for (const Relation* successor : successors) {
         // Only care about inlined neighbours in the graph
         if (successor->hasQualifier(RelationQualifier::INLINE)) {

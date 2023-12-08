@@ -154,7 +154,7 @@ BoolDisjunctConstraint imply(const std::vector<BoolDisjunctVar>& vars, const Boo
 struct GroundednessAnalysis : public ConstraintAnalysis<BoolDisjunctVar> {
     Program& program;
     std::set<const Atom*> ignore;
-    std::map<const QualifiedName, std::set<std::size_t>> latticeAttributes;
+    UnorderedQualifiedNameMap<std::set<std::size_t>> latticeAttributes;
     bool isLatticeTransformerPass;
 
     GroundednessAnalysis(const TranslationUnit& tu, bool isLatticeTransformerPass)
@@ -165,7 +165,6 @@ struct GroundednessAnalysis : public ConstraintAnalysis<BoolDisjunctVar> {
                 const auto& name = rel->getQualifiedName();
                 for (std::size_t i = 0; i < attributes.size(); i++) {
                     if (attributes[i]->getIsLattice()) {
-                        const auto type = attributes[i]->getTypeName();
                         latticeAttributes[name].insert(i);
                     }
                 }

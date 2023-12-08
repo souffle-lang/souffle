@@ -28,15 +28,19 @@
 namespace souffle::ast::test {
 using namespace analysis;
 
+QualifiedName qn(std::string_view s) {
+    return QualifiedName::fromString(s);
+}
+
 TEST(TypeSystem, Basic) {
     TypeEnvironment env;
 
-    const analysis::Type& A = env.createType<SubsetType>("A", env.getType("number"));
-    const analysis::Type& B = env.createType<SubsetType>("B", env.getType("symbol"));
+    const analysis::Type& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    const analysis::Type& B = env.createType<SubsetType>(qn("B"), env.getType(qn("symbol")));
 
-    auto& U = env.createType<UnionType>("U", toVector(&A, &B));
+    auto& U = env.createType<UnionType>(qn("U"), toVector(&A, &B));
 
-    auto& R = env.createType<RecordType>("R");
+    auto& R = env.createType<RecordType>(qn("R"));
     R.setFields(toVector(&A, &B));
 
     EXPECT_EQ("A <: number", toString(A));
@@ -49,12 +53,12 @@ TEST(TypeSystem, Basic) {
 TEST(TypeSystem, isNumberType) {
     TypeEnvironment env;
 
-    const analysis::Type& N = env.getType("number");
+    const analysis::Type& N = env.getType(qn("number"));
 
-    const analysis::Type& A = env.createType<SubsetType>("A", env.getType("number"));
-    const analysis::Type& B = env.createType<SubsetType>("B", env.getType("number"));
+    const analysis::Type& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    const analysis::Type& B = env.createType<SubsetType>(qn("B"), env.getType(qn("number")));
 
-    const analysis::Type& C = env.createType<SubsetType>("C", env.getType("symbol"));
+    const analysis::Type& C = env.createType<SubsetType>(qn("C"), env.getType(qn("symbol")));
 
     EXPECT_TRUE(isOfKind(N, TypeAttribute::Signed));
     EXPECT_TRUE(isOfKind(A, TypeAttribute::Signed));
@@ -68,15 +72,15 @@ TEST(TypeSystem, isNumberType) {
 
     // check the union type
     {
-        const analysis::Type& U = env.createType<UnionType>("U", toVector(&A, &B));
+        const analysis::Type& U = env.createType<UnionType>(qn("U"), toVector(&A, &B));
         EXPECT_TRUE(isOfKind(U, TypeAttribute::Signed));
         EXPECT_FALSE(isOfKind(U, TypeAttribute::Symbol));
-        const analysis::Type& U2 = env.createType<UnionType>("U2", toVector(&A, &B, &C));
+        const analysis::Type& U2 = env.createType<UnionType>(qn("U2"), toVector(&A, &B, &C));
         EXPECT_FALSE(isOfKind(U2, TypeAttribute::Signed));
         EXPECT_FALSE(isOfKind(U2, TypeAttribute::Symbol));
     }
     {
-        const analysis::Type& U3 = env.createType<UnionType>("U3", toVector(&A));
+        const analysis::Type& U3 = env.createType<UnionType>(qn("U3"), toVector(&A));
         EXPECT_TRUE(isOfKind(U3, TypeAttribute::Signed));
     }
 }
@@ -90,8 +94,8 @@ TEST(TypeSystem, isSubtypeOf_Basic) {
 
     // start with the two predefined types
 
-    const analysis::Type& N = env.getType("number");
-    const analysis::Type& S = env.getType("symbol");
+    const analysis::Type& N = env.getType(qn("number"));
+    const analysis::Type& S = env.getType(qn("symbol"));
 
     EXPECT_PRED2(isSubtypeOf, N, N);
     EXPECT_PRED2(isSubtypeOf, S, S);
@@ -101,8 +105,8 @@ TEST(TypeSystem, isSubtypeOf_Basic) {
 
     // check primitive type
 
-    const analysis::Type& A = env.createType<SubsetType>("A", env.getType("number"));
-    const analysis::Type& B = env.createType<SubsetType>("B", env.getType("number"));
+    const analysis::Type& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    const analysis::Type& B = env.createType<SubsetType>(qn("B"), env.getType(qn("number")));
 
     EXPECT_PRED2(isSubtypeOf, A, A);
     EXPECT_PRED2(isSubtypeOf, B, B);
@@ -118,7 +122,7 @@ TEST(TypeSystem, isSubtypeOf_Basic) {
 
     // check union types
 
-    const analysis::Type& U = env.createType<UnionType>("U", toVector(&A, &B));
+    const analysis::Type& U = env.createType<UnionType>(qn("U"), toVector(&A, &B));
 
     EXPECT_PRED2(isSubtypeOf, U, U);
     EXPECT_PRED2(isSubtypeOf, A, U);
@@ -129,7 +133,7 @@ TEST(TypeSystem, isSubtypeOf_Basic) {
     EXPECT_PRED2(isNotSubtypeOf, U, B);
     EXPECT_PRED2(isNotSubtypeOf, N, U);
 
-    auto& V = env.createType<UnionType>("V", toVector(&A, &B, &U));
+    auto& V = env.createType<UnionType>(qn("V"), toVector(&A, &B, &U));
 
     EXPECT_PRED2(isSubtypeOf, V, U);
     EXPECT_PRED2(isSubtypeOf, U, V);
@@ -138,11 +142,11 @@ TEST(TypeSystem, isSubtypeOf_Basic) {
 TEST(TypeSystem, isSubtypeOf_Records) {
     TypeEnvironment env;
 
-    const analysis::Type& A = env.createType<SubsetType>("A", env.getType("number"));
-    const analysis::Type& B = env.createType<SubsetType>("B", env.getType("number"));
+    const analysis::Type& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    const analysis::Type& B = env.createType<SubsetType>(qn("B"), env.getType(qn("number")));
 
-    auto& R1 = env.createType<RecordType>("R1");
-    auto& R2 = env.createType<RecordType>("R2");
+    auto& R1 = env.createType<RecordType>(qn("R1"));
+    auto& R2 = env.createType<RecordType>(qn("R2"));
 
     EXPECT_FALSE(isSubtypeOf(R1, R2));
     EXPECT_FALSE(isSubtypeOf(R2, R1));
@@ -157,11 +161,11 @@ TEST(TypeSystem, isSubtypeOf_Records) {
 TEST(TypeSystem, GreatestCommonSubtype) {
     TypeEnvironment env;
 
-    const analysis::Type& N = env.getType("number");
+    const analysis::Type& N = env.getType(qn("number"));
 
-    const analysis::Type& A = env.createType<SubsetType>("A", env.getType("number"));
-    const analysis::Type& B = env.createType<SubsetType>("B", env.getType("number"));
-    const analysis::Type& C = env.createType<SubsetType>("C", env.getType("symbol"));
+    const analysis::Type& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    const analysis::Type& B = env.createType<SubsetType>(qn("B"), env.getType(qn("number")));
+    const analysis::Type& C = env.createType<SubsetType>(qn("C"), env.getType(qn("symbol")));
 
     EXPECT_EQ("{number}", toString(getGreatestCommonSubtypes(N, N)));
 
@@ -186,8 +190,8 @@ TEST(TypeSystem, GreatestCommonSubtype) {
 
     // // bring in unions
 
-    auto& U = env.createType<UnionType>("U");
-    auto& S = env.createType<UnionType>("S");
+    auto& U = env.createType<UnionType>(qn("U"));
+    auto& S = env.createType<UnionType>(qn("S"));
 
     U.setElements(toVector(&A));
     EXPECT_EQ("{S}", toString(getGreatestCommonSubtypes(U, S)));
@@ -204,7 +208,7 @@ TEST(TypeSystem, GreatestCommonSubtype) {
     EXPECT_EQ("{U}", toString(getGreatestCommonSubtypes(U, S, N)));
 
     // bring in a union of unions
-    auto& R = env.createType<UnionType>("R");
+    auto& R = env.createType<UnionType>(qn("R"));
 
     EXPECT_EQ("{R}", toString(getGreatestCommonSubtypes(U, R)));
     EXPECT_EQ("{R}", toString(getGreatestCommonSubtypes(S, R)));
@@ -232,18 +236,18 @@ TEST(TypeSystem, GreatestCommonSubtype) {
 TEST(TypeSystem, complexSubsetTypes) {
     TypeEnvironment env;
 
-    auto& A = env.createType<SubsetType>("A", env.getType("number"));
-    auto& BfromA = env.createType<SubsetType>("B", A);
-    auto& CfromA = env.createType<SubsetType>("C", A);
+    auto& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    auto& BfromA = env.createType<SubsetType>(qn("B"), A);
+    auto& CfromA = env.createType<SubsetType>(qn("C"), A);
 
     EXPECT_EQ("{B}", toString(getGreatestCommonSubtypes(A, BfromA)));
     EXPECT_EQ("{C}", toString(getGreatestCommonSubtypes(A, CfromA)));
     EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(A, BfromA, CfromA)));
     EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(BfromA, CfromA)));
 
-    auto* base = &env.createType<SubsetType>("B0", BfromA);
+    auto* base = &env.createType<SubsetType>(qn("B0"), BfromA);
     for (std::size_t i = 1; i <= 10; ++i) {
-        base = &env.createType<SubsetType>("B" + std::to_string(i), *base);
+        base = &env.createType<SubsetType>(qn("B" + std::to_string(i)), *base);
         EXPECT_PRED2(isSubtypeOf, *base, A);
     }
 }
@@ -251,9 +255,9 @@ TEST(TypeSystem, complexSubsetTypes) {
 TEST(TypeSystem, RecordSubsets) {
     TypeEnvironment env;
 
-    auto& R = env.createType<RecordType>("R");
+    auto& R = env.createType<RecordType>(qn("R"));
 
-    auto& A = env.createType<SubsetType>("A", R);
+    auto& A = env.createType<SubsetType>(qn("A"), R);
     EXPECT_PRED2(isSubtypeOf, A, R);
 
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, R)));
@@ -262,8 +266,8 @@ TEST(TypeSystem, RecordSubsets) {
 TEST(TypeSystem, EquivTypes) {
     TypeEnvironment env;
 
-    auto& A = env.createType<SubsetType>("A", env.getType("number"));
-    auto& U = env.createType<UnionType>("U", toVector(dynamic_cast<const analysis::Type*>(&A)));
+    auto& A = env.createType<SubsetType>(qn("A"), env.getType(qn("number")));
+    auto& U = env.createType<UnionType>(qn("U"), toVector(dynamic_cast<const analysis::Type*>(&A)));
 
     EXPECT_TRUE(areEquivalentTypes(A, U));
 }
@@ -271,7 +275,7 @@ TEST(TypeSystem, EquivTypes) {
 TEST(TypeSystem, AlgebraicDataType) {
     TypeEnvironment env;
 
-    auto& A = env.createType<AlgebraicDataType>("A");
+    auto& A = env.createType<AlgebraicDataType>(qn("A"));
 
     EXPECT_TRUE(isSubtypeOf(A, A));
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, A)));

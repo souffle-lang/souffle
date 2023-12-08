@@ -42,7 +42,7 @@ public:
         return env;
     }
 
-    const std::set<QualifiedName>& getPrimitiveTypesInUnion(const QualifiedName& identifier) const {
+    const UnorderedQualifiedNameSet& getPrimitiveTypesInUnion(const QualifiedName& identifier) const {
         return primitiveTypesInUnions.at(identifier);
     }
 
@@ -52,15 +52,15 @@ public:
 
 private:
     TypeEnvironment env;
-    std::map<QualifiedName, std::set<QualifiedName>> primitiveTypesInUnions;
-    std::set<QualifiedName> cyclicTypes;
+    UnorderedQualifiedNameMap<UnorderedQualifiedNameSet> primitiveTypesInUnions;
+    UnorderedQualifiedNameSet cyclicTypes;
 
     /**
      * Recursively create a type in env, that is
      * first create its base types and then the type itself.
      */
     const Type* createType(
-            const QualifiedName& typeName, const std::map<QualifiedName, const ast::Type*>& nameToType);
+            const QualifiedName& typeName, const UnorderedQualifiedNameMap<const ast::Type*>& nameToType);
 };
 
 }  // namespace souffle::ast::analysis

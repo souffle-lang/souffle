@@ -8,47 +8,136 @@
 
 #include "ast/QualifiedName.h"
 #include "souffle/utility/StreamUtil.h"
+#include "souffle/utility/StringUtil.h"
+
 #include <algorithm>
+#include <cassert>
+#include <deque>
+#include <map>
 #include <ostream>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
 
 namespace souffle::ast {
 
-QualifiedName::QualifiedName() {}
-QualifiedName::QualifiedName(std::string name) {
-    qualifiers.emplace_back(std::move(name));
-}
-QualifiedName::QualifiedName(const char* name) : QualifiedName(std::string(name)) {}
-QualifiedName::QualifiedName(std::vector<std::string> qualifiers) : qualifiers(std::move(qualifiers)) {}
+/// Container of qualified names, provides interning by associating a unique
+/// numerical index to each qualified name.
+struct QNInterner {
+public:
+    explicit QNInterner() {
+        qualifiedNames.emplace_back(QualifiedNameData{{}, ""});
+        qualifiedNameToIndex.emplace("", 0);
+    }
 
-void QualifiedName::append(std::string name) {
-    qualifiers.push_back(std::move(name));
+    /// Return the qualified name object for the given string.
+    ///
+    /// Each `.` character is treated as a separator.
+    QualifiedName intern(std::string_view qn) {
+        const auto It = qualifiedNameToIndex.find(qn);
+        if (It != qualifiedNameToIndex.end()) {
+            return QualifiedName{It->second};
+        }
+
+        const uint32_t index = static_cast<uint32_t>(qualifiedNames.size());
+
+        QualifiedNameData qndata{splitString(qn, '.'), std::string{qn}};
+        qualifiedNames.emplace_back(std::move(qndata));
+        qualifiedNameToIndex.emplace(qualifiedNames.back().qualified, index);
+
+        return QualifiedName{index};
+    }
+
+    /// Return the qualified name data object from the given index.
+    const QualifiedNameData& at(uint32_t index) {
+        return qualifiedNames.at(index);
+    }
+
+private:
+    /// Store the qualified name data of interned qualified names.
+    std::deque<QualifiedNameData> qualifiedNames;
+
+    /// Mapping from a qualified name string representation to its index in
+    /// `qualifiedNames`.
+    std::unordered_map<std::string_view, uint32_t> qualifiedNameToIndex;
+};
+
+namespace {
+/// The default qualified name interner instance.
+QNInterner Interner;
+}  // namespace
+
+QualifiedName::QualifiedName() : index(0) {}
+QualifiedName::QualifiedName(uint32_t idx) : index(idx) {}
+
+const QualifiedNameData& QualifiedName::data() const {
+    return Interner.at(index);
 }
 
-void QualifiedName::prepend(std::string name) {
-    qualifiers.insert(qualifiers.begin(), std::move(name));
+bool QualifiedName::operator==(const QualifiedName& other) const {
+    return index == other.index;
+}
+
+bool QualifiedName::operator!=(const QualifiedName& other) const {
+    return index != other.index;
+}
+
+void QualifiedName::append(const std::string& segment) {
+    assert(segment.find('.') == std::string::npos);
+    *this = Interner.intern(data().qualified + "." + segment);
+}
+
+void QualifiedName::prepend(const std::string& segment) {
+    assert(segment.find('.') == std::string::npos);
+    *this = Interner.intern(segment + "." + data().qualified);
 }
 
 /** convert to a string separated by fullstop */
-std::string QualifiedName::toString() const {
-    std::stringstream ss;
-    print(ss);
-    return ss.str();
+const std::string& QualifiedName::toString() const {
+    return data().qualified;
 }
 
-bool QualifiedName::operator<(const QualifiedName& other) const {
-    return std::lexicographical_compare(
-            qualifiers.begin(), qualifiers.end(), other.qualifiers.begin(), other.qualifiers.end());
+QualifiedName QualifiedName::fromString(std::string_view qname) {
+    return Interner.intern(qname);
+}
+
+bool QualifiedName::lexicalLess(const QualifiedName& other) const {
+    if (index == other.index) {
+        return false;
+    }
+    return data().lexicalLess(other.data());
 }
 
 void QualifiedName::print(std::ostream& out) const {
-    out << join(qualifiers, ".");
+    out << toString();
 }
 
-std::ostream& operator<<(std::ostream& out, const QualifiedName& id) {
-    id.print(out);
+std::ostream& operator<<(std::ostream& out, const QualifiedName& qn) {
+    out << qn.toString();
     return out;
+}
+
+const std::vector<std::string>& QualifiedName::getQualifiers() const {
+    return data().segments;
+}
+
+uint32_t QualifiedName::getIndex() const {
+    return index;
+}
+
+bool QualifiedName::empty() const {
+    return index == 0;
+}
+
+bool QualifiedNameData::lexicalLess(const QualifiedNameData& other) const {
+    return std::lexicographical_compare(
+            segments.begin(), segments.end(), other.segments.begin(), other.segments.end());
+}
+
+QualifiedName operator+(const std::string& head, const QualifiedName& tail) {
+    QualifiedName res = tail;
+    res.prepend(head);
+    return res;
 }
 
 }  // namespace souffle::ast

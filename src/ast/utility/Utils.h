@@ -174,7 +174,7 @@ IntrinsicFunctors validOverloads(const analysis::TypeAnalysis&, const IntrinsicF
  * @param oldToNew map from old atom names to new atom names
  * @return true if the node was changed
  */
-bool renameAtoms(Own<Clause>& clause, const std::map<QualifiedName, QualifiedName>& oldToNew);
+bool renameAtoms(Own<Clause>& clause, const UnorderedQualifiedNameMap<QualifiedName>& oldToNew);
 
 /**
  * Rename all atoms in the program to a given name, including clause heads.
@@ -182,7 +182,7 @@ bool renameAtoms(Own<Clause>& clause, const std::map<QualifiedName, QualifiedNam
  * @param oldToNew map from old atom names to new atom names
  * @return true if the node was changed
  */
-bool renameAtoms(Program& program, const std::map<QualifiedName, QualifiedName>& oldToNew);
+bool renameAtoms(Program& program, const UnorderedQualifiedNameMap<QualifiedName>& oldToNew);
 
 /**
  * Rename all atoms that appear in a given relation's clauses (including the clause's head).
@@ -192,6 +192,6 @@ bool renameAtoms(Program& program, const std::map<QualifiedName, QualifiedName>&
  * @return true if the node was changed
  */
 bool renameAtoms(Program& program, QualifiedName const& relation,
-        const std::map<QualifiedName, QualifiedName>& oldToNew);
+        const UnorderedQualifiedNameMap<QualifiedName>& oldToNew);
 
 }  // namespace souffle::ast

@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "ast/Relation.h"
 #include "ast2ram/UnitTranslator.h"
 #include "ram/Expression.h"
 #include "souffle/utility/ContainerUtil.h"
@@ -29,8 +30,6 @@ class Global;
 namespace souffle::ast {
 class Clause;
 class Relation;
-struct NameComparison;
-using RelationSet = std::set<const Relation*, NameComparison>;
 class TranslationUnit;
 class Atom;
 }  // namespace souffle::ast

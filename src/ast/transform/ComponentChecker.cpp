@@ -50,7 +50,7 @@ bool ComponentChecker::transform(TranslationUnit& translationUnit) {
 const Component* ComponentChecker::checkComponentNameReference(ErrorReport& report,
         const Component* enclosingComponent, const ComponentLookupAnalysis& componentLookup,
         const std::string& name, const SrcLocation& loc, const TypeBinding& binding) {
-    const QualifiedName& forwarded = binding.find(name);
+    const QualifiedName& forwarded = binding.find(QualifiedName::fromString(name));
     if (!forwarded.empty()) {
         // for forwarded types we do not check anything, because we do not know
         // what the actual type will be
@@ -111,7 +111,8 @@ void ComponentChecker::checkComponent(ErrorReport& report, const Component* encl
     // Type parameter for us here is unknown type that will be bound at the template
     // instantiation time.
     auto parentTypeParameters = component.getComponentType()->getTypeParameters();
-    std::vector<QualifiedName> actualParams(parentTypeParameters.size(), "<type parameter>");
+    std::vector<QualifiedName> actualParams(
+            parentTypeParameters.size(), QualifiedName::fromString("<type parameter>"));
     TypeBinding activeBinding = binding.extend(parentTypeParameters, actualParams);
 
     // check parents of component
