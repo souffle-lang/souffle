@@ -29,10 +29,10 @@ class Operation : public Node {
 public:
     Operation* cloning() const override = 0;
 
-static bool classof(const Node* n){
-    const NodeKind kind = n->getKind();
-    return (kind >= NK_Operation && kind < NK_LastOperation);
-}
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Operation && kind < NK_LastOperation);
+    }
 
 protected:
     Operation(NodeKind kind) : Node(kind) {

@@ -55,8 +55,8 @@ class ParallelIndexIfExists : public IndexIfExists, public AbstractParallel {
 public:
     ParallelIndexIfExists(std::string rel, std::size_t ident, Own<Condition> cond, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
-            : IndexIfExists(NK_ParallelIndexIfExists,
-                      rel, ident, std::move(cond), std::move(queryPattern), std::move(nested), profileText) {}
+            : IndexIfExists(NK_ParallelIndexIfExists, rel, ident, std::move(cond), std::move(queryPattern),
+                      std::move(nested), profileText) {}
 
     ParallelIndexIfExists* cloning() const override {
         RamPattern resQueryPattern;
@@ -71,7 +71,7 @@ public:
         return res;
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_ParallelIndexIfExists;
     }
 

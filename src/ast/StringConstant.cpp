@@ -27,5 +27,4 @@ bool StringConstant::classof(const Node* n) {
     return n->getKind() == NK_StringConstant;
 }
 
-
 }  // namespace souffle::ast

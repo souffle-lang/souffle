@@ -164,6 +164,7 @@ struct can_static_cast<From, To, std::void_t<decltype(static_cast<To>(std::declv
 // that, however, cannot be static_casted to its derived class.
 template <typename Base, typename Derived>
 struct is_virtual_base_of
-        : std::conjunction<std::is_base_of<Base, Derived>, std::negation<can_static_cast<Base*, Derived*>>> {};
+        : std::conjunction<std::is_base_of<Base, Derived>, std::negation<can_static_cast<Base*, Derived*>>> {
+};
 
 }  // namespace souffle

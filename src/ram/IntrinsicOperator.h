@@ -37,7 +37,8 @@ namespace souffle::ram {
 class IntrinsicOperator : public AbstractOperator {
 public:
     template <typename... Args>
-    IntrinsicOperator(FunctorOp op, Args... args) : AbstractOperator(NK_IntrinsicOperator, {std::move(args)...}), operation(op) {}
+    IntrinsicOperator(FunctorOp op, Args... args)
+            : AbstractOperator(NK_IntrinsicOperator, {std::move(args)...}), operation(op) {}
 
     IntrinsicOperator(FunctorOp op, VecOwn<Expression> args)
             : AbstractOperator(NK_IntrinsicOperator, std::move(args)), operation(op) {}
@@ -55,7 +56,7 @@ public:
         return new IntrinsicOperator(operation, std::move(argsCopy));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_IntrinsicOperator;
     }
 

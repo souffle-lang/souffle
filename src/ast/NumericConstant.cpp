@@ -13,7 +13,8 @@
 
 namespace souffle::ast {
 
-NumericConstant::NumericConstant(RamSigned value) : Constant(NK_NumericConstant, std::to_string(value)), fixedType(Type::Int) {}
+NumericConstant::NumericConstant(RamSigned value)
+        : Constant(NK_NumericConstant, std::to_string(value)), fixedType(Type::Int) {}
 
 NumericConstant::NumericConstant(std::string constant, SrcLocation loc)
         : Constant(NK_NumericConstant, std::move(constant), std::move(loc)) {}

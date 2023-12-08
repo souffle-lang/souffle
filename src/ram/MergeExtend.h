@@ -36,7 +36,8 @@ namespace souffle::ram {
  */
 class MergeExtend : public BinRelationStatement {
 public:
-    MergeExtend(std::string tRef, const std::string& sRef) : BinRelationStatement(NK_MergeExtend, sRef, tRef) {}
+    MergeExtend(std::string tRef, const std::string& sRef)
+            : BinRelationStatement(NK_MergeExtend, sRef, tRef) {}
 
     /** @brief Get source relation */
     const std::string& getSourceRelation() const {
@@ -53,7 +54,7 @@ public:
         return res;
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_MergeExtend;
     }
 

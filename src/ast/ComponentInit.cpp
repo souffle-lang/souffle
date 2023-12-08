@@ -15,7 +15,8 @@
 namespace souffle::ast {
 
 ComponentInit::ComponentInit(std::string name, Own<ComponentType> type, SrcLocation loc)
-        : Node(NK_ComponentInit, std::move(loc)), instanceName(std::move(name)), componentType(std::move(type)) {
+        : Node(NK_ComponentInit, std::move(loc)), instanceName(std::move(name)),
+          componentType(std::move(type)) {
     assert(componentType);
 }
 

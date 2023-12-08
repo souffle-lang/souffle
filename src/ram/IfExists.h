@@ -61,11 +61,11 @@ public:
     }
 
     IfExists* cloning() const override {
-        return new IfExists(NK_IfExists,
-                relation, getTupleId(), clone(condition), clone(getOperation()), getProfileText());
+        return new IfExists(NK_IfExists, relation, getTupleId(), clone(condition), clone(getOperation()),
+                getProfileText());
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_IfExists && kind < NK_LastIfExists);
     }

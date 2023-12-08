@@ -55,7 +55,7 @@ public:
         }
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_ListStatement && kind < NK_LastListStatement);
     }
@@ -65,7 +65,8 @@ protected:
         assert(kind >= NK_ListStatement && kind < NK_LastListStatement);
     }
 
-    ListStatement(NodeKind kind, VecOwn<Statement> statements) : Statement(kind), statements(std::move(statements)) {
+    ListStatement(NodeKind kind, VecOwn<Statement> statements)
+            : Statement(kind), statements(std::move(statements)) {
         assert(kind >= NK_ListStatement && kind < NK_LastListStatement);
     }
 

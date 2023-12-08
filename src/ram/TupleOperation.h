@@ -46,7 +46,7 @@ public:
         identifier = id;
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_TupleOperation && kind < NK_LastTupleOperation);
     }

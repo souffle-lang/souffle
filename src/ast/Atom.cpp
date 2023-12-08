@@ -69,5 +69,4 @@ bool Atom::classof(const Node* n) {
     return n->getKind() == NK_Atom;
 }
 
-
 }  // namespace souffle::ast

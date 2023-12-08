@@ -76,7 +76,7 @@ public:
         rhs = map(std::move(rhs));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Constraint;
     }
 

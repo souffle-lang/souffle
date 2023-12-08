@@ -44,13 +44,14 @@ public:
         }
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_AbstractOperator && kind < NK_LastAbstractOperator);
     }
 
 protected:
-    explicit AbstractOperator(NodeKind kind, VecOwn<Expression> args) : Expression(kind), arguments(std::move(args)) {
+    explicit AbstractOperator(NodeKind kind, VecOwn<Expression> args)
+            : Expression(kind), arguments(std::move(args)) {
         assert(allValidPtrs(arguments));
         assert(kind >= NK_AbstractOperator && kind < NK_LastAbstractOperator);
     }

@@ -19,8 +19,7 @@ namespace souffle::ast {
 UserDefinedFunctor::UserDefinedFunctor(std::string name)
         : Functor(NK_UserDefinedFunctor, {}, {}), name(std::move(name)) {}
 
-UserDefinedFunctor::UserDefinedFunctor(
-        std::string name, VecOwn<Argument> args, SrcLocation loc)
+UserDefinedFunctor::UserDefinedFunctor(std::string name, VecOwn<Argument> args, SrcLocation loc)
         : Functor(NK_UserDefinedFunctor, std::move(args), std::move(loc)), name(std::move(name)) {}
 
 void UserDefinedFunctor::print(std::ostream& os) const {

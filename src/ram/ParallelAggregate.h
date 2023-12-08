@@ -50,15 +50,15 @@ class ParallelAggregate : public Aggregate, public AbstractParallel {
 public:
     ParallelAggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
             Own<Condition> condition, std::size_t ident)
-            : Aggregate(NK_ParallelAggregate, std::move(nested), std::move(fun), rel, std::move(expression), std::move(condition),
-                      ident) {}
+            : Aggregate(NK_ParallelAggregate, std::move(nested), std::move(fun), rel, std::move(expression),
+                      std::move(condition), ident) {}
 
     ParallelAggregate* cloning() const override {
         return new ParallelAggregate(clone(getOperation()), clone(function), relation, clone(expression),
                 clone(condition), identifier);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_ParallelAggregate;
     }
 

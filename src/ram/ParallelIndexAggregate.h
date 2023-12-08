@@ -49,8 +49,8 @@ class ParallelIndexAggregate : public IndexAggregate, public AbstractParallel {
 public:
     ParallelIndexAggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel,
             Own<Expression> expression, Own<Condition> condition, RamPattern queryPattern, std::size_t ident)
-            : IndexAggregate(NK_ParallelIndexAggregate, std::move(nested), std::move(fun), rel, std::move(expression),
-                      std::move(condition), std::move(queryPattern), ident) {}
+            : IndexAggregate(NK_ParallelIndexAggregate, std::move(nested), std::move(fun), rel,
+                      std::move(expression), std::move(condition), std::move(queryPattern), ident) {}
 
     ParallelIndexAggregate* cloning() const override {
         RamPattern pattern;
@@ -64,7 +64,7 @@ public:
                 clone(condition), std::move(pattern), getTupleId());
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_ParallelIndexAggregate;
     }
 

@@ -49,7 +49,7 @@ public:
         return new Call(name);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Call;
     }
 

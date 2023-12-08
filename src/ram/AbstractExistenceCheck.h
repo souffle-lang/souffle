@@ -59,7 +59,7 @@ public:
         }
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_AbstractExistenceCheck && kind < NK_LastAbstractExistenceCheck);
     }

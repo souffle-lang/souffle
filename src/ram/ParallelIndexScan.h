@@ -54,7 +54,8 @@ class ParallelIndexScan : public IndexScan, public AbstractParallel {
 public:
     ParallelIndexScan(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
-            : IndexScan(NK_ParallelIndexScan, rel, ident, std::move(queryPattern), std::move(nested), profileText) {}
+            : IndexScan(NK_ParallelIndexScan, rel, ident, std::move(queryPattern), std::move(nested),
+                      profileText) {}
 
     ParallelIndexScan* cloning() const override {
         RamPattern resQueryPattern;
@@ -68,7 +69,7 @@ public:
                 relation, getTupleId(), std::move(resQueryPattern), clone(getOperation()), getProfileText());
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_ParallelIndexScan;
     }
 

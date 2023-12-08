@@ -45,8 +45,7 @@ namespace souffle::ram {
 class Insert : public Operation {
 public:
     Insert(std::string rel, VecOwn<Expression> expressions)
-            : Insert(NK_Insert, std::move(rel), std::move(expressions)) {
-    }
+            : Insert(NK_Insert, std::move(rel), std::move(expressions)) {}
 
     /** @brief Get relation */
     const std::string& getRelation() const {
@@ -72,7 +71,7 @@ public:
         }
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_Insert && kind < NK_LastInsert);
     }

@@ -42,7 +42,7 @@ public:
         return new StringConstant(constant);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_StringConstant;
     }
 

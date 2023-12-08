@@ -11,8 +11,9 @@
 
 namespace souffle::ast {
 
-Type::Type(NodeKind kind, QualifiedName name, SrcLocation loc) : Node(kind, std::move(loc)), name(std::move(name)) {
-  assert(kind > NK_Type && kind < NK_LastType);
+Type::Type(NodeKind kind, QualifiedName name, SrcLocation loc)
+        : Node(kind, std::move(loc)), name(std::move(name)) {
+    assert(kind > NK_Type && kind < NK_LastType);
 }
 
 void Type::setQualifiedName(QualifiedName name) {

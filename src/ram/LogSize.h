@@ -33,7 +33,8 @@ namespace souffle::ram {
  */
 class LogSize : public RelationStatement {
 public:
-    LogSize(std::string rel, std::string message) : RelationStatement(NK_LogSize, rel), message(std::move(message)) {}
+    LogSize(std::string rel, std::string message)
+            : RelationStatement(NK_LogSize, rel), message(std::move(message)) {}
 
     /** @brief Get logging message */
     const std::string& getMessage() const {
@@ -44,7 +45,7 @@ public:
         return new LogSize(relation, message);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_LogSize;
     }
 

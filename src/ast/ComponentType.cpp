@@ -37,5 +37,4 @@ bool ComponentType::classof(const Node* n) {
     return n->getKind() == NK_ComponentType;
 }
 
-
 }  // namespace souffle::ast

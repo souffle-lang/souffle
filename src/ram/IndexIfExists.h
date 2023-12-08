@@ -54,8 +54,8 @@ class IndexIfExists : public IndexOperation, public AbstractIfExists {
 public:
     IndexIfExists(std::string rel, std::size_t ident, Own<Condition> cond, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
-            : IndexIfExists(NK_IndexIfExists, rel, ident, std::move(cond), std::move(queryPattern), std::move(nested), profileText) {}
-
+            : IndexIfExists(NK_IndexIfExists, rel, ident, std::move(cond), std::move(queryPattern),
+                      std::move(nested), profileText) {}
 
     void apply(const NodeMapper& map) override {
         RelationOperation::apply(map);
@@ -76,19 +76,21 @@ public:
         for (const auto& i : queryPattern.second) {
             resQueryPattern.second.emplace_back(i->cloning());
         }
-        auto* res = new IndexIfExists(NK_IndexIfExists, relation, getTupleId(), clone(condition), std::move(resQueryPattern),
-                clone(getOperation()), getProfileText());
+        auto* res = new IndexIfExists(NK_IndexIfExists, relation, getTupleId(), clone(condition),
+                std::move(resQueryPattern), clone(getOperation()), getProfileText());
         return res;
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
-        return (kind >= NK_IndexIfExists && kind < NK_LastIndexIfExists);    }
+        return (kind >= NK_IndexIfExists && kind < NK_LastIndexIfExists);
+    }
 
 protected:
-    IndexIfExists(NodeKind kind, std::string rel, std::size_t ident, Own<Condition> cond, RamPattern queryPattern,
-            Own<Operation> nested, std::string profileText = "")
-            : IndexOperation(kind, rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)),
+    IndexIfExists(NodeKind kind, std::string rel, std::size_t ident, Own<Condition> cond,
+            RamPattern queryPattern, Own<Operation> nested, std::string profileText = "")
+            : IndexOperation(
+                      kind, rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)),
               AbstractIfExists(std::move(cond)) {
         assert(getRangePattern().first.size() == getRangePattern().second.size() && "Arity mismatch");
         assert(kind >= NK_IndexIfExists && kind < NK_LastIndexIfExists);

@@ -51,8 +51,8 @@ class TypeEnvironment;
  */
 class Type {
 public:
-    // clang-format:off
     /// LLVM-style no-RTTI dynamic cast
+    // clang-format off
     enum TypeKind {
       TK_ConstantType,
       TK_SubsetType,
@@ -63,7 +63,7 @@ public:
       TK_RecordType,
       TK_AlgebraicDataType
     };
-    // clang-format:on
+    // clang-format on
 
     Type(const Type& other) = delete;
 
@@ -172,7 +172,6 @@ public:
             : Type(kind, environment, name), baseType(base) {}
 
 protected:
-
     SubsetType(const TypeEnvironment& environment, const QualifiedName& name, const Type& base)
             : SubsetType(TK_SubsetType, environment, name, base) {}
 

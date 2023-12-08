@@ -14,7 +14,8 @@
 
 namespace souffle::ast {
 
-Term::Term(NodeKind kind, VecOwn<Argument> operands, SrcLocation loc) : Argument(kind, std::move(loc)), args(std::move(operands)) {
+Term::Term(NodeKind kind, VecOwn<Argument> operands, SrcLocation loc)
+        : Argument(kind, std::move(loc)), args(std::move(operands)) {
     assert(allValidPtrs(args));
     assert(kind >= NK_Term && kind < NK_LastTerm);
 }

@@ -31,5 +31,4 @@ bool Constant::classof(const Node* n) {
     return (kind >= NK_Constant && kind < NK_LastConstant);
 }
 
-
 }  // namespace souffle::ast

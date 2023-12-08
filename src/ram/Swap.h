@@ -44,7 +44,7 @@ public:
         return new Swap(first, second);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Swap;
     }
 

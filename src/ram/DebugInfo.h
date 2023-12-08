@@ -41,7 +41,8 @@ namespace souffle::ram {
  */
 class DebugInfo : public Statement, public AbstractLog {
 public:
-    DebugInfo(Own<Statement> stmt, std::string msg) : Statement(NK_DebugInfo), AbstractLog(std::move(stmt), std::move(msg)) {}
+    DebugInfo(Own<Statement> stmt, std::string msg)
+            : Statement(NK_DebugInfo), AbstractLog(std::move(stmt), std::move(msg)) {}
 
     DebugInfo* cloning() const override {
         return new DebugInfo(clone(statement), message);
@@ -51,7 +52,7 @@ public:
         AbstractLog::apply(map);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_DebugInfo;
     }
 

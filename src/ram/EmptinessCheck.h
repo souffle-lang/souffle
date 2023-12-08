@@ -55,7 +55,7 @@ public:
         return new EmptinessCheck(relation);
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_EmptinessCheck;
     }
 

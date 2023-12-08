@@ -45,7 +45,8 @@ namespace souffle::ram {
  */
 class Conjunction : public Condition {
 public:
-    Conjunction(Own<Condition> l, Own<Condition> r) : Condition(NK_Conjunction), lhs(std::move(l)), rhs(std::move(r)) {
+    Conjunction(Own<Condition> l, Own<Condition> r)
+            : Condition(NK_Conjunction), lhs(std::move(l)), rhs(std::move(r)) {
         assert(lhs != nullptr && "left-hand side of conjunction is a nullptr");
         assert(rhs != nullptr && "right-hand side of conjunction is a nullptr");
     }
@@ -69,7 +70,7 @@ public:
         rhs = map(std::move(rhs));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Conjunction;
     }
 

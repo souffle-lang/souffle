@@ -59,7 +59,7 @@ public:
         body = map(std::move(body));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Loop;
     }
 

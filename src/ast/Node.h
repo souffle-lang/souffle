@@ -52,7 +52,6 @@ struct ConstCaster {
  */
 class Node {
 public:
-    // clang-format: off
     /// LLVM-style RTTI
     ///
     /// Each class under the ast::Node hierarchy must appear here and must implement
@@ -73,6 +72,7 @@ public:
     ///   NK_LastT
     ///
     ///
+    // clang-format off
     enum NodeKind {
         NK_NONE,
         NK_Argument,
@@ -142,12 +142,11 @@ public:
             NK_UnionType,
         NK_LastType,
     };
-    // clang-format: on
+    // clang-format on
 private:
     const NodeKind Kind;
 
 public:
-
     explicit Node(NodeKind K, SrcLocation loc = {});
     virtual ~Node() = default;
     // Make sure we don't accidentally copy/slice

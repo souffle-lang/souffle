@@ -51,7 +51,7 @@ public:
         return new Filter(clone(condition), clone(getOperation()), getProfileText());
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Filter;
     }
 

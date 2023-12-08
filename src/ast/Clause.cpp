@@ -17,7 +17,8 @@
 
 namespace souffle::ast {
 
-Clause::Clause(NodeKind kind, Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan, SrcLocation loc)
+Clause::Clause(
+        NodeKind kind, Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan, SrcLocation loc)
         : Node(kind, std::move(loc)), head(std::move(head)), bodyLiterals(std::move(bodyLiterals)),
           plan(std::move(plan)) {
     assert(this->head != nullptr);

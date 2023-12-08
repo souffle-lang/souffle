@@ -15,7 +15,8 @@
 namespace souffle::ast {
 
 BinaryConstraint::BinaryConstraint(BinaryConstraintOp o, Own<Argument> ls, Own<Argument> rs, SrcLocation loc)
-        : Constraint(NK_BinaryConstraint, std::move(loc)), operation(o), lhs(std::move(ls)), rhs(std::move(rs)) {
+        : Constraint(NK_BinaryConstraint, std::move(loc)), operation(o), lhs(std::move(ls)),
+          rhs(std::move(rs)) {
     assert(lhs != nullptr);
     assert(rhs != nullptr);
 }

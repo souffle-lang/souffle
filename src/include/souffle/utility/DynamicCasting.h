@@ -42,7 +42,7 @@ struct has_classof : std::false_type {};
 template <typename From, typename To>
 struct has_classof<From, To, std::void_t<decltype(remove_cvref_t<To>::classof(std::declval<From*>()))>>
         : std::true_type {};
-}
+}  // namespace detail
 
 /// Takes a non-null pointer and return whether it is pointing to a derived class of `To`.
 template <typename To, typename CastType = void, typename From,
@@ -67,7 +67,8 @@ inline bool isA(From& p) noexcept {
 }
 
 /// forward isA when From is supposed to be a unique or shared pointer
-template <typename To, typename CastType = void, typename From, typename = std::enable_if_t<is_pointer_like<From>>>
+template <typename To, typename CastType = void, typename From,
+        typename = std::enable_if_t<is_pointer_like<From>>>
 inline bool isA(const From& p) noexcept {
     return isA<To, CastType>(p.get());
 }
@@ -83,7 +84,8 @@ inline auto as(From* p) noexcept {
     if constexpr (std::is_base_of_v<ToClass, FromClass>) {
         // trivial conversion from pointer to derived class to pointer to base class
         return static_cast<std::add_pointer_t<copy_const<From, ToClass>>>(p);
-    } else if constexpr (std::is_base_of_v<FromClass, ToClass> && can_static_cast<FromClass*, ToClass*>::value) {
+    } else if constexpr (std::is_base_of_v<FromClass, ToClass> &&
+                         can_static_cast<FromClass*, ToClass*>::value) {
         // cast using isA when converting from pointer to non-virtual base class to pointer to derived class
         using ResultType = remove_cvref_t<To>;
         return isA<ResultType>(p) ? static_cast<std::add_pointer_t<copy_const<From, ToClass>>>(p) : nullptr;
@@ -94,7 +96,7 @@ inline auto as(From* p) noexcept {
         return dynamic_cast<std::add_pointer_t<copy_const<From, ToClass>>>(p);
     } else {
         // cross-hierarchy dynamic cast not allowed unless CastType = AllowCrossCast
-        static_assert(std::is_base_of_v<FromClass,ToClass>,
+        static_assert(std::is_base_of_v<FromClass, ToClass>,
                 "`as<B, A>` does not allow cross-type dyn casts. "
                 "(i.e. `as<B, A>` where `B <: A` is not true.) "
                 "Such a cast is likely a mistake or typo.");
@@ -130,7 +132,6 @@ inline auto as(const std::reference_wrapper<From>& x) {
     return as<To, CastType>(x.get());
 }
 
-
 /**
  * Down-casts and checks the cast has succeeded
  */
@@ -158,10 +159,10 @@ Own<B> UNSAFE_cast(Own<A> x) {
 ///**
 // * Checks if the object of type Source can be casted to type Destination.
 // */
-//template <typename B, typename CastType = void, typename A>
+// template <typename B, typename CastType = void, typename A>
 //// [[deprecated("Use `as` and implicit boolean conversion instead.")]]
-//bool isA(A&& src) {
-//    return as<B, CastType>(std::forward<A>(src));
-//}
+// bool isA(A&& src) {
+//     return as<B, CastType>(std::forward<A>(src));
+// }
 
 }  // namespace souffle

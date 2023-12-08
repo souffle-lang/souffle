@@ -19,7 +19,8 @@
 namespace souffle::ast {
 IntrinsicAggregator::IntrinsicAggregator(
         AggregateOp baseOperator, Own<Argument> expr, VecOwn<Literal> body, SrcLocation loc)
-        : Aggregator(NK_IntrinsicAggregator, std::move(expr), std::move(body), std::move(loc)), baseOperator(baseOperator) {}
+        : Aggregator(NK_IntrinsicAggregator, std::move(expr), std::move(body), std::move(loc)),
+          baseOperator(baseOperator) {}
 
 void IntrinsicAggregator::print(std::ostream& os) const {
     os << baseOperator;

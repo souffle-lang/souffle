@@ -49,13 +49,14 @@ public:
         return new Scan(NK_Scan, relation, getTupleId(), clone(getOperation()), getProfileText());
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_Scan && kind < NK_LastScan);
     }
 
 protected:
-    Scan(NodeKind kind, std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
+    Scan(NodeKind kind, std::string rel, std::size_t ident, Own<Operation> nested,
+            std::string profileText = "")
             : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)) {
         assert(kind >= NK_Scan && kind < NK_LastScan);
     }

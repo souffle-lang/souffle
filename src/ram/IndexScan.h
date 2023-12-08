@@ -49,9 +49,8 @@ class IndexScan : public IndexOperation {
 public:
     IndexScan(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
-            : IndexScan(NK_IndexScan, rel, ident, std::move(queryPattern), 
-                std::move(nested), std::move(profileText)) {
-    }
+            : IndexScan(NK_IndexScan, rel, ident, std::move(queryPattern), std::move(nested),
+                      std::move(profileText)) {}
 
     IndexScan* cloning() const override {
         RamPattern resQueryPattern;
@@ -61,20 +60,20 @@ public:
         for (const auto& i : queryPattern.second) {
             resQueryPattern.second.emplace_back(i->cloning());
         }
-        return new IndexScan(NK_IndexScan,
-                relation, getTupleId(), std::move(resQueryPattern), clone(getOperation()), getProfileText());
+        return new IndexScan(NK_IndexScan, relation, getTupleId(), std::move(resQueryPattern),
+                clone(getOperation()), getProfileText());
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_IndexScan && kind < NK_LastIndexScan);
     }
 
 protected:
-    IndexScan(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
-            std::string profileText = "")
-            : IndexOperation(kind, rel, ident, std::move(queryPattern),
-                std::move(nested), std::move(profileText)) {
+    IndexScan(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern,
+            Own<Operation> nested, std::string profileText = "")
+            : IndexOperation(
+                      kind, rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)) {
         assert(kind >= NK_IndexScan && kind < NK_LastIndexScan);
     }
 

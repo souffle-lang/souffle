@@ -62,7 +62,7 @@ public:
         nestedOperation = map(std::move(nestedOperation));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_NestedOperation && kind < NK_LastNestedOperation);
     }

@@ -46,13 +46,14 @@ public:
         condition = map(std::move(condition));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_AbstractConditional && kind < NK_LastAbstractConditional);
     }
 
 protected:
-    AbstractConditional(NodeKind kind, Own<Condition> cond, Own<Operation> nested, std::string profileText = "")
+    AbstractConditional(
+            NodeKind kind, Own<Condition> cond, Own<Operation> nested, std::string profileText = "")
             : NestedOperation(kind, std::move(nested), std::move(profileText)), condition(std::move(cond)) {
         assert(condition != nullptr && "Condition is a null-pointer");
         assert(kind >= NK_AbstractConditional && kind < NK_LastAbstractConditional);

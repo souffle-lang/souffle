@@ -45,7 +45,7 @@ public:
     IndexOperation(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
             : IndexOperation(NK_IndexOperation, std::move(rel), ident, std::move(queryPattern),
-                std::move(nested), std::move(profileText)) {}
+                      std::move(nested), std::move(profileText)) {}
 
     /**
      * @brief Get range pattern
@@ -76,8 +76,8 @@ public:
         for (const auto& i : queryPattern.second) {
             resQueryPattern.second.emplace_back(i->cloning());
         }
-        return new IndexOperation(NK_IndexOperation,
-                relation, getTupleId(), std::move(resQueryPattern), clone(getOperation()), getProfileText());
+        return new IndexOperation(NK_IndexOperation, relation, getTupleId(), std::move(resQueryPattern),
+                clone(getOperation()), getProfileText());
     }
 
     /** @brief Helper method for printing */
@@ -125,14 +125,14 @@ public:
         }
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_IndexOperation && kind < NK_LastIndexOperation);
     }
 
 protected:
-    IndexOperation(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
-            std::string profileText = "")
+    IndexOperation(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern,
+            Own<Operation> nested, std::string profileText = "")
             : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)),
               queryPattern(std::move(queryPattern)) {
         assert(queryPattern.first.size() == queryPattern.second.size() && "Arity mismatch");

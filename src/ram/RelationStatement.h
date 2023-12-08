@@ -39,7 +39,7 @@ public:
         return relation;
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         const NodeKind kind = n->getKind();
         return (kind >= NK_RelationStatement && kind < NK_LastRelationStatement);
     }

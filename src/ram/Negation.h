@@ -57,7 +57,7 @@ public:
         operand = map(std::move(operand));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_Negation;
     }
 

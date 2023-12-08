@@ -57,7 +57,6 @@ protected:
     using NodeVec = std::vector<Node const*>;  // std::reference_wrapper<Node const>>;
 
 public:
-    // clang-format: off
     /// LLVM-style RTTI
     ///
     /// Each class under the ram::Node hierarchy must appear here and must implement
@@ -78,6 +77,7 @@ public:
     ///   NK_LastT
     ///
     ///
+    // clang-format off
     enum NodeKind {
         NK_NONE,
         NK_Condition,
@@ -199,7 +199,7 @@ public:
 
         NK_LastStatement,
     };
-    // clang-format: on
+    // clang-format on
 private:
     const NodeKind Kind;
 

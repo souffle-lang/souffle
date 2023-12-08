@@ -38,7 +38,8 @@ public:
 
     template <typename... Operands>
     IntrinsicFunctor(SrcLocation loc, std::string op, Operands&&... operands)
-            : Functor(NK_IntrinsicFunctor, std::move(loc), std::forward<Operands>(operands)...), function(std::move(op)) {}
+            : Functor(NK_IntrinsicFunctor, std::move(loc), std::forward<Operands>(operands)...),
+              function(std::move(op)) {}
 
     IntrinsicFunctor(std::string op, VecOwn<Argument> args, SrcLocation loc = {});
 

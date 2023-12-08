@@ -67,7 +67,7 @@ public:
         condition = map(std::move(condition));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_GuardedInsert;
     }
 

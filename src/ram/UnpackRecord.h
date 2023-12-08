@@ -46,7 +46,8 @@ namespace souffle::ram {
 class UnpackRecord : public TupleOperation {
 public:
     UnpackRecord(Own<Operation> nested, std::size_t ident, Own<Expression> expr, std::size_t arity)
-            : TupleOperation(NK_UnpackRecord, ident, std::move(nested)), expression(std::move(expr)), arity(arity) {
+            : TupleOperation(NK_UnpackRecord, ident, std::move(nested)), expression(std::move(expr)),
+              arity(arity) {
         assert(expression != nullptr && "Expression is a null-pointer");
     }
 
@@ -70,7 +71,7 @@ public:
         expression = map(std::move(expression));
     }
 
-    static bool classof(const Node* n){
+    static bool classof(const Node* n) {
         return n->getKind() == NK_UnpackRecord;
     }
 

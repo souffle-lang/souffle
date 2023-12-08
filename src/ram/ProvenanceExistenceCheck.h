@@ -45,9 +45,9 @@ public:
         return new ProvenanceExistenceCheck(relation, std::move(newValues));
     }
 
-static bool classof(const Node* n){
-    return n->getKind() == Node::NK_ProvenanceExistenceCheck;
-}
+    static bool classof(const Node* n) {
+        return n->getKind() == Node::NK_ProvenanceExistenceCheck;
+    }
 
 protected:
     void print(std::ostream& os) const override {

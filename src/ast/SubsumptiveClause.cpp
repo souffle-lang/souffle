@@ -19,7 +19,8 @@ namespace souffle::ast {
 
 SubsumptiveClause::SubsumptiveClause(
         Own<Atom> head, VecOwn<Literal> bodyLiterals, Own<ExecutionPlan> plan, SrcLocation loc)
-        : Clause(NK_SubsumptiveClause, std::move(head), std::move(bodyLiterals), std::move(plan), std::move(loc)) {}
+        : Clause(NK_SubsumptiveClause, std::move(head), std::move(bodyLiterals), std::move(plan),
+                  std::move(loc)) {}
 
 SubsumptiveClause::SubsumptiveClause(Own<Atom> head, SrcLocation loc)
         : SubsumptiveClause(std::move(head), {}, {}, std::move(loc)) {}
