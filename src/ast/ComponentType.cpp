@@ -15,7 +15,7 @@
 namespace souffle::ast {
 
 ComponentType::ComponentType(std::string name, std::vector<QualifiedName> params, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(name)), typeParams(std::move(params)) {}
+        : Node(NK_ComponentType, std::move(loc)), name(std::move(name)), typeParams(std::move(params)) {}
 
 void ComponentType::print(std::ostream& os) const {
     os << name;
@@ -31,6 +31,10 @@ bool ComponentType::equal(const Node& node) const {
 
 ComponentType* ComponentType::cloning() const {
     return new ComponentType(name, typeParams, getSrcLoc());
+}
+
+bool ComponentType::classof(const Node* n) {
+    return n->getKind() == NK_ComponentType;
 }
 
 }  // namespace souffle::ast

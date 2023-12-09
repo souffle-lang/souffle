@@ -40,7 +40,7 @@ namespace souffle::ram {
  */
 class Negation : public Condition {
 public:
-    Negation(Own<Condition> op) : operand(std::move(op)) {
+    Negation(Own<Condition> op) : Condition(NK_Negation), operand(std::move(op)) {
         assert(operand != nullptr && "operand of negation is a null-pointer");
     }
 
@@ -55,6 +55,10 @@ public:
 
     void apply(const NodeMapper& map) override {
         operand = map(std::move(operand));
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Negation;
     }
 
 protected:

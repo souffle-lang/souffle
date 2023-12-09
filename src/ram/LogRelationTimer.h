@@ -50,7 +50,8 @@ namespace souffle::ram {
 class LogRelationTimer : public RelationStatement, public AbstractLog {
 public:
     LogRelationTimer(Own<Statement> stmt, std::string msg, std::string relRef)
-            : RelationStatement(std::move(relRef)), AbstractLog(std::move(stmt), std::move(msg)) {}
+            : RelationStatement(NK_LogRelationTimer, std::move(relRef)),
+              AbstractLog(std::move(stmt), std::move(msg)) {}
 
     LogRelationTimer* cloning() const override {
         return new LogRelationTimer(clone(statement), message, relation);
@@ -59,6 +60,10 @@ public:
     void apply(const NodeMapper& map) override {
         RelationStatement::apply(map);
         AbstractLog::apply(map);
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_LogRelationTimer;
     }
 
 protected:

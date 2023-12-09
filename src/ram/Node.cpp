@@ -24,6 +24,7 @@
 #include <vector>
 
 namespace souffle::ram {
+Node::Node(NodeKind kind) : Kind(kind) {}
 
 void Node::rewrite(const Node* oldNode, Own<Node> newNode) {
     assert(oldNode != nullptr && "old node is a null-pointer");
@@ -45,6 +46,10 @@ Node::ConstChildNodes Node::getChildNodes() const {
 
 Node::ChildNodes Node::getChildNodes() {
     return ChildNodes(getChildren(), detail::ConstCaster());
+}
+
+Node::NodeKind Node::getKind() const {
+    return Kind;
 }
 
 }  // namespace souffle::ram

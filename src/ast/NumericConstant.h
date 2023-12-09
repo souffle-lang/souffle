@@ -45,6 +45,8 @@ public:
         return fixedType;
     }
 
+    static bool classof(const Node*);
+
 private:
     bool equal(const Node& node) const override;
 

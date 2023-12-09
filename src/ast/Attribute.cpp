@@ -14,10 +14,11 @@
 namespace souffle::ast {
 
 Attribute::Attribute(std::string n, QualifiedName t, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(false) {}
+        : Node(NK_Attribute, std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(false) {}
 
 Attribute::Attribute(std::string n, QualifiedName t, bool isLattice, SrcLocation loc)
-        : Node(std::move(loc)), name(std::move(n)), typeName(std::move(t)), isLattice(isLattice) {}
+        : Node(NK_Attribute, std::move(loc)), name(std::move(n)), typeName(std::move(t)),
+          isLattice(isLattice) {}
 
 void Attribute::setTypeName(QualifiedName name) {
     typeName = std::move(name);
@@ -37,6 +38,14 @@ bool Attribute::equal(const Node& node) const {
 
 Attribute* Attribute::cloning() const {
     return new Attribute(name, typeName, isLattice, getSrcLoc());
+}
+
+bool Attribute::classof(const Node* n) {
+    return n->getKind() == NK_Attribute;
+}
+
+bool Attribute::getIsLattice() const {
+    return isLattice;
 }
 
 }  // namespace souffle::ast

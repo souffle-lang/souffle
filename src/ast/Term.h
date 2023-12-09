@@ -32,13 +32,13 @@ namespace souffle::ast {
 class Term : public Argument {
 protected:
     template <typename... Operands>
-    Term(Operands&&... operands) : Term({}, std::forward<Operands>(operands)...) {}
+    Term(NodeKind kind, Operands&&... operands) : Term(kind, {}, std::forward<Operands>(operands)...) {}
 
     template <typename... Operands>
-    Term(SrcLocation loc, Operands&&... operands)
-            : Term(asVec(std::forward<Operands>(operands)...), std::move(loc)) {}
+    Term(NodeKind kind, SrcLocation loc, Operands&&... operands)
+            : Term(kind, asVec(std::forward<Operands>(operands)...), std::move(loc)) {}
 
-    Term(VecOwn<Argument> operands, SrcLocation loc = {});
+    Term(NodeKind kind, VecOwn<Argument> operands, SrcLocation loc = {});
 
 public:
     /** Get arguments */
@@ -50,6 +50,8 @@ public:
     void apply(const NodeMapper& map) override;
 
     bool equal(const Node& node) const override;
+
+    static bool classof(const Node*);
 
 private:
     NodeVec getChildren() const override;

@@ -27,7 +27,9 @@ namespace souffle::ast {
  */
 class IterationCounter : public Argument {
 public:
-    using Argument::Argument;
+    IterationCounter(SrcLocation loc = {});
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

@@ -41,7 +41,7 @@ namespace souffle::ram {
  */
 class SubroutineReturn : public Operation {
 public:
-    SubroutineReturn(VecOwn<Expression> vals) : expressions(std::move(vals)) {
+    SubroutineReturn(VecOwn<Expression> vals) : Operation(NK_SubroutineReturn), expressions(std::move(vals)) {
         assert(allValidPtrs(expressions));
     }
 
@@ -62,6 +62,10 @@ public:
         for (auto& expr : expressions) {
             expr = map(std::move(expr));
         }
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_SubroutineReturn;
     }
 
 protected:

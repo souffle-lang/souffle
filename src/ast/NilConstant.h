@@ -31,6 +31,8 @@ class NilConstant : public Constant {
 public:
     NilConstant(SrcLocation loc = {});
 
+    static bool classof(const Node*);
+
 private:
     NilConstant* cloning() const override;
 };

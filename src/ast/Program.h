@@ -88,6 +88,8 @@ public:
 
     using RelationInfoMap = OrderedQualifiedNameMap<RelationInfo>;
 
+    Program();
+
     RelationInfoMap& getRelationInfo() {
         return relations;
     }
@@ -219,6 +221,8 @@ public:
     void clearComponents();
 
     void apply(const NodeMapper& map) override;
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

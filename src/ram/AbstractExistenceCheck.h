@@ -39,11 +39,6 @@ namespace souffle::ram {
  */
 class AbstractExistenceCheck : public Condition {
 public:
-    AbstractExistenceCheck(std::string rel, VecOwn<Expression> vals)
-            : relation(std::move(rel)), values(std::move(vals)) {
-        assert(allValidPtrs(values));
-    }
-
     /** @brief Get relation */
     const std::string& getRelation() const {
         return relation;
@@ -64,7 +59,18 @@ public:
         }
     }
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_AbstractExistenceCheck && kind < NK_LastAbstractExistenceCheck);
+    }
+
 protected:
+    AbstractExistenceCheck(NodeKind kind, std::string rel, VecOwn<Expression> vals)
+            : Condition(kind), relation(std::move(rel)), values(std::move(vals)) {
+        assert(allValidPtrs(values));
+        assert(kind >= NK_AbstractExistenceCheck && kind < NK_LastAbstractExistenceCheck);
+    }
+
     void print(std::ostream& os) const override {
         os << "(" << join(values, ",") << ") IN " << relation;
     }

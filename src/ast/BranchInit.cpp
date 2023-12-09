@@ -18,7 +18,7 @@
 namespace souffle::ast {
 
 BranchInit::BranchInit(QualifiedName name, VecOwn<Argument> args, SrcLocation loc)
-        : Term(std::move(args), std::move(loc)), name(std::move(name)) {}
+        : Term(NK_BranchInit, std::move(args), std::move(loc)), name(std::move(name)) {}
 
 void BranchInit::print(std::ostream& os) const {
     os << tfm::format("$%s(%s)", name, join(args, ", "));
@@ -33,4 +33,7 @@ BranchInit* BranchInit::cloning() const {
     return new BranchInit(name, clone(args), getSrcLoc());
 }
 
+bool BranchInit::classof(const Node* n) {
+    return n->getKind() == NK_BranchInit;
+}
 }  // namespace souffle::ast

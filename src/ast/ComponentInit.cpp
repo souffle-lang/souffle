@@ -15,7 +15,8 @@
 namespace souffle::ast {
 
 ComponentInit::ComponentInit(std::string name, Own<ComponentType> type, SrcLocation loc)
-        : Node(std::move(loc)), instanceName(std::move(name)), componentType(std::move(type)) {
+        : Node(NK_ComponentInit, std::move(loc)), instanceName(std::move(name)),
+          componentType(std::move(type)) {
     assert(componentType);
 }
 
@@ -48,4 +49,9 @@ bool ComponentInit::equal(const Node& node) const {
 ComponentInit* ComponentInit::cloning() const {
     return new ComponentInit(instanceName, clone(componentType), getSrcLoc());
 }
+
+bool ComponentInit::classof(const Node* n) {
+    return n->getKind() == NK_ComponentInit;
+}
+
 }  // namespace souffle::ast

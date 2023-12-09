@@ -41,7 +41,8 @@ namespace souffle::ram {
  */
 class ExistenceCheck : public AbstractExistenceCheck {
 public:
-    ExistenceCheck(std::string rel, VecOwn<Expression> vals) : AbstractExistenceCheck(rel, std::move(vals)) {}
+    ExistenceCheck(std::string rel, VecOwn<Expression> vals)
+            : AbstractExistenceCheck(NK_ExistenceCheck, rel, std::move(vals)) {}
 
     ExistenceCheck* cloning() const override {
         VecOwn<Expression> newValues;
@@ -49,6 +50,10 @@ public:
             newValues.emplace_back(cur->cloning());
         }
         return new ExistenceCheck(relation, std::move(newValues));
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == Node::NK_ExistenceCheck;
     }
 };
 

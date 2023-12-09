@@ -29,8 +29,14 @@ namespace souffle::ram {
  */
 class AutoIncrement : public Expression {
 public:
+    AutoIncrement() : Expression(NK_AutoIncrement) {}
+
     AutoIncrement* cloning() const override {
         return new AutoIncrement();
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_AutoIncrement;
     }
 
 protected:

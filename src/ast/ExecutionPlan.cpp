@@ -16,6 +16,8 @@
 
 namespace souffle::ast {
 
+ExecutionPlan::ExecutionPlan(SrcLocation loc) : Node(NK_ExecutionPlan, std::move(loc)) {}
+
 /** Set execution order for a given rule version */
 void ExecutionPlan::setOrderFor(std::size_t version, Own<ExecutionOrder> plan) {
     assert(plan != nullptr);
@@ -62,4 +64,9 @@ ExecutionPlan* ExecutionPlan::cloning() const {
     }
     return res.release();
 }
+
+bool ExecutionPlan::classof(const Node* n) {
+    return n->getKind() == NK_ExecutionPlan;
+}
+
 }  // namespace souffle::ast

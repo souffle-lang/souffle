@@ -42,7 +42,7 @@ namespace souffle::ram {
  */
 class Loop : public Statement {
 public:
-    Loop(Own<Statement> b) : body(std::move(b)) {
+    Loop(Own<Statement> b) : Statement(NK_Loop), body(std::move(b)) {
         assert(body != nullptr && "Loop body is a null-pointer");
     }
 
@@ -57,6 +57,10 @@ public:
 
     void apply(const NodeMapper& map) override {
         body = map(std::move(body));
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Loop;
     }
 
 protected:

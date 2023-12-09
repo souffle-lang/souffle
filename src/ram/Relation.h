@@ -39,7 +39,7 @@ public:
     Relation(std::string name, std::size_t arity, std::size_t auxiliaryArity,
             std::vector<std::string> attributeNames, std::vector<std::string> attributeTypes,
             RelationRepresentation representation)
-            : representation(representation), name(std::move(name)), arity(arity),
+            : Node(NK_Relation), representation(representation), name(std::move(name)), arity(arity),
               auxiliaryArity(auxiliaryArity), attributeNames(std::move(attributeNames)),
               attributeTypes(std::move(attributeTypes)) {
         assert(this->attributeNames.size() == arity && "arity mismatch for attributes");
@@ -97,6 +97,10 @@ public:
 
     Relation* cloning() const override {
         return new Relation(name, arity, auxiliaryArity, attributeNames, attributeTypes, representation);
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Relation;
     }
 
 protected:

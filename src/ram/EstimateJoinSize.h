@@ -50,7 +50,8 @@ class EstimateJoinSize : public RelationStatement {
 public:
     EstimateJoinSize(std::string rel, const std::set<std::size_t>& columns,
             const std::map<std::size_t, const ram::Expression*>& keyToConstants, bool isRecursive)
-            : RelationStatement(rel), keyColumns(columns), recursiveRelation(isRecursive) {
+            : RelationStatement(NK_EstimateJoinSize, rel), keyColumns(columns),
+              recursiveRelation(isRecursive) {
         // copy the constants over
         for (auto [k, constant] : keyToConstants) {
             auto clonedConstant = clone(constant);
@@ -73,6 +74,10 @@ public:
 
     EstimateJoinSize* cloning() const override {
         return new EstimateJoinSize(relation, keyColumns, constantsMap, recursiveRelation);
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_EstimateJoinSize;
     }
 
 protected:

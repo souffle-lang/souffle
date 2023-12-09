@@ -42,7 +42,7 @@ namespace souffle::ram {
  */
 class Exit : public Statement {
 public:
-    Exit(Own<Condition> c) : condition(std::move(c)) {
+    Exit(Own<Condition> c) : Statement(NK_Exit), condition(std::move(c)) {
         assert(condition && "condition is a nullptr");
     }
 
@@ -57,6 +57,10 @@ public:
 
     void apply(const NodeMapper& map) override {
         condition = map(std::move(condition));
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Exit;
     }
 
 protected:

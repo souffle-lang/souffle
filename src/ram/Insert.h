@@ -45,9 +45,7 @@ namespace souffle::ram {
 class Insert : public Operation {
 public:
     Insert(std::string rel, VecOwn<Expression> expressions)
-            : relation(std::move(rel)), expressions(std::move(expressions)) {
-        assert(allValidPtrs(expressions));
-    }
+            : Insert(NK_Insert, std::move(rel), std::move(expressions)) {}
 
     /** @brief Get relation */
     const std::string& getRelation() const {
@@ -64,7 +62,7 @@ public:
         for (auto& expr : expressions) {
             newValues.emplace_back(expr->cloning());
         }
-        return new Insert(relation, std::move(newValues));
+        return new Insert(NK_Insert, relation, std::move(newValues));
     }
 
     void apply(const NodeMapper& map) override {
@@ -73,7 +71,18 @@ public:
         }
     }
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Insert && kind < NK_LastInsert);
+    }
+
 protected:
+    Insert(NodeKind kind, std::string rel, VecOwn<Expression> expressions)
+            : Operation(kind), relation(std::move(rel)), expressions(std::move(expressions)) {
+        assert(allValidPtrs(expressions));
+        assert(kind >= NK_Insert && kind < NK_LastInsert);
+    }
+
     void print(std::ostream& os, int tabpos) const override {
         os << times(" ", tabpos);
         os << "INSERT (" << join(expressions, ", ", print_deref<Own<Expression>>()) << ") INTO " << relation

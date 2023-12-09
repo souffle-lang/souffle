@@ -78,7 +78,7 @@ std::vector<RelationSet> RelationScheduleAnalysis::computeRelationExpirySchedule
     std::size_t numSCCs = topsortSCCGraphAnalysis->order().size();
 
     /* Alive set for each step */
-    std::vector<RelationSet> alive(numSCCs);
+    std::vector<UnorderedRelationSet> alive(numSCCs);
     /* Resize expired relations sets */
     relationExpirySchedule.resize(numSCCs);
 

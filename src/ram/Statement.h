@@ -31,7 +31,16 @@ class Statement : public Node {
 public:
     Statement* cloning() const override = 0;
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Statement && kind < NK_LastStatement);
+    }
+
 protected:
+    Statement(NodeKind kind) : Node(kind) {
+        assert(kind > NK_Statement && kind < NK_LastStatement);
+    }
+
     void print(std::ostream& os) const override {
         print(os, 0);
     }

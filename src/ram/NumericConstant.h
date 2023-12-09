@@ -35,8 +35,15 @@ public:
         return constant;
     }
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_NumericConstant && kind < NK_LastNumericConstant);
+    }
+
 protected:
-    explicit NumericConstant(RamDomain constant) : constant(constant) {}
+    explicit NumericConstant(NodeKind kind, RamDomain constant) : Expression(kind), constant(constant) {
+        assert(kind >= NK_NumericConstant && kind < NK_LastNumericConstant);
+    }
 
     bool equal(const Node& node) const override {
         const auto& other = asAssert<NumericConstant>(node);

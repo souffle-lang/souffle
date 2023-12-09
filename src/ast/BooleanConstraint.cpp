@@ -24,7 +24,7 @@ namespace souffle::ast {
  * Boolean constraint representing either the 'true' or the 'false' value
  */
 BooleanConstraint::BooleanConstraint(bool truthValue, SrcLocation loc)
-        : Constraint(std::move(loc)), truthValue(truthValue) {}
+        : Constraint(NK_BooleanConstraint, std::move(loc)), truthValue(truthValue) {}
 
 void BooleanConstraint::print(std::ostream& os) const {
     os << (truthValue ? "true" : "false");
@@ -37,6 +37,10 @@ bool BooleanConstraint::equal(const Node& node) const {
 
 BooleanConstraint* BooleanConstraint::cloning() const {
     return new BooleanConstraint(truthValue, getSrcLoc());
+}
+
+bool BooleanConstraint::classof(const Node* n) {
+    return n->getKind() == NK_BooleanConstraint;
 }
 
 }  // namespace souffle::ast

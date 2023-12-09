@@ -33,7 +33,7 @@ namespace souffle::ram {
  */
 class UnsignedConstant : public NumericConstant {
 public:
-    explicit UnsignedConstant(RamUnsigned val) : NumericConstant(ramBitCast(val)) {}
+    explicit UnsignedConstant(RamUnsigned val) : NumericConstant(NK_UnsignedConstant, ramBitCast(val)) {}
 
     /** @brief Get value of the constant. */
     RamUnsigned getValue() const {
@@ -43,6 +43,10 @@ public:
     /** Create cloning */
     UnsignedConstant* cloning() const override {
         return new UnsignedConstant(getValue());
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_UnsignedConstant;
     }
 
 protected:

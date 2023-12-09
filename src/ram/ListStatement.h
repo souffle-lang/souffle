@@ -31,11 +31,12 @@ namespace souffle::ram {
  */
 class ListStatement : public Statement {
 public:
-    ListStatement() = default;
-    ListStatement(VecOwn<Statement> statements) : statements(std::move(statements)) {}
+    ListStatement() : Statement(NK_ListStatement) {}
+
+    ListStatement(VecOwn<Statement> statements) : ListStatement(NK_ListStatement, std::move(statements)) {}
 
     template <typename... Stmts>
-    ListStatement(Own<Stmts>&&... stmts) {
+    ListStatement(NodeKind kind, Own<Stmts>&&... stmts) : Statement(kind) {
         Own<Statement> tmp[] = {std::move(stmts)...};
         for (auto& cur : tmp) {
             assert(cur.get() != nullptr && "statement is a null-pointer");
@@ -54,7 +55,21 @@ public:
         }
     }
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_ListStatement && kind < NK_LastListStatement);
+    }
+
 protected:
+    ListStatement(NodeKind kind) : Statement(kind), statements() {
+        assert(kind >= NK_ListStatement && kind < NK_LastListStatement);
+    }
+
+    ListStatement(NodeKind kind, VecOwn<Statement> statements)
+            : Statement(kind), statements(std::move(statements)) {
+        assert(kind >= NK_ListStatement && kind < NK_LastListStatement);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<ListStatement>(node);
         return equal_targets(statements, other.statements);

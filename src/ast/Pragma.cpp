@@ -14,7 +14,7 @@
 namespace souffle::ast {
 
 Pragma::Pragma(std::string key, std::string value, SrcLocation loc)
-        : Node(std::move(loc)), key(std::move(key)), value(std::move(value)) {}
+        : Node(NK_Pragma, std::move(loc)), key(std::move(key)), value(std::move(value)) {}
 
 void Pragma::print(std::ostream& os) const {
     os << ".pragma " << key << " " << value << "\n";
@@ -27,6 +27,10 @@ bool Pragma::equal(const Node& node) const {
 
 Pragma* Pragma::cloning() const {
     return new Pragma(key, value, getSrcLoc());
+}
+
+bool Pragma::classof(const Node* n) {
+    return n->getKind() == NK_Pragma;
 }
 
 }  // namespace souffle::ast

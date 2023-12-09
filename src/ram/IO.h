@@ -38,7 +38,7 @@ namespace souffle::ram {
 class IO : public RelationStatement {
 public:
     IO(std::string rel, std::map<std::string, std::string> directives)
-            : RelationStatement(rel), directives(std::move(directives)) {}
+            : RelationStatement(NK_IO, rel), directives(std::move(directives)) {}
 
     /** @brief get I/O directives */
     const std::map<std::string, std::string>& getDirectives() const {
@@ -52,6 +52,10 @@ public:
 
     IO* cloning() const override {
         return new IO(relation, directives);
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_IO;
     }
 
 protected:

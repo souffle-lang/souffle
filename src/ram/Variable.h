@@ -32,7 +32,7 @@ namespace souffle::ram {
  */
 class Variable : public Expression {
 public:
-    explicit Variable(const std::string name) : name(name) {}
+    explicit Variable(const std::string name) : Expression(NK_Variable), name(name) {}
 
     /** @brief Get value of the constant. */
     const std::string getName() const {
@@ -42,6 +42,10 @@ public:
     /** Create cloning */
     Variable* cloning() const override {
         return new Variable(getName());
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Variable;
     }
 
 protected:

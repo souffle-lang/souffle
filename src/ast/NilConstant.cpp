@@ -10,10 +10,14 @@
 
 namespace souffle::ast {
 
-NilConstant::NilConstant(SrcLocation loc) : Constant("nil", std::move(loc)) {}
+NilConstant::NilConstant(SrcLocation loc) : Constant(NK_NilConstant, "nil", std::move(loc)) {}
 
 NilConstant* NilConstant::cloning() const {
     return new NilConstant(getSrcLoc());
+}
+
+bool NilConstant::classof(const Node* n) {
+    return n->getKind() == NK_NilConstant;
 }
 
 }  // namespace souffle::ast

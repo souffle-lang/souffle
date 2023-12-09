@@ -45,10 +45,14 @@ namespace souffle::ram {
 class Break : public AbstractConditional {
 public:
     Break(Own<Condition> cond, Own<Operation> nested, std::string profileText = "")
-            : AbstractConditional(std::move(cond), std::move(nested), std::move(profileText)) {}
+            : AbstractConditional(NK_Break, std::move(cond), std::move(nested), std::move(profileText)) {}
 
     Break* cloning() const override {
         return new Break(clone(condition), clone(getOperation()), getProfileText());
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Break;
     }
 
 protected:

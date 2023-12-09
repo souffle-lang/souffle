@@ -33,7 +33,7 @@ namespace souffle::ram {
  */
 class FloatConstant : public NumericConstant {
 public:
-    explicit FloatConstant(RamFloat val) : NumericConstant(ramBitCast(val)) {}
+    explicit FloatConstant(RamFloat val) : NumericConstant(NK_FloatConstant, ramBitCast(val)) {}
 
     /** @brief Get value of the constant. */
     RamFloat getValue() const {
@@ -43,6 +43,10 @@ public:
     /** Create cloning */
     FloatConstant* cloning() const override {
         return new FloatConstant(getValue());
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_FloatConstant;
     }
 
 protected:

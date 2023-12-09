@@ -17,7 +17,10 @@
 
 namespace souffle::ast {
 
-Relation::Relation(QualifiedName name, SrcLocation loc) : Node(std::move(loc)), name(std::move(name)) {}
+Relation::Relation(SrcLocation loc) : Node(NK_Relation, loc) {}
+
+Relation::Relation(QualifiedName name, SrcLocation loc)
+        : Node(NK_Relation, std::move(loc)), name(std::move(name)) {}
 
 void Relation::setQualifiedName(QualifiedName n) {
     name = std::move(n);
@@ -48,6 +51,10 @@ std::vector<FunctionalConstraint*> Relation::getFunctionalDependencies() const {
 
 void Relation::apply(const NodeMapper& map) {
     mapAll(attributes, map);
+}
+
+bool Relation::classof(const Node* n) {
+    return n->getKind() == NK_Relation;
 }
 
 Node::NodeVec Relation::getChildren() const {

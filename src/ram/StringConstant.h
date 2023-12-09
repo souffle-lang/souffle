@@ -31,7 +31,7 @@ namespace souffle::ram {
  */
 class StringConstant : public Expression {
 public:
-    StringConstant(std::string constant) : constant(constant) {}
+    StringConstant(std::string constant) : Expression(NK_StringConstant), constant(constant) {}
 
     /** @brief Get constant */
     const std::string& getConstant() const {
@@ -40,6 +40,10 @@ public:
 
     StringConstant* cloning() const override {
         return new StringConstant(constant);
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_StringConstant;
     }
 
 protected:

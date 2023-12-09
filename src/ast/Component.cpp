@@ -16,6 +16,9 @@
 #include <utility>
 
 namespace souffle::ast {
+
+Component::Component(SrcLocation loc) : Node(NK_Component, loc) {}
+
 void Component::setComponentType(Own<ComponentType> other) {
     assert(other != nullptr);
     componentType = std::move(other);
@@ -171,6 +174,10 @@ Component* Component::cloning() const {
     res->directives = clone(directives);
     res->overrideRules = overrideRules;
     return res;
+}
+
+bool Component::classof(const Node* n) {
+    return n->getKind() == NK_Component;
 }
 
 }  // namespace souffle::ast

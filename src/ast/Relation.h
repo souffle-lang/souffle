@@ -35,7 +35,7 @@ namespace souffle::ast {
  */
 class Relation : public Node {
 public:
-    Relation() = default;
+    Relation(SrcLocation loc = {});
     Relation(QualifiedName name, SrcLocation loc = {});
 
     /** Get qualified relation name */
@@ -113,6 +113,8 @@ public:
     std::optional<QualifiedName> getIsDeltaDebug() const {
         return isDeltaDebug;
     }
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

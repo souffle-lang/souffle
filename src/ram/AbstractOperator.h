@@ -33,10 +33,6 @@ namespace souffle::ram {
  */
 class AbstractOperator : public Expression {
 public:
-    explicit AbstractOperator(VecOwn<Expression> args) : arguments(std::move(args)) {
-        assert(allValidPtrs(arguments));
-    }
-
     /** @brief Get argument values */
     std::vector<Expression*> getArguments() const {
         return toPtrVector(arguments);
@@ -48,7 +44,18 @@ public:
         }
     }
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_AbstractOperator && kind < NK_LastAbstractOperator);
+    }
+
 protected:
+    explicit AbstractOperator(NodeKind kind, VecOwn<Expression> args)
+            : Expression(kind), arguments(std::move(args)) {
+        assert(allValidPtrs(arguments));
+        assert(kind >= NK_AbstractOperator && kind < NK_LastAbstractOperator);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<AbstractOperator>(node);
         return equal_targets(arguments, other.arguments);

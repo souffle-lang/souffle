@@ -49,11 +49,12 @@ namespace souffle::ram {
  */
 class Program : public Node {
 private:
-    Program() = default;
+    Program() : Node(NK_Program){};
 
 public:
     Program(VecOwn<Relation> rels, Own<Statement> main, std::map<std::string, Own<Statement>> subs)
-            : relations(std::move(rels)), main(std::move(main)), subroutines(std::move(subs)) {
+            : Node(NK_Program), relations(std::move(rels)), main(std::move(main)),
+              subroutines(std::move(subs)) {
         assert(this->main != nullptr && "Main program is a null-pointer");
         assert(allValidPtrs(relations));
         assert(allValidPtrs(makeTransformRange(subroutines, [](auto&& kv) { return kv.second.get(); })));
@@ -103,6 +104,10 @@ public:
         for (auto& sub : subroutines) {
             sub.second = map(std::move(sub.second));
         }
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Program;
     }
 
 protected:

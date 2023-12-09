@@ -16,7 +16,7 @@
 namespace souffle::ast {
 
 AlgebraicDataType::AlgebraicDataType(QualifiedName name, VecOwn<BranchType> branches, SrcLocation loc)
-        : Type(std::move(name), std::move(loc)), branches(std::move(branches)) {
+        : Type(NK_AlgebraicDataType, std::move(name), std::move(loc)), branches(std::move(branches)) {
     assert(!this->branches.empty());
     assert(allValidPtrs(this->branches));
 }
@@ -41,6 +41,10 @@ bool AlgebraicDataType::equal(const Node& node) const {
 
 AlgebraicDataType* AlgebraicDataType::cloning() const {
     return new AlgebraicDataType(getQualifiedName(), clone(branches), getSrcLoc());
+}
+
+bool AlgebraicDataType::classof(const Node* n) {
+    return n->getKind() == NK_AlgebraicDataType;
 }
 
 }  // namespace souffle::ast

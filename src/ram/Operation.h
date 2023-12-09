@@ -29,7 +29,16 @@ class Operation : public Node {
 public:
     Operation* cloning() const override = 0;
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Operation && kind < NK_LastOperation);
+    }
+
 protected:
+    Operation(NodeKind kind) : Node(kind) {
+        assert(kind >= NK_Operation && kind < NK_LastOperation);
+    }
+
     void print(std::ostream& os) const override {
         print(os, 0);
     }

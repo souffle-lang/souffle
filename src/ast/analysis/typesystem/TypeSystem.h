@@ -51,6 +51,20 @@ class TypeEnvironment;
  */
 class Type {
 public:
+    /// LLVM-style no-RTTI dynamic cast
+    // clang-format off
+    enum TypeKind {
+      TK_ConstantType,
+      TK_SubsetType,
+        TK_PrimitiveType,
+      TK_LastSubsetType,
+      TK_AliasType,
+      TK_UnionType,
+      TK_RecordType,
+      TK_AlgebraicDataType
+    };
+    // clang-format on
+
     Type(const Type& other) = delete;
 
     virtual ~Type() = default;
@@ -88,10 +102,18 @@ public:
         return t.print(out), out;
     }
 
+    TypeKind getKind() const {
+        return kind;
+    }
+
+private:
+    const TypeKind kind;
+
 protected:
-    Type(const TypeEnvironment& environment, QualifiedName name,
+    explicit Type(TypeKind tyKind, const TypeEnvironment& environment, QualifiedName name,
             std::optional<QualifiedName> maybePrettyName = std::nullopt)
-            : environment(environment), name(std::move(name)), maybePrettyName(std::move(maybePrettyName)) {}
+            : kind(tyKind), environment(environment), name(std::move(name)),
+              maybePrettyName(std::move(maybePrettyName)) {}
 
     /** Type environment of type */
     const TypeEnvironment& environment;
@@ -113,7 +135,12 @@ protected:
 class ConstantType : public Type {
     ConstantType(const TypeEnvironment& environment, const QualifiedName& name,
             std::optional<QualifiedName> maybePrettyName = std::nullopt)
-            : Type(environment, name, std::move(maybePrettyName)) {}
+            : Type(TK_ConstantType, environment, name, std::move(maybePrettyName)) {}
+
+public:
+    static bool classof(const Type* t) {
+        return t->getKind() == TK_ConstantType;
+    }
 
 private:
     friend class TypeEnvironment;
@@ -129,7 +156,7 @@ private:
  *
  * where T is a type.
  */
-class SubsetType : virtual public Type {
+class SubsetType : public Type {
 public:
     void print(std::ostream& out) const override;
 
@@ -137,9 +164,16 @@ public:
         return baseType;
     }
 
+    static bool classof(const Type* t) {
+        return t->getKind() >= TK_SubsetType && t->getKind() < TK_LastSubsetType;
+    }
+
+    SubsetType(TypeKind kind, const TypeEnvironment& environment, const QualifiedName& name, const Type& base)
+            : Type(kind, environment, name), baseType(base) {}
+
 protected:
     SubsetType(const TypeEnvironment& environment, const QualifiedName& name, const Type& base)
-            : Type(environment, name), baseType(base){};
+            : SubsetType(TK_SubsetType, environment, name, base) {}
 
 private:
     friend class TypeEnvironment;
@@ -166,9 +200,13 @@ public:
         return aliasType;
     }
 
+    static bool classof(const Type* t) {
+        return t->getKind() == TK_AliasType;
+    }
+
 protected:
     AliasType(const TypeEnvironment& environment, const QualifiedName& name, const Type& alias)
-            : Type(environment, name), aliasType(alias){};
+            : Type(TK_AliasType, environment, name), aliasType(alias){};
 
 private:
     friend class TypeEnvironment;
@@ -194,9 +232,13 @@ public:
         out << name;
     }
 
+    static bool classof(const Type* t) {
+        return t->getKind() == TK_PrimitiveType;
+    }
+
 protected:
     PrimitiveType(const TypeEnvironment& environment, const QualifiedName& name, const ConstantType& base)
-            : Type(environment, name), SubsetType(environment, name, base) {}
+            : SubsetType(TK_PrimitiveType, environment, name, base) {}
 
 private:
     friend class TypeEnvironment;
@@ -225,10 +267,14 @@ public:
 
     void print(std::ostream& out) const override;
 
+    static bool classof(const Type* t) {
+        return t->getKind() == TK_UnionType;
+    }
+
 protected:
     UnionType(const TypeEnvironment& environment, const QualifiedName& name,
             std::vector<const Type*> elementTypes = {})
-            : Type(environment, name), elementTypes(std::move(elementTypes)) {}
+            : Type(TK_UnionType, environment, name), elementTypes(std::move(elementTypes)) {}
 
 private:
     friend class TypeEnvironment;
@@ -259,10 +305,14 @@ public:
 
     void print(std::ostream& out) const override;
 
+    static bool classof(const Type* t) {
+        return t->getKind() == TK_RecordType;
+    }
+
 protected:
     RecordType(const TypeEnvironment& environment, const QualifiedName& name,
             const std::vector<const Type*> fields = {})
-            : Type(environment, name), fields(fields) {}
+            : Type(TK_RecordType, environment, name), fields(fields) {}
 
 private:
     friend class TypeEnvironment;
@@ -327,8 +377,13 @@ public:
         return branches;
     }
 
+    static bool classof(const Type* t) {
+        return t->getKind() == TK_AlgebraicDataType;
+    }
+
 protected:
-    AlgebraicDataType(const TypeEnvironment& env, QualifiedName name) : Type(env, std::move(name)) {}
+    AlgebraicDataType(const TypeEnvironment& env, QualifiedName name)
+            : Type(TK_AlgebraicDataType, env, std::move(name)) {}
 
 private:
     friend class TypeEnvironment;

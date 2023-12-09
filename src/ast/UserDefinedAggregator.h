@@ -52,6 +52,8 @@ public:
 
     void apply(const NodeMapper& map) override;
 
+    static bool classof(const Node*);
+
 protected:
     NodeVec getChildren() const override;
 

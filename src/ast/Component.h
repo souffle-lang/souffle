@@ -45,6 +45,8 @@ namespace souffle::ast {
  */
 class Component : public Node {
 public:
+    Component(SrcLocation loc = {});
+
     /** Get component type */
     const ComponentType* getComponentType() const {
         return componentType.get();
@@ -114,6 +116,8 @@ public:
     }
 
     void apply(const NodeMapper& mapper) override;
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& os) const override;

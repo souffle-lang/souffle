@@ -32,14 +32,23 @@ namespace souffle::ram {
  */
 class RelationStatement : public Statement {
 public:
-    RelationStatement(std::string rel) : relation(std::move(rel)) {}
+    RelationStatement(std::string rel) : RelationStatement(NK_RelationStatement, std::move(rel)) {}
 
     /** @brief Get RAM relation */
     const std::string& getRelation() const {
         return relation;
     }
 
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_RelationStatement && kind < NK_LastRelationStatement);
+    }
+
 protected:
+    RelationStatement(NodeKind kind, std::string rel) : Statement(kind), relation(std::move(rel)) {
+        assert(kind >= NK_RelationStatement && kind < NK_LastRelationStatement);
+    }
+
     bool equal(const Node& node) const override {
         const auto& other = asAssert<RelationStatement>(node);
         return relation == other.relation;

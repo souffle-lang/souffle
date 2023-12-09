@@ -152,4 +152,19 @@ constexpr bool is_set = detail::is_set<A>::value;
 template <typename A>
 constexpr bool unhandled_dispatch_type = !std::is_same_v<A, A>;
 
+// Tells if we can static_cast<From,To>
+template <typename From, typename To, typename = void>
+struct can_static_cast : std::false_type {};
+
+template <typename From, typename To>
+struct can_static_cast<From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>>
+        : std::true_type {};
+
+// A virtual base is first and foremost a base,
+// that, however, cannot be static_casted to its derived class.
+template <typename Base, typename Derived>
+struct is_virtual_base_of
+        : std::conjunction<std::is_base_of<Base, Derived>, std::negation<can_static_cast<Base*, Derived*>>> {
+};
+
 }  // namespace souffle

@@ -18,11 +18,12 @@
 namespace souffle::ast {
 
 FunctionalConstraint::FunctionalConstraint(VecOwn<Variable> keys, SrcLocation loc)
-        : Constraint(std::move(loc)), keys(std::move(keys)) {
+        : Constraint(NK_FunctionalConstraint, std::move(loc)), keys(std::move(keys)) {
     assert(allValidPtrs(this->keys));
 }
 
-FunctionalConstraint::FunctionalConstraint(Own<Variable> key, SrcLocation loc) : Constraint(std::move(loc)) {
+FunctionalConstraint::FunctionalConstraint(Own<Variable> key, SrcLocation loc)
+        : Constraint(NK_FunctionalConstraint, std::move(loc)) {
     assert(key != nullptr);
     keys.push_back(std::move(key));
 }
@@ -67,6 +68,10 @@ bool FunctionalConstraint::equivalentConstraint(const FunctionalConstraint& othe
 
 FunctionalConstraint* FunctionalConstraint::cloning() const {
     return new FunctionalConstraint(clone(keys), getSrcLoc());
+}
+
+bool FunctionalConstraint::classof(const Node* n) {
+    return n->getKind() == NK_FunctionalConstraint;
 }
 
 }  // namespace souffle::ast

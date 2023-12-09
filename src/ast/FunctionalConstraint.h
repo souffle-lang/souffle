@@ -56,6 +56,8 @@ public:
 
     bool equivalentConstraint(const FunctionalConstraint& other) const;
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

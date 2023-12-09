@@ -34,7 +34,7 @@ namespace souffle::ram {
  */
 class SubroutineArgument : public Expression {
 public:
-    SubroutineArgument(std::size_t number) : number(number) {}
+    SubroutineArgument(std::size_t number) : Expression(NK_SubroutineArgument), number(number) {}
 
     /** @brief Get argument */
     std::size_t getArgument() const {
@@ -43,6 +43,10 @@ public:
 
     SubroutineArgument* cloning() const override {
         return new SubroutineArgument(number);
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_SubroutineArgument;
     }
 
 protected:

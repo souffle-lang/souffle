@@ -10,7 +10,7 @@
 #include <utility>
 
 namespace souffle::ast {
-Node::Node(SrcLocation loc) : location(std::move(loc)) {}
+Node::Node(NodeKind kind, SrcLocation loc) : Kind(kind), location(std::move(loc)) {}
 
 /** Set source location for the Node */
 void Node::setSrcLoc(SrcLocation l) {
@@ -52,6 +52,22 @@ bool Node::equal(const Node&) const {
 
 Node::NodeVec Node::getChildren() const {
     return {};
+}
+
+Node::NodeKind Node::getKind() const {
+    return Kind;
+}
+
+const SrcLocation& Node::getSrcLoc() const {
+    return location;
+}
+
+std::string Node::extloc() const {
+    return location.extloc();
+}
+
+bool Node::operator!=(const Node& other) const {
+    return !(*this == other);
 }
 
 }  // namespace souffle::ast

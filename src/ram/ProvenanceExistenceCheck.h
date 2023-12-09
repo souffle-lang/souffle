@@ -35,7 +35,7 @@ namespace souffle::ram {
 class ProvenanceExistenceCheck : public AbstractExistenceCheck {
 public:
     ProvenanceExistenceCheck(std::string rel, VecOwn<Expression> vals)
-            : AbstractExistenceCheck(rel, std::move(vals)) {}
+            : AbstractExistenceCheck(NK_ProvenanceExistenceCheck, rel, std::move(vals)) {}
 
     ProvenanceExistenceCheck* cloning() const override {
         VecOwn<Expression> newValues;
@@ -43,6 +43,10 @@ public:
             newValues.emplace_back(cur->cloning());
         }
         return new ProvenanceExistenceCheck(relation, std::move(newValues));
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == Node::NK_ProvenanceExistenceCheck;
     }
 
 protected:

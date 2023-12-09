@@ -44,11 +44,11 @@ namespace souffle::ram {
  */
 class Parallel : public ListStatement {
 public:
-    Parallel(VecOwn<Statement> statements) : ListStatement(std::move(statements)) {}
-    Parallel() : ListStatement() {}
+    Parallel(VecOwn<Statement> statements) : ListStatement(NK_Parallel, std::move(statements)) {}
+    Parallel() : ListStatement(NK_Parallel) {}
     template <typename... Stmts>
     Parallel(Own<Statement> first, Own<Stmts>... rest)
-            : ListStatement(std::move(first), std::move(rest)...) {}
+            : ListStatement(NK_Parallel, std::move(first), std::move(rest)...) {}
 
     Parallel* cloning() const override {
         auto* res = new Parallel();
@@ -56,6 +56,10 @@ public:
             res->statements.push_back(clone(cur));
         }
         return res;
+    }
+
+    static bool classof(const Node* n) {
+        return n->getKind() == NK_Parallel;
     }
 
 protected:

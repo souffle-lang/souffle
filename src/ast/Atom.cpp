@@ -26,7 +26,7 @@ namespace souffle::ast {
  * e.g., parent(x,y), !parent(x,y), ...
  */
 Atom::Atom(QualifiedName name, VecOwn<Argument> args, SrcLocation loc)
-        : Literal(std::move(loc)), name(std::move(name)), arguments(std::move(args)) {
+        : Literal(NK_Atom, std::move(loc)), name(std::move(name)), arguments(std::move(args)) {
     assert(allValidPtrs(arguments));
 }
 
@@ -63,6 +63,10 @@ bool Atom::equal(const Node& node) const {
 
 Atom* Atom::cloning() const {
     return new Atom(name, clone(arguments), getSrcLoc());
+}
+
+bool Atom::classof(const Node* n) {
+    return n->getKind() == NK_Atom;
 }
 
 }  // namespace souffle::ast

@@ -39,6 +39,8 @@ class ExecutionPlan : public Node {
 public:
     using Node::Node;
 
+    ExecutionPlan(SrcLocation = {});
+
     /** Set execution order for a given rule version */
     void setOrderFor(std::size_t version, Own<ExecutionOrder> plan);
 
@@ -48,6 +50,8 @@ public:
     void apply(const NodeMapper& map) override;
 
     NodeVec getChildren() const override;
+
+    static bool classof(const Node*);
 
 protected:
     void print(std::ostream& out) const override;

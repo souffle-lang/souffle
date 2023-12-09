@@ -27,6 +27,15 @@ namespace souffle::ast {
 class Constraint : public Literal {
 public:
     using Literal::Literal;
+
+    Constraint(NodeKind kind, SrcLocation loc = {}) : Literal(kind, loc) {
+        assert(kind >= NK_Constraint && kind < NK_LastConstraint);
+    }
+
+    static bool classof(const Node* n) {
+        const NodeKind kind = n->getKind();
+        return (kind >= NK_Constraint && kind < NK_LastConstraint);
+    }
 };
 
 }  // namespace souffle::ast

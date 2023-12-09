@@ -17,7 +17,7 @@
 namespace souffle::ast {
 
 TypeCast::TypeCast(Own<Argument> value, QualifiedName type, SrcLocation loc)
-        : Argument(std::move(loc)), value(std::move(value)), type(std::move(type)) {
+        : Argument(NK_TypeCast, std::move(loc)), value(std::move(value)), type(std::move(type)) {
     assert(this->value != nullptr);
 }
 
@@ -47,4 +47,9 @@ bool TypeCast::equal(const Node& node) const {
 TypeCast* TypeCast::cloning() const {
     return new TypeCast(clone(value), type, getSrcLoc());
 }
+
+bool TypeCast::classof(const Node* n) {
+    return n->getKind() == NK_TypeCast;
+}
+
 }  // namespace souffle::ast

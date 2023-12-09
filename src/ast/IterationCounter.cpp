@@ -11,12 +11,18 @@
 
 namespace souffle::ast {
 
+IterationCounter::IterationCounter(SrcLocation loc) : Argument(NK_IterationCounter, loc) {}
+
 void IterationCounter::print(std::ostream& os) const {
     os << "recursive_iteration_cnt()";
 }
 
 IterationCounter* IterationCounter::cloning() const {
     return new IterationCounter(getSrcLoc());
+}
+
+bool IterationCounter::classof(const Node* n) {
+    return n->getKind() == NK_IterationCounter;
 }
 
 }  // namespace souffle::ast

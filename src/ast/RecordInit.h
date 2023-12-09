@@ -32,6 +32,8 @@ class RecordInit : public Term {
 public:
     RecordInit(VecOwn<Argument> operands = {}, SrcLocation loc = {});
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& os) const override;
 

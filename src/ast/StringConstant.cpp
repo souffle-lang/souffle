@@ -13,7 +13,7 @@
 namespace souffle::ast {
 
 StringConstant::StringConstant(std::string value, SrcLocation loc)
-        : Constant(std::move(value), std::move(loc)) {}
+        : Constant(NK_StringConstant, std::move(value), std::move(loc)) {}
 
 void StringConstant::print(std::ostream& os) const {
     os << "\"" << getConstant() << "\"";
@@ -21,6 +21,10 @@ void StringConstant::print(std::ostream& os) const {
 
 StringConstant* StringConstant::cloning() const {
     return new StringConstant(getConstant(), getSrcLoc());
+}
+
+bool StringConstant::classof(const Node* n) {
+    return n->getKind() == NK_StringConstant;
 }
 
 }  // namespace souffle::ast

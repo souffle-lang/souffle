@@ -64,6 +64,8 @@ public:
         return stateful;
     }
 
+    static bool classof(const Node*);
+
 protected:
     void print(std::ostream& out) const override;
 

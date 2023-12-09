@@ -14,7 +14,7 @@
 namespace souffle::ast {
 
 SubsetType::SubsetType(QualifiedName name, QualifiedName baseTypeName, SrcLocation loc)
-        : Type(std::move(name), std::move(loc)), baseType(std::move(baseTypeName)) {}
+        : Type(NK_SubsetType, std::move(name), std::move(loc)), baseType(std::move(baseTypeName)) {}
 
 void SubsetType::print(std::ostream& os) const {
     os << ".type " << getQualifiedName() << " <: " << getBaseType();
@@ -27,6 +27,10 @@ bool SubsetType::equal(const Node& node) const {
 
 SubsetType* SubsetType::cloning() const {
     return new SubsetType(getQualifiedName(), getBaseType(), getSrcLoc());
+}
+
+bool SubsetType::classof(const Node* n) {
+    return n->getKind() == NK_SubsetType;
 }
 
 }  // namespace souffle::ast
