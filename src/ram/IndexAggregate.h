@@ -66,6 +66,7 @@ public:
         IndexOperation::apply(map);
         condition = map(std::move(condition));
         expression = map(std::move(expression));
+        function->apply(map);
     }
 
     static bool classof(const Node* n) {
