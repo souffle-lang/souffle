@@ -5,8 +5,8 @@ The Soufflé language is similar to Datalog (but has terms known as records), an
 domain-specific language for analysis problems.
 
 [![License: UPL](https://img.shields.io/badge/License-UPL--1.0-blue.svg)](https://github.com/souffle-lang/souffle/blob/master/LICENSE)
-[![CI-Tests](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml/badge.svg)](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml)
-[![MSVC-CI-Tests](https://github.com/souffle-lang/souffle/actions/workflows/VS-CI-Tests.yml/badge.svg)](https://github.com/souffle-lang/souffle/actions/workflows/VS-CI-Tests.yml)
+[![CI-Tests](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml/badge.svg?event=push)](https://github.com/souffle-lang/souffle/actions/workflows/CI-Tests.yml)
+[![MSVC-CI-Tests](https://github.com/souffle-lang/souffle/actions/workflows/VS-CI-Tests.yml/badge.svg?event=push)](https://github.com/souffle-lang/souffle/actions/workflows/VS-CI-Tests.yml)
 [![codecov](https://codecov.io/gh/souffle-lang/souffle/branch/master/graph/badge.svg)](https://codecov.io/gh/souffle-lang/souffle)
 
 ## Features of Soufflé
