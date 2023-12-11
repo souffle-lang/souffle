@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize]
   workflow_dispatch:
+  push:
+    branches:
+      - 'master'
 
 env:
   CHOCO_CACHE_DIR: "${{ github.workspace }}/choco-cache"
