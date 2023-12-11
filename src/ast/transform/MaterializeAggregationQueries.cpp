@@ -14,6 +14,7 @@
 
 #include "ast/transform/MaterializeAggregationQueries.h"
 #include "AggregateOp.h"
+#include "FunctorOps.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
@@ -277,6 +278,10 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
 
     for (auto&& cl : program.getClauses()) {
         auto& clause = *cl;
+
+        // the mapping from the Arguments in the original clause to their type(s)
+        std::optional<std::map<const Argument*, analysis::TypeSet>> clauseArgTypes;
+
         visit(clause, [&](Aggregator& agg) {
             if (!needsMaterializedRelation(agg)) {
                 return;
@@ -285,6 +290,12 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             if (innerAggregates.find(&agg) != innerAggregates.end()) {
                 return;
             }
+
+            // compute types before the clause gets modified
+            if (!clauseArgTypes) {
+                clauseArgTypes = analysis::TypeAnalysis::analyseTypes(translationUnit, clause);
+            }
+
             // begin materialisation process
             auto aggregateBodyRelationName = analysis::findUniqueRelationName(program, "__agg_subclause");
             // quickly copy in all the literals from the aggregate body
@@ -306,17 +317,29 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             for (const auto& variableName : headArguments) {
                 aggClauseHead->addArgument(mk<Variable>(variableName));
             }
-            // add them to the relation as well (need to do a bit of type analysis to make this work)
+
+            // add them to the relation as well
             auto aggRel = mk<Relation>(QualifiedName::fromString(aggregateBodyRelationName));
-            std::map<const Argument*, analysis::TypeSet> argTypes =
-                    analysis::TypeAnalysis::analyseTypes(translationUnit, *aggClause);
 
             for (const auto& cur : aggClauseHead->getArguments()) {
-                // cur will point us to a particular argument
-                // that is found in the aggClause
-                auto const curArgType = argTypes[cur];
-                assert(!curArgType.empty() && "unexpected empty typeset");
-                aggRel->addAttribute(mk<Attribute>(toString(*cur), curArgType.begin()->getName()));
+
+                // Find type of argument variable in original clause
+                auto it = std::find_if(clauseArgTypes->cbegin(), clauseArgTypes->cend(),
+                        [&](const std::pair<const Argument*, analysis::TypeSet>& pair) -> bool {
+                            if (const Variable* var = as<Variable>(pair.first)) {
+                                // use type from first variable matching the name
+                                return (var->getName() == toString(*cur));
+                            }
+                            return false;
+                        });
+                assert(it != clauseArgTypes->cend() && "unexpected unknown argument");
+
+                if (it != clauseArgTypes->cend()) {
+                    auto const curArgType = it->second;
+                    assert(!curArgType.empty() && "unexpected empty typeset");
+                    assert(curArgType.size() == 1 && "expected fully resolved type");
+                    aggRel->addAttribute(mk<Attribute>(toString(*cur), curArgType.begin()->getName()));
+                }
             }
 
             // Set up the aggregate body atom that will represent the materialised relation we just created
@@ -385,6 +408,19 @@ bool MaterializeAggregationQueriesTransformer::needsMaterializedRelation(const A
     });
 
     if (seenInnerAggregate) {
+        return true;
+    }
+
+    // If we have a multi-result intrinsic functor within this aggregate => materialize
+    bool seenMultiresultIntrinsicFunctor = false;
+    visit(agg, [&](const IntrinsicFunctor& intFunc) {
+        auto candidates = functorBuiltIn(intFunc.getBaseFunctionOp());
+        seenMultiresultIntrinsicFunctor |= std::any_of(candidates.cbegin(), candidates.cend(),
+                [](const std::reference_wrapper<const IntrinsicFunctorInfo>& info) -> bool {
+                    return isFunctorMultiResult(info.get().op);
+                });
+    });
+    if (seenMultiresultIntrinsicFunctor) {
         return true;
     }
 
