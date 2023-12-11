@@ -322,7 +322,6 @@ bool MaterializeAggregationQueriesTransformer::materializeAggregationQueries(
             auto aggRel = mk<Relation>(QualifiedName::fromString(aggregateBodyRelationName));
 
             for (const auto& cur : aggClauseHead->getArguments()) {
-
                 // Find type of argument variable in original clause
                 auto it = std::find_if(clauseArgTypes->cbegin(), clauseArgTypes->cend(),
                         [&](const std::pair<const Argument*, analysis::TypeSet>& pair) -> bool {
