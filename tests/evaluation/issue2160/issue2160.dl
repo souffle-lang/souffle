@@ -1,0 +1,4 @@
+.decl count_even(cnt:number)
+.output count_even()
+count_even(cnt) :-
+  cnt = count : { i = range(0,10), i % 2 = 0 }.

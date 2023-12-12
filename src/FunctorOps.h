@@ -165,4 +165,8 @@ bool isInfixFunctorOp(FunctorOp op);
 
 FunctorOp getMinOp(const std::string& type);
 FunctorOp getMaxOp(const std::string& type);
+
+/// Indicate if a functor can yield multiple results
+bool isFunctorMultiResult(FunctorOp op);
+
 }  // end of namespace souffle
