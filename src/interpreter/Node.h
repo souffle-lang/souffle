@@ -578,9 +578,12 @@ class False : public Node {
 
 /**
  * @class Conjunction
+ *
+ * It's a compound node so that conjunctions with hundreds of terms
+ * do not overflow the engine stack with left/right recursion.
  */
-class Conjunction : public BinaryNode {
-    using BinaryNode::BinaryNode;
+class Conjunction : public CompoundNode {
+    using CompoundNode::CompoundNode;
 };
 
 /**

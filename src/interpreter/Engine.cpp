@@ -979,7 +979,12 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         ESAC(False)
 
         CASE(Conjunction)
-            return execute(shadow.getLhs(), ctxt) && execute(shadow.getRhs(), ctxt);
+            for (const auto& child : shadow.getChildren()) {
+                if (!execute(child.get(), ctxt)) {
+                    return false;
+                }
+            }
+            return true;
         ESAC(Conjunction)
 
         CASE(Negation)
