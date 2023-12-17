@@ -87,6 +87,7 @@ protected:
 
     /** Indexing */
     void indexClause(const ast::Clause& clause);
+    void indexGenerators(const ast::Clause& clause);
     virtual void indexAtoms(const ast::Clause& clause);
     void indexAggregators(const ast::Clause& clause);
     void indexMultiResultFunctors(const ast::Clause& clause);

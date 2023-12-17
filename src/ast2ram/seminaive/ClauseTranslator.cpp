@@ -774,9 +774,6 @@ void ClauseTranslator::indexAggregatorBody(const ast::Aggregator& agg) {
 }
 
 void ClauseTranslator::indexAggregators(const ast::Clause& clause) {
-    // Add each aggregator as an internal generator
-    visit(clause, [&](const ast::Aggregator& agg) { indexGenerator(agg); });
-
     // Index aggregator bodies
     visit(clause, [&](const ast::Aggregator& agg) { indexAggregatorBody(agg); });
 
@@ -791,13 +788,6 @@ void ClauseTranslator::indexAggregators(const ast::Clause& clause) {
 }
 
 void ClauseTranslator::indexMultiResultFunctors(const ast::Clause& clause) {
-    // Add each multi-result functor as an internal generator
-    visit(clause, [&](const ast::IntrinsicFunctor& func) {
-        if (ast::analysis::FunctorAnalysis::isMultiResult(func)) {
-            indexGenerator(func);
-        }
-    });
-
     // Add multi-result functor value introductions
     visit(clause, [&](const ast::BinaryConstraint& bc) {
         if (!isEqConstraint(bc.getBaseOperator())) return;
@@ -809,8 +799,94 @@ void ClauseTranslator::indexMultiResultFunctors(const ast::Clause& clause) {
     });
 }
 
+void ClauseTranslator::indexGenerators(const ast::Clause& clause) {
+    // generators must be indexed in topological order according to
+    // dependencies between them.
+    // see issue #2416
+
+    std::map<std::string, const ast::Argument*> varGenerator;
+
+    visit(clause, [&](const ast::BinaryConstraint& bc) {
+        if (!isEqConstraint(bc.getBaseOperator())) return;
+        const auto* lhs = as<ast::Variable>(bc.getLHS());
+        const ast::Argument* rhs = as<ast::IntrinsicFunctor>(bc.getRHS());
+        if (rhs == nullptr) {
+            rhs = as<ast::Aggregator>(bc.getRHS());
+        } else {
+            if (!ast::analysis::FunctorAnalysis::isMultiResult(*as<ast::IntrinsicFunctor>(rhs))) return;
+        }
+        if (lhs == nullptr || rhs == nullptr) return;
+        varGenerator[lhs->getName()] = rhs;
+    });
+
+    // all the generators in the clause
+    std::vector<const ast::Argument*> generators;
+
+    // 'predecessor' mapping from a generator to the generators that must
+    // evaluate before.
+    std::multimap<const ast::Argument*, const ast::Argument*> dependencies;
+
+    // harvest generators and dependencies
+    visit(clause, [&](const ast::Argument& arg) {
+        if (const ast::IntrinsicFunctor* func = as<ast::IntrinsicFunctor>(arg)) {
+            if (ast::analysis::FunctorAnalysis::isMultiResult(*func)) {
+                generators.emplace_back(func);
+                visit(func, [&](const ast::Variable& use) {
+                    if (varGenerator.count(use.getName()) > 0) {
+                        dependencies.emplace(func, varGenerator.at(use.getName()));
+                    }
+                });
+            }
+        } else if (const ast::Aggregator* agg = as<ast::Aggregator>(arg)) {
+            generators.emplace_back(agg);
+            visit(agg, [&](const ast::Variable& use) {
+                if (varGenerator.count(use.getName()) > 0) {
+                    dependencies.emplace(agg, varGenerator.at(use.getName()));
+                }
+            });
+        }
+    });
+
+    // the set of already indexed generators
+    std::set<const ast::Argument*> indexed;
+    // the recursion stack to detect a cycle in the depth-first traversal
+    std::set<const ast::Argument*> recStack;
+
+    // recursive depth-first traversal, perform a post-order indexing of genertors.
+    const std::function<void(const ast::Argument*)> dfs = [&](const ast::Argument* reached) {
+        if (indexed.count(reached)) {
+            return;
+        }
+
+        if (!recStack.emplace(reached).second) {
+            // cycle detected
+            fatal("cyclic dependency");
+        }
+
+        auto range = dependencies.equal_range(reached);
+        for (auto it = range.first; it != range.second; ++it) {
+            if (it->second == reached) {
+                continue;  // ignore self-dependency
+            }
+            dfs(it->second);
+        }
+
+        // index this generator
+        indexGenerator(*reached);
+
+        indexed.insert(reached);
+        recStack.erase(reached);
+    };
+
+    // topological sorting by depth-first search
+    for (const ast::Argument* root : generators) {
+        dfs(root);
+    }
+}
+
 void ClauseTranslator::indexClause(const ast::Clause& clause) {
     indexAtoms(clause);
+    indexGenerators(clause);
     indexAggregators(clause);
     indexMultiResultFunctors(clause);
 }
