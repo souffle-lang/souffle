@@ -77,6 +77,10 @@ public:
         os << name << " INIT " << *initValue << " ";
     }
 
+    void apply(const NodeMapper& map) override {
+        initValue = map(std::move(initValue));
+    }
+
 protected:
     /** Aggregation function */
     const std::string name;

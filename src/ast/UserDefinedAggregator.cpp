@@ -34,10 +34,9 @@ Node::NodeVec UserDefinedAggregator::getChildren() const {
 }
 
 void UserDefinedAggregator::print(std::ostream& os) const {
-    os << "@" << name;
-    os << " init: " << *initValue;
+    os << "@@" << name << " " << *initValue;
     if (targetExpression) {
-        os << " " << *targetExpression;
+        os << ", " << *targetExpression;
     }
     os << " : { " << join(body) << " }";
 }

@@ -45,6 +45,8 @@ public:
         return {};
     }
 
+    virtual void apply(const NodeMapper&) {}
+
     /**
      * @brief Create a cloning (i.e. deep copy) of this node
      */
