@@ -1,0 +1,44 @@
+.decl a(x: number, y: number, z: number)
+a(1, 2, 0).
+a(3, 4, 1).
+
+
+.decl b(item: number)
+b(1).
+b(2).
+b(3).
+b(4).
+
+.decl c(x: number, y: number)
+.output c()
+c(x, y) :-
+  mr = count : { a(_, y, _) },
+  x = range(0, mr),
+  b(y).
+
+.decl d(x: number, y: number)
+.output d()
+d(x,y) :-
+  y = range(z, z+3),
+  z = v*4,
+  v = x,
+  x = range(0, 4).
+
+.decl e(x: number, y: number)
+.output e()
+e(x,y) :-
+  y = count : { a(_, x, _) },
+  x = range(0, 5).
+
+.decl f(m: number, n: number, x:number)
+.output f()
+f(m,n,x) :-
+  x = range(m,n),
+  m = range(1,3),
+  n = range(4,6).
+
+.decl g(x:number)
+.output g()
+g(x) :-
+  x = count : { a(_, _, x) },
+  x = range(0,3).

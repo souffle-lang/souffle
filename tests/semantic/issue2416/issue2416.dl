@@ -1,0 +1,19 @@
+.decl a(x: number, y: number, z: number)
+a(1, 2, 0).
+a(3, 4, 1).
+
+
+.decl b(item: number)
+b(1).
+b(2).
+b(3).
+b(4).
+
+.decl c(x: number, y: number)
+c(x, y) :-
+    //a(_, y, index),   // If the expression is not included, will it result in a segmentation fault
+    1 = count : { a(_, y, index) },
+    index = range(1, 10),
+    x = index,
+    b(y).
+.output c()
