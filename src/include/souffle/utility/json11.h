@@ -66,6 +66,7 @@
 #include <vector>
 
 #ifdef _MSC_VER
+#pragma warning(push)
 #pragma warning(disable : 4244)
 #if _MSC_VER <= 1800  // VS 2013
 #ifndef noexcept
@@ -1111,7 +1112,7 @@ inline std::vector<Json> parse_multi(const std::string& in, std::string::size_ty
 }
 
 #ifdef _MSC_VER
-#pragma warning(default : 4244)
+#pragma warning(pop)
 #endif  // _MSC_VER
 
 }  // namespace json11
