@@ -345,7 +345,7 @@ inline std::vector<std::string_view> splitView(std::string_view toSplit, std::st
     for (auto tail = toSplit;;) {
         auto pos = tail.find(delimiter);
         parts.push_back(tail.substr(0, pos));
-        if (pos == tail.npos) break;
+        if (pos == std::string_view::npos) break;
 
         tail = tail.substr(pos + delimLen);
     }

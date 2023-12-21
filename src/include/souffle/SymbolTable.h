@@ -26,7 +26,7 @@ namespace souffle {
 /** Interface of a generic SymbolTable iterator. */
 class SymbolTableIteratorInterface {
 public:
-    virtual ~SymbolTableIteratorInterface() {}
+    virtual ~SymbolTableIteratorInterface() = default;
 
     virtual const std::pair<const std::string, const std::size_t>& get() const = 0;
 
@@ -44,7 +44,7 @@ public:
  */
 class SymbolTable {
 public:
-    virtual ~SymbolTable() {}
+    virtual ~SymbolTable() = default;
 
     /**
      * @brief Iterator on a symbol table.
@@ -61,7 +61,7 @@ public:
 
         Iterator(const Iterator& it) : impl(it.impl->copy()) {}
 
-        Iterator(Iterator&& it) : impl(std::move(it.impl)) {}
+        Iterator(Iterator&& it) noexcept : impl(std::move(it.impl)) {}
 
         reference operator*() const {
             return impl->get();

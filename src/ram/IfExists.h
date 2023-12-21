@@ -53,7 +53,7 @@ class IfExists : public RelationOperation, public AbstractIfExists {
 public:
     IfExists(std::string rel, std::size_t ident, Own<Condition> cond, Own<Operation> nested,
             std::string profileText = "")
-            : IfExists(NK_IfExists, rel, ident, clone(cond), clone(nested), profileText) {}
+            : IfExists(NK_IfExists, std::move(rel), ident, clone(cond), clone(nested), profileText) {}
 
     void apply(const NodeMapper& map) override {
         RelationOperation::apply(map);
@@ -73,7 +73,7 @@ public:
 protected:
     IfExists(NodeKind kind, std::string rel, std::size_t ident, Own<Condition> cond, Own<Operation> nested,
             std::string profileText = "")
-            : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)),
+            : RelationOperation(kind, std::move(rel), ident, std::move(nested), std::move(profileText)),
               AbstractIfExists(std::move(cond)) {}
 
     void print(std::ostream& os, int tabpos) const override {

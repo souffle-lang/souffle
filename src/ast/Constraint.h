@@ -28,7 +28,7 @@ class Constraint : public Literal {
 public:
     using Literal::Literal;
 
-    Constraint(NodeKind kind, SrcLocation loc = {}) : Literal(kind, loc) {
+    Constraint(NodeKind kind, SrcLocation loc = {}) : Literal(kind, std::move(loc)) {
         assert(kind >= NK_Constraint && kind < NK_LastConstraint);
     }
 

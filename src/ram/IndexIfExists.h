@@ -54,7 +54,7 @@ class IndexIfExists : public IndexOperation, public AbstractIfExists {
 public:
     IndexIfExists(std::string rel, std::size_t ident, Own<Condition> cond, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
-            : IndexIfExists(NK_IndexIfExists, rel, ident, std::move(cond), std::move(queryPattern),
+            : IndexIfExists(NK_IndexIfExists, std::move(rel), ident, std::move(cond), std::move(queryPattern),
                       std::move(nested), profileText) {}
 
     void apply(const NodeMapper& map) override {
@@ -90,7 +90,7 @@ protected:
     IndexIfExists(NodeKind kind, std::string rel, std::size_t ident, Own<Condition> cond,
             RamPattern queryPattern, Own<Operation> nested, std::string profileText = "")
             : IndexOperation(
-                      kind, rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)),
+                      kind, std::move(rel), ident, std::move(queryPattern), std::move(nested), std::move(profileText)),
               AbstractIfExists(std::move(cond)) {
         assert(getRangePattern().first.size() == getRangePattern().second.size() && "Arity mismatch");
         assert(kind >= NK_IndexIfExists && kind < NK_LastIndexIfExists);

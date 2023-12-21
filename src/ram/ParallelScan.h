@@ -46,7 +46,7 @@ namespace souffle::ram {
 class ParallelScan : public Scan, public AbstractParallel {
 public:
     ParallelScan(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
-            : Scan(NK_ParallelScan, rel, ident, std::move(nested), profileText) {}
+            : Scan(NK_ParallelScan, std::move(rel), ident, std::move(nested), profileText) {}
 
     ParallelScan* cloning() const override {
         return new ParallelScan(relation, getTupleId(), clone(getOperation()), getProfileText());

@@ -172,7 +172,7 @@ public:
         /**
          * Move constructor.
          *
-         * The new iterator now has ownerhsip of the iterator base.
+         * The new iterator now has ownership of the iterator base.
          *
          * @param arg lvalue reference to an iterator object
          */
@@ -215,7 +215,7 @@ public:
             return *this;
         }
 
-        iterator& operator=(iterator&& o) {
+        iterator& operator=(iterator&& o) noexcept {
             iter.swap(o.iter);
             return *this;
         }
@@ -845,9 +845,8 @@ public:
         auto it = relationMap.find(name);
         if (it != relationMap.end()) {
             return (*it).second;
-        } else {
-            return nullptr;
         }
+        return nullptr;
     };
 
     /**
@@ -1137,9 +1136,8 @@ public:
         ProgramFactory* factory = find(name);
         if (factory != nullptr) {
             return factory->newInstance();
-        } else {
-            return nullptr;
         }
+        return nullptr;
     }
 };
 }  // namespace souffle

@@ -160,7 +160,7 @@ enum class WarnType : std::size_t {
 
 class WarnSet {
 public:
-    WarnSet() : warns(std::bitset<(std::size_t)WarnType::VarAppearsOnce + 1>()) {
+    WarnSet() : warns(std::bitset<static_cast<std::size_t>(WarnType::VarAppearsOnce) + 1>()) {
         this->set();  // default to enabling all warnings
     }
 
@@ -191,7 +191,7 @@ public:
     bool resetStr(const std::string& str);
 
 private:
-    std::bitset<(std::size_t)WarnType::VarAppearsOnce + 1> warns;
+    std::bitset<static_cast<std::size_t>(WarnType::VarAppearsOnce) + 1> warns;
 
     std::optional<WarnType> warnTypeFromString(const std::string& s);
 };

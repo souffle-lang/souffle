@@ -120,7 +120,7 @@ detail::LambdaFix<F> fix(F f) {
 // -------------------------------------------------------------------------------
 
 namespace detail {
-constexpr auto coerceToBool = [](auto&& x) { return (bool)x; };
+constexpr auto coerceToBool = [](auto&& x) { return static_cast<bool>(x); };
 
 template <typename C, typename F /* : A -> B */>
 auto mapVector(C& xs, F&& f) {

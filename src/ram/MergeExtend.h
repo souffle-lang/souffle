@@ -37,7 +37,7 @@ namespace souffle::ram {
 class MergeExtend : public BinRelationStatement {
 public:
     MergeExtend(std::string tRef, const std::string& sRef)
-            : BinRelationStatement(NK_MergeExtend, sRef, tRef) {}
+            : BinRelationStatement(NK_MergeExtend, sRef, std::move(tRef)) {}
 
     /** @brief Get source relation */
     const std::string& getSourceRelation() const {

@@ -26,7 +26,7 @@ namespace souffle {
 /** The interface of any Record Table. */
 class RecordTable {
 public:
-    virtual ~RecordTable() {}
+    virtual ~RecordTable() = default;
 
     virtual void setNumLanes(const std::size_t NumLanes) = 0;
 

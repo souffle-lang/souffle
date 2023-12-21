@@ -127,7 +127,7 @@ public:
             NextMaybeUnassignedHandle = That.NextMaybeUnassignedHandle;
         }
 
-        Iterator& operator=(Iterator&& That) {
+        Iterator& operator=(Iterator&& That) noexcept {
             This = That.This;
             Lane = That.Lane;
             Slot = That.Slot;

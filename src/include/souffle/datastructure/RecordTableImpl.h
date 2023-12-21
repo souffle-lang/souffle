@@ -51,7 +51,7 @@ using SpecializedRecord = std::array<RamDomain, Arity>;
 struct GenericRecordView {
     explicit GenericRecordView(const RamDomain* Data, const std::size_t Arity) : Data(Data), Arity(Arity) {}
     GenericRecordView(const GenericRecordView& Other) : Data(Other.Data), Arity(Other.Arity) {}
-    GenericRecordView(GenericRecordView&& Other) : Data(Other.Data), Arity(Other.Arity) {}
+    GenericRecordView(GenericRecordView&& Other) noexcept : Data(Other.Data), Arity(Other.Arity) {}
 
     const RamDomain* const Data;
     const std::size_t Arity;
@@ -70,7 +70,7 @@ template <std::size_t Arity>
 struct SpecializedRecordView {
     explicit SpecializedRecordView(const RamDomain* Data) : Data(Data) {}
     SpecializedRecordView(const SpecializedRecordView& Other) : Data(Other.Data) {}
-    SpecializedRecordView(SpecializedRecordView&& Other) : Data(Other.Data) {}
+    SpecializedRecordView(SpecializedRecordView&& Other) noexcept : Data(Other.Data) {}
 
     const RamDomain* const Data;
 
@@ -88,7 +88,7 @@ struct SpecializedRecordView {
 struct GenericRecordHash {
     explicit GenericRecordHash(const std::size_t Arity) : Arity(Arity) {}
     GenericRecordHash(const GenericRecordHash& Other) : Arity(Other.Arity) {}
-    GenericRecordHash(GenericRecordHash&& Other) : Arity(Other.Arity) {}
+    GenericRecordHash(GenericRecordHash&& Other) noexcept : Arity(Other.Arity) {}
 
     const std::size_t Arity;
     std::hash<RamDomain> domainHash;
@@ -107,7 +107,7 @@ template <std::size_t Arity>
 struct SpecializedRecordHash {
     explicit SpecializedRecordHash() {}
     SpecializedRecordHash(const SpecializedRecordHash& Other) : DomainHash(Other.DomainHash) {}
-    SpecializedRecordHash(SpecializedRecordHash&& Other) : DomainHash(Other.DomainHash) {}
+    SpecializedRecordHash(SpecializedRecordHash&& Other) noexcept : DomainHash(Other.DomainHash) {}
 
     std::hash<RamDomain> DomainHash;
 
@@ -125,7 +125,7 @@ template <>
 struct SpecializedRecordHash<0> {
     explicit SpecializedRecordHash() {}
     SpecializedRecordHash(const SpecializedRecordHash&) {}
-    SpecializedRecordHash(SpecializedRecordHash&&) {}
+    SpecializedRecordHash(SpecializedRecordHash&&) noexcept {}
 
     template <typename T>
     std::size_t operator()(const T&) const {
@@ -137,7 +137,7 @@ struct SpecializedRecordHash<0> {
 struct GenericRecordEqual {
     explicit GenericRecordEqual(const std::size_t Arity) : Arity(Arity) {}
     GenericRecordEqual(const GenericRecordEqual& Other) : Arity(Other.Arity) {}
-    GenericRecordEqual(GenericRecordEqual&& Other) : Arity(Other.Arity) {}
+    GenericRecordEqual(GenericRecordEqual&& Other) noexcept : Arity(Other.Arity) {}
 
     const std::size_t Arity;
 
@@ -151,7 +151,7 @@ template <std::size_t Arity>
 struct SpecializedRecordEqual {
     explicit SpecializedRecordEqual() {}
     SpecializedRecordEqual(const SpecializedRecordEqual&) {}
-    SpecializedRecordEqual(SpecializedRecordEqual&&) {}
+    SpecializedRecordEqual(SpecializedRecordEqual&&) noexcept {}
 
     template <typename T, typename U>
     bool operator()(const T& A, const U& B) const {
@@ -164,7 +164,7 @@ template <>
 struct SpecializedRecordEqual<0> {
     explicit SpecializedRecordEqual() {}
     SpecializedRecordEqual(const SpecializedRecordEqual&) {}
-    SpecializedRecordEqual(SpecializedRecordEqual&&) {}
+    SpecializedRecordEqual(SpecializedRecordEqual&&) noexcept {}
 
     template <typename T, typename U>
     bool operator()(const T&, const U&) const {
@@ -176,7 +176,7 @@ struct SpecializedRecordEqual<0> {
 struct GenericRecordLess {
     explicit GenericRecordLess(const std::size_t Arity) : Arity(Arity) {}
     GenericRecordLess(const GenericRecordLess& Other) : Arity(Other.Arity) {}
-    GenericRecordLess(GenericRecordLess&& Other) : Arity(Other.Arity) {}
+    GenericRecordLess(GenericRecordLess&& Other) noexcept : Arity(Other.Arity) {}
 
     const std::size_t Arity;
 
@@ -190,7 +190,7 @@ template <std::size_t Arity>
 struct SpecializedRecordLess {
     explicit SpecializedRecordLess() {}
     SpecializedRecordLess(const SpecializedRecordLess&) {}
-    SpecializedRecordLess(SpecializedRecordLess&&) {}
+    SpecializedRecordLess(SpecializedRecordLess&&) noexcept {}
 
     template <typename T, typename U>
     bool operator()(const T& A, const U& B) const {
@@ -203,7 +203,7 @@ template <>
 struct SpecializedRecordLess<0> {
     explicit SpecializedRecordLess() {}
     SpecializedRecordLess(const SpecializedRecordLess&) {}
-    SpecializedRecordLess(SpecializedRecordLess&&) {}
+    SpecializedRecordLess(SpecializedRecordLess&&) noexcept {}
 
     template <typename T, typename U>
     bool operator()(const T&, const U&) const {
@@ -215,7 +215,7 @@ struct SpecializedRecordLess<0> {
 struct GenericRecordCmp {
     explicit GenericRecordCmp(const std::size_t Arity) : Arity(Arity) {}
     GenericRecordCmp(const GenericRecordCmp& Other) : Arity(Other.Arity) {}
-    GenericRecordCmp(GenericRecordCmp&& Other) : Arity(Other.Arity) {}
+    GenericRecordCmp(GenericRecordCmp&& Other) noexcept : Arity(Other.Arity) {}
 
     const std::size_t Arity;
 
@@ -229,7 +229,7 @@ template <std::size_t Arity>
 struct SpecializedRecordCmp {
     explicit SpecializedRecordCmp() {}
     SpecializedRecordCmp(const SpecializedRecordCmp&) {}
-    SpecializedRecordCmp(SpecializedRecordCmp&&) {}
+    SpecializedRecordCmp(SpecializedRecordCmp&&) noexcept {}
 
     template <typename T, typename U>
     bool operator()(const T& A, const U& B) const {
@@ -242,7 +242,7 @@ template <>
 struct SpecializedRecordCmp<0> {
     explicit SpecializedRecordCmp() {}
     SpecializedRecordCmp(const SpecializedRecordCmp&) {}
-    SpecializedRecordCmp(SpecializedRecordCmp&&) {}
+    SpecializedRecordCmp(SpecializedRecordCmp&&) noexcept {}
 
     template <typename T, typename U>
     bool operator()(const T&, const U&) const {
@@ -258,7 +258,7 @@ struct GenericRecordFactory {
 
     explicit GenericRecordFactory(const std::size_t Arity) : Arity(Arity) {}
     GenericRecordFactory(const GenericRecordFactory& Other) : Arity(Other.Arity) {}
-    GenericRecordFactory(GenericRecordFactory&& Other) : Arity(Other.Arity) {}
+    GenericRecordFactory(GenericRecordFactory&& Other) noexcept : Arity(Other.Arity) {}
 
     const std::size_t Arity;
 
@@ -289,7 +289,7 @@ struct SpecializedRecordFactory {
 
     explicit SpecializedRecordFactory() {}
     SpecializedRecordFactory(const SpecializedRecordFactory&) {}
-    SpecializedRecordFactory(SpecializedRecordFactory&&) {}
+    SpecializedRecordFactory(SpecializedRecordFactory&&) noexcept {}
 
     reference replace(reference Place, const SpecializedRecord<Arity>& V) {
         assert(V.size() == Arity);
@@ -318,7 +318,7 @@ struct SpecializedRecordFactory<0> {
 
     explicit SpecializedRecordFactory() {}
     SpecializedRecordFactory(const SpecializedRecordFactory&) {}
-    SpecializedRecordFactory(SpecializedRecordFactory&&) {}
+    SpecializedRecordFactory(SpecializedRecordFactory&&) noexcept {}
 
     reference replace(reference Place, const SpecializedRecord<0>&) {
         return Place;
@@ -338,7 +338,7 @@ struct SpecializedRecordFactory<0> {
 /** @brief Interface of bidirectional mappping between records and record references. */
 class RecordMap {
 public:
-    virtual ~RecordMap() {}
+    virtual ~RecordMap() = default;
     virtual void setNumLanes(const std::size_t NumLanes) = 0;
     virtual RamDomain pack(const std::vector<RamDomain>& Vector) = 0;
     virtual RamDomain pack(const RamDomain* Tuple) = 0;
@@ -361,7 +361,7 @@ public:
                       details::GenericRecordFactory(arity)),
               Arity(arity) {}
 
-    virtual ~GenericRecordMap() {}
+    virtual ~GenericRecordMap() = default;
 
     void setNumLanes(const std::size_t NumLanes) override {
         Base::setNumLanes(NumLanes);
@@ -407,7 +407,7 @@ public:
     SpecializedRecordMap(const std::size_t LaneCount)
             : Base(LaneCount, 8, true, RecordHash(), RecordEqual(), RecordFactory()) {}
 
-    virtual ~SpecializedRecordMap() {}
+    virtual ~SpecializedRecordMap() = default;
 
     void setNumLanes(const std::size_t NumLanes) override {
         Base::setNumLanes(NumLanes);
@@ -453,7 +453,7 @@ class SpecializedRecordMap<0> : public RecordMap {
 public:
     SpecializedRecordMap(const std::size_t /* LaneCount */) {}
 
-    virtual ~SpecializedRecordMap() {}
+    virtual ~SpecializedRecordMap() = default;
 
     void setNumLanes(const std::size_t) override {}
 

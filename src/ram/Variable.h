@@ -32,10 +32,10 @@ namespace souffle::ram {
  */
 class Variable : public Expression {
 public:
-    explicit Variable(const std::string name) : Expression(NK_Variable), name(name) {}
+    explicit Variable(std::string name) : Expression(NK_Variable), name(std::move(name)) {}
 
     /** @brief Get value of the constant. */
-    const std::string getName() const {
+    const std::string& getName() const {
         return name;
     }
 

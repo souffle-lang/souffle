@@ -941,7 +941,7 @@ public:
 class Call : public Node {
 public:
     Call(enum NodeType ty, const ram::Node* sdw, std::string subroutineName)
-            : Node(ty, sdw), subroutineName(subroutineName) {}
+            : Node(ty, sdw), subroutineName(std::move(subroutineName)) {}
 
     const std::string& getSubroutineName() const {
         return subroutineName;

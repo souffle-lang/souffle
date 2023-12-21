@@ -49,7 +49,7 @@ class Aggregate : public RelationOperation, public AbstractAggregate {
 public:
     Aggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
             Own<Condition> condition, std::size_t ident)
-            : Aggregate(NK_Aggregate, std::move(nested), std::move(fun), rel, std::move(expression),
+            : Aggregate(NK_Aggregate, std::move(nested), std::move(fun), std::move(rel), std::move(expression),
                       std::move(condition), ident) {}
 
     ~Aggregate() override = default;
@@ -74,7 +74,7 @@ public:
 protected:
     Aggregate(NodeKind kind, Own<Operation> nested, Own<Aggregator> fun, std::string rel,
             Own<Expression> expression, Own<Condition> condition, std::size_t ident)
-            : RelationOperation(kind, rel, ident, std::move(nested)),
+            : RelationOperation(kind, std::move(rel), ident, std::move(nested)),
               AbstractAggregate(std::move(fun), std::move(expression), std::move(condition)) {
         assert(kind >= NK_Aggregate && kind < NK_LastAggregate);
     }

@@ -596,7 +596,7 @@ public:
     LambdaBTreeSet(const LambdaBTreeSet& other) : super(other) {}
 
     // A move constructor.
-    LambdaBTreeSet(LambdaBTreeSet&& other) : super(std::move(other)) {}
+    LambdaBTreeSet(LambdaBTreeSet&& other) noexcept : super(std::move(other)) {}
 
 private:
     // A constructor required by the bulk-load facility.

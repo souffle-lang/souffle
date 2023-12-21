@@ -43,7 +43,7 @@ namespace souffle::ram {
 class Scan : public RelationOperation {
 public:
     Scan(std::string rel, std::size_t ident, Own<Operation> nested, std::string profileText = "")
-            : Scan(NK_Scan, rel, ident, std::move(nested), std::move(profileText)) {}
+            : Scan(NK_Scan, std::move(rel), ident, std::move(nested), std::move(profileText)) {}
 
     Scan* cloning() const override {
         return new Scan(NK_Scan, relation, getTupleId(), clone(getOperation()), getProfileText());
@@ -57,7 +57,7 @@ public:
 protected:
     Scan(NodeKind kind, std::string rel, std::size_t ident, Own<Operation> nested,
             std::string profileText = "")
-            : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)) {
+            : RelationOperation(kind, std::move(rel), ident, std::move(nested), std::move(profileText)) {
         assert(kind >= NK_Scan && kind < NK_LastScan);
     }
 

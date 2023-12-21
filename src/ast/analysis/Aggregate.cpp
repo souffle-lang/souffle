@@ -105,7 +105,7 @@ std::set<std::string> getWitnessVariables(
     M update;
     aggregatorlessClause->apply(update);
     auto groundingAtom = mk<Atom>(QualifiedName::fromString("+grounding_atom"));
-    for (std::string variableName : update.getAggregatorVariables()) {
+    for (const std::string& variableName : update.getAggregatorVariables()) {
         groundingAtom->addArgument(mk<Variable>(variableName));
     }
     aggregatorlessClause->addToBody(std::move(groundingAtom));
@@ -163,7 +163,7 @@ std::set<std::string> getVariablesOutsideAggregate(const Clause& clause, const A
     return variablesOutsideAggregate;
 }
 
-std::string findUniqueVariableName(const Clause& clause, std::string base) {
+std::string findUniqueVariableName(const Clause& clause, const std::string& base) {
     std::set<std::string> variablesInClause;
     visit(clause, [&](const Variable& v) { variablesInClause.insert(v.getName()); });
     int varNum = 0;
@@ -174,7 +174,7 @@ std::string findUniqueVariableName(const Clause& clause, std::string base) {
     return candidate;
 }
 
-std::string findUniqueRelationName(const Program& program, std::string base) {
+std::string findUniqueRelationName(const Program& program, const std::string& base) {
     int counter = 0;
     auto candidate = base;
     while (program.getRelation(QualifiedName::fromString(candidate)) != nullptr) {
@@ -331,7 +331,7 @@ std::set<std::string> getInjectedVariables(
     tweakedClause->apply(update);
     // the update will now tell us which variables we need to ground!
     auto groundingAtom = mk<Atom>(QualifiedName::fromString("+grounding_atom"));
-    for (std::string variableName : update.getAggregatorVariables()) {
+    for (const std::string& variableName : update.getAggregatorVariables()) {
         groundingAtom->addArgument(mk<Variable>(variableName));
     }
     // add the newly created grounding atom to the body

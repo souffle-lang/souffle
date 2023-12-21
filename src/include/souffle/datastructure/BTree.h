@@ -207,7 +207,7 @@ protected:
             }
 
             // copy child nodes recursively
-            auto* ires = (inner_node*)res;
+            auto* ires = static_cast<inner_node*>(res);
             for (size_type i = 0; i <= this->numElements; ++i) {
                 ires->children[i] = this->getChild(i)->clone();
                 ires->children[i]->parent = res;
@@ -634,7 +634,7 @@ protected:
             }
 
             // move bigger keys one forward
-            for (int i = static_cast<int>(this->numElements) - 1; i >= (int)pos; --i) {
+            for (int i = static_cast<int>(this->numElements) - 1; i >= static_cast<int>(pos); --i) {
                 keys[i + 1] = keys[i];
                 getChildren()[i + 2] = getChildren()[i + 1];
                 ++getChildren()[i + 2]->position;
@@ -660,7 +660,7 @@ protected:
          */
         void printTree(std::ostream& out, const std::string& prefix) const {
             // print the header
-            out << prefix << "@" << this << "[" << ((int)(this->position)) << "] - "
+            out << prefix << "@" << this << "[" << static_cast<int>(this->position) << "] - "
                 << (this->inner ? "i" : "") << "node : " << this->numElements << "/" << maxKeys << " [";
 
             // print the keys
@@ -806,7 +806,7 @@ protected:
                         std::cout << "Parent reference invalid!\n";
                         std::cout << "   Node:     " << this << "\n";
                         std::cout << "   Parent:   " << this->parent << "\n";
-                        std::cout << "   Position: " << ((int)this->position) << "\n";
+                        std::cout << "   Position: " << static_cast<int>(this->position) << "\n";
                         valid = false;
                     }
 
@@ -816,7 +816,7 @@ protected:
                         std::cout << "Left parent key not lower bound!\n";
                         std::cout << "   Node:     " << this << "\n";
                         std::cout << "   Parent:   " << this->parent << "\n";
-                        std::cout << "   Position: " << ((int)this->position) << "\n";
+                        std::cout << "   Position: " << static_cast<int>(this->position) << "\n";
                         std::cout << "   Key:   " << (this->parent->keys[this->position]) << "\n";
                         std::cout << "   Lower: " << (keys[0]) << "\n";
                         valid = false;
@@ -829,7 +829,7 @@ protected:
                         std::cout << "Right parent key not lower bound!\n";
                         std::cout << "   Node:     " << this << "\n";
                         std::cout << "   Parent:   " << this->parent << "\n";
-                        std::cout << "   Position: " << ((int)this->position) << "\n";
+                        std::cout << "   Position: " << static_cast<int>(this->position) << "\n";
                         std::cout << "   Key:   " << (this->parent->keys[this->position]) << "\n";
                         std::cout << "   Upper: " << (keys[0]) << "\n";
                         valid = false;
@@ -982,7 +982,7 @@ public:
 
         // prints a textual representation of this iterator to the given stream (mainly for debugging)
         void print(std::ostream& out = std::cout) const {
-            out << cur << "[" << (int)pos << "]";
+            out << cur << "[" << static_cast<int>(pos) << "]";
         }
     };
 
@@ -1075,7 +1075,7 @@ public:
     }
 
     // a move constructor
-    btree(btree&& other)
+    btree(btree&& other) noexcept
             : comp(other.comp), weak_comp(other.weak_comp), root(other.root), leftmost(other.leftmost) {
         other.root = nullptr;
         other.leftmost = nullptr;
@@ -1360,7 +1360,7 @@ public:
                 }
 
                 // insert element in right fragment
-                if (((size_type)idx) > cur->numElements) {
+                if (static_cast<size_type>(idx) > cur->numElements) {
                     // release current lock
                     cur->lock.end_write();
 
@@ -1858,8 +1858,8 @@ public:
         out << "  Size of leaf node:  " << sizeof(leaf_node) << "\n";
         out << "  Size of Key:        " << sizeof(Key) << "\n";
         out << "  max keys / node:  " << node::maxKeys << "\n";
-        out << "  avg keys / node:  " << (size() / (double)nodes) << "\n";
-        out << "  avg filling rate: " << ((size() / (double)nodes) / node::maxKeys) << "\n";
+        out << "  avg keys / node:  " << (size() / static_cast<double>(nodes)) << "\n";
+        out << "  avg filling rate: " << ((size() / static_cast<double>(nodes)) / node::maxKeys) << "\n";
         out << " ---------------------------------\n";
         out << "  insert-hint (hits/misses/total): " << hint_stats.inserts.getHits() << "/"
             << hint_stats.inserts.getMisses() << "/" << hint_stats.inserts.getAccesses() << "\n";
@@ -2061,7 +2061,7 @@ public:
     btree_set(const btree_set& other) : super(other) {}
 
     // A move constructor.
-    btree_set(btree_set&& other) : super(std::move(other)) {}
+    btree_set(btree_set&& other) noexcept : super(std::move(other)) {}
 
 private:
     // A constructor required by the bulk-load facility.
@@ -2123,7 +2123,7 @@ public:
     btree_multiset(const btree_multiset& other) : super(other) {}
 
     // A move constructor.
-    btree_multiset(btree_multiset&& other) : super(std::move(other)) {}
+    btree_multiset(btree_multiset&& other) noexcept : super(std::move(other)) {}
 
 private:
     // A constructor required by the bulk-load facility.

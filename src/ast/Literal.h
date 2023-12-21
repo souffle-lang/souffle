@@ -31,7 +31,7 @@ class Literal : public Node {
 public:
     using Node::Node;
 
-    explicit Literal(NodeKind kind, SrcLocation loc = {}) : Node(kind, loc) {
+    explicit Literal(NodeKind kind, SrcLocation loc = {}) : Node(kind, std::move(loc)) {
         assert(kind >= NK_Literal && kind < NK_LastLiteral);
     }
 

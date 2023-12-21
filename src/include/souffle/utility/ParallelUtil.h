@@ -137,7 +137,7 @@ namespace souffle {
 
 struct SeqConcurrentLanes {
     struct TrivialLock {
-        ~TrivialLock() {}
+        ~TrivialLock() = default;
     };
 
     using lane_id = std::size_t;
@@ -147,7 +147,7 @@ struct SeqConcurrentLanes {
     SeqConcurrentLanes(const SeqConcurrentLanes&) = delete;
     SeqConcurrentLanes(SeqConcurrentLanes&&) = delete;
 
-    virtual ~SeqConcurrentLanes() {}
+    virtual ~SeqConcurrentLanes() = default;
 
     std::size_t lanes() const {
         return 1;
@@ -198,7 +198,7 @@ public:
         Lease(std::mutex& mux) : mux(&mux) {
             mux.lock();
         }
-        Lease(Lease&& other) : mux(other.mux) {
+        Lease(Lease&& other) noexcept : mux(other.mux) {
             other.mux = nullptr;
         }
         Lease(const Lease& other) = delete;
@@ -554,7 +554,7 @@ struct MutexConcurrentLanes {
     MutexConcurrentLanes(const MutexConcurrentLanes&) = delete;
     MutexConcurrentLanes(MutexConcurrentLanes&&) = delete;
 
-    virtual ~MutexConcurrentLanes() {}
+    virtual ~MutexConcurrentLanes() = default;
 
     // Return the number of lanes.
     std::size_t lanes() const {
@@ -565,9 +565,8 @@ struct MutexConcurrentLanes {
     lane_id getLane(std::size_t I) const {
         if (Attribution == lane_attribution::mod_power_of_2) {
             return I & (Size - 1);
-        } else {
-            return I % Size;
         }
+        return I % Size;
     }
 
     /** Change the number of lanes.
@@ -654,9 +653,8 @@ private:
         if ((Sz & (Sz - 1)) == 0) {
             // Sz is a power of 2
             return lane_attribution::mod_power_of_2;
-        } else {
-            return lane_attribution::mod_other;
         }
+        return lane_attribution::mod_other;
     }
 
 protected:
