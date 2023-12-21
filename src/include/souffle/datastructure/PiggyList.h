@@ -16,7 +16,11 @@
  */
 #if defined(_MSC_VER)
 int __inline __builtin_clzll(unsigned long long value) {
+#if _WIN64
     return static_cast<int>(__lzcnt64(value));
+#else
+    return static_cast<int>(__lzcnt(value));
+#endif
 }
 #endif  // _MSC_VER
 #endif  // _WIN32
