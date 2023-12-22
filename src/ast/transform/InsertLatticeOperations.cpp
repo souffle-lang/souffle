@@ -187,7 +187,7 @@ RuleBody LatticeTransformer::translateNegatedAtom(ast::Atom& atom) {
 
 bool LatticeTransformer::translateClause(
         TranslationUnit& translationUnit, ErrorReport& report, ast::Clause* clause) {
-    bool changed;
+    bool changed = false;
 
     // Set of atoms that are negated in the clause body and contain lattice arguments
     std::set<const ast::Atom*> negatedLatticeAtoms;
