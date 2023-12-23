@@ -49,8 +49,8 @@ class Aggregate : public RelationOperation, public AbstractAggregate {
 public:
     Aggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
             Own<Condition> condition, std::size_t ident)
-            : Aggregate(NK_Aggregate, std::move(nested), std::move(fun), std::move(rel), std::move(expression),
-                      std::move(condition), ident) {}
+            : Aggregate(NK_Aggregate, std::move(nested), std::move(fun), std::move(rel),
+                      std::move(expression), std::move(condition), ident) {}
 
     ~Aggregate() override = default;
 

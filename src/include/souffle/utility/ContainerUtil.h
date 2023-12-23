@@ -93,7 +93,7 @@ typename C::mapped_type const& getOr(
     if (it != container.end()) {
         return it->second;
     }
-    
+
     return defaultValue;
 }
 

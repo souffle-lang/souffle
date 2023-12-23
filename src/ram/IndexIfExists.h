@@ -89,8 +89,8 @@ public:
 protected:
     IndexIfExists(NodeKind kind, std::string rel, std::size_t ident, Own<Condition> cond,
             RamPattern queryPattern, Own<Operation> nested, std::string profileText = "")
-            : IndexOperation(
-                      kind, std::move(rel), ident, std::move(queryPattern), std::move(nested), std::move(profileText)),
+            : IndexOperation(kind, std::move(rel), ident, std::move(queryPattern), std::move(nested),
+                      std::move(profileText)),
               AbstractIfExists(std::move(cond)) {
         assert(getRangePattern().first.size() == getRangePattern().second.size() && "Arity mismatch");
         assert(kind >= NK_IndexIfExists && kind < NK_LastIndexIfExists);
