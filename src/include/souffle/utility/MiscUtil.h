@@ -47,7 +47,11 @@
  * windows equivalents.  However ctz is used in a constexpr context, and we can't
  * use BitScanForward, so we implement it ourselves.
  */
+#if _WIN64
 #define __builtin_popcountll __popcnt64
+#else
+#define __builtin_popcountll __popcnt
+#endif
 
 #if defined(_MSC_VER)
 // return the number of trailing zeroes in value, or 32 if value is zero.
@@ -74,7 +78,11 @@ inline constexpr int __builtin_ctzll_constexpr(unsigned long long value) {
 inline int __builtin_ctzll(unsigned long long value) {
     unsigned long trailing_zeroes = 0;
 
+#if _WIN64
     if (_BitScanForward64(&trailing_zeroes, value)) {
+#else
+    if (_BitScanForward(&trailing_zeroes, value)) {
+#endif
         return static_cast<int>(trailing_zeroes);
     } else {
         return 64;  // return 64 like GCC would when value == 0
