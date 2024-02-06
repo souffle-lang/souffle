@@ -42,7 +42,7 @@ void Lattice::setQualifiedName(QualifiedName name) {
     this->name = std::move(name);
 }
 
-const std::map<LatticeOperator, const ast::Argument*> Lattice::getOperators() const {
+std::map<LatticeOperator, const ast::Argument*> Lattice::getOperators() const {
     std::map<LatticeOperator, const ast::Argument*> ops;
     for (const auto& [op, arg] : operators) {
         ops.emplace(std::make_pair(op, arg.get()));

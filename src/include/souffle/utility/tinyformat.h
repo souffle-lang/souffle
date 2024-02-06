@@ -606,13 +606,12 @@ inline bool parseWidthOrPrecision(int& n, const char*& c, bool positionalMode,
 // returned, or the end of string.
 inline const char* printFormatStringLiteral(std::ostream& out, const char* fmt)
 {
-    const char* c = fmt;
-    for (;; ++c) {
+    for (const char* c = fmt;; ++c) {
         if (*c == '\0') {
             out.write(fmt, c - fmt);
             return c;
         }
-        else if (*c == '%') {
+        if (*c == '%') {
             out.write(fmt, c - fmt);
             if (*(c+1) != '%')
                 return c;

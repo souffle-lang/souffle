@@ -157,7 +157,9 @@ inline std::string which(const std::string& name) {
 
     // Check for existence of a binary called 'name' in PATH
     while (std::getline(sstr, sub, PATHdelimiter)) {
-        std::string path = sub + pathSeparator + name;
+        std::string path = sub;
+        path += pathSeparator;
+        path += name;
         if ((::realpath(path.c_str(), buf) != nullptr) && isExecutable(path) && !existDir(path)) {
             return buf;
         }
@@ -286,19 +288,18 @@ inline std::string simpleName(const std::string& path) {
  * File extension, with all else removed.
  */
 inline std::string fileExtension(const std::string& path) {
-    std::string name = path;
-    const std::size_t lastDot = name.find_last_of('.');
+    const std::size_t lastDot = path.find_last_of('.');
     // file has no extension
     if (lastDot == std::string::npos) {
         return std::string();
     }
-    const std::size_t lastSlash = name.find_last_of(pathSeparator);
+    const std::size_t lastSlash = path.find_last_of(pathSeparator);
     // last slash occurs after last dot, so no extension
     if (lastSlash != std::string::npos && lastSlash > lastDot) {
         return std::string();
     }
     // last dot after last slash, or no slash
-    return name.substr(lastDot + 1);
+    return path.substr(lastDot + 1);
 }
 
 /**

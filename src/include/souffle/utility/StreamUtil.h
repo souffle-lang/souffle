@@ -47,11 +47,11 @@ namespace souffle {
 // NOTE:        `char`, `signed char`, and `unsigned char` are distinct types.
 namespace stream_write_qualified_char_as_number {
 inline std::ostream& operator<<(std::ostream& os, signed char c) {
-    return os << int(c);
+    return os << static_cast<int>(c);
 }
 
 inline std::ostream& operator<<(std::ostream& os, unsigned char c) {
-    return os << unsigned(c);
+    return os << static_cast<unsigned>(c);
 }
 }  // namespace stream_write_qualified_char_as_number
 

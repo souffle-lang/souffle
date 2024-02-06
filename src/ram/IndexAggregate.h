@@ -47,8 +47,8 @@ class IndexAggregate : public IndexOperation, public AbstractAggregate {
 public:
     IndexAggregate(Own<Operation> nested, Own<Aggregator> fun, std::string rel, Own<Expression> expression,
             Own<Condition> condition, RamPattern queryPattern, std::size_t ident)
-            : IndexAggregate(NK_IndexAggregate, std::move(nested), std::move(fun), rel, std::move(expression),
-                      std::move(condition), std::move(queryPattern), ident) {}
+            : IndexAggregate(NK_IndexAggregate, std::move(nested), std::move(fun), std::move(rel),
+                      std::move(expression), std::move(condition), std::move(queryPattern), ident) {}
 
     IndexAggregate* cloning() const override {
         RamPattern pattern;
@@ -77,7 +77,7 @@ public:
 protected:
     IndexAggregate(NodeKind kind, Own<Operation> nested, Own<Aggregator> fun, std::string rel,
             Own<Expression> expression, Own<Condition> condition, RamPattern queryPattern, std::size_t ident)
-            : IndexOperation(kind, rel, ident, std::move(queryPattern), std::move(nested)),
+            : IndexOperation(kind, std::move(rel), ident, std::move(queryPattern), std::move(nested)),
               AbstractAggregate(std::move(fun), std::move(expression), std::move(condition)) {
         assert(kind >= NK_IndexAggregate && kind < NK_LastIndexAggregate);
     }

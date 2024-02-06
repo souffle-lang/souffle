@@ -42,7 +42,7 @@ void ValueIndex::addVarReference(std::string varName, const Location& l) {
 }
 
 void ValueIndex::addVarReference(std::string varName, std::size_t ident, std::size_t pos) {
-    addVarReference(varName, Location({ident, pos}));
+    addVarReference(std::move(varName), Location({ident, pos}));
 }
 
 bool ValueIndex::isDefined(const std::string& varName) const {

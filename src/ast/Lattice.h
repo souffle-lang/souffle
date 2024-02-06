@@ -47,7 +47,7 @@ public:
     /** Set type name */
     void setQualifiedName(QualifiedName name);
 
-    const std::map<LatticeOperator, const ast::Argument*> getOperators() const;
+    std::map<LatticeOperator, const ast::Argument*> getOperators() const;
 
     bool hasGlb() const;
     bool hasLub() const;

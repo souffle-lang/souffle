@@ -50,7 +50,7 @@ class EstimateJoinSize : public RelationStatement {
 public:
     EstimateJoinSize(std::string rel, const std::set<std::size_t>& columns,
             const std::map<std::size_t, const ram::Expression*>& keyToConstants, bool isRecursive)
-            : RelationStatement(NK_EstimateJoinSize, rel), keyColumns(columns),
+            : RelationStatement(NK_EstimateJoinSize, std::move(rel)), keyColumns(columns),
               recursiveRelation(isRecursive) {
         // copy the constants over
         for (auto [k, constant] : keyToConstants) {

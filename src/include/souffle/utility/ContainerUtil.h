@@ -92,9 +92,9 @@ typename C::mapped_type const& getOr(
 
     if (it != container.end()) {
         return it->second;
-    } else {
-        return defaultValue;
     }
+
+    return defaultValue;
 }
 
 /**
@@ -258,7 +258,7 @@ bool equal_targets_map(const std::map<Key, Value, Cmp>& a, const std::map<Key, V
 // -------------------------------------------------------------------------------
 template <typename R>
 bool allValidPtrs(R const& range) {
-    return std::all_of(range.begin(), range.end(), [](auto&& p) { return (bool)p; });
+    return std::all_of(range.begin(), range.end(), [](auto&& p) { return static_cast<bool>(p); });
 }
 
 }  // namespace souffle

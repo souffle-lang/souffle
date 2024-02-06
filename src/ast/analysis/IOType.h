@@ -60,8 +60,8 @@ public:
         auto iter = limitSize.find(relation);
         if (iter != limitSize.end()) {
             return (*iter).second;
-        } else
-            return 0;
+        }
+        return 0;
     }
 
     bool isIO(const Relation* relation) const {

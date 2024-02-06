@@ -49,7 +49,7 @@ class IndexScan : public IndexOperation {
 public:
     IndexScan(std::string rel, std::size_t ident, RamPattern queryPattern, Own<Operation> nested,
             std::string profileText = "")
-            : IndexScan(NK_IndexScan, rel, ident, std::move(queryPattern), std::move(nested),
+            : IndexScan(NK_IndexScan, std::move(rel), ident, std::move(queryPattern), std::move(nested),
                       std::move(profileText)) {}
 
     IndexScan* cloning() const override {
@@ -72,8 +72,8 @@ public:
 protected:
     IndexScan(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
-            : IndexOperation(
-                      kind, rel, ident, std::move(queryPattern), std::move(nested), std::move(profileText)) {
+            : IndexOperation(kind, std::move(rel), ident, std::move(queryPattern), std::move(nested),
+                      std::move(profileText)) {
         assert(kind >= NK_IndexScan && kind < NK_LastIndexScan);
     }
 

@@ -123,7 +123,7 @@ struct identity {
 template <typename T>
 struct default_merge {
     /**
-     * Merges two values a and b when merging spase maps.
+     * Merges two values a and b when merging sparse maps.
      */
     T operator()(T a, T b) const {
         default_factory<T> def;
@@ -421,7 +421,7 @@ public:
      * takes over ownership of the structure maintained by the
      * handed in array.
      */
-    SparseArray(SparseArray&& other)
+    SparseArray(SparseArray&& other) noexcept
             : unsynced(RootInfo{other.unsynced.root, other.unsynced.levels, other.unsynced.offset,
                       other.unsynced.first, other.unsynced.firstOffset}) {
         other.unsynced.root = nullptr;
@@ -466,7 +466,7 @@ public:
      * An assignment operation taking over ownership
      * from a r-value reference to a sparse array.
      */
-    SparseArray& operator=(SparseArray&& other) {
+    SparseArray& operator=(SparseArray&& other) noexcept {
         // clean this one
         clean();
 

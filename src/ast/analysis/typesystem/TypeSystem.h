@@ -311,8 +311,8 @@ public:
 
 protected:
     RecordType(const TypeEnvironment& environment, const QualifiedName& name,
-            const std::vector<const Type*> fields = {})
-            : Type(TK_RecordType, environment, name), fields(fields) {}
+            std::vector<const Type*> fields = {})
+            : Type(TK_RecordType, environment, name), fields(std::move(fields)) {}
 
 private:
     friend class TypeEnvironment;

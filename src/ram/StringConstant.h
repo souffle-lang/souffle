@@ -31,7 +31,7 @@ namespace souffle::ram {
  */
 class StringConstant : public Expression {
 public:
-    StringConstant(std::string constant) : Expression(NK_StringConstant), constant(constant) {}
+    StringConstant(std::string constant) : Expression(NK_StringConstant), constant(std::move(constant)) {}
 
     /** @brief Get constant */
     const std::string& getConstant() const {

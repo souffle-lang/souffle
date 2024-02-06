@@ -133,7 +133,7 @@ public:
 protected:
     IndexOperation(NodeKind kind, std::string rel, std::size_t ident, RamPattern queryPattern,
             Own<Operation> nested, std::string profileText = "")
-            : RelationOperation(kind, rel, ident, std::move(nested), std::move(profileText)),
+            : RelationOperation(kind, std::move(rel), ident, std::move(nested), std::move(profileText)),
               queryPattern(std::move(queryPattern)) {
         assert(queryPattern.first.size() == queryPattern.second.size() && "Arity mismatch");
         assert(allValidPtrs(queryPattern.first));

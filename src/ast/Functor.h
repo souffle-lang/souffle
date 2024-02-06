@@ -29,7 +29,7 @@ class Functor : public Term {
 protected:
     using Term::Term;
 
-    Functor(NodeKind kind, SrcLocation loc = {}) : Term(kind, loc) {
+    Functor(NodeKind kind, SrcLocation loc = {}) : Term(kind, std::move(loc)) {
         assert(kind > NK_FirstFunctor && kind < NK_LastFunctor);
     }
 

@@ -95,7 +95,7 @@ public:
 
     class Node {
     public:
-        virtual ~Node() {}
+        virtual ~Node() = default;
         virtual const value_type& value() const = 0;
         virtual const key_type& key() const = 0;
         virtual const mapped_type& mapped() const = 0;
@@ -104,7 +104,7 @@ public:
 private:
     // Each bucket of the hash-map is a linked list.
     struct BucketList : Node {
-        virtual ~BucketList() {}
+        virtual ~BucketList() = default;
 
         BucketList(const Key& K, const T& V, BucketList* N) : Value(K, V), Next(N) {}
 

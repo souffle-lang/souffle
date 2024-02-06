@@ -63,7 +63,7 @@ struct IncludeStack {
     explicit IncludeStack(std::shared_ptr<IncludeStack> parent, Point includePos,
             const std::filesystem::path& physical, const std::string& reported,
             bool reducedConsecutiveNonLeadingWhitespaces = false)
-            : ParentStack(parent), IncludePos(includePos), Physical(physical), Reported(reported),
+            : ParentStack(std::move(parent)), IncludePos(includePos), Physical(physical), Reported(reported),
               ReducedConsecutiveNonLeadingWhitespaces(reducedConsecutiveNonLeadingWhitespaces) {}
 
     /** The parent file. */
@@ -126,7 +126,7 @@ public:
 
 /** Information struct for scanner */
 struct ScannerInfo {
-    ScannerInfo(std::shared_ptr<FileSystem> fs) : FS(fs) {}
+    ScannerInfo(std::shared_ptr<FileSystem> fs) : FS(std::move(fs)) {}
 
     /** Scanner's current location */
     SrcLocation yylloc;

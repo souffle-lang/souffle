@@ -50,12 +50,12 @@ std::set<std::string> getVariablesOutsideAggregate(const Clause& clause, const A
  *  Find a new relation name. I use this when I create new relations either for
  *  aggregate bodies or singleton aggregates.
  **/
-std::string findUniqueRelationName(const Program& program, std::string base);
+std::string findUniqueRelationName(const Program& program, const std::string& base);
 /**
  * Find a variable name using base to form a string like base1
  * Use this when you need to limit the scope of a variable to the inside of an aggregate.
  **/
-std::string findUniqueVariableName(const Clause& clause, std::string base);
+std::string findUniqueVariableName(const Clause& clause, const std::string& base);
 /**
  *  Given an aggregate and a clause, we find all the variables that have been
  *  injected into the aggregate.

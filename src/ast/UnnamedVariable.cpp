@@ -11,7 +11,7 @@
 
 namespace souffle::ast {
 
-UnnamedVariable::UnnamedVariable(SrcLocation loc) : Argument(NK_UnnamedVariable, loc) {}
+UnnamedVariable::UnnamedVariable(SrcLocation loc) : Argument(NK_UnnamedVariable, std::move(loc)) {}
 
 void UnnamedVariable::print(std::ostream& os) const {
     os << "_";
