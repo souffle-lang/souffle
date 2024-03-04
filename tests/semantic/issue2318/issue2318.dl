@@ -1,0 +1,17 @@
+.decl sewi(A:symbol)
+.decl rlqm(C:symbol, E:symbol) inline
+.decl icpa(C:symbol) no_inline
+
+sewi("E").
+
+rlqm(G, G) :- sewi(G).
+//
+// interpretation:
+// - do not inline any atom in clauses of relations marked `no_inline`.
+// - inline atoms of relations marked `inline`, except in clauses of relations marked `no_inline`.
+//
+// `icpa` is marked `no_inline`, so `rlqm` is not inlined here to honor `no_inline`.
+//
+icpa(H) :- rlqm(H, H).
+
+.output icpa

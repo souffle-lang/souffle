@@ -61,6 +61,8 @@
 
 namespace souffle::ast::transform {
 
+namespace {
+
 using ExcludedRelations = InlineRelationsTransformer::ExcludedRelations;
 
 template <class T>
@@ -1027,6 +1029,15 @@ std::vector<Clause*> getInlinedClause(Program& program, const Clause& clause) {
     }
 }
 
+bool removeInlineMark(Program& program) {
+    bool changed = false;
+    for (Relation* rel : program.getRelations()) {
+        changed |= rel->removeQualifier(RelationQualifier::INLINE);
+    }
+    return changed;
+}
+}  // namespace
+
 ExcludedRelations InlineRelationsTransformer::excluded(Global& glb) {
     ExcludedRelations xs;
     auto addAll = [&](const std::string& name) {
@@ -1084,6 +1095,9 @@ bool InlineRelationsTransformer::transform(TranslationUnit& translationUnit) {
             }
         }
     }
+
+    // remove the inline mark from all relations, so that they can be used by clauses of `no_inline` relations
+    changed |= removeInlineMark(program);
 
     return changed;
 }
