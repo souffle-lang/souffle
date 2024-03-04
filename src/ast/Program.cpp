@@ -337,17 +337,14 @@ bool Program::classof(const Node* n) {
 }
 
 bool Program::equal(const Node& node) const {
-  const auto& other = asAssert<Program>(node);
-  // strict ordered comparisons of vectors
-  return equal_targets(types, other.types) &&
-    equal_targets(lattices, other.lattices) &&
-    equal_targets(functors, other.functors) &&
-    equal_targets(components, other.components) &&
-    equal_targets(instantiations, other.instantiations) &&
-    equal_targets(pragmas, other.pragmas) &&
-    equal_targets(getClauses(), other.getClauses()) &&
-    equal_targets(getRelations(), other.getRelations()) &&
-    equal_targets(getDirectives(), other.getDirectives());
+    const auto& other = asAssert<Program>(node);
+    // strict ordered comparisons of vectors
+    return equal_targets(types, other.types) && equal_targets(lattices, other.lattices) &&
+           equal_targets(functors, other.functors) && equal_targets(components, other.components) &&
+           equal_targets(instantiations, other.instantiations) && equal_targets(pragmas, other.pragmas) &&
+           equal_targets(getClauses(), other.getClauses()) &&
+           equal_targets(getRelations(), other.getRelations()) &&
+           equal_targets(getDirectives(), other.getDirectives());
 }
 
 }  // namespace souffle::ast
