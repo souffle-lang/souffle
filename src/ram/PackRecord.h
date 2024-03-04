@@ -44,6 +44,10 @@ public:
         return toPtrVector(arguments);
     }
 
+    std::size_t getNumArgs() const {
+        return arguments.size();
+    }
+
     PackRecord* cloning() const override {
         auto* res = new PackRecord({});
         for (auto& cur : arguments) {

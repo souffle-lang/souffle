@@ -38,6 +38,10 @@ public:
         return toPtrVector(arguments);
     }
 
+    std::size_t getNumArgs() const {
+        return arguments.size();
+    }
+
     void apply(const NodeMapper& map) override {
         for (auto& arg : arguments) {
             arg = map(std::move(arg));

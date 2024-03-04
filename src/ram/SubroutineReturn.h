@@ -50,6 +50,10 @@ public:
         return toPtrVector(expressions);
     }
 
+    std::size_t getNumValues() const {
+        return expressions.size();
+    }
+
     SubroutineReturn* cloning() const override {
         VecOwn<Expression> newValues;
         for (auto& expr : expressions) {
