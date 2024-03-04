@@ -159,6 +159,7 @@ bool Component::equal(const Node& node) const {
             equal_targets(relations, other.relations) &&
             equal_targets(clauses, other.clauses) &&
             equal_targets(directives, other.directives) &&
+            equal_targets(lattices, other.lattices) &&
             overrideRules != other.overrideRules);
            // clang-format off
 }
@@ -173,6 +174,7 @@ Component* Component::cloning() const {
     res->relations = clone(relations);
     res->clauses = clone(clauses);
     res->directives = clone(directives);
+    res->lattices = clone(lattices);
     res->overrideRules = overrideRules;
     return res;
 }
