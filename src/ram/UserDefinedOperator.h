@@ -54,6 +54,10 @@ public:
         return argsTypes;
     }
 
+    std::size_t getNumArgs() const {
+        return argsTypes.size();
+    }
+
     /** @brief Get return type */
     TypeAttribute getReturnType() const {
         return returnType;

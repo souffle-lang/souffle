@@ -69,6 +69,10 @@ public:
         return toPtrVector(args);
     }
 
+    std::size_t getNumArgs() const {
+        return args.size();
+    }
+
     NestedIntrinsicOperator* cloning() const override {
         return new NestedIntrinsicOperator(op, clone(args), clone(getOperation()), getTupleId());
     }

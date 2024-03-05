@@ -614,7 +614,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
     {                                                            \
         auto result = EVAL_CHILD(RamDomain, 0);                  \
         auto* result_val = &getSymbolTable().decode(result);     \
-        for (std::size_t i = 1; i < args.size(); i++) {          \
+        for (std::size_t i = 1; i < numArgs; i++) {          \
             auto alt = EVAL_CHILD(RamDomain, i);                 \
             if (alt == result) continue;                         \
                                                                  \
@@ -629,7 +629,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 #define MINMAX_OP(ty, op)                           \
     {                                               \
         auto result = EVAL_CHILD(ty, 0);            \
-        for (std::size_t i = 1; i < args.size(); i++) {  \
+        for (std::size_t i = 1; i < numArgs; i++) {  \
             result = op(result, EVAL_CHILD(ty, i)); \
         }                                           \
         return ramBitCast(result);                  \
@@ -651,7 +651,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         getSymbolTable().decode(EVAL_CHILD(RamDomain, 0))));
             // clang-format on
 
-            const auto& args = cur.getArguments();
+            const auto numArgs = cur.getNumArgs();
             switch (cur.getOperator()) {
                 /** Unary Functor Operators */
                 case FunctorOp::ORD: return execute(shadow.getChild(0), ctxt);
@@ -759,7 +759,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
                 case FunctorOp::CAT: {
                     std::stringstream ss;
-                    for (std::size_t i = 0; i < args.size(); i++) {
+                    for (std::size_t i = 0; i < numArgs; i++) {
                         ss << getSymbolTable().decode(execute(shadow.getChild(i), ctxt));
                     }
                     return getSymbolTable().encode(ss.str());
@@ -810,8 +810,8 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         ESAC(IntrinsicOperator)
 
         CASE(NestedIntrinsicOperator)
-            auto numArgs = cur.getArguments().size();
-            auto runNested = [&](auto&& tuple) {
+            const auto numArgs = cur.getNumArgs();
+            const auto runNested = [&](auto&& tuple) {
                 ctxt[cur.getTupleId()] = tuple.data();
                 execute(shadow.getChild(numArgs), ctxt);
             };
@@ -837,7 +837,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
             auto userFunctor = reinterpret_cast<void (*)()>(shadow.getFunctionPointer());
             if (userFunctor == nullptr) fatal("cannot find user-defined operator `%s`", name);
-            std::size_t arity = cur.getArguments().size();
+            std::size_t arity = cur.getNumArgs();
 
             if (cur.isStateful()) {
                 auto exec = std::bind(&Engine::execute, this, std::placeholders::_1, std::placeholders::_2);
@@ -957,8 +957,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         ESAC(UserDefinedOperator)
 
         CASE(PackRecord)
-            auto values = cur.getArguments();
-            std::size_t arity = values.size();
+            const std::size_t arity = cur.getNumArgs();
             std::unique_ptr<RamDomain[]> data = std::make_unique<RamDomain[]>(arity);
             for (std::size_t i = 0; i < arity; ++i) {
                 data[i] = execute(shadow.getChild(i), ctxt);
@@ -1312,7 +1311,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 #undef ERASE
 
         CASE(SubroutineReturn)
-            for (std::size_t i = 0; i < cur.getValues().size(); ++i) {
+            for (std::size_t i = 0; i < cur.getNumValues(); ++i) {
                 if (shadow.getChild(i) == nullptr) {
                     ctxt.addReturnValue(0);
                 } else {
