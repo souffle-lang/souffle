@@ -38,6 +38,7 @@ Node::NodeVec ComponentInit::getChildren() const {
 }
 
 void ComponentInit::print(std::ostream& os) const {
+    printAnnotations(os);
     os << ".init " << instanceName << " = " << *componentType;
 }
 

@@ -25,6 +25,7 @@ std::vector<Attribute*> BranchType::getFields() {
 }
 
 void BranchType::print(std::ostream& os) const {
+    printAnnotations(os);
     os << tfm::format("%s {%s}", name, join(fields, ", "));
 }
 
@@ -38,6 +39,10 @@ void BranchType::setFieldType(std::size_t idx, QualifiedName type) {
 
 bool BranchType::classof(const Node* n) {
     return n->getKind() == NK_BranchType;
+}
+
+bool BranchType::equal(const Node& /* other */) const {
+    return false;
 }
 
 }  // namespace souffle::ast

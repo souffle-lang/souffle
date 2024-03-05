@@ -31,6 +31,7 @@ Node::NodeVec AlgebraicDataType::getChildren() const {
 }
 
 void AlgebraicDataType::print(std::ostream& os) const {
+    printAnnotations(os);
     os << tfm::format(".type %s = %s", getQualifiedName(), join(branches, " | "));
 }
 

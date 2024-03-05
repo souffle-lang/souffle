@@ -25,4 +25,8 @@ bool IterationCounter::classof(const Node* n) {
     return n->getKind() == NK_IterationCounter;
 }
 
+bool IterationCounter::equal(const Node&) const {
+    return true;
+}
+
 }  // namespace souffle::ast

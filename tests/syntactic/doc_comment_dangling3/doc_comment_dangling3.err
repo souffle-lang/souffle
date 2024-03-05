@@ -1,0 +1,16 @@
+Warning: doc comment found before '.include', not attached to anything in file doc_comment_dangling3.dl at line 3
+  /// useless doc comment before .include
+--^---------------------------------------
+Warning: doc comment found at end of the component, not attached to anything in file doc_comment_dangling3.dl at line 5
+  /// useless doc comment at end of component
+--^-------------------------------------------
+Error: unterminated component, missing '}' in file doc_comment_dangling3.dl at line 9
+.comp E {
+---------^
+Warning: doc comment found at end of file, not attached to anything in file doc_comment_dangling3.dl at line 10
+  /// useless doc comment at end of file
+--^--------------------------------------
+Error: syntax error, unexpected end of input in file doc_comment_dangling3.dl at line 12
+  // missing }
+--------------^
+2 errors generated, evaluation aborted

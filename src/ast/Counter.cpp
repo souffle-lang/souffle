@@ -25,4 +25,8 @@ bool Counter::classof(const Node* n) {
     return n->getKind() == NK_Counter;
 }
 
+bool Counter::equal(const Node&) const {
+    return true;
+}
+
 }  // namespace souffle::ast

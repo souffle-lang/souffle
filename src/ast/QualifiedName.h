@@ -65,6 +65,9 @@ public:
     /** append one qualifier */
     void append(const std::string& name);
 
+    /** append another qualified name */
+    void append(const QualifiedName& name);
+
     /** prepend one qualifier */
     void prepend(const std::string& name);
 
@@ -76,6 +79,10 @@ public:
 
     /** convert to a string separated by fullstop */
     const std::string& toString() const;
+
+    QualifiedName head() const;
+
+    QualifiedName tail() const;
 
     bool operator==(const QualifiedName& other) const;
 

@@ -9,6 +9,7 @@ set(SOUFFLE_SOURCES
     FunctorOps.cpp
     Global.cpp
     MainDriver.cpp
+    ast/Annotation.cpp
     ast/Aggregator.cpp
     ast/IntrinsicAggregator.cpp
     ast/UserDefinedAggregator.cpp
@@ -48,6 +49,7 @@ set(SOUFFLE_SOURCES
     ast/StringConstant.cpp
     ast/SubsetType.cpp
     ast/Term.cpp
+    ast/TokenTree.cpp
     ast/TranslationUnit.cpp
     ast/Type.cpp
     ast/TypeCast.cpp

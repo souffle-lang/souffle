@@ -587,7 +587,7 @@ bool ComponentInstantiationTransformer::transform(TranslationUnit& translationUn
 
     auto& componentLookup = translationUnit.getAnalysis<ComponentLookupAnalysis>();
 
-    for (const auto* cur : program.getComponentInstantiations()) {
+    for (const auto* cur : program.getInstantiations()) {
         VecOwn<Clause> orphans;
         const std::set<std::string> overridden;
 

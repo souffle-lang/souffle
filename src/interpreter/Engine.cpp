@@ -98,9 +98,9 @@
 #include "souffle/profile/Logger.h"
 #include "souffle/profile/ProfileEvent.h"
 #include "souffle/utility/EvaluatorUtil.h"
-#include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/ParallelUtil.h"
 #include "souffle/utility/StringUtil.h"
+
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -424,9 +424,11 @@ const std::vector<void*>& Engine::loadDLL() {
 std::size_t Engine::getIterationNumber() const {
     return iteration;
 }
+
 void Engine::incIterationNumber() {
     ++iteration;
 }
+
 void Engine::resetIterationNumber() {
     iteration = 0;
 }
@@ -593,7 +595,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
         ESAC(AutoIncrement)
 
         CASE(IntrinsicOperator)
-// clang-format off
+        // clang-format off
 #define BINARY_OP_TYPED(ty, op) return ramBitCast(static_cast<ty>(EVAL_CHILD(ty, 0) op EVAL_CHILD(ty, 1)))
 
 #define BINARY_OP_LOGICAL(opcode, op) BINARY_OP_INTEGRAL(opcode, op)
@@ -1341,9 +1343,11 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
 
         CASE(Loop)
             resetIterationNumber();
+
             while (execute(shadow.getChild(), ctxt)) {
                 incIterationNumber();
             }
+
             resetIterationNumber();
             return true;
         ESAC(Loop)

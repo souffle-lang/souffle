@@ -25,6 +25,7 @@ void UnionType::setType(std::size_t idx, QualifiedName type) {
 }
 
 void UnionType::print(std::ostream& os) const {
+    printAnnotations(os);
     os << ".type " << getQualifiedName() << " = " << join(types, " | ");
 }
 

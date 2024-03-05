@@ -117,11 +117,28 @@ public:
 
     void print(std::ostream& out) const;
 
+    /** Return the source location that starts where `start` starts and ends where `this` ends. */
+    SrcLocation from(const SrcLocation& start) const {
+        return SrcLocation{file, start.start, end};
+    }
+
+    /** Return the source location that starts where `this` starts and ends where `end` ends. */
+    SrcLocation upto(const SrcLocation& end) const {
+        return SrcLocation{file, start, end.end};
+    }
+
     /** Enables ranges to be printed */
     friend std::ostream& operator<<(std::ostream& out, const SrcLocation& range) {
         range.print(out);
         return out;
     }
+};
+
+enum class CommentKind {
+    Inline,
+    Block,
+    DocOuter,
+    DocInner,
 };
 
 /** Information struct for scanner */
@@ -150,12 +167,18 @@ struct ScannerInfo {
     /** Content of the current comment */
     std::stringstream CommentContent;
 
+    /** Kind of the current comment */
+    CommentKind commentKind;
+
     /** Push a file on the include stack */
     void push(const std::filesystem::path& PhysicalPath, const SrcLocation& IncludeLoc,
             bool reducedWhitespaces = false);
 
     /** Pop a file from the include stack */
     void pop();
+
+    /** Return true if the top of the include stack is the input file */
+    bool inInputFile() const;
 
     /** Set the reported path for the top of the include stack (current file) */
     void setReported(const std::string& Reported);

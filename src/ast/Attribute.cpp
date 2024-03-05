@@ -25,6 +25,7 @@ void Attribute::setTypeName(QualifiedName name) {
 }
 
 void Attribute::print(std::ostream& os) const {
+    printAnnotations(os);
     os << name << ":" << typeName;
     if (isLattice) {
         os << "<>";

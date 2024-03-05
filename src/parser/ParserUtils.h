@@ -85,4 +85,78 @@ private:
  */
 Own<ast::Atom> nameUnnamedVariables(Own<ast::Atom> atom);
 
-}  // end of namespace souffle
+namespace parser {
+
+template <typename K>
+struct Ok {
+    Ok(const K& k) : value(k) {}
+    Ok(K&& k) : value(std::forward<K>(k)) {}
+    std::decay_t<K> value;
+};
+
+template <typename E>
+struct Err {
+    Err(const E& e) : value(e) {}
+    Err(E&& e) : value(std::forward<E>(e)) {}
+    std::decay_t<E> value;
+};
+
+template <typename T, typename E>
+struct Result {
+    template <typename K>
+    Result(Ok<K>&& ok) : value(std::in_place_type<T>, std::forward<K>(ok.value)) {}
+
+    template <typename X>
+    Result(Err<X>&& err) : value(std::in_place_type<E>, std::forward<X>(err.value)) {}
+
+    T& result() {
+        return std::get<T>(value);
+    }
+    const T& result() const {
+        return std::get<T>(value);
+    }
+    E& error() {
+        return std::get<E>(value);
+    }
+    const E& error() const {
+        return std::get<E>(value);
+    }
+
+    operator bool() const {
+        return std::holds_alternative<T>(value);
+    }
+
+    std::variant<T, E> value;
+};
+
+template <typename T>
+using PResult = Result<T, std::string>;
+
+class Parser {
+public:
+    virtual ~Parser() = default;
+
+    /// Return a fresh parser over the given token stream
+    static std::unique_ptr<Parser> make(const ast::TokenStream& ts);
+
+    /// Parse a qualified name
+    virtual PResult<ast::QualifiedName> parseQualifiedName() = 0;
+
+    /// Return the current token without advancing
+    virtual ast::Token token() const = 0;
+
+    /// Return true if the current token is of the given type otherwise return
+    /// false.
+    virtual bool check(ast::TokenKind) = 0;
+
+    /// If the current token is of the given type then advance to the next
+    /// token and return true.  Otherwise return false.
+    virtual bool eat(ast::TokenKind) = 0;
+
+    /// Advance to next token
+    virtual void bump() = 0;
+};
+
+}  // namespace parser
+
+}  // namespace souffle

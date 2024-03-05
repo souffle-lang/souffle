@@ -151,6 +151,10 @@ void ScannerInfo::pop() {
     }
 }
 
+bool ScannerInfo::inInputFile() const {
+    return Frames.size() == 1;
+}
+
 void ScannerInfo::setReported(const std::string& Reported) {
     if (yylloc.file && yylloc.file->Reported != Reported) {
         yylloc.file = std::make_shared<IncludeStack>(yylloc.file->ParentStack, yylloc.file->IncludePos,

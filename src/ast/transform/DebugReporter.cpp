@@ -19,24 +19,27 @@
 #include "ast/TranslationUnit.h"
 #include "ast/utility/Utils.h"
 #include "reports/DebugReport.h"
-#include <chrono>
+#include "souffle/utility/MiscUtil.h"
+
+#include <string>
 
 namespace souffle::ast::transform {
 
 bool DebugReporter::transform(TranslationUnit& translationUnit) {
     translationUnit.getDebugReport().startSection();
     auto datalogSpecOriginal = pprint(translationUnit.getProgram());
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = now();
     bool changed = applySubtransformer(translationUnit, wrappedTransformer.get());
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = now();
 
     if (changed) {
         generateDebugReport(translationUnit, datalogSpecOriginal);
     }
 
-    auto elapsed = std::to_string(std::chrono::duration<double>(end - start).count());
+    const auto elapsed = duration_in_us(start, end);
     translationUnit.getDebugReport().endSection(wrappedTransformer->getName(),
-            wrappedTransformer->getName() + " (" + elapsed + "s)" + (changed ? "" : " (unchanged)"));
+            wrappedTransformer->getName() + " (" + std::to_string(elapsed / 1000000.0) + "s)" +
+                    (changed ? "" : " (unchanged)"));
     return changed;
 }
 

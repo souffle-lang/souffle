@@ -218,7 +218,7 @@ void DebugReport::print(std::ostream& out) const {
       let KEYWORDS = {
         $pattern: /\.?\w+/,
         literal: 'true false',
-        keyword: '.pragma .functor .comp .init .override .decl .input .output .type .plan .include .once ' +
+        keyword: '.pragma .functor .comp .init .override .decl .input .output .type .plan .include .once .lattice ' +
           'ord strlen strsub range matches land lor lxor lnot bwand bwor bwxor bwnot bshl bshr bshru inline btree btree_delete override unsigned number float symbol',
       }
 
@@ -232,6 +232,22 @@ void DebugReport::print(std::ostream& out) const {
           { begin: /\b0x[a-fA-F0-9]+u?/ }
         ]
       }
+
+      let ANNOTATIONS = {
+        scope: 'meta',
+        begin: /@\s*\!?\s*\[/,
+        end: /\]/,
+        contains: [
+          {
+            begin: /\[/,
+            end: /\]/,
+            contains: [
+              'self',
+              hljs.inherit(STRING, { scope: 'meta-string' }),
+            ]
+          },
+        ].concat(COMMENT_MODES)
+      };
 
       let PREPROCESSOR = {
         scope: 'meta',
@@ -259,6 +275,8 @@ void DebugReport::print(std::ostream& out) const {
         PRED_OP,
         STRING,
         NUMBERS,
+        PREPROCESSOR,
+        ANNOTATIONS
       ].concat(COMMENT_MODES)
 
       return {

@@ -97,23 +97,34 @@ inline int __builtin_ctzll(unsigned long long value) {
 
 namespace souffle {
 
+/// select the most precise and steady clock to measure durations
+using steady_clock = std::conditional<std::chrono::high_resolution_clock::is_steady,
+        std::chrono::high_resolution_clock, std::chrono::steady_clock>::type;
+
+static_assert(steady_clock::is_steady, "clock is not monotonically-increasing");
+
 // a type def for a time point
-using time_point = std::chrono::high_resolution_clock::time_point;
-using std::chrono::microseconds;
+using time_point = steady_clock::time_point;
+using microseconds = std::chrono::microseconds;
 
 // a shortcut for taking the current time
 inline time_point now() {
-    return std::chrono::high_resolution_clock::now();
+    return steady_clock::now();
 }
 
 // a shortcut for obtaining the time difference in milliseconds
-inline long duration_in_us(const time_point& start, const time_point& end) {
-    return static_cast<long>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
+inline int64_t duration_in_ms(const time_point& start, const time_point& end) {
+    return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+}
+
+// a shortcut for obtaining the time difference in microseconds
+inline int64_t duration_in_us(const time_point& start, const time_point& end) {
+    return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
 }
 
 // a shortcut for obtaining the time difference in nanoseconds
-inline long duration_in_ns(const time_point& start, const time_point& end) {
-    return static_cast<long>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
+inline int64_t duration_in_ns(const time_point& start, const time_point& end) {
+    return static_cast<int64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count());
 }
 
 // -------------------------------------------------------------------------------

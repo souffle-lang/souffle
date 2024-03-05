@@ -64,6 +64,8 @@ protected:
     void print(std::ostream& os) const override;
 
 private:
+    bool equal(const Node& /* other */) const override;
+
     BranchType* cloning() const override;
 
 private:

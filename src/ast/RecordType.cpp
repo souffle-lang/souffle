@@ -34,6 +34,7 @@ void RecordType::setFieldType(std::size_t idx, QualifiedName type) {
 }
 
 void RecordType::print(std::ostream& os) const {
+    printAnnotations(os);
     os << tfm::format(".type %s = [%s]", getQualifiedName(), join(fields, ", "));
 }
 

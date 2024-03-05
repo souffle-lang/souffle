@@ -192,7 +192,7 @@ void ComponentChecker::checkComponents(
         checkComponent(report, nullptr, componentLookup, *cur, TypeBinding());
     }
 
-    for (ComponentInit* cur : program.getComponentInstantiations()) {
+    for (ComponentInit* cur : program.getInstantiations()) {
         checkComponentInit(report, nullptr, componentLookup, *cur, TypeBinding());
     }
 }
@@ -228,7 +228,7 @@ void ComponentChecker::checkComponentNamespaces(ErrorReport& report, const Progr
         }
     }
 
-    for (const auto& inst : program.getComponentInstantiations()) {
+    for (const auto& inst : program.getInstantiations()) {
         const std::string name = toString(inst->getInstanceName());
         if (names.count(name) != 0u) {
             report.addError("Name clash on instantiation " + name, inst->getSrcLoc());

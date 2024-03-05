@@ -32,6 +32,7 @@
 %code requires {
     #include "AggregateOp.h"
     #include "FunctorOps.h"
+    #include "ast/Annotation.h"
     #include "ast/IntrinsicAggregator.h"
     #include "ast/UserDefinedAggregator.h"
     #include "ast/AliasType.h"
@@ -68,6 +69,7 @@
     #include "ast/StringConstant.h"
     #include "ast/SubsetType.h"
     #include "ast/SubsumptiveClause.h"
+    #include "ast/TokenTree.h"
     #include "ast/Type.h"
     #include "ast/TypeCast.h"
     #include "ast/UnionType.h"
@@ -83,6 +85,7 @@
     #include <ostream>
     #include <string>
     #include <vector>
+    #include <list>
     #include <map>
 
     using namespace souffle;
@@ -114,16 +117,19 @@
 }
 
 %code {
-   #include "parser/ParserDriver.h"
-   #define YY_DECL yy::parser::symbol_type yylex(souffle::ParserDriver& driver, yyscan_t yyscanner)
-   YY_DECL;
+    #include "parser/ParserDriver.h"
+    #define YY_DECL yy::parser::symbol_type yylex(souffle::ParserDriver& driver, yyscan_t yyscanner)
+    YY_DECL;
 }
 
 %param { ParserDriver &driver }
 %param { yyscan_t yyscanner }
 
 /* -- Tokens -- */
-%token END 0                     "end of file"
+%token END 0                     "end of input"
+%token LEAVE                     "end of included file"
+%token ENTER                     "start of included file"
+%token ENDFILE                   "end of file"
 %token <std::string> STRING      "symbol"
 %token <std::string> IDENT       "identifier"
 %token <std::string> NUMBER      "number"
@@ -167,7 +173,6 @@
 %token INPUT_DECL                "input directives declaration"
 %token OUTPUT_DECL               "output directives declaration"
 %token DEBUG_DELTA               "debug_delta"
-%token UNIQUE                    "unique"
 %token PRINTSIZE_DECL            "printsize directives declaration"
 %token LIMITSIZE_DECL            "limitsize directives declaration"
 %token OVERRIDE                  "override rules of super-component"
@@ -189,6 +194,7 @@
 %token FTOU                      "convert float to unsigned"
 %token AS                        "type cast"
 %token AT                        "@"
+%token ATNOT                     "@!"
 %token NIL                       "nil reference"
 %token PIPE                      "|"
 %token LBRACKET                  "["
@@ -230,7 +236,8 @@
 %token L_OR                      "lor"
 %token L_XOR                     "lxor"
 %token L_NOT                     "lnot"
-%token FOLD                      "fold"
+%token <std::string> OUTER_DOC_COMMENT "outer doc comment"
+%token <std::string> INNER_DOC_COMMENT "inner doc comment"
 
 /* -- Non-Terminal Types -- */
 %type <RuleBody>                          aggregate_body
@@ -290,6 +297,16 @@
 %type <Own<ast::Lattice>>                 lattice_decl
 %type <std::pair<ast::LatticeOperator, Own<ast::Argument>>>                 lattice_operator
 %type <std::map<ast::LatticeOperator, Own<ast::Argument>>>      lattice_operator_list
+%type <ast::AnnotationList> annotations
+%type <ast::Annotation> annotation
+%type <ast::Annotation> inner_annotation
+%type <ast::AnnotationList> inner_annotations
+%type <ast::AnnotationList> non_empty_inner_annotations
+%type <ast::TokenStream> annotation_input
+%type <ast::TokenStream> token_stream
+%type <ast::TokenTree> ident_token
+%type <ast::TokenTree> token
+%type <ast::TokenTree> delim
 /* -- Operator precedence -- */
 %left L_OR
 %left L_XOR
@@ -321,47 +338,93 @@ program
 unit
   : %empty
     { }
-  | unit directive_head
+  | unit annotations ENTER
+    { // the ENTER token helps resynchronizing current source location
+      // when an included file is entered
+      const auto annotations = $annotations;
+      if (!annotations.empty()) {
+        driver.uselessAnnotations(annotations, "before '.include'");
+      }
+    }
+  | unit annotations LEAVE
+    { // the LEAVE token helps resynchronizing current source location
+      // when an included file is left
+      const auto annotations = $annotations;
+      if (!annotations.empty()) {
+          driver.uselessAnnotations(annotations, "at end of included file");
+      }
+    }
+  | unit annotations ENDFILE
     {
-      for (auto&& cur : $directive_head)
+      const auto annotations = $annotations;
+      if (!annotations.empty()) {
+          driver.uselessAnnotations(annotations, "at end of file");
+      }
+    }
+  | unit annotations directive_head
+    {
+      const auto annotations = $annotations;
+      for (auto&& cur : $directive_head) {
+        cur->setAnnotations(annotations);
         driver.addDirective(std::move(cur));
+      }
     }
   | unit rule
     {
-      for (auto&& cur : $rule   )
+      for (auto&& cur : $rule) {
         driver.addClause(std::move(cur));
+      }
     }
   | unit fact
     {
-      driver.addClause($fact);
+      auto fact = $fact;
+      driver.addClause(std::move(fact));
     }
-  | unit component_decl
+  | unit annotations component_decl
     {
-      driver.addComponent($component_decl);
+      auto component_decl = $component_decl;
+      component_decl->prependAnnotations($annotations);
+      driver.addComponent(std::move(component_decl));
     }
-  | unit component_init
+  | unit annotations component_init
     {
-      driver.addInstantiation($component_init);
+      auto component_init = $component_init;
+      component_init->setAnnotations($annotations);
+      driver.addInstantiation(std::move(component_init));
     }
-  | unit pragma
+  | unit annotations pragma
     {
-      driver.addPragma($pragma);
+      auto pragma = $pragma;
+      pragma->setAnnotations($annotations);
+      driver.addPragma(std::move(pragma));
     }
-  | unit type_decl
+  | unit annotations type_decl
     {
-      driver.addType($type_decl);
+      auto type_decl = $type_decl;
+      type_decl->setAnnotations($annotations);
+      driver.addType(std::move(type_decl));
     }
-  | unit lattice_decl
+  | unit annotations lattice_decl
     {
-      driver.addLattice($lattice_decl);
+      auto lattice_decl = $lattice_decl;
+      lattice_decl->setAnnotations($annotations);
+      driver.addLattice(std::move(lattice_decl));
     }
-  | unit functor_decl
+  | unit annotations functor_decl
     {
-      driver.addFunctorDeclaration($functor_decl);
+      auto functor_decl = $functor_decl;
+      functor_decl->setAnnotations($annotations);
+      driver.addFunctorDeclaration(std::move(functor_decl));
     }
-  | unit relation_decl
+  | unit annotations relation_decl
     {
+      const auto annotations = $annotations;
       for (auto&& rel : $relation_decl) {
+        // Note: we duplicate annotations on every relation of the declaration.
+        //
+        // An alternative would be to allow distinct annotations before each
+        // relation name.
+        rel->setAnnotations(annotations);
         driver.addIoFromDeprecatedTag(*rel);
         driver.addRelation(std::move(rel));
       }
@@ -396,15 +459,23 @@ type_decl
       auto utl = $union_type_list;
       auto id = $IDENT;
       if (utl.size() > 1) {
-         $$ = mk<ast::UnionType>(driver.mkQN(id), utl, @$);
+        $$ = mk<ast::UnionType>(driver.mkQN(id), utl, @$);
       } else {
-         assert(utl.size() == 1 && "qualified name missing for alias type");
-         $$ = mk<ast::AliasType>(driver.mkQN(id), utl[0], @$);
+        $$ = mk<ast::AliasType>(driver.mkQN(id), utl[0], @$);
       }
     }
   | TYPE IDENT EQUALS record_type_list
     {
       $$ = mk<ast::RecordType>(driver.mkQN($IDENT), $record_type_list, @$);
+    }
+  | TYPE IDENT EQUALS annotation annotations adt_branch_list
+    { // special case to avoid conflict in grammar with `annotations`
+
+      // insert outer annotations before inner annotations of the first branch
+      auto branches = $adt_branch_list;
+      branches.front()->prependAnnotations($annotations);
+      branches.front()->prependAnnotation($annotation);
+      $$ = mk<ast::AlgebraicDataType>(driver.mkQN($IDENT), std::move(branches), @$);
     }
   | TYPE IDENT EQUALS adt_branch_list
     {
@@ -454,21 +525,25 @@ adt_branch_list
     {
       $$.push_back($adt_branch);
     }
-  | adt_branch_list PIPE adt_branch
+  | adt_branch_list PIPE annotations adt_branch
     {
       $$ = $1;
-      $$.push_back($adt_branch);
+      auto adt_branch = $adt_branch;
+      adt_branch->addAnnotations($annotations);
+      $$.emplace_back(std::move(adt_branch));
     }
   ;
 
 adt_branch
-  : IDENT[name] LBRACE RBRACE
+  : IDENT[name] LBRACE inner_annotations RBRACE
     {
       $$ = mk<ast::BranchType>(driver.mkQN($name), VecOwn<ast::Attribute>{}, @$);
+      $$->addAnnotations($inner_annotations);
     }
-  | IDENT[name] LBRACE non_empty_attributes[attributes] RBRACE
+  | IDENT[name] LBRACE inner_annotations non_empty_attributes[attributes] RBRACE
     {
       $$ = mk<ast::BranchType>(driver.mkQN($name), $attributes, @$);
+      $$->addAnnotations($inner_annotations);
     }
   ;
 
@@ -592,13 +667,17 @@ non_empty_attributes
   ;
 
 attribute
-  : IDENT[name] COLON qualified_name[type]
+  : annotations IDENT[name] COLON qualified_name[type]
     {
+      @$ = @$.from(@name);
       $$ = mk<ast::Attribute>($name, $type, @type);
+      $$->setAnnotations($annotations);
     }
-  | IDENT[name] COLON qualified_name[type] LT GT
+  | annotations IDENT[name] COLON qualified_name[type] LT GT
     {
+      @$ = @$.from(@name);
       $$ = mk<ast::Attribute>($name, $type, true, @type);
+      $$->setAnnotations($annotations);
     }
   ;
 
@@ -722,9 +801,12 @@ dependency_list
  * Fact
  */
 fact
-  : atom DOT
+  : annotations atom DOT
     {
-      $$ = mk<ast::Clause>($atom, VecOwn<ast::Literal> {}, nullptr, @$);
+      @$ = @$.from(@2);
+      auto atom = $atom;
+      atom->setAnnotations($annotations);
+      $$ = mk<ast::Clause>(std::move(atom), VecOwn<ast::Literal> {}, nullptr, @$);
     }
   ;
 
@@ -744,34 +826,44 @@ rule
         rule->setExecutionPlan(clone(query_plan));
       }
     }
-   | atom[less] LE atom[greater] IF body DOT 
+   | annotations atom[less] LE atom[greater] IF inner_annotations body DOT
     {
+      @$ = @$.from(@less);
       auto bodies = $body.toClauseBodies();
+      const auto annotations = $annotations;
+      const auto inner_annotations = $inner_annotations;
       Own<ast::Atom> lt = nameUnnamedVariables(std::move($less));
       Own<ast::Atom> gt = std::move($greater);
       for (auto&& body : bodies) {
-        auto cur = mk<ast::SubsumptiveClause>(clone(lt)); 
+        auto cur = mk<ast::SubsumptiveClause>(clone(lt));
         cur->setBodyLiterals(clone(body->getBodyLiterals()));
         auto literals = cur->getBodyLiterals();
         cur->setHead(clone(lt));
         cur->addToBodyFront(clone(gt));
         cur->addToBodyFront(clone(lt));
+        cur->setAnnotations(annotations);
+        cur->addAnnotations(inner_annotations);
         cur->setSrcLoc(@$);
         $$.push_back(std::move(cur));
       }
     }
-   | atom[less] LE atom[greater] IF body DOT query_plan
+   | annotations atom[less] LE atom[greater] IF inner_annotations body DOT query_plan
     {
+      @$ = @$.from(@less);
       auto bodies = $body.toClauseBodies();
+      const auto annotations = $annotations;
+      const auto inner_annotations = $inner_annotations;
       Own<ast::Atom> lt = nameUnnamedVariables(std::move($less));
       Own<ast::Atom> gt = std::move($greater);
       for (auto&& body : bodies) {
-        auto cur = mk<ast::SubsumptiveClause>(clone(lt)); 
+        auto cur = mk<ast::SubsumptiveClause>(clone(lt));
         cur->setBodyLiterals(clone(body->getBodyLiterals()));
         auto literals = cur->getBodyLiterals();
         cur->setHead(clone(lt));
         cur->addToBodyFront(clone(gt));
         cur->addToBodyFront(clone(lt));
+        cur->setAnnotations(annotations);
+        cur->addAnnotations(inner_annotations);
         cur->setSrcLoc(@$);
         cur->setExecutionPlan(clone($query_plan));
         $$.push_back(std::move(cur));
@@ -783,15 +875,20 @@ rule
  * Rule Definition
  */
 rule_def
-  : head[heads] IF body DOT
+  : head[heads] IF inner_annotations body DOT
     {
+      const auto inner_annotations = $inner_annotations;
       auto bodies = $body.toClauseBodies();
       for (auto&& head : $heads) {
         for (auto&& body : bodies) {
           auto cur = clone(body);
-          cur->setHead(clone(head));
+          std::unique_ptr<ast::Atom> curhead = clone(head);
+          // move annotations from head to clause
+          cur->stealAnnotationsFrom(*curhead);
+          cur->addAnnotations(inner_annotations);
+          cur->setHead(std::move(curhead));
           cur->setSrcLoc(@$);
-          $$.push_back(std::move(cur));
+          $$.emplace_back(std::move(cur));
         }
       }
     }
@@ -801,13 +898,19 @@ rule_def
  * Rule Head
  */
 head
-  : atom
+  : annotations atom
     {
-      $$.push_back($atom);
+      @$ = @$.from(@atom);
+      auto atom = $atom;
+      atom->setAnnotations($annotations);
+      $$.emplace_back(std::move(atom));
     }
-  | head COMMA atom
+  | head COMMA annotations atom
     {
-      $$ = $1; $$.push_back($atom);
+      $$ = $1;
+      auto atom = $atom;
+      atom->setAnnotations($annotations);
+      $$.emplace_back(std::move(atom));
     }
   ;
 
@@ -1247,7 +1350,7 @@ query_plan
 query_plan_list
   : NUMBER COLON plan_order
     {
-      $$ = mk<ast::ExecutionPlan>();
+      $$ = mk<ast::ExecutionPlan>(@$);
       $$->setOrderFor(RamSignedFromString($NUMBER), Own<ast::ExecutionOrder>($plan_order));
     }
   | query_plan_list[curr_list] COMMA NUMBER COLON plan_order
@@ -1287,13 +1390,17 @@ non_empty_plan_order_list
  * Component Declaration
  */
 component_decl
-  : component_head LBRACE component_body RBRACE
+  : component_head LBRACE component_body annotations RBRACE
     {
       auto head = $component_head;
       $$ = $component_body;
       $$->setComponentType(clone(head->getComponentType()));
       $$->copyBaseComponents(*head);
       $$->setSrcLoc(@$);
+      auto annotations = $annotations;
+      if (!annotations.empty()) {
+          driver.uselessAnnotations(annotations, "at end of the component");
+      }
     }
   ;
 
@@ -1358,59 +1465,102 @@ component_param_list
  * Component body
  */
 component_body
-  : %empty
+  : inner_annotations
     {
       $$ = mk<ast::Component>();
+      $$->addAnnotations($inner_annotations);
     }
-  | component_body directive_head
+  | component_body annotations ENTER
+    {
+      const auto annotations = $annotations;
+      if (!annotations.empty()) {
+          driver.uselessAnnotations(annotations, "before '.include'");
+      }
+      $$ = $1;
+    }
+  | component_body annotations LEAVE
+    {
+      const auto annotations = $annotations;
+      if (!annotations.empty()) {
+          driver.uselessAnnotations(annotations, "at end of included file");
+      }
+      $$ = $1;
+    }
+  | component_body annotations ENDFILE
+    {
+      const auto annotations = $annotations;
+      if (!annotations.empty()) {
+          driver.uselessAnnotations(annotations, "at end of file");
+      }
+      // unterminated component
+      error(@1, "unterminated component, missing '}'");
+      $$ = $1;
+    }
+  | component_body annotations directive_head
     {
       $$ = $1;
-      for (auto&& x : $2) {
+      const auto annotations = $annotations;
+      for (auto&& x : $3) {
+        x->setAnnotations(annotations);
         $$->addDirective(std::move(x));
       }
     }
   | component_body rule
     {
       $$ = $1;
-      for (auto&& x : $2) {
-        $$->addClause(std::move(x));
+      for (auto&& rule : $rule) {
+        $$->addClause(std::move(rule));
       }
     }
   | component_body fact
     {
       $$ = $1;
-      $$->addClause($2);
+      $$->addClause($fact);
     }
-  | component_body OVERRIDE IDENT
+  | component_body annotations OVERRIDE IDENT
     {
       $$ = $1;
-      $$->addOverride($3);
+      $$->addOverride($4);
     }
-  | component_body component_init
+  | component_body annotations component_init
     {
       $$ = $1;
-      $$->addInstantiation($2);
+      auto component_init = $component_init;
+      component_init->setAnnotations($annotations);
+      $$->addInstantiation(std::move(component_init));
     }
-  | component_body component_decl
+  | component_body annotations component_decl
     {
       $$ = $1;
-      $$->addComponent($2);
+      auto component_decl = $component_decl;
+      component_decl->prependAnnotations($annotations);
+      $$->addComponent(std::move(component_decl));
     }
-  | component_body type_decl
+  | component_body annotations type_decl
     {
       $$ = $1;
-      $$->addType($2);
+      auto type_decl = $type_decl;
+      type_decl->setAnnotations($annotations);
+      $$->addType(std::move(type_decl));
     }
-  | component_body lattice_decl
+  | component_body annotations lattice_decl
     {
       $$ = $1;
-      $$->addLattice($2);
+      auto lattice_decl = $lattice_decl;
+      lattice_decl->setAnnotations($annotations);
+      $$->addLattice(std::move(lattice_decl));
     }
-  | component_body relation_decl
+  | component_body annotations relation_decl
     {
       $$ = $1;
+      const auto annotations = $annotations;
       for (auto&& rel : $relation_decl) {
         driver.addIoFromDeprecatedTag(*rel);
+        // Note: we duplicate annotations on every relation of the declaration.
+        //
+        // An alternative would be to allow distinct annotations before each
+        // relation name.
+        rel->setAnnotations(annotations);
         $$->addRelation(std::move(rel));
       }
     }
@@ -1467,13 +1617,15 @@ non_empty_functor_arg_type_list
   ;
 
 functor_attribute
-  : qualified_name[type]
+  : annotations qualified_name[type]
     {
       $$ = mk<ast::Attribute>("", $type, @type);
+      $$->setAnnotations($annotations);
     }
-  | IDENT[name] COLON qualified_name[type]
+  | annotations IDENT[name] COLON qualified_name[type]
     {
       $$ = mk<ast::Attribute>($name, $type, @type);
+      $$->setAnnotations($annotations);
     }
   ;
 
@@ -1603,6 +1755,265 @@ kvp_value
       $$ = "false";
     }
   ;
+
+/**
+ * List of annotations
+ */
+
+annotations
+  : %empty
+    {
+    }
+  | annotations annotation
+    {
+      auto annotations = $1;
+      if (annotations.empty()) {
+        @$ = @2;
+      }
+      annotations.emplace_back($annotation);
+      $$ = std::move(annotations);
+    }
+  ;
+
+annotation
+  : AT LBRACKET ident_token annotation_input RBRACKET
+    {
+      ast::QualifiedName key = driver.mkQN(std::get<ast::Single>($ident_token).token.text);
+      $$ = ast::Annotation(
+              ast::Annotation::Kind::Normal, ast::Annotation::Style::Outer, key, $annotation_input, @$);
+    }
+  | OUTER_DOC_COMMENT
+    { // doc comment is a syntactic sugar for annotation `@[doc = "some doc"]`
+      ast::TokenStream ts{makeTokenTree(ast::TokenKind::Eq, "="),
+              ast::Single{ast::TokenKind::Symbol, $OUTER_DOC_COMMENT}};
+      $$ = ast::Annotation(ast::Annotation::Kind::DocComment, ast::Annotation::Style::Outer,
+              ast::QualifiedName::fromString("doc"), std::move(ts), @$);
+    }
+  ;
+
+annotation_input
+  : %empty
+    {
+    }
+  | EQUALS token token_stream
+    {
+      $$ = $token_stream;
+      $$.insert($$.begin(), $token);
+      $$.insert($$.begin(), makeTokenTree(ast::TokenKind::Eq, "="));
+    }
+  | EQUALS ident_token token_stream
+    {
+      $$ = $token_stream;
+      $$.insert($$.begin(), $ident_token);
+      $$.insert($$.begin(), makeTokenTree(ast::TokenKind::Eq, "="));
+    }
+  | EQUALS delim
+    {
+      $$ = {$delim};
+      $$.insert($$.begin(), makeTokenTree(ast::TokenKind::Eq, "="));
+    }
+  | delim
+    {
+      $$ = ast::TokenStream{$1};
+    }
+  ;
+
+inner_annotations
+  : %empty
+    {
+    }
+  | non_empty_inner_annotations
+    {
+      $$ = $1;
+    }
+  ;
+
+non_empty_inner_annotations
+  :inner_annotation
+    {
+      $$.emplace_back($1);
+    }
+  | non_empty_inner_annotations inner_annotation
+    {
+      $$ = $1;
+      $$.emplace_back($2);
+    }
+  ;
+
+inner_annotation
+  : INNER_DOC_COMMENT
+    { // doc comment is a syntactic sugar for annotation `@[doc = "some doc"]`
+      ast::TokenStream ts{makeTokenTree(ast::TokenKind::Eq, "="),
+              ast::Single{ast::TokenKind::Symbol, $INNER_DOC_COMMENT}};
+      $$ = ast::Annotation(ast::Annotation::Kind::DocComment, ast::Annotation::Style::Inner,
+              ast::QualifiedName::fromString("doc"), std::move(ts), @1);
+    }
+  | ATNOT LBRACKET ident_token annotation_input RBRACKET
+    { // we introduce ATNOT (`@!`) token because using just `@` followed by `!`
+      // cause shift/reduce conflicts in the grammar when inner annotations are followed
+      // by outter annotations of the next item:
+      //
+      // ```
+      // .comp C {
+      //   @![inner_for_C()]
+      //   @[outter_for_D()]
+      //   .decl D()
+      // }
+      // ```
+      //
+      // The parser generator (bison) is not able to lookahead for `!` after `@`. When it
+      // sees the first `@` it has two choices:
+      // - either consider empty inner_annotations and start outter_annotations
+      //   (although it would fail because of the following `!`).
+      // - or consider the start of an inner annotation.
+      //
+      // For these reason, we make the scanner detect `@!` as a single token.
+      // The scanner does not detect any variant of `@` followed by `!`
+      // if there is a whitespace or a comment in-between.
+      // I believe it is a good enough tradeoff to keep the lexer simple.
+
+      ast::QualifiedName key = driver.mkQN(std::get<ast::Single>($ident_token).token.text);
+      $$ = ast::Annotation(
+              ast::Annotation::Kind::Normal, ast::Annotation::Style::Inner, key, $annotation_input, @$);
+    }
+
+token_stream
+  : %empty { }
+  | token_stream token
+  {
+    $$ = $1;
+    $$.emplace_back($token);
+  }
+  | token_stream ident_token
+  {
+    $$ = $1;
+    $$.emplace_back($ident_token);
+  }
+  | token_stream delim
+  {
+    $$ = $1;
+    $$.emplace_back($delim);
+  }
+  ;
+
+delim
+  : LPAREN token_stream RPAREN
+  {
+    $$ = makeTokenTree(ast::Delimiter::Paren, std::move($token_stream));
+  }
+  | LBRACE token_stream RBRACE
+  {
+    $$ = makeTokenTree(ast::Delimiter::Brace, std::move($token_stream));
+  }
+  | LBRACKET token_stream RBRACKET
+  {
+    $$ = makeTokenTree(ast::Delimiter::Bracket, std::move($token_stream));
+  }
+  ;
+
+  // all tokens that look like an identifier
+ident_token
+  : IDENT     { $$ = makeTokenTree(ast::TokenKind::Ident, $IDENT); }
+  | AS                        { $$ = makeTokenTree(ast::TokenKind::Ident, "as"); }
+  | AUTOINC                   { $$ = makeTokenTree(ast::TokenKind::Ident, "autoinc"); }
+  | BRIE_QUALIFIER            { $$ = makeTokenTree(ast::TokenKind::Ident, "brie"); }
+  | BTREE_DELETE_QUALIFIER    { $$ = makeTokenTree(ast::TokenKind::Ident, "btree_delete"); }
+  | BTREE_QUALIFIER           { $$ = makeTokenTree(ast::TokenKind::Ident, "btree"); }
+  | BW_AND                    { $$ = makeTokenTree(ast::TokenKind::Ident, "band"); }
+  | BW_NOT                    { $$ = makeTokenTree(ast::TokenKind::Ident, "bnot"); }
+  | BW_OR                     { $$ = makeTokenTree(ast::TokenKind::Ident, "bor"); }
+  | BW_SHIFT_L                { $$ = makeTokenTree(ast::TokenKind::Ident, "bshl"); }
+  | BW_SHIFT_R                { $$ = makeTokenTree(ast::TokenKind::Ident, "bshr"); }
+  | BW_SHIFT_R_UNSIGNED       { $$ = makeTokenTree(ast::TokenKind::Ident, "bshru"); }
+  | BW_XOR                    { $$ = makeTokenTree(ast::TokenKind::Ident, "bxor"); }
+  | CAT                       { $$ = makeTokenTree(ast::TokenKind::Ident, "cat"); }
+  | CHOICEDOMAIN              { $$ = makeTokenTree(ast::TokenKind::Ident, "choice-domain"); }
+  | COUNT                     { $$ = makeTokenTree(ast::TokenKind::Ident, "count"); }
+  | EQREL_QUALIFIER           { $$ = makeTokenTree(ast::TokenKind::Ident, "eqrel"); }
+  | FALSELIT                  { $$ = makeTokenTree(ast::TokenKind::Ident, "false"); }
+  | INLINE_QUALIFIER          { $$ = makeTokenTree(ast::TokenKind::Ident, "inline"); }
+  | INPUT_QUALIFIER           { $$ = makeTokenTree(ast::TokenKind::Ident, "input"); }
+  | L_AND                     { $$ = makeTokenTree(ast::TokenKind::Ident, "land"); }
+  | L_NOT                     { $$ = makeTokenTree(ast::TokenKind::Ident, "lnot"); }
+  | L_OR                      { $$ = makeTokenTree(ast::TokenKind::Ident, "lor"); }
+  | L_XOR                     { $$ = makeTokenTree(ast::TokenKind::Ident, "lxor"); }
+  | MAGIC_QUALIFIER           { $$ = makeTokenTree(ast::TokenKind::Ident, "magic"); }
+  | MAX                       { $$ = makeTokenTree(ast::TokenKind::Ident, "max"); }
+  | MEAN                      { $$ = makeTokenTree(ast::TokenKind::Ident, "mean"); }
+  | MIN                       { $$ = makeTokenTree(ast::TokenKind::Ident, "min"); }
+  | NIL                       { $$ = makeTokenTree(ast::TokenKind::Ident, "nil"); }
+  | NO_INLINE_QUALIFIER       { $$ = makeTokenTree(ast::TokenKind::Ident, "no_inline"); }
+  | NO_MAGIC_QUALIFIER        { $$ = makeTokenTree(ast::TokenKind::Ident, "no_magic"); }
+  | ORD                       { $$ = makeTokenTree(ast::TokenKind::Ident, "ord"); }
+  | OUTPUT_QUALIFIER          { $$ = makeTokenTree(ast::TokenKind::Ident, "output"); }
+  | OVERRIDABLE_QUALIFIER     { $$ = makeTokenTree(ast::TokenKind::Ident, "overridable"); }
+  | PRINTSIZE_QUALIFIER       { $$ = makeTokenTree(ast::TokenKind::Ident, "printsize"); }
+  | RANGE                     { $$ = makeTokenTree(ast::TokenKind::Ident, "range"); }
+  | STATEFUL                  { $$ = makeTokenTree(ast::TokenKind::Ident, "stateful"); }
+  | STRLEN                    { $$ = makeTokenTree(ast::TokenKind::Ident, "strlen"); }
+  | SUBSTR                    { $$ = makeTokenTree(ast::TokenKind::Ident, "substr"); }
+  | SUM                       { $$ = makeTokenTree(ast::TokenKind::Ident, "sum"); }
+  | TCONTAINS                 { $$ = makeTokenTree(ast::TokenKind::Ident, "contains"); }
+  | TMATCH                    { $$ = makeTokenTree(ast::TokenKind::Ident, "match"); }
+  | TOFLOAT                   { $$ = makeTokenTree(ast::TokenKind::Ident, "to_float"); }
+  | TONUMBER                  { $$ = makeTokenTree(ast::TokenKind::Ident, "to_number"); }
+  | TOSTRING                  { $$ = makeTokenTree(ast::TokenKind::Ident, "to_string"); }
+  | TOUNSIGNED                { $$ = makeTokenTree(ast::TokenKind::Ident, "to_unsigned"); }
+  | TRUELIT                   { $$ = makeTokenTree(ast::TokenKind::Ident, "true"); }
+
+  // all tokens from the lexer except delimiters
+token
+  : FLOAT     { $$ = makeTokenTree(ast::TokenKind::Float, $FLOAT); }
+  | NUMBER    { $$ = makeTokenTree(ast::TokenKind::Number, $NUMBER); }
+  | UNSIGNED  { $$ = makeTokenTree(ast::TokenKind::Unsigned, $UNSIGNED); }
+  | STRING    { $$ = makeTokenTree(ast::TokenKind::Symbol, $STRING); }
+  // punctuations
+  | AT                        { $$ = makeTokenTree(ast::TokenKind::At, "@"); }
+  | ATNOT                     { $$ = makeTokenTree(ast::TokenKind::AtNot, "@!"); }
+  | CARET                     { $$ = makeTokenTree(ast::TokenKind::Caret, "^"); }
+  | COLON                     { $$ = makeTokenTree(ast::TokenKind::Colon, ":"); }
+  | COMMA                     { $$ = makeTokenTree(ast::TokenKind::Comma, ","); }
+  | DOLLAR                    { $$ = makeTokenTree(ast::TokenKind::Dollar, "$"); }
+  | DOT                       { $$ = makeTokenTree(ast::TokenKind::Dot, "."); }
+  | DOUBLECOLON               { $$ = makeTokenTree(ast::TokenKind::DoubleColon, "::"); }
+  | EQUALS                    { $$ = makeTokenTree(ast::TokenKind::Eq, "="); }
+  | EXCLAMATION               { $$ = makeTokenTree(ast::TokenKind::Exclamation, "!"); }
+  | GE                        { $$ = makeTokenTree(ast::TokenKind::Ge, ">="); }
+  | GT                        { $$ = makeTokenTree(ast::TokenKind::Gt, ">"); }
+  | INNER_DOC_COMMENT         { /* ignore doc comments */ }
+  | IF                        { $$ = makeTokenTree(ast::TokenKind::If, ":-"); }
+  | LE                        { $$ = makeTokenTree(ast::TokenKind::Le, "<="); }
+  | LT                        { $$ = makeTokenTree(ast::TokenKind::Lt, "<"); }
+  | MAPSTO                    { $$ = makeTokenTree(ast::TokenKind::MapsTo, "->"); }
+  | MINUS                     { $$ = makeTokenTree(ast::TokenKind::Minus, "-"); }
+  | NE                        { $$ = makeTokenTree(ast::TokenKind::Ne, "!="); }
+  | OUTER_DOC_COMMENT         { /* ignore doc comments */ }
+  | PERCENT                   { $$ = makeTokenTree(ast::TokenKind::Percent, "%"); }
+  | PIPE                      { $$ = makeTokenTree(ast::TokenKind::Pipe, "|"); }
+  | PLUS                      { $$ = makeTokenTree(ast::TokenKind::Plus, "+"); }
+  | SEMICOLON                 { $$ = makeTokenTree(ast::TokenKind::Semicolon, ";"); }
+  | SLASH                     { $$ = makeTokenTree(ast::TokenKind::Slash, "/"); }
+  | STAR                      { $$ = makeTokenTree(ast::TokenKind::Star, "*"); }
+  | SUBTYPE                   { $$ = makeTokenTree(ast::TokenKind::Subtype, "<:"); }
+  | UNDERSCORE                { $$ = makeTokenTree(ast::TokenKind::Underscore, "_"); }
+  // commands
+  | COMPONENT                 { $$ = makeTokenTree(ast::TokenKind::Ident, ".comp"); }
+  | DECL                      { $$ = makeTokenTree(ast::TokenKind::Ident, ".decl"); }
+  | FUNCTOR                   { $$ = makeTokenTree(ast::TokenKind::Ident, ".functor"); }
+  | INPUT_DECL                { $$ = makeTokenTree(ast::TokenKind::Ident, ".input"); }
+  | INSTANTIATE               { $$ = makeTokenTree(ast::TokenKind::Ident, ".init"); }
+  | LATTICE                   { $$ = makeTokenTree(ast::TokenKind::Ident, ".lattice"); }
+  | LIMITSIZE_DECL            { $$ = makeTokenTree(ast::TokenKind::Ident, ".limitsize"); }
+  | NUMBER_TYPE               { $$ = makeTokenTree(ast::TokenKind::Ident, ".number_type"); }
+  | OUTPUT_DECL               { $$ = makeTokenTree(ast::TokenKind::Ident, ".output"); }
+  | OVERRIDE                  { $$ = makeTokenTree(ast::TokenKind::Ident, ".override"); }
+  | PLAN                      { $$ = makeTokenTree(ast::TokenKind::Ident, ".plan"); }
+  | PRAGMA                    { $$ = makeTokenTree(ast::TokenKind::Ident, ".pragma"); }
+  | PRINTSIZE_DECL            { $$ = makeTokenTree(ast::TokenKind::Ident, ".printsize"); }
+  | SYMBOL_TYPE               { $$ = makeTokenTree(ast::TokenKind::Ident, ".symbol_type"); }
+  | TYPE                      { $$ = makeTokenTree(ast::TokenKind::Ident, ".type"); }
+  ;
+
 
 %%
 

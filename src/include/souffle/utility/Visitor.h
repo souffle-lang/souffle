@@ -113,7 +113,12 @@ struct VisitorBase : visitor_tag {
 
     /** The base case for all visitors -- if no more specific overload was defined */
     virtual R visit_(type_identity<RootNoConstQual>, NodeType& /*node*/, Params const&... /*args*/) {
-        return R();
+        if constexpr (std::is_same_v<void, R>) {
+            return;
+        } else {
+            R res{};
+            return res;
+        }
     }
 };
 

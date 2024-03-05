@@ -22,6 +22,7 @@
 #include "ast/ComponentInit.h"
 #include "ast/Directive.h"
 #include "ast/FunctorDeclaration.h"
+#include "ast/ItemContainer.h"
 #include "ast/Node.h"
 #include "ast/Pragma.h"
 #include "ast/QualifiedName.h"
@@ -59,7 +60,7 @@ namespace souffle::ast {
  * @class Program
  * @brief The program class consists of relations, clauses and types.
  */
-class Program : public Node {
+class Program : public Node, public ItemContainer {
 public:
     // Requirements for storing top-level nodes:
     // 1) remove-by-identity needs to be at least `O(lg n)`
@@ -109,13 +110,13 @@ public:
     }
 
     /** Return types */
-    std::vector<Type*> getTypes() const;
+    std::vector<Type*> getTypes() const override;
 
     /** Return lattices */
-    std::vector<Lattice*> getLattices() const;
+    std::vector<Lattice*> getLattices() const override;
 
     /** Return relations */
-    std::vector<Relation*> getRelations() const;
+    std::vector<Relation*> getRelations() const override;
 
     /** Returns the first `Relation` declartion for a given name, if any */
     Relation* getRelation(QualifiedName const&) const;
@@ -131,7 +132,7 @@ public:
     std::vector<Relation*> getRelationAll(QualifiedName const&) const;
 
     /** Return clauses */
-    std::vector<Clause*> getClauses() const;
+    std::vector<Clause*> getClauses() const override;
 
     /** Return clauses for a given relation */
     std::vector<Clause*> getClauses(QualifiedName const&) const;
@@ -145,7 +146,7 @@ public:
     std::vector<FunctorDeclaration*> getFunctorDeclarations() const;
 
     /** Return relation directives */
-    std::vector<Directive*> getDirectives() const;
+    std::vector<Directive*> getDirectives() const override;
 
     /** Return relation directives for a relation */
     std::vector<Directive*> getDirectives(QualifiedName const&) const;
@@ -156,7 +157,7 @@ public:
     }
 
     /** Add relation directive */
-    void addDirective(Own<Directive> directive);
+    void addDirective(Own<Directive> directive) override;
 
     /** Return pragma directives */
     const VecOwn<Pragma>& getPragmaDirectives() const {
@@ -164,7 +165,7 @@ public:
     }
 
     /* Add relation */
-    void addRelation(Own<Relation> relation);
+    void addRelation(Own<Relation> relation) override;
 
     /**
      * Remove a relation entirely, including the declaration(s), clauses, and directives.
@@ -180,16 +181,16 @@ public:
     void removeRelation(Relation const&);
 
     /** Add a clause */
-    void addClause(Own<Clause> clause);
+    void addClause(Own<Clause> clause) override;
 
     // Common case helper.
     void addClauses(VecOwn<Clause> clauses);
 
     /** Add a type declaration */
-    void addType(Own<Type> type);
+    void addType(Own<Type> type) override;
 
     /** Add a lattice declaration */
-    void addLattice(Own<Lattice> lattice);
+    void addLattice(Own<Lattice> lattice) override;
 
     /**
      * Remove a clause by identity. The clause must be owned by the program.
@@ -212,10 +213,20 @@ public:
     void removeDirective(const Directive&);
 
     /** Return components */
-    std::vector<Component*> getComponents() const;
+    std::vector<Component*> getComponents() const override;
 
     /** Return component instantiation */
-    std::vector<ComponentInit*> getComponentInstantiations() const;
+    std::vector<ComponentInit*> getInstantiations() const override;
+
+    void addPragma(Own<Pragma> pragma);
+
+    void addFunctorDeclaration(Own<FunctorDeclaration> functor);
+
+    /** Add component */
+    void addComponent(Own<Component> component) override;
+
+    /** Add component instantiation */
+    void addInstantiation(Own<ComponentInit> instantiation) override;
 
     /** Remove components and components' instantiations */
     void clearComponents();
@@ -231,17 +242,9 @@ protected:
 
     friend class souffle::ParserDriver;
 
-    void addPragma(Own<Pragma> pragma);
-
-    void addFunctorDeclaration(Own<FunctorDeclaration> functor);
-
-    /** Add component */
-    void addComponent(Own<Component> component);
-
-    /** Add component instantiation */
-    void addInstantiation(Own<ComponentInit> instantiation);
-
 private:
+    bool equal(const Node&) const override;
+
     Program* cloning() const override;
 
 private:

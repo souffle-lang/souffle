@@ -152,15 +152,21 @@ enum class WarnType : std::size_t {
     LatticeMissingOperator,
     NoRulesNorFacts,
     NoSubsumptiveRule,
-    // This last element is used as the size parameter to std::bitset in the
-    // definition of WarnSet. If the last element changes, the definition of
-    // WarnSet must be updated accordingly.
     VarAppearsOnce,
+    UselessDocComment,
+    UselessAnnotation,
+
+    // last element, never used except for computing the size parameter of
+    // bitset_type in the definition of WarnSet.
+    LastWarnType
 };
 
 class WarnSet {
+private:
+    using bitset_type = std::bitset<(std::size_t)WarnType::LastWarnType>;
+
 public:
-    WarnSet() : warns(std::bitset<(std::size_t)WarnType::VarAppearsOnce + 1>()) {
+    WarnSet() : warns(bitset_type()) {
         this->set();  // default to enabling all warnings
     }
 
@@ -191,7 +197,7 @@ public:
     bool resetStr(const std::string& str);
 
 private:
-    std::bitset<(std::size_t)WarnType::VarAppearsOnce + 1> warns;
+    bitset_type warns;
 
     std::optional<WarnType> warnTypeFromString(const std::string& s);
 };

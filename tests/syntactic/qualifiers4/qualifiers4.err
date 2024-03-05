@@ -1,4 +1,4 @@
-Error: syntax error, unexpected BTREE datastructure qualifier, expecting end of file in file qualifiers4.dl at line 12
+Error: syntax error, unexpected BTREE datastructure qualifier in file qualifiers4.dl at line 12
 .decl rel3(x:symbol, y:symbol) choice-domain x,y btree
 -------------------------------------------------^-----
 1 errors generated, evaluation aborted

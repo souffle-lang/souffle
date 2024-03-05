@@ -13,6 +13,7 @@
     .decl overrideA(u: number)
     .decl pragmaA(u: number)
     .decl planA(u: number)
+    .decl latticeA(u: number)
 }
 
 .init pt = ParserTest
@@ -30,3 +31,4 @@ pt.symbol_typeA(3).
 pt.overrideA(3).
 pt.pragmaA(3).
 pt.planA(3).
+pt.latticeA(3).

@@ -1,0 +1,12 @@
+
+.comp C {
+  /// useless doc comment before .include
+  .include "other.dl"
+  /// useless doc comment at end of component
+}
+
+.comp D {
+.comp E {
+  /// useless doc comment at end of file
+
+  // missing }

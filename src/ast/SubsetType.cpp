@@ -17,6 +17,7 @@ SubsetType::SubsetType(QualifiedName name, QualifiedName baseTypeName, SrcLocati
         : Type(NK_SubsetType, std::move(name), std::move(loc)), baseType(std::move(baseTypeName)) {}
 
 void SubsetType::print(std::ostream& os) const {
+    printAnnotations(os);
     os << ".type " << getQualifiedName() << " <: " << getBaseType();
 }
 

@@ -296,7 +296,8 @@ Own<ram::Sequence> UnitTranslator::generateInfoClauses(const ast::Program* progr
         // Add debug info
         std::ostringstream ds;
         ds << "@info.clause[";
-        ds << toString(*clause) << "]"
+        clause->printForDebugInfo(ds);
+        ds << "]"
            << "\nin file ";
         ds << clause->getSrcLoc();
         infoClause = mk<ram::DebugInfo>(std::move(infoClause), ds.str());

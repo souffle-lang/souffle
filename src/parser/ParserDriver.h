@@ -91,6 +91,7 @@ public:
     void warning(const WarnType warn, const SrcLocation& loc, const std::string& msg);
     void error(const SrcLocation& loc, const std::string& msg);
     void error(const std::string& msg);
+    void uselessAnnotations(const ast::AnnotationList&, const std::string& context);
 
     std::unique_ptr<std::string> readFile(const std::filesystem::path& path, std::error_code& ec);
 
@@ -104,7 +105,7 @@ public:
     bool canEnterOnce(const SrcLocation& onceLoc);
 
     // Add a scanned comment.
-    void addComment(const SrcLocation& Loc, const std::stringstream& Content);
+    void addComment(const SrcLocation& Loc, CommentKind kind, const std::stringstream& Content);
 
     Own<ast::TranslationUnit> translationUnit;
 
@@ -114,8 +115,11 @@ public:
     // visited by `.once`.
     std::set<std::pair<std::filesystem::path, int>> VisitedOnceLocations;
 
-    // All the scanned comments.
-    std::deque<std::pair<SrcLocation, std::string>> ScannedComments;
+    /// The type of a scanned comment.
+    using ScannedComment = std::tuple<SrcLocation, CommentKind, std::string>;
+
+    /// All the scanned comments.
+    std::deque<ScannedComment> ScannedComments;
 
 private:
     Global& glb;
