@@ -34,7 +34,7 @@ if (SOUFFLE_GIT)
     else()
         string(REGEX REPLACE "\n$" "" PACKAGE_VERSION "${GIT_PACKAGE_VERSION}")
         message(STATUS "Building souffle version ${PACKAGE_VERSION}")
-    
+
         # SOUFFLE_VERSION only includes the major/minor triplet
         string(REGEX REPLACE "-.*$" "" SOUFFLE_VERSION "${PACKAGE_VERSION}")
 
@@ -319,7 +319,7 @@ if (SOUFFLE_GENERATE_DOXYGEN)
 
     add_custom_target(doxygen
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_CFG}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMENT "Generating API documentation with Doxygen")
 endif()
 
@@ -391,7 +391,7 @@ IF (SOUFFLE_BASH_COMPLETION)
     endif()
 
     install(
-        FILES "${CMAKE_SOURCE_DIR}/debian/souffle.bash-completion"
+        FILES "${PROJECT_SOURCE_DIR}/debian/souffle.bash-completion"
         DESTINATION ${BASH_COMPLETION_COMPLETIONSDIR}
         RENAME "souffle"
     )
@@ -402,7 +402,7 @@ if (NOT WIN32)
 # --------------------------------------------------
 # CPack configuration
 # --------------------------------------------------
-execute_process(COMMAND bash "${CMAKE_SOURCE_DIR}/sh/check_os.sh"
+execute_process(COMMAND bash "${PROJECT_SOURCE_DIR}/sh/check_os.sh"
                 RESULT_VARIABLE CHECK_OS_RESULT
                 OUTPUT_VARIABLE CHECK_OS_OUTPUT)
 
@@ -414,7 +414,7 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Datalog Compiler")
 SET(CPACK_THREADS 0)
 
 # Make sure changelog, bash-completion and other important files in debian directory also packaged
-SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/debian/changelog" "${CMAKE_SOURCE_DIR}/debian/souffle.bash-completion" "${CMAKE_SOURCE_DIR}/debian/copyright")
+SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_SOURCE_DIR}/debian/changelog" "${PROJECT_SOURCE_DIR}/debian/souffle.bash-completion" "${PROJECT_SOURCE_DIR}/debian/copyright")
 
 # --------------------------------------------------
 # CPack configuration 
