@@ -804,9 +804,8 @@ fact
   : annotations atom DOT
     {
       @$ = @$.from(@2);
-      auto atom = $atom;
-      atom->setAnnotations($annotations);
-      $$ = mk<ast::Clause>(std::move(atom), VecOwn<ast::Literal> {}, nullptr, @$);
+      $$ = mk<ast::Clause>($atom, VecOwn<ast::Literal> {}, nullptr, @$);
+      $$->setAnnotations($annotations);
     }
   ;
 
