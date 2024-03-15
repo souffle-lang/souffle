@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 2
 
@@ -31,7 +31,7 @@ jobs:
       chunks: ${{ steps.set-test-ids.outputs.chunks }}
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - id: set-test-ids
         uses: ./.github/actions/set-test-ids
         with:
@@ -54,7 +54,7 @@ jobs:
 
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: install-lcov
       if: ${{ matrix.domain == '32bit' }}
@@ -123,7 +123,7 @@ jobs:
         xcode-version: '13.4'
 
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: install-deps
       run: sh/setup/install_macos_deps.sh
@@ -132,6 +132,39 @@ jobs:
       uses: ./.github/actions/cmake-test
       with:
         cmake-flags: ''
+        n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
+        chunk: ${{ matrix.chunk }}
+
+  AppleM-CMake:
+    needs: Test-Setup
+    timeout-minutes: 150
+
+    name: AppleM-CMake (chunk ${{ matrix.chunk }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJSON(needs.Test-Setup.outputs.chunks) }}
+
+    runs-on: macos-14
+
+    steps:
+    - name: Select XCode version
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.2'
+
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: install-deps
+      run: sh/setup/install_macos_arm_deps.sh
+
+    - name: cmake-test-64bit
+      uses: ./.github/actions/cmake-test
+      with:
+        # disable openmp on ARM architecture, see souffle-lang/souffle#2476
+        cmake-flags: -DSOUFFLE_DOMAIN_64BIT=ON -DSOUFFLE_USE_OPENMP=OFF
         n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
         chunk: ${{ matrix.chunk }}
 
@@ -150,7 +183,7 @@ jobs:
 
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: install-deps
       run: sudo sh/setup/install_ubuntu_deps.sh
@@ -170,7 +203,7 @@ jobs:
 
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 

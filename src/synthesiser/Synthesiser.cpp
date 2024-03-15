@@ -2812,7 +2812,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
             wrapper.setNextArg("std::size_t", "idx");
             wrapper.setNextArg("std::size_t", "len");
             wrapper.body() << "std::string result; \n"
-                           << "try { result = str.substr(idx,len); } catch(...) { \n"
+                           << "try { result = str.substr(idx,len); } catch(std::out_of_range&) { \n"
                            << "  std::cerr << \"warning: wrong index position provided by substr(\\\"\";\n"
                            << "  std::cerr << str << \"\\\",\" << (int32_t)idx << \",\" << (int32_t)len << "
                               "\") functor.\\n\";\n"

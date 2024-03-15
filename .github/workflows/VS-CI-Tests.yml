@@ -16,7 +16,7 @@ jobs:
   Windows-CMake-MSVC:
     runs-on: windows-2019
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Dependencies Cache
       uses: actions/cache@v3

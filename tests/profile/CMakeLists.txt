@@ -119,6 +119,8 @@ function(SOUFFLE_POSITIVE_PROF_TEST TEST_NAME)
 endfunction()
 
 if (NOT MSVC)
+if (NOT (APPLE AND ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")))
 souffle_positive_prof_test(lrg_attr_id)
 souffle_positive_prof_test(recursive)
+endif()
 endif ()

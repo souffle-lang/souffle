@@ -421,7 +421,16 @@ if (MSVC)
   target_compile_definitions(souffleprof PUBLIC USE_CUSTOM_GETOPTLONG)
 endif (MSVC)
 
-
+if (APPLE)
+  if ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
+    # work around a known issue with xcode15 linker
+    # c++ exceptions handling is broken otherwise
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -Wl,-ld_classic")
+    target_link_options(libsouffle PUBLIC "-ld_classic")
+    target_link_options(compiled PUBLIC "-ld_classic")
+    target_link_options(souffleprof PUBLIC "-ld_classic")
+  endif()
+endif()
 
 # --------------------------------------------------
 # Substitutions for souffle-compile.py
@@ -437,6 +446,7 @@ set(SOUFFLE_COMPILED_DEBUG_CXX_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
 get_target_property(SOUFFLE_COMPILED_DEFS compiled COMPILE_DEFINITIONS)
 get_target_property(SOUFFLE_COMPILED_OPTS compiled COMPILE_OPTIONS)
 get_target_property(SOUFFLE_COMPILED_INCS compiled INCLUDE_DIRECTORIES)
+get_property(SOUFFLE_COMPILED_LINK_OPTS TARGET compiled PROPERTY LINK_OPTIONS)
 
 set(SOUFFLE_COMPILED_LIBS "")
 set(SOUFFLE_COMPILED_RPATHS "")
@@ -524,7 +534,10 @@ endif ()
 
 list(JOIN SOUFFLE_COMPILED_OPTS " " SOUFFLE_COMPILED_CXX_OPTIONS)
 
-list(JOIN SOUFFLE_COMPILED_LIBS " " SOUFFLE_COMPILED_LINK_OPTIONS)
+list(JOIN SOUFFLE_COMPILED_LIBS " " SOUFFLE_COMPILED_LINK_OPTIONS1)
+list(JOIN SOUFFLE_COMPILED_LINK_OPTS " " SOUFFLE_COMPILED_LINK_OPTIONS2)
+set(SOUFFLE_COMPILED_LINK_OPTIONS "")
+string(APPEND SOUFFLE_COMPILED_LINK_OPTIONS " ${SOUFFLE_COMPILED_LINK_OPTIONS1}" " ${SOUFFLE_COMPILED_LINK_OPTIONS2}")
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   set(SOUFFLE_COMPILED_LINK_OPTIONS "/link ${SOUFFLE_COMPILED_LINK_OPTIONS}")
