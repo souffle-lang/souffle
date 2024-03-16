@@ -788,24 +788,27 @@ int main(Global& glb, const char* souffle_executable) {
         }
 
         /* for the jobs option, to determine the number of threads used */
-#ifdef _OPENMP
         if (isNumber(glb.config().get("jobs").c_str())) {
-            if (std::stoi(glb.config().get("jobs")) < 1) {
+            int n = std::stoi(glb.config().get("jobs"));
+            if (n < 1) {
                 throw std::runtime_error("-j/--jobs may only be set to 'auto' or an integer greater than 0.");
             }
+#ifndef _OPENMP
+            if (n != 1 && !glb.config().has("no-warn")) {
+                std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
+            }
+#endif
         } else {
             if (!glb.config().has("jobs", "auto")) {
                 throw std::runtime_error("-j/--jobs may only be set to 'auto' or an integer greater than 0.");
             }
+#ifdef _OPENMP
             // set jobs to zero to indicate the synthesiser and interpreter to use the system default.
             glb.config().set("jobs", "0");
-        }
 #else
-        // Check that -j option has not been changed from the default
-        if (glb.config().get("jobs") != "1" && !glb.config().has("no-warn")) {
-            std::cerr << "\nThis installation of Souffle does not support concurrent jobs.\n";
-        }
+            glb.config().set("jobs", "1");
 #endif
+        }
 
         /* if an output directory is given, check it exists */
         if (glb.config().has("output-dir") && !glb.config().has("output-dir", "-") &&
