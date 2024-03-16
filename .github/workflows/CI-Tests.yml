@@ -155,6 +155,11 @@ jobs:
     - name: install-deps
       run: sudo sh/setup/install_ubuntu_deps.sh
 
+    - name: fix mmap_rnd_bits
+      # issue with ubuntu:latest runner and ASAN
+      # https://github.com/actions/runner-images/issues/9491
+      run: sudo sysctl vm.mmap_rnd_bits=28
+
     - name: cmake-test-32bit
       uses: ./.github/actions/cmake-test
       with:
