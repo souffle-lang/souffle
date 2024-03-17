@@ -775,7 +775,7 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
                     std::string sub_str;
                     try {
                         sub_str = str.substr(idx, len);
-                    } catch (...) {
+                    } catch (std::out_of_range&) {
                         std::cerr << "warning: wrong index position provided by substr(\"";
                         std::cerr << str << "\"," << (int32_t)idx << "," << (int32_t)len << ") functor.\n";
                     }
