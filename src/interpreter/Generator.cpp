@@ -200,7 +200,21 @@ NodePtr NodeGenerator::visit_(type_identity<ram::False>, const ram::False& lfals
 }
 
 NodePtr NodeGenerator::visit_(type_identity<ram::Conjunction>, const ram::Conjunction& conj) {
-    return mk<Conjunction>(I_Conjunction, &conj, dispatch(conj.getLHS()), dispatch(conj.getRHS()));
+    NodePtrVec children;
+    std::stack<const ram::Node*> dfs;
+    dfs.push(&conj.getRHS());
+    dfs.push(&conj.getLHS());
+    while (!dfs.empty()) {
+        const ram::Node* term = dfs.top();
+        dfs.pop();
+        if (const ram::Conjunction* subconj = as<ram::Conjunction>(term)) {
+            dfs.push(&subconj->getRHS());
+            dfs.push(&subconj->getLHS());
+        } else {
+            children.emplace_back(std::move(dispatch(*term)));
+        }
+    }
+    return mk<Conjunction>(I_Conjunction, &conj, std::move(children));
 }
 
 NodePtr NodeGenerator::visit_(type_identity<ram::Negation>, const ram::Negation& neg) {
