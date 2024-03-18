@@ -46,17 +46,17 @@ sudo apt-get install createrepo rpm
 echo "%_gpg_name Bot\n%__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --batch --verbose --no-armor --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} --digest-algo sha256 %{__plaintext_filename}'" > ~/.rpmmacros
 
 ## Fedora
-mkdir -p $TMPDIR/ppa/fedora/34/x86_64
+mkdir -p $TMPDIR/ppa/fedora/39/x86_64
 cd $TMPDIR/ppa/fedora
 
-for i in $DEBPATH/*fedora-34*/*rpm
+for i in $DEBPATH/*fedora-39*/*rpm
 do
     rpm --addsign $i
 done
 
-cp $DEBPATH/*fedora-34*/*rpm 34/x86_64/
+cp $DEBPATH/*fedora-39*/*rpm 39/x86_64/
 
-createrepo 34/x86_64
+createrepo 39/x86_64
 
 git add .
 git commit -m "Added fedora rpm files for $SOUFFLE_TAG"
