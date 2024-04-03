@@ -33,8 +33,8 @@
 #include "ast/utility/Visitor.h"
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/FunctionalUtil.h"
-#include "souffle/utility/NodeMapper.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/NodeMapper.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
