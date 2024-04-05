@@ -34,6 +34,7 @@
 #include "souffle/BinaryConstraintOps.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/NodeMapper.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
@@ -199,6 +200,27 @@ public:
         return out;
     }
 };
+
+bool nameUnnamedInit(Clause& clause) {
+    int varid = 0;
+    bool changed = false;
+
+    auto namer = nodeMapper<ast::Node>([&](auto&& self, Own<Node> node) -> Own<ast::Node> {
+        if (const auto* unnamed = as<ast::UnnamedVariable>(node)) {
+            changed = true;
+            varid += 1;
+            return mk<ast::Variable>("_<unnamed_" + std::to_string(varid) + ">", unnamed->getSrcLoc());
+        } else {
+            node->apply(self);
+            return node;
+        }
+    });
+
+    visit(clause, [&](RecordInit& rec) { rec.apply(namer); });
+    visit(clause, [&](BranchInit& adt) { adt.apply(namer); });
+
+    return changed;
+}
 
 }  // namespace
 
@@ -498,7 +520,7 @@ bool ResolveAliasesTransformer::transform(TranslationUnit& translationUnit) {
     Program& program = translationUnit.getProgram();
 
     // get all clauses
-    std::vector<const Clause*> clauses;
+    std::vector<Clause*> clauses;
     visit(program, [&](const Relation& rel) {
         const auto& qualifiers = rel.getQualifiers();
         // Don't resolve clauses of inlined relations
@@ -510,7 +532,12 @@ bool ResolveAliasesTransformer::transform(TranslationUnit& translationUnit) {
     });
 
     // clean all clauses
-    for (const Clause* clause : clauses) {
+    for (Clause* clause : clauses) {
+        // -- Step 0 --
+        // Name unnamed variables in record and branch inits (souffle-lang/souffle#2482)
+        // This is fine as long as this transformer runs after the semantics checker
+        changed |= nameUnnamedInit(*clause);
+
         // -- Step 1 --
         // get rid of aliases
         Own<Clause> noAlias = resolveAliases(*clause);

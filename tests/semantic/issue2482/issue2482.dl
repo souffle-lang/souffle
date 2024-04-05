@@ -1,0 +1,30 @@
+.type Rec = [a: symbol, b: symbol]
+.type Adt = Some{a:symbol, b:symbol} | None{}
+
+.decl fact_rec(t:Rec)
+fact_rec(["abc", "xyz"]).
+
+.decl pred_rec(t:Rec, ta:symbol)
+pred_rec(t, ta) :-
+  fact_rec(t),
+  t=[ta, _].
+
+.decl fact_adt(t:Adt)
+fact_adt($Some("abc", "xyz")).
+fact_adt($None()).
+
+.decl pred_adt(t:Adt, ta:symbol)
+pred_adt(t, ta) :-
+  fact_adt(t),
+  t = $Some(ta, _).
+
+.decl case_adt(t:Adt, case:symbol)
+case_adt(t, case) :-
+  fact_adt(t),
+  ( t = $Some(_,_), case = "some"
+  ; t = $None(), case= "none"
+  ).
+
+.output pred_rec()
+.output pred_adt()
+.output case_adt()
