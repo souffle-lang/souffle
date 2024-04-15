@@ -344,6 +344,8 @@ public:
     virtual RamDomain pack(const RamDomain* Tuple) = 0;
     virtual RamDomain pack(const std::initializer_list<RamDomain>& List) = 0;
     virtual const RamDomain* unpack(RamDomain index) const = 0;
+    virtual void enumerate(const std::function<void(const RamDomain* /*tuple*/, std::size_t /* arity*/,
+                    RamDomain /* key */)>& Callback) const = 0;
 };
 
 /** @brief Bidirectional mappping between records and record references, for any record arity. */
@@ -387,6 +389,16 @@ public:
     /** @brief convert record reference to a record pointer */
     const RamDomain* unpack(RamDomain Index) const override {
         return fetch(Index).data();
+    }
+
+    void enumerate(const std::function<void(const RamDomain* /*tuple*/, std::size_t /* arity*/,
+                    RamDomain /* key */)>& Callback) const override {
+        const auto End = end();
+        for (auto It = begin(); It != End; ++It) {
+            RamDomain key = It->second;
+            const std::vector<RamDomain>& tuple = It->first;
+            Callback(tuple.data(), Arity, key);
+        }
     }
 };
 
@@ -437,6 +449,16 @@ public:
     const RamDomain* unpack(RamDomain Index) const override {
         return Base::fetch(Index).data();
     }
+
+    void enumerate(const std::function<void(const RamDomain* /*tuple*/, std::size_t /* arity*/,
+                    RamDomain /* key */)>& Callback) const override {
+        const auto End = Base::end();
+        for (auto It = Base::begin(); It != End; ++It) {
+            RamDomain key = It->second;
+            const auto& tuple = It->first;
+            Callback(tuple.data(), Arity, key);
+        }
+    }
 };
 
 /** Record map specialized for arity 0 */
@@ -479,6 +501,9 @@ public:
         assert(Index == EmptyRecordIndex);
         return EmptyRecordData;
     }
+
+    void enumerate(const std::function<void(const RamDomain* /*tuple*/, std::size_t /* arity*/,
+                    RamDomain /* key */)>&) const override {}
 };
 
 /** A concurrent Record Table with some specialized record maps. */
@@ -550,6 +575,17 @@ public:
     virtual const RamDomain* unpack(const RamDomain Ref, const std::size_t Arity) const override {
         auto Guard = Lanes.guard();
         return lookupMap(Arity).unpack(Ref);
+    }
+
+    void enumerate(const std::function<void(const RamDomain* /*tuple*/, std::size_t /* arity*/,
+                    RamDomain /* key */)>& Callback) const override {
+        auto Guard = Lanes.guard();
+        for (std::size_t Arity = 0; Arity < Maps.size(); ++Arity) {
+            const RecordMap* Map = Maps.at(Arity);
+            if (Map != nullptr) {
+                Map->enumerate(Callback);
+            }
+        }
     }
 
 private:
