@@ -312,6 +312,10 @@ public:
     void clear() {
         data.clear();
     }
+
+    void printStats(std::ostream& o) const {
+        data.printStats(o);
+    }
 };
 
 /**
@@ -449,6 +453,8 @@ public:
     void clear() {
         data = false;
     }
+
+    void printStats(std::ostream&) const {}
 };
 
 /**

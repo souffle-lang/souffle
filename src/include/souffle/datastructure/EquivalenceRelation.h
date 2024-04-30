@@ -716,6 +716,8 @@ public:
         return find(t, context);
     }
 
+    void printStats(std::ostream& /* o */) const {}
+
 protected:
     bool containsElement(value_type e) const {
         return this->sds.nodeExists(e);

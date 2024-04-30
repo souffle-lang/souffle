@@ -393,6 +393,13 @@ public:
         return indexes.at(idx).get();
     }
 
+    void printStats(std::ostream& o) {
+        for (std::size_t i = 0; i < indexes.size(); ++i) {
+            o << "Index " << i << ":\n";
+            indexes[i]->printStats(o);
+        }
+    }
+
 protected:
     // a map of managed indexes
     VecOwn<Index> indexes;
