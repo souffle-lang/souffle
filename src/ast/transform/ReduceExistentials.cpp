@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/ReduceExistentials.h"
-#include "GraphUtils.h"
 #include "RelationTag.h"
 #include "ast/Aggregator.h"
 #include "ast/Argument.h"
@@ -30,6 +29,7 @@
 #include "ast/analysis/IOType.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
+#include "souffle/datastructure/Graph.h"
 #include "souffle/utility/MiscUtil.h"
 #include <functional>
 #include <memory>

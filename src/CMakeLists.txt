@@ -8,6 +8,7 @@
 set(SOUFFLE_SOURCES
     FunctorOps.cpp
     Global.cpp
+    GraphUtils.cpp
     MainDriver.cpp
     ast/Annotation.cpp
     ast/Aggregator.cpp

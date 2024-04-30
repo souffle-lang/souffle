@@ -13,7 +13,6 @@
  ***********************************************************************/
 
 #include "ast/transform/PartitionBodyLiterals.h"
-#include "GraphUtils.h"
 #include "ast/Atom.h"
 #include "ast/Clause.h"
 #include "ast/Literal.h"
@@ -23,6 +22,7 @@
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
 #include "ast/utility/Visitor.h"
+#include "souffle/datastructure/Graph.h"
 #include "souffle/utility/MiscUtil.h"
 #include <algorithm>
 #include <functional>
