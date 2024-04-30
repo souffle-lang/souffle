@@ -73,12 +73,12 @@ Own<Clause> TypeAnalysis::createAnnotatedClause(
         Own<Node> operator()(Own<Node> node) const override {
             if (auto* var = as<ast::Variable>(node)) {
                 std::stringstream newVarName;
-                newVarName << var->getName() << "&isin;" << types.find(var)->second;
+                newVarName << var->getName() << "∈" << types.find(var)->second;
                 return mk<ast::Variable>(newVarName.str());
             } else if (auto* var = as<UnnamedVariable>(node)) {
                 std::stringstream newVarName;
                 newVarName << "_"
-                           << "&isin;" << types.find(var)->second;
+                           << "∈" << types.find(var)->second;
                 return mk<ast::Variable>(newVarName.str());
             }
             node->apply(*this);
