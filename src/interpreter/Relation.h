@@ -125,6 +125,8 @@ public:
         return auxiliaryArity;
     }
 
+    virtual void printStats(std::ostream& o) const = 0;
+
     // -- Defines methods and interfaces for Interpreter execution. --
 public:
     using IndexViewPtr = Own<ViewWrapper>;
@@ -393,7 +395,7 @@ public:
         return indexes.at(idx).get();
     }
 
-    void printStats(std::ostream& o) {
+    void printStats(std::ostream& o) const override {
         for (std::size_t i = 0; i < indexes.size(); ++i) {
             o << "Index " << i << ":\n";
             indexes[i]->printStats(o);
