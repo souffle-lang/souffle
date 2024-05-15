@@ -482,6 +482,8 @@ void Engine::executeMain() {
         visit(program, [&](const ram::Query&) { ++ruleCount; });
         ProfileEventSingleton::instance().makeConfigRecord("ruleCount", std::to_string(ruleCount));
 
+        SignalHandler::instance()->enableProfiling();
+
         Context ctxt;
         execute(main.get(), ctxt);
         ProfileEventSingleton::instance().stopTimer();

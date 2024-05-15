@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "souffle/profile/ProfileEvent.h"
+
 #include <atomic>
 #include <csignal>
 #include <cstdio>
@@ -25,6 +27,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -52,6 +55,15 @@ public:
     void enableLogging() {
         logMessages = true;
     }
+
+    void enableProfiling() {
+        profileEnabled = true;
+    }
+
+    bool profilingEnabled() const {
+        return profileEnabled;
+    }
+
     // set signal message
     void setMsg(const char* m) {
         if (logMessages && m != nullptr) {
@@ -104,7 +116,9 @@ public:
     }
 
     /***
-     * reset signal handlers
+     * Reset signal handlers.
+     *
+     * Disable profiling.
      */
     void reset() {
         if (isSet) {
@@ -125,6 +139,7 @@ public:
             }
             isSet = false;
         }
+        profileEnabled = false;
     }
 
     /***
@@ -149,6 +164,8 @@ private:
     bool isSet = false;
 
     bool logMessages = false;
+
+    bool profileEnabled = false;
 
     // previous signal handler routines
     void (*prevFpeHandler)(int) = nullptr;
@@ -195,6 +212,12 @@ private:
             write({error, " signal in rule:\n", msg, "\n"});
         else
             write({error, " signal.\n"});
+
+        if (instance()->profilingEnabled()) {
+            write({error, "dumping profiling data...\n"});
+            ProfileEventSingleton::instance().stopTimer();
+            ProfileEventSingleton::instance().dump();
+        }
 
         std::_Exit(EXIT_FAILURE);
     }
