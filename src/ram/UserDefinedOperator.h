@@ -83,11 +83,7 @@ public:
 
 protected:
     void print(std::ostream& os) const override {
-        os << "@" << name << "_" << argsTypes;
-        os << "_" << returnType;
-        if (stateful) {
-            os << "_stateful";
-        }
+        os << "@" << name;
         os << "(" << join(arguments, ",", [](std::ostream& out, const Own<Expression>& arg) { out << *arg; })
            << ")";
     }
