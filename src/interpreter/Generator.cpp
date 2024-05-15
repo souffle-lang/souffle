@@ -562,8 +562,7 @@ NodePtr NodeGenerator::visit_(type_identity<ram::DebugInfo>, const ram::DebugInf
 NodePtr NodeGenerator::visit_(type_identity<ram::Clear>, const ram::Clear& clear) {
     std::size_t relId = encodeRelation(clear.getRelation());
     auto rel = getRelationHandle(relId);
-    NodeType type = constructNodeType(global, "Clear", lookup(clear.getRelation()));
-    return mk<Clear>(type, &clear, rel);
+    return mk<Clear>(I_Clear, &clear, rel);
 }
 
 NodePtr NodeGenerator::visit_(
