@@ -15,13 +15,9 @@ jobs:
           - release: oraclelinux-8
             extension: ".rpm"
             OS-name: "el/8"
-          - release: fedora-34
+          - release: fedora-39
             extension: ".rpm"
-            OS-name: "fedora/34"
-          # build issue on fedora 35
-          # - release: fedora-35
-          #   extension: ".rpm"
-          #   OS-name: "fedora/35"
+            OS-name: "fedora/39"
 
     runs-on: ubuntu-latest
     steps:
@@ -130,7 +126,7 @@ jobs:
     needs: CPack-Package-Build
     if: ${{ always() }}
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
