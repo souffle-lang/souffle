@@ -707,7 +707,7 @@ void TypeAnnotationPrinter::print_(type_identity<UserDefinedFunctor>, const User
     auto arguments = fun.getArguments();
     os << "@" << fun.getName() << "(";
     for (std::size_t i = 0; i < arguments.size(); ++i) {
-        const auto &ty = typeAnalysis.getFunctorParamType(fun, i);
+        const auto& ty = typeAnalysis.getFunctorParamType(fun, i);
         branchOnArgument(arguments[i], ty);
         if (i + 1 < arguments.size()) {
             os << ",";

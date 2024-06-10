@@ -28,7 +28,6 @@
 #include <mutex>
 #include <string>
 
-
 #ifndef _MSC_VER
 #include <unistd.h>
 #else

@@ -54,7 +54,7 @@ class EquivalenceRelation {
 public:
     using element_type = TupleType;
 
-    EquivalenceRelation() : statesMapStale(false){};
+    EquivalenceRelation() : statesMapStale(false) {};
     ~EquivalenceRelation() {
         emptyPartition();
     }
@@ -270,7 +270,7 @@ public:
 
         // one iterator for signalling the end (simplifies)
         explicit iterator(const EquivalenceRelation* br, bool /* signalIsEndIterator */)
-                : br(br), isEndVal(true){};
+                : br(br), isEndVal(true) {};
 
         explicit iterator(const EquivalenceRelation* br)
                 : br(br), ityp(IterType::ALL), djSetMapListIt(br->equivalencePartition.begin()),

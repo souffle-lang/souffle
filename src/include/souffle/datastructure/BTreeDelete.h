@@ -2420,7 +2420,8 @@ public:
         out << "  Size of Key:        " << sizeof(Key) << "\n";
         out << "  max keys / node:    " << node::maxKeys << "\n";
         out << "  avg keys / node:    " << (nodes == 0 ? 0 : ((double)size() / (double)nodes)) << "\n";
-        out << "  avg filling rate:   " << (nodes == 0 ? 0 : (((double)size() / (double)nodes) / node::maxKeys)) << "\n";
+        out << "  avg filling rate:   "
+            << (nodes == 0 ? 0 : (((double)size() / (double)nodes) / node::maxKeys)) << "\n";
         out << "  Memory usage:       " << (getMemoryUsage() / 1'000'000) << "MB\n";
         out << " ---------------------------------\n";
         out << "  insert-hint (hits/misses/total): " << hint_stats.inserts.getHits() << "/"

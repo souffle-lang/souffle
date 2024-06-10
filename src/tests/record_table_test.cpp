@@ -88,7 +88,7 @@ TEST(Enumerate, Three) {
         EXPECT_EQ(1, t[0]);
         EXPECT_EQ(2, t[1]);
         EXPECT_EQ(3, t[2]);
-        });
+    });
 }
 
 // Generate random tuples

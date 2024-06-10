@@ -20,8 +20,8 @@
 #include "souffle/RamTypes.h"
 #include "souffle/utility/span.h"
 
-#include <initializer_list>
 #include <functional>
+#include <initializer_list>
 
 namespace souffle {
 
