@@ -173,7 +173,7 @@ struct t_eqrel {
         res[1] = t[0];
         return res;
     }
-    void printStatistics(std::ostream& /* o */) const {}
+    void printStats(std::ostream& /* o */) const {}
 };
 
 }  // namespace souffle

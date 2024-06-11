@@ -482,6 +482,8 @@ void Engine::executeMain() {
         visit(program, [&](const ram::Query&) { ++ruleCount; });
         ProfileEventSingleton::instance().makeConfigRecord("ruleCount", std::to_string(ruleCount));
 
+        SignalHandler::instance()->enableProfiling();
+
         Context ctxt;
         execute(main.get(), ctxt);
         ProfileEventSingleton::instance().stopTimer();
@@ -1372,15 +1374,11 @@ RamDomain Engine::execute(const Node* node, Context& ctxt) {
             return execute(shadow.getChild(), ctxt);
         ESAC(DebugInfo)
 
-#define CLEAR(Structure, Arity, AuxiliaryArity, ...)              \
-    CASE(Clear, Structure, Arity, AuxiliaryArity)                 \
-        auto& rel = *static_cast<RelType*>(shadow.getRelation()); \
-        rel.__purge();                                            \
-        return true;                                              \
-    ESAC(Clear)
-
-        FOR_EACH(CLEAR)
-#undef CLEAR
+        CASE(Clear)
+            auto* rel = shadow.getRelation();
+            rel->purge();
+            return true;
+        ESAC(Clear)
 
 #define ESTIMATEJOINSIZE(Structure, Arity, AuxiliaryArity, ...)         \
     CASE(EstimateJoinSize, Structure, Arity, AuxiliaryArity)            \

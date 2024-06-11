@@ -17,6 +17,7 @@
 #include "tests/test.h"
 
 #include "GraphUtils.h"
+#include "souffle/datastructure/Graph.h"
 #include "souffle/utility/StringUtil.h"
 #include <functional>
 #include <map>

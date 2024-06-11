@@ -70,6 +70,27 @@ TEST(Pack, InitListHelper) {
     EXPECT_EQ(3, ptr[2]);
 }
 
+TEST(Enumerate, Empty) {
+    SpecializedRecordTable<2> recordTable;
+
+    std::size_t count = 0;
+    recordTable.enumerate([&](const RamDomain*, std::size_t, RamDomain) { count += 1; });
+    EXPECT_EQ(0, count);
+}
+
+TEST(Enumerate, Three) {
+    SpecializedRecordTable<3> recordTable;
+    RamDomain ref = pack(recordTable, {1, 2, 3});
+
+    recordTable.enumerate([&](const RamDomain* t, std::size_t arity, RamDomain idx) {
+        EXPECT_EQ(3, arity);
+        EXPECT_EQ(ref, idx);
+        EXPECT_EQ(1, t[0]);
+        EXPECT_EQ(2, t[1]);
+        EXPECT_EQ(3, t[2]);
+    });
+}
+
 // Generate random tuples
 // pack them all
 // unpack and test for equality

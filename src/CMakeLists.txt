@@ -8,6 +8,7 @@
 set(SOUFFLE_SOURCES
     FunctorOps.cpp
     Global.cpp
+    GraphUtils.cpp
     MainDriver.cpp
     ast/Annotation.cpp
     ast/Aggregator.cpp
@@ -197,6 +198,8 @@ else ()
   # OSX compiler doesn't recognise `(void)var;` ideom
   set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/parser/scanner.cc PROPERTIES
              COMPILE_FLAGS "-Wno-error=unused-parameter")
+  set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/parser/parser.cc PROPERTIES
+             COMPILE_FLAGS "-Wno-error=unused-but-set-variable")
 endif ()
 
 # --------------------------------------------------

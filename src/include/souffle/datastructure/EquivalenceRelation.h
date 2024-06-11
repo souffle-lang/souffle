@@ -54,7 +54,7 @@ class EquivalenceRelation {
 public:
     using element_type = TupleType;
 
-    EquivalenceRelation() : statesMapStale(false){};
+    EquivalenceRelation() : statesMapStale(false) {}
     ~EquivalenceRelation() {
         emptyPartition();
     }
@@ -79,7 +79,7 @@ public:
     bool insert(value_type x, value_type y) {
         operation_hints z;
         return insert(x, y, z);
-    };
+    }
 
     /**
      * Insert the tuple symbolically.
@@ -89,7 +89,7 @@ public:
     bool insert(const TupleType& tuple) {
         operation_hints hints;
         return insert(tuple[0], tuple[1], hints);
-    };
+    }
 
     /**
      * Insert the two values symbolically as a binary relation
@@ -208,11 +208,11 @@ public:
      */
     bool contains(const TupleType& tuple, operation_hints&) const {
         return contains(tuple[0], tuple[1]);
-    };
+    }
 
     bool contains(const TupleType& tuple) const {
         return contains(tuple[0], tuple[1]);
-    };
+    }
 
     void emptyPartition() const {
         // delete the beautiful values inside (they're raw ptrs, so they need to be.)
@@ -270,7 +270,7 @@ public:
 
         // one iterator for signalling the end (simplifies)
         explicit iterator(const EquivalenceRelation* br, bool /* signalIsEndIterator */)
-                : br(br), isEndVal(true){};
+                : br(br), isEndVal(true) {}
 
         explicit iterator(const EquivalenceRelation* br)
                 : br(br), ityp(IterType::ALL), djSetMapListIt(br->equivalencePartition.begin()),
@@ -715,6 +715,8 @@ public:
         operation_hints context;
         return find(t, context);
     }
+
+    void printStats(std::ostream& /* o */) const {}
 
 protected:
     bool containsElement(value_type e) const {

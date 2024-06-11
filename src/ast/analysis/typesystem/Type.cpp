@@ -73,12 +73,12 @@ Own<Clause> TypeAnalysis::createAnnotatedClause(
         Own<Node> operator()(Own<Node> node) const override {
             if (auto* var = as<ast::Variable>(node)) {
                 std::stringstream newVarName;
-                newVarName << var->getName() << "&isin;" << types.find(var)->second;
+                newVarName << var->getName() << "∈" << types.find(var)->second;
                 return mk<ast::Variable>(newVarName.str());
             } else if (auto* var = as<UnnamedVariable>(node)) {
                 std::stringstream newVarName;
                 newVarName << "_"
-                           << "&isin;" << types.find(var)->second;
+                           << "∈" << types.find(var)->second;
                 return mk<ast::Variable>(newVarName.str());
             }
             node->apply(*this);
@@ -707,8 +707,7 @@ void TypeAnnotationPrinter::print_(type_identity<UserDefinedFunctor>, const User
     auto arguments = fun.getArguments();
     os << "@" << fun.getName() << "(";
     for (std::size_t i = 0; i < arguments.size(); ++i) {
-        TypeAttribute argType = typeAnalysis.getFunctorParamTypeAttribute(fun, i);
-        auto& ty = typeEnv.getConstantType(argType);
+        const auto& ty = typeAnalysis.getFunctorParamType(fun, i);
         branchOnArgument(arguments[i], ty);
         if (i + 1 < arguments.size()) {
             os << ",";
@@ -736,7 +735,7 @@ void TypeAnnotationPrinter::print_(type_identity<TypeCast>, const ast::TypeCast&
 void TypeAnnotationPrinter::print_(
         type_identity<RecordInit>, const RecordInit& record, const RecordType& type) {
     auto arguments = record.getArguments();
-    auto& ftypes = type.getFields();
+    const auto& ftypes = type.getFields();
     os << "[";
     for (std::size_t i = 0; i < arguments.size(); ++i) {
         branchOnArgument(arguments[i], *ftypes[i]);

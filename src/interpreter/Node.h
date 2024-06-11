@@ -106,7 +106,7 @@ struct RelationWrapper;
     Forward(LogRelationTimer)\
     Forward(LogTimer)\
     Forward(DebugInfo)\
-    FOR_EACH(Expand, Clear)\
+    Forward(Clear)\
     FOR_EACH(Expand, EstimateJoinSize)\
     Forward(LogSize)\
     Forward(IO)\

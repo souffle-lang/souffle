@@ -6,6 +6,8 @@
  * - <souffle root>/licenses/SOUFFLE-UPL.txt
  */
 #include "ast/Node.h"
+
+#include <algorithm>
 #include <utility>
 
 namespace souffle::ast {

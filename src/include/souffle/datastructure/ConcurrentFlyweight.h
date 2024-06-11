@@ -190,10 +190,15 @@ public:
             static_assert(NONE == std::numeric_limits<slot_type>::max(),
                     "required for wrap around to 0 for begin-iterator-scan");
             static_assert(NONE + 1 == 0, "required for wrap around to 0 for begin-iterator-scan");
+
             while (Slot != END) {
                 assert(Slot + 1 < SLOT_MAX);
+
                 if (Slot + 1 < NextMaybeUnassignedSlot) {  // next unassigned slot not reached
                     Slot = Slot + 1;
+                    if (Slot == 0 && This->FirstSlotIsReserved) {
+                        continue;
+                    }
                     return true;
                 }
 
@@ -226,10 +231,11 @@ public:
             const bool ReserveFirst, const Hash& hash = Hash(), const KeyEqual& key_equal = KeyEqual(),
             const KeyFactory& key_factory = KeyFactory())
             : Lanes(LaneCount), HandleCount(LaneCount),
-              Mapping(LaneCount, InitialCapacity, hash, key_equal, key_factory) {
+              Mapping(LaneCount, InitialCapacity, hash, key_equal, key_factory),
+              FirstSlotIsReserved(ReserveFirst) {
         Slots = std::make_unique<const value_type*[]>(InitialCapacity);
         Handles = std::make_unique<Handle[]>(HandleCount);
-        NextSlot = (ReserveFirst ? 1 : 0);
+        NextSlot = (FirstSlotIsReserved ? 1 : 0);
         SlotCount = InitialCapacity;
     }
 
@@ -393,6 +399,9 @@ private:
 
     // Number of slots.
     std::atomic<slot_type> SlotCount;
+
+    /// If true, the first slot (index 0) is not a valid entry.
+    const bool FirstSlotIsReserved;
 
     /// Grow the datastructure if needed.
     bool tryGrow(const lane_id H) {

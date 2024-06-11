@@ -19,6 +19,8 @@
 
 #include "souffle/RamTypes.h"
 #include "souffle/utility/span.h"
+
+#include <functional>
 #include <initializer_list>
 
 namespace souffle {
@@ -35,6 +37,10 @@ public:
     virtual RamDomain pack(const std::initializer_list<RamDomain>& List) = 0;
 
     virtual const RamDomain* unpack(const RamDomain Ref, const std::size_t Arity) const = 0;
+
+    /// Enumerate each record.
+    virtual void enumerate(const std::function<void(const RamDomain* /*tuple*/, std::size_t /* arity*/,
+                    RamDomain /* key */)>& Callback) const = 0;
 };
 
 /** @brief helper to convert tuple to record reference for the synthesiser */
