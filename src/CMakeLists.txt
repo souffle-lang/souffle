@@ -240,7 +240,7 @@ set_target_properties(compiled PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if (NOT MSVC)
   target_compile_options(libsouffle PUBLIC -Wall -Wextra -fwrapv)
 else ()
-  target_compile_options(libsouffle PUBLIC /W3 /WX)
+  target_compile_options(libsouffle PUBLIC /W3)
 endif ()
 
 target_compile_options(compiled PUBLIC "")
