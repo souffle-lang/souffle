@@ -132,6 +132,8 @@ public:
         range.print(out);
         return out;
     }
+
+    bool isValid() const;
 };
 
 enum class CommentKind {

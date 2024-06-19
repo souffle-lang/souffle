@@ -33,7 +33,7 @@ namespace souffle {
 class DiagnosticMessage {
 public:
     DiagnosticMessage(std::string message, SrcLocation location)
-            : message(std::move(message)), hasLoc(true), location(std::move(location)) {}
+            : message(std::move(message)), hasLoc(location.isValid()), location(std::move(location)) {}
 
     DiagnosticMessage(std::string message) : message(std::move(message)), hasLoc(false) {}
 
