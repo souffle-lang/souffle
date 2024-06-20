@@ -495,7 +495,7 @@ void TypeCheckerImpl::visit_(type_identity<BranchInit>, const BranchInit& adt) {
     // We know now that the set "types" is a singleton
     auto& sumType = *as<analysis::AlgebraicDataType>(*types.begin());
 
-    auto& argsDeclaredTypes = sumType.getBranchTypes(adt.getBranchName());
+    auto argsDeclaredTypes = sumType.getBranchTypes(adt.getBranchName());
 
     auto args = adt.getArguments();
 

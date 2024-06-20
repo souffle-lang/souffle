@@ -173,11 +173,11 @@ TEST(TypeSystem, GreatestCommonSubtype) {
     EXPECT_EQ("{B}", toString(getGreatestCommonSubtypes(B, B)));
     EXPECT_EQ("{C}", toString(getGreatestCommonSubtypes(C, C)));
 
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(A, B)));
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(A, C)));
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(B, C)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(A, B)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(A, C)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(B, C)));
 
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(A, B, C)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(A, B, C)));
 
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(A, N)));
     EXPECT_EQ("{A}", toString(getGreatestCommonSubtypes(N, A)));
@@ -185,8 +185,8 @@ TEST(TypeSystem, GreatestCommonSubtype) {
     EXPECT_EQ("{B}", toString(getGreatestCommonSubtypes(B, N)));
     EXPECT_EQ("{B}", toString(getGreatestCommonSubtypes(N, B)));
 
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(C, N)));
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(N, C)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(C, N)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(N, C)));
 
     // // bring in unions
 
@@ -242,8 +242,8 @@ TEST(TypeSystem, complexSubsetTypes) {
 
     EXPECT_EQ("{B}", toString(getGreatestCommonSubtypes(A, BfromA)));
     EXPECT_EQ("{C}", toString(getGreatestCommonSubtypes(A, CfromA)));
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(A, BfromA, CfromA)));
-    EXPECT_EQ("{}", toString(getGreatestCommonSubtypes(BfromA, CfromA)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(A, BfromA, CfromA)));
+    EXPECT_EQ("∅", toString(getGreatestCommonSubtypes(BfromA, CfromA)));
 
     auto* base = &env.createType<SubsetType>(qn("B0"), BfromA);
     for (std::size_t i = 1; i <= 10; ++i) {
