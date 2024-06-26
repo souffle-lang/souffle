@@ -18,6 +18,7 @@
 
 #include "AggregateOp.h"
 #include "FunctorOps.h"
+#include "ast/BooleanConstraint.h"
 #include "ast/Clause.h"
 #include "ast/NumericConstant.h"
 #include "ast/TranslationUnit.h"
@@ -163,7 +164,7 @@ private:
  */
 class TypeAnnotationPrinter {
 public:
-    TypeAnnotationPrinter(const TranslationUnit* tu, const std::map<const Argument*, TypeSet> argumentTypes,
+    TypeAnnotationPrinter(const TranslationUnit* tu, const std::map<const Argument*, TypeSet>& argumentTypes,
             std::ostream& os)
             : tu(tu), argumentTypes(argumentTypes), os(os) {}
 
@@ -177,24 +178,25 @@ private:
     const SumTypeBranchesAnalysis& sumTypesBranches = tu->getAnalysis<SumTypeBranchesAnalysis>();
     const TypeAnalysis& typeAnalysis = tu->getAnalysis<TypeAnalysis>();
 
-    std::map<const Argument*, TypeSet> argumentTypes;
+    const std::map<const Argument*, TypeSet>& argumentTypes;
     std::ostream& os;
 
-    void branchOnArgument(const Argument*, const Type&);
+    void branchOnArgument(const Argument*);
     void print_(type_identity<Atom>, const Atom& atom);
     void print_(type_identity<Negation>, const Negation& cur);
     void print_(type_identity<StringConstant>, const StringConstant& cnst);
     void print_(type_identity<NumericConstant>, const NumericConstant& constant);
     void print_(type_identity<NilConstant>, const NilConstant& constant);
-    void print_(type_identity<BinaryConstraint>, const BinaryConstraint& rel);
+    void print_(type_identity<BinaryConstraint>, const BinaryConstraint& bin);
     void print_(type_identity<IntrinsicFunctor>, const IntrinsicFunctor& fun);
     void print_(type_identity<UserDefinedFunctor>, const UserDefinedFunctor& fun);
     void print_(type_identity<Counter>, const Counter& counter);
     void print_(type_identity<IterationCounter>, const IterationCounter& counter);
     void print_(type_identity<TypeCast>, const ast::TypeCast& typeCast);
-    void print_(type_identity<RecordInit>, const RecordInit& record, const RecordType&);
+    void print_(type_identity<RecordInit>, const RecordInit& record);
     void print_(type_identity<BranchInit>, const BranchInit& adt);
     void print_(type_identity<Aggregator>, const Aggregator& agg);
+    void print_(type_identity<BooleanConstraint>, const BooleanConstraint& c);
     void printBodyLiterals(std::vector<Literal*> literals, const std::string& spc);
 };
 

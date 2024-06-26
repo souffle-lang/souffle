@@ -70,9 +70,11 @@ Simplify([head,tail],[newHead,newTail]) :-
 // Helper method for simplify
 ToGcdInt(numerator,denominator) :-
     ToSimplify([head,tail]),
-    Simplify(tail,newTail),
     head = [numerator,denominator] ,
-    (newTail != nil; numerator != 0).
+    ( Simplify(tail, newTail),
+      newTail != nil
+    ; numerator != 0
+    ).
 
 // -- Add polynomials recursively -- //
 

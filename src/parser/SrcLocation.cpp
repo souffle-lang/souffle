@@ -88,6 +88,9 @@ void SrcLocation::setFile(const std::shared_ptr<IncludeStack>& f) {
 }
 
 std::string SrcLocation::extloc() const {
+    if (!isValid()) {
+        return "<unknown>:0:0";
+    }
     std::ifstream in(file->Reported);
     std::stringstream s;
     if (in.is_open()) {
@@ -133,6 +136,10 @@ std::string SrcLocation::extloc() const {
 
 void SrcLocation::print(std::ostream& out) const {
     out << getReportedFilename() << " [" << start << "-" << end << "]";
+}
+
+bool SrcLocation::isValid() const {
+    return (bool)file;
 }
 
 void ScannerInfo::push(

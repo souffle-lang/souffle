@@ -67,7 +67,7 @@ jobs:
       if: ${{ matrix.domain == '32bit' }}
       uses: ./.github/actions/cmake-test
       with:
-        cmake-flags: -DSOUFFLE_CODE_COVERAGE=ON
+        cmake-flags: -DSOUFFLE_CODE_COVERAGE=ON -DSOUFFLE_TEST_DEBUG_REPORT=ON
         n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
         chunk: ${{ matrix.chunk }}
 

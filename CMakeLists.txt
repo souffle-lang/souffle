@@ -104,6 +104,7 @@ option(SOUFFLE_CODE_COVERAGE "Enable coverage reporting" OFF)
 option(SOUFFLE_BASH_COMPLETION "Enable/Disable bash completion" OFF)
 option(SOUFFLE_USE_LIBFFI "Enable/Disable use of libffi" ON)
 option(SOUFFLE_CUSTOM_GETOPTLONG "Enable/Disable custom getopt_long implementation" OFF)
+option(SOUFFLE_TEST_DEBUG_REPORT "Enable/Disable generating debug-report for all tests" OFF)
 
 cmake_dependent_option(SOUFFLE_USE_LIBCPP "Link to libc++ instead of libstdc++" ON
     "CMAKE_CXX_COMPILER_ID STREQUAL Clang" OFF)

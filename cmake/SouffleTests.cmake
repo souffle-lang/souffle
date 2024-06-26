@@ -159,9 +159,10 @@ function(SOUFFLE_RUN_TEST_HELPER)
 #and input paths
 #PARAM_FACTS_DIR_NAME - the name of the "facts" subdirectory in each test.
 #Usually just "facts" but can be different when running multi - tests
+#PARAM_DEBUG_REPORT - dump a debug report
     cmake_parse_arguments(
         PARAM
-        "COMPILED;COMPILED_SPLITTED;FUNCTORS;NEGATIVE;MULTI_TEST;NO_PREPROCESSOR;OUTPUT_STDOUT" # Options
+        "COMPILED;COMPILED_SPLITTED;FUNCTORS;NEGATIVE;MULTI_TEST;NO_PREPROCESSOR;OUTPUT_STDOUT;DEBUG_REPORT" # Options
         "TEST_NAME;CATEGORY;FACTS_DIR_NAME;EXTRA_DATA" #Single valued options
         "INCLUDE_DIRS" # Multi-valued options
         ${ARGV}
@@ -180,6 +181,10 @@ function(SOUFFLE_RUN_TEST_HELPER)
     else()
         set(EXEC_STYLE "interpreted")
         set(SHORT_EXEC_STYLE "")
+    endif()
+
+    if (PARAM_DEBUG_REPORT OR SOUFFLE_TEST_DEBUG_REPORT)
+      list(APPEND EXTRA_FLAGS "--debug-report=dbg.html")
     endif()
 
     if (PARAM_NO_PREPROCESSOR)

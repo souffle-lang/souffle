@@ -1,12 +1,9 @@
 Warning: Variable denominator only occurs once in file euclid.dl at line 61
     head = [0,denominator].
 --------------^-------------
-Warning: Variable newTail only occurs once in file euclid.dl at line 73
-    Simplify(tail,newTail),
-------------------^---------
-Warning: Variable denominator only occurs once in file euclid.dl at line 128
+Warning: Variable denominator only occurs once in file euclid.dl at line 130
     head = [0,denominator].
 --------------^-------------
-Warning: Variable denominator only occurs once in file euclid.dl at line 132
+Warning: Variable denominator only occurs once in file euclid.dl at line 134
     head = [numerator,denominator], numerator!=0.
 ----------------------^---------------------------

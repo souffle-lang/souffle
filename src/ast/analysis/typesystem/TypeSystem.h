@@ -364,12 +364,12 @@ public:
                 [](const Branch& left, const Branch& right) { return left.name.lexicalLess(right.name); });
     }
 
-    const std::vector<const Type*>& getBranchTypes(const QualifiedName& name) const {
+    std::vector<const Type*> getBranchTypes(const QualifiedName& name) const {
         for (auto& branch : branches) {
             if (branch.name == name) return branch.types;
         }
         // Branch doesn't exist.
-        throw std::out_of_range("Trying to access non-existing branch.");
+        return {};
     }
 
     /** Return the branches as a sorted vector */
@@ -523,7 +523,9 @@ public:
     /** Print type set */
     void print(std::ostream& out) const {
         if (all) {
-            out << "{ - all types - }";
+            out << "⊤";
+        } else if (types.empty()) {
+            out << "∅";
         } else {
             out << "{"
                 << join(types, ",", [](std::ostream& out, const Type* type) { out << type->getName(); })
