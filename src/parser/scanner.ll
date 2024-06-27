@@ -153,7 +153,7 @@ WS [ \t\r\v\f]
 ".pragma"/{WS}                        { return yy::parser::make_PRAGMA(yylloc); }
 ".plan"/{WS}                          { return yy::parser::make_PLAN(yylloc); }
 ".lattice"/{WS}                       { return yy::parser::make_LATTICE(yylloc); }
-".include"                            {
+".include"/{WS}                       {
                                         yyinfo.LastIncludeDirectiveLoc = yylloc;
                                         BEGIN(INCLUDE);
                                       }
