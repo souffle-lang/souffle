@@ -41,8 +41,8 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
 
         // conjunction
         int visit_(type_identity<Conjunction>, const Conjunction& conj) override {
-            int cl = dispatch(conj.getLHS());
-            int cr = dispatch(conj.getRHS());
+            const int cl = dispatch(conj.getLHS());
+            const int cr = dispatch(conj.getRHS());
             if (cl == MAX_COMPLEXITY || cr == MAX_COMPLEXITY) {
                 return MAX_COMPLEXITY;
             }
@@ -65,8 +65,8 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
         }
 
         int visit_(type_identity<Constraint>, const Constraint& c) override {
-            int cl = dispatch(c.getLHS());
-            int cr = dispatch(c.getRHS());
+            const int cl = dispatch(c.getLHS());
+            const int cr = dispatch(c.getRHS());
             if (cl == MAX_COMPLEXITY || cr == MAX_COMPLEXITY) {
                 return MAX_COMPLEXITY;
             }
