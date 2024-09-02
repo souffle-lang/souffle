@@ -29,6 +29,8 @@
 
 namespace souffle::ram::analysis {
 
+static const int MAX_COMPLEXITY = std::numeric_limits<int>::max();
+
 int ComplexityAnalysis::getComplexity(const Node* node) const {
     // visitor
     class ValueComplexityVisitor : public Visitor<int> {
@@ -39,7 +41,12 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
 
         // conjunction
         int visit_(type_identity<Conjunction>, const Conjunction& conj) override {
-            return dispatch(conj.getLHS()) + dispatch(conj.getRHS());
+            int cl = dispatch(conj.getLHS());
+            int cr = dispatch(conj.getRHS());
+            if (cl == MAX_COMPLEXITY || cr == MAX_COMPLEXITY) {
+                return MAX_COMPLEXITY;
+            }
+            return cl + cr;
         }
 
         // negation
@@ -58,11 +65,16 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
         }
 
         int visit_(type_identity<Constraint>, const Constraint& c) override {
-            return dispatch(c.getLHS()) + dispatch(c.getRHS());
+            int cl = dispatch(c.getLHS());
+            int cr = dispatch(c.getRHS());
+            if (cl == MAX_COMPLEXITY || cr == MAX_COMPLEXITY) {
+                return MAX_COMPLEXITY;
+            }
+            return cl + cr;
         }
 
         int visit_(type_identity<UserDefinedOperator>, const UserDefinedOperator&) override {
-            return std::numeric_limits<int>::max();
+            return MAX_COMPLEXITY;
         }
 
         // emptiness check
@@ -74,7 +86,13 @@ int ComplexityAnalysis::getComplexity(const Node* node) const {
         int visit_(type_identity<AbstractOperator>, const AbstractOperator& op) override {
             int exprComplexity = 0;
             for (auto* expr : op.getArguments()) {
-                exprComplexity += dispatch(*expr);
+                const int complexity = dispatch(*expr);
+                if (complexity == MAX_COMPLEXITY) {
+                    exprComplexity = MAX_COMPLEXITY;
+                    break;
+                } else {
+                    exprComplexity += dispatch(*expr);
+                }
             }
             return exprComplexity;
         }
