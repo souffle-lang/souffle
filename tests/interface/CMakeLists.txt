@@ -13,13 +13,6 @@ add_subdirectory(lattice1)
 add_subdirectory(lattice2)
 add_subdirectory(lattice3)
 
-# swig test which will run python, java or both
-function(SOUFFLE_POSITIVE_FUNCTOR_TEST TEST_NAME)
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} FUNCTORS ${ARGN})
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} COMPILED FUNCTORS ${ARGN})
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} COMPILED_SPLITTED FUNCTORS ${ARGN})
-endfunction()
-
 function(SOUFFLE_RUN_CPP_TEST)
     cmake_parse_arguments(
         PARAM
