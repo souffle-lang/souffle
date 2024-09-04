@@ -27,11 +27,6 @@ function(negative_test NAME)
     souffle_negative_test(${NAME} semantic)
 endfunction()
 
-function(SOUFFLE_POSITIVE_FUNCTOR_TEST TEST_NAME)
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} FUNCTORS ${ARGN})
-        souffle_run_test_helper(TEST_NAME ${TEST_NAME} COMPILED FUNCTORS ${ARGN})
-endfunction()
-
 negative_test(adt_invalid_arity)
 negative_test(adt_invalid_branch)
 negative_test(agg_checks)

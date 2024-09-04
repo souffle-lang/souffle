@@ -1,0 +1,22 @@
+.functor id(symbol): symbol stateful
+.functor decode(symbol): symbol stateful
+
+.type T = C1 {A0 : symbol} | C2 {A0: number}
+
+.decl A(A2: T)
+.decl B()
+.output B()
+.decl C()
+.output C()
+
+A($C2(10000000)).
+A($C1("X")).
+A($C1("Y")).
+
+B() :-
+  A($C1(X)),
+  (@decode(X) = @id("Y")).
+
+C() :-
+  A($C2(_)).
+
