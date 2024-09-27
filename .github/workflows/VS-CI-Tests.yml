@@ -59,7 +59,9 @@ jobs:
 
     - name: Compile Main
       working-directory: ${{github.workspace}}
-      run: tree "D:\a\souffle\souffle"
+      run: |
+        echo %PATH%
+        where /r c:\ souffle-compile.py
 
     # # Run the tests, Visual Studio must be in the environment because cl.exe is required for compiled Souffle.
     # - name: Check interpreter
