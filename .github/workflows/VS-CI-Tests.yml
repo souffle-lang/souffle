@@ -61,8 +61,7 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: cmd
       run: |
-        cd "d:\a\souffle\souffle\compilation"
-        d:\a\souffle\souffle\build\src\souffle-compile.py -o leakage-algo.exe main.cpp
+        d:\a\souffle\souffle\build\src\souffle-compile.py -o d:\a\souffle\souffle\compilation\leakage-algo.exe d:\a\souffle\souffle\compilation\main.cpp
     
     - name: Upload Compiled Exe
       uses: actions/upload-artifact@v4
