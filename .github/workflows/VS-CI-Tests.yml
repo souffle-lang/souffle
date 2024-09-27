@@ -61,7 +61,15 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: cmd
       run: |
-        where /r c:\ souffle-compile.py
+        cd "d:\a\souffle\souffle\compilation"
+        d:\a\souffle\souffle\build\src\souffle-compile.py -o leakage-algo.exe main.cpp
+    
+    -name: Upload Compiled Exe
+      uses: actions/upload-artifact@v4
+      with:
+        name: leakage-algo
+        path: d:\a\souffle\souffle\compilation\leakage-algo.exe
+        retention-days: 30
 
     # # Run the tests, Visual Studio must be in the environment because cl.exe is required for compiled Souffle.
     # - name: Check interpreter
