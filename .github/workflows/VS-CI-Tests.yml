@@ -65,12 +65,13 @@ jobs:
         c:/hostedtoolcache/windows/Python/3.12.6/x86/python3.exe d:/a/souffle/souffle/build/src/souffle-compile.py -o d:/a/souffle/souffle/compilation/leakage-algo d:/a/souffle/souffle/compilation/main.cpp
         cd d:/a/souffle/souffle/compilation
         dir
-        mkdir d:/a/souffle/souffle/compilation/output 
+        mkdir d:\a\souffle\souffle\compilation\output 
         leakage-algo.exe -F ./input -D ./output
         cd d:/a/souffle/souffle/compilation/output
         dir
-        cd d:/a/souffle/souffle/build/vcpkg_installed/x64-windows/lib
-        dir
+        where /r d:\ sqlite3.dll
+        where /r d:\ zlib1.dll
+        where /r d:\ zlib.dll
     
     - name: Upload Compiled Script
       uses: actions/upload-artifact@v4
