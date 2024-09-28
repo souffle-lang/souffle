@@ -62,7 +62,9 @@ jobs:
       shell: cmd
       run: |
         pushd "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build" & call vcvars64.bat & popd
-        c:/hostedtoolcache/windows/Python/3.12.6/x86/python3.exe d:/a/souffle/souffle/build/src/souffle-compile.py -o d:/a/souffle/souffle/compilation/leakage-algo.exe d:/a/souffle/souffle/compilation/main.cpp
+        c:/hostedtoolcache/windows/Python/3.12.6/x86/python3.exe d:/a/souffle/souffle/build/src/souffle-compile.py -o d:/a/souffle/souffle/compilation/leakage-algo d:/a/souffle/souffle/compilation/main.cpp
+        cd d:/a/souffle/souffle/compilation
+        dir
     
     - name: Upload Compiled Script
       uses: actions/upload-artifact@v4
