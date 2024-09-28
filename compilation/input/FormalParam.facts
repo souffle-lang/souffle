@@ -1,0 +1,17 @@
+1	__phi__	phi_0
+2	__phi__	phi_1
+1	set_field_wrapper	base
+2	set_field_wrapper	attr
+3	set_field_wrapper	value
+1	set_index_wrapper	base
+2	set_index_wrapper	attr
+3	set_index_wrapper	value
+1	global_wrapper	x
+1	plot_history	logger
+1	make_model	optimizer_0
+2	make_model	hidden_size
+1	_func0	x
+1	_func1	x_0
+1	get_url	photo_id
+1	search_ids	search_string
+2	search_ids	per_page

@@ -1,0 +1,10 @@
+0	__phi__	phi_0
+0	__phi__	phi_1
+0	set_field_wrapper	base
+0	set_index_wrapper	base
+0	global_wrapper	x
+0	make_model	model_8
+0	_func0	_var767
+0	_func1	_var857
+0	get_url	_var997
+0	search_ids	ids
