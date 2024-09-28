@@ -66,18 +66,18 @@ jobs:
         cd d:/a/souffle/souffle/compilation
         dir
         mkdir d:\a\souffle\souffle\compilation\output 
-        leakage-algo.exe -F ./input -D ./output
+        leakage-algo.exe -F input -D output
         cd d:/a/souffle/souffle/compilation/output
         dir
-        where /r d:\ sqlite3.dll
-        where /r d:\ zlib1.dll
-        where /r d:\ zlib.dll
     
     - name: Upload Compiled Script
       uses: actions/upload-artifact@v4
       with:
         name: leakage-algo
-        path: d:/a/souffle/souffle/compilation/leakage-algo.exe
+        path: |
+          d:/a/souffle/souffle/compilation/leakage-algo.exe
+          d:/a/souffle/souffle/build/src/sqlite3.dll
+          d:/a/souffle/souffle/build/src/zlib1.dll
         retention-days: 30
 
     # # Run the tests, Visual Studio must be in the environment because cl.exe is required for compiled Souffle.
