@@ -65,7 +65,7 @@ jobs:
         c:/hostedtoolcache/windows/Python/3.12.6/x86/python3.exe d:/a/souffle/souffle/build/src/souffle-compile.py -o d:/a/souffle/souffle/compilation/leakage-algo d:/a/souffle/souffle/compilation/main.cpp
         cd d:/a/souffle/souffle/compilation
         dir
-        ./leakage-algo.exe -F./input -D./output
+        ./leakage-algo.exe -F ./input -D ./output
         cd output
         dir
     
