@@ -68,6 +68,8 @@ jobs:
         leakage-algo.exe -F ./input -D ./output
         cd d:/a/souffle/souffle/compilation/output
         dir
+        cd d:/a/souffle/souffle/build/vcpkg_installed/x64-windows/lib
+        dir
     
     - name: Upload Compiled Script
       uses: actions/upload-artifact@v4
