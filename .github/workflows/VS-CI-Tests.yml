@@ -57,7 +57,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: cmake --build build --config Release -j4
 
-    - name: Compile and Test Main
+    - name: Compile and Test Algo
       working-directory: ${{github.workspace}}
       shell: cmd
       run: |
@@ -70,7 +70,7 @@ jobs:
         cd d:/a/souffle/souffle/compilation/output
         dir
     
-    - name: Upload Compiled Script
+    - name: Upload Compiled Algo and Dlls
       uses: actions/upload-artifact@v4
       with:
         name: leakage-algo
@@ -78,4 +78,4 @@ jobs:
           d:/a/souffle/souffle/compilation/leakage-algo.exe
           d:/a/souffle/souffle/build/src/sqlite3.dll
           d:/a/souffle/souffle/build/src/zlib1.dll
-        retention-days: 30
+        retention-days: 7
