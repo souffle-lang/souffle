@@ -310,8 +310,16 @@ std::vector<std::size_t> SelingerProfileSipsMetric::getReordering(
 /** Create a SIPS metric based on a given heuristic. */
 std::unique_ptr<SipsMetric> SipsMetric::create(const std::string& heuristic, const TranslationUnit& tu) {
     if (tu.global().config().has("auto-schedule")) {
-        return mk<SelingerProfileSipsMetric>(tu);
-    } else if (heuristic == "strict")
+        if (tu.getAnalysis<ast::analysis::ProfileUseAnalysis>().hasAutoSchedulerStats()) {
+            return mk<SelingerProfileSipsMetric>(tu);
+        } else {
+            std::cerr << "WARNING: `--auto-schedule` cannot be used due to missing scheduler stats; falling "
+                         "back "
+                         "to heuristic '"
+                      << heuristic << "'" << ::std::endl;
+        }
+    }
+    if (heuristic == "strict")
         return mk<StrictSips>(tu);
     else if (heuristic == "all-bound")
         return mk<AllBoundSips>(tu);
