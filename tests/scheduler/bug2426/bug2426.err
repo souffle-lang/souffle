@@ -1,0 +1,3 @@
+Warning: Variable x only occurs once in file bug2426.dl at line 9
+res(a) :- B(x), A(a).
+------------^---------
