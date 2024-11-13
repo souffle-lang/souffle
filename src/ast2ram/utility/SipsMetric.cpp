@@ -313,9 +313,12 @@ std::unique_ptr<SipsMetric> SipsMetric::create(const std::string& heuristic, con
         if (tu.getAnalysis<ast::analysis::ProfileUseAnalysis>().hasAutoSchedulerStats()) {
             return mk<SelingerProfileSipsMetric>(tu);
         } else {
+// TODO: enable this, but if we do the scheduler tests won't run as they do now
+#if 0
             std::cerr << "WARNING: `--auto-schedule` cannot be used due to missing scheduler stats; falling back "
                          "to heuristic '"
                       << heuristic << "'" << ::std::endl;
+#endif
         }
     }
     if (heuristic == "strict")
