@@ -73,6 +73,8 @@ namespace souffle::interpreter {
     func(Btree, 18, 0, __VA_ARGS__) \
     func(Btree, 19, 0, __VA_ARGS__) \
     func(Btree, 20, 0, __VA_ARGS__) \
+    func(Btree, 21, 0, __VA_ARGS__) \
+    func(Btree, 22, 0, __VA_ARGS__) \
     func(Btree, 1, 1, __VA_ARGS__)  \
     func(Btree, 2, 1, __VA_ARGS__)  \
     func(Btree, 2, 2, __VA_ARGS__)  \
@@ -111,7 +113,9 @@ namespace souffle::interpreter {
     func(BtreeDelete, 17, 0, __VA_ARGS__) \
     func(BtreeDelete, 18, 0, __VA_ARGS__) \
     func(BtreeDelete, 19, 0, __VA_ARGS__) \
-    func(BtreeDelete, 20, 0, __VA_ARGS__)
+    func(BtreeDelete, 20, 0, __VA_ARGS__) \
+    func(BtreeDelete, 21, 0, __VA_ARGS__) \
+    func(BtreeDelete, 22, 0, __VA_ARGS__)
 
 // Brie is disabled for now.
 #define FOR_EACH_BRIE(func, ...)
