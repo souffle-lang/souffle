@@ -9,15 +9,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - release: ubuntu-2004
+          - release: ubuntu-2204
             extension: ".deb"
-            OS-name: "ubuntu/focal"
-          - release: oraclelinux-8
+            OS-name: "ubuntu/jammy"
+          - release: ubuntu-2404
+            extension: ".deb"
+            OS-name: "ubuntu/noble"
+          - release: oraclelinux-9
             extension: ".rpm"
-            OS-name: "el/8"
+            OS-name: "ol/9"
           - release: fedora-39
             extension: ".rpm"
             OS-name: "fedora/39"
+          - release: fedora-40
+            extension: ".rpm"
+            OS-name: "fedora/40"
+          - release: fedora-41
+            extension: ".rpm"
+            OS-name: "fedora/41"
 
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +39,7 @@ jobs:
         run: docker build . -f ./.github/images/${{ matrix.release }}/Dockerfile  -t package_builder
 
       - name: Packaging
-        run: docker run -e DOMAIN_SIZE="64bit" --name container -t package_builder 
+        run: docker run -e DOMAIN_SIZE="64bit" --name container -t package_builder
 
       - name: Extract
         id: extract_pkg
@@ -44,11 +53,11 @@ jobs:
         run: cp build/${{ steps.extract_pkg.outputs.pkg_name }} build/${{ steps.extract_pkg.outputs.artifact_name }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.extract_pkg.outputs.artifact_name }}
           path: build/${{ steps.extract_pkg.outputs.artifact_name }}
-      
+
   Arch-Package-Build:
     runs-on: ubuntu-latest
     steps:
@@ -60,14 +69,14 @@ jobs:
       - name: Prepare
         id: prepare
         run: |-
-          echo "release_tag=$(git describe --tags --always | sed "s/-.*$//")" >> $GITHUB_OUTPUT
+          echo "release_tag=$(git describe --tags --always | sed 's/-.*$//')" >> $GITHUB_OUTPUT
 
       - name: Build Container
         run: docker build ./.github/images/arch-linux/ -t package_builder
 
       - name: Packaging
         run: >
-          docker run 
+          docker run
           -e RELEASE_TAG=${{ steps.prepare.outputs.release_tag }}
           -e REPO_OWNER=${{ github.repository_owner }}
           --name container
@@ -98,14 +107,14 @@ jobs:
           git push
 
 
-  Upload-Release-Assests:
+  Upload-Release-Assets:
     needs: CPack-Package-Build
     if: ${{ always() }}
 
     runs-on: ubuntu-latest
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./downloads
 
@@ -116,8 +125,8 @@ jobs:
           cd result && 
           sha512sum * > sha512sum.txt
 
-      - name: Upload Release Assests
-        uses: softprops/action-gh-release@v1
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             result/*
@@ -135,7 +144,7 @@ jobs:
           clean: false
 
       - name: Download All Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./downloads
 

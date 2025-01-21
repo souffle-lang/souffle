@@ -14,39 +14,49 @@ include(CMakeDependentOption)
 
 option(SOUFFLE_GIT "Enable/Disable git completion" ON)
 
-if (SOUFFLE_GIT) 
+if (SOUFFLE_GIT)
     find_package(Git REQUIRED)
 
-    # PACKAGE_VERSION is the full tag with git hash
+    # GIT_TAGNAME identifies the current commit, it is closest tag in the
+    # branch, possibly followed by number of additionnal commits and
+    # abbreviated hash
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags --always
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                     RESULT_VARIABLE GIT_RESULT
-                    OUTPUT_VARIABLE GIT_PACKAGE_VERSION)
-                    # FIXME: Use in cmake 3.19 or later
-                    # COMMAND_ERROR_IS_FATAL ANY)
+                    OUTPUT_VARIABLE GIT_TAGNAME)
+
+    # GIT_CLOSEST_TAG is the closest tag in the branch
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags --always --abbrev=0
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                    RESULT_VARIABLE GIT_RESULT
+                    OUTPUT_VARIABLE GIT_CLOSEST_TAG)
 
     # Figure out the version number, depends on whether building from the git repo
     if (NOT GIT_RESULT EQUAL 0)
         # Not building from a git clone
         message(WARNING "Unable to find git repository: version number will be incomplete")
-        set(PACKAGE_VERSION "UNKNOWN")
-        set(SOUFFLE_VERSION "")
+        set(GIT_PACKAGE_VERSION "UNKNOWN")
+        set(PACKAGE_VERSION "")
     else()
-        string(REGEX REPLACE "\n$" "" PACKAGE_VERSION "${GIT_PACKAGE_VERSION}")
-        message(STATUS "Building souffle version ${PACKAGE_VERSION}")
+        string(REGEX REPLACE "\n$" "" GIT_PACKAGE_VERSION "${GIT_TAGNAME}")
+        message(STATUS "Building souffle version ${GIT_PACKAGE_VERSION}")
 
-        # SOUFFLE_VERSION only includes the major/minor triplet
-        string(REGEX REPLACE "-.*$" "" SOUFFLE_VERSION "${PACKAGE_VERSION}")
+        string(REGEX REPLACE "\n$" "" GIT_CLOSEST_TAG "${GIT_CLOSEST_TAG}")
+        # remove leading 'v' in tag if any
+        string(REGEX REPLACE "^v" "" PACKAGE_VERSION "${GIT_CLOSEST_TAG}")
+        # remove trailing '-something' in tag
+        string(REGEX REPLACE "-.*$" "" PACKAGE_VERSION "${PACKAGE_VERSION}")
 
         # If building from a shallow clone where tag is not available.
-        if (NOT ${SOUFFLE_VERSION} MATCHES "^[0-9.]+$")
+        if (NOT ${PACKAGE_VERSION} MATCHES "^[0-9.]+$")
             message(WARNING "Cannot find a valid tag: cmake project version will be incomplete")
-            set (SOUFFLE_VERSION "")
         endif()
+
+        message(STATUS "Package version ${PACKAGE_VERSION}")
     endif()
 endif()
 
-project(souffle VERSION "${SOUFFLE_VERSION}"
+project(souffle VERSION "${PACKAGE_VERSION}"
                 DESCRIPTION "A datalog compiler"
                 LANGUAGES CXX)
 include(CTest)

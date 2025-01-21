@@ -599,6 +599,10 @@ const char* packageVersion() {
     return PACKAGE_VERSION;
 }
 
+const char* gitPackageVersion() {
+    return GIT_PACKAGE_VERSION;
+}
+
 std::size_t ramDomainSizeInBits() {
     return RAM_DOMAIN_SIZE;
 }
@@ -606,7 +610,11 @@ std::size_t ramDomainSizeInBits() {
 std::string versionFooter() {
     std::stringstream footer;
     footer << "----------------------------------------------------------------------------" << std::endl;
-    footer << "Version: " << packageVersion() << std::endl;
+    footer << "Version: " << packageVersion();
+    if (strlen(gitPackageVersion()) > 0) {
+      footer << " (" << gitPackageVersion() << ")";
+    }
+    footer << std::endl;
     footer << "Word size: " << ramDomainSizeInBits() << " bits" << std::endl;
     footer << "Options enabled:";
 #ifdef USE_LIBFFI
@@ -626,7 +634,7 @@ std::string versionFooter() {
 #endif
     footer << std::endl;
     footer << "----------------------------------------------------------------------------" << std::endl;
-    footer << "Copyright (c) 2016-22 The Souffle Developers." << std::endl;
+    footer << "Copyright (c) 2016-25 The Souffle Developers." << std::endl;
     footer << "Copyright (c) 2013-16 Oracle and/or its affiliates." << std::endl;
     footer << "All rights reserved." << std::endl;
     footer << "============================================================================" << std::endl;
