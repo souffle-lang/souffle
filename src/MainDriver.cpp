@@ -612,7 +612,7 @@ std::string versionFooter() {
     footer << "----------------------------------------------------------------------------" << std::endl;
     footer << "Version: " << packageVersion();
     if (strlen(gitPackageVersion()) > 0) {
-      footer << " (" << gitPackageVersion() << ")";
+        footer << " (" << gitPackageVersion() << ")";
     }
     footer << std::endl;
     footer << "Word size: " << ramDomainSizeInBits() << " bits" << std::endl;
