@@ -17,6 +17,9 @@ jobs:
     runs-on: windows-2019
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        fetch-tags: true
 
     - name: Dependencies Cache
       uses: actions/cache@v3

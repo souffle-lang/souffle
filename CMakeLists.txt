@@ -50,6 +50,7 @@ if (SOUFFLE_GIT)
         # If building from a shallow clone where tag is not available.
         if (NOT ${PACKAGE_VERSION} MATCHES "^[0-9.]+$")
             message(WARNING "Cannot find a valid tag: cmake project version will be incomplete")
+            set(PACKAGE_VERSION "")
         endif()
 
         message(STATUS "Package version ${PACKAGE_VERSION}")
