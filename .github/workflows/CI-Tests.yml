@@ -32,6 +32,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          fetch-tags: true
       - id: set-test-ids
         uses: ./.github/actions/set-test-ids
         with:
@@ -55,6 +58,9 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        fetch-tags: true
 
     - name: install-lcov
       if: ${{ matrix.domain == '32bit' }}
@@ -118,6 +124,9 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        fetch-tags: true
 
     - name: install-deps
       run: sh/setup/install_macos_deps.sh
@@ -145,6 +154,9 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        fetch-tags: true
 
     - name: install-deps
       run: sh/setup/install_macos_arm_deps.sh
@@ -173,6 +185,9 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        fetch-tags: true
 
     - name: install-deps
       run: sudo sh/setup/install_ubuntu_deps.sh
@@ -199,7 +214,8 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 1
+        fetch-tags: true
 
     - name: install-lcov
       run: sudo apt-get update && sudo apt-get install lcov

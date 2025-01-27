@@ -62,17 +62,17 @@ git add .
 git commit -m "Added fedora rpm files for $SOUFFLE_TAG"
 
 ## oraclelinux
-mkdir -p $TMPDIR/ppa/ol/8/x86_64
+mkdir -p $TMPDIR/ppa/ol/9/x86_64
 cd $TMPDIR/ppa/ol
 
-for i in $DEBPATH/*oracle*8*/*rpm
+for i in $DEBPATH/*oracle*9*/*rpm
 do
     rpm --addsign $i
 done
 
-cp $DEBPATH/*oracle*8*/*rpm 8/x86_64/
+cp $DEBPATH/*oracle*9*/*rpm 9/x86_64/
 
-createrepo 8/x86_64
+createrepo 9/x86_64
 
 git add .
 git commit -m "Added oraclelinux rpm files for $SOUFFLE_TAG"

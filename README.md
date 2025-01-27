@@ -44,7 +44,9 @@ domain-specific language for analysis problems.
 
 ## How to get Soufflé
 
-Use git to obtain the source code of Soufflé.
+If you are using Ubuntu, Fedora or Oracle Linux, get a packaged version from the [Releases section](https://github.com/souffle-lang/souffle/releases).
+
+Or use `git` to obtain the source code of Soufflé.
 
     $ git clone https://github.com/souffle-lang/souffle.git
 
@@ -59,7 +61,7 @@ Alternatively, please add the following line to the start of your source-code:
 .pragma "legacy"
 ```
 
-## Issues and Discussions 
+## Issues and Discussions
 
 Use either the [issue list](https://github.com/souffle-lang/souffle/issues) for
 
