@@ -78,12 +78,12 @@ std::optional<detail::LinuxWaitStatus> execute(
                 if (::setenv(k, v, 1)) detail::perrorExit("setenv");
             }
 
-            char* argv_temp[argv.size() + 2];
+            std::vector<char*> argv_temp(argv.size() + 2);
             argv_temp[0] = const_cast<char*>(program.c_str());
-            std::copy_n(argv.data(), argv.size(), const_cast<char const**>(argv_temp) + 1);
+            std::copy_n(argv.data(), argv.size(), const_cast<char const**>(argv_temp.data()) + 1);
             argv_temp[argv.size() + 1] = nullptr;
 
-            ::execvp(program.c_str(), argv_temp);
+            ::execvp(program.c_str(), argv_temp.data());
             std::exit(EC::cannot_execute);
         }
 
