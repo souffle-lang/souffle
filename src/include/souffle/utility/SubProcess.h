@@ -195,9 +195,8 @@ std::optional<detail::LinuxWaitStatus> execute(
     std::unique_ptr<std::pair<char const*, char const*>[]> envp_temp =
             std::make_unique<std::pair<char const*, char const*>[]>(envp.size());
     auto argv_ptr = go(argv_temp.get(), argv, [](auto&& x) { return x.c_str(); });
-    auto envp_ptr = go(envp_temp.get(), envp, [](auto&& kv) {
-        return std::pair{kv.first, kv.second.c_str()};
-    });
+    auto envp_ptr =
+            go(envp_temp.get(), envp, [](auto&& kv) { return std::pair{kv.first, kv.second.c_str()}; });
     return souffle::execute(program, argv_ptr, envp_ptr);
 }
 
