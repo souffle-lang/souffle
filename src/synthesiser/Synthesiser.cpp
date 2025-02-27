@@ -228,21 +228,21 @@ std::optional<std::size_t> Synthesiser::compileRegex(const std::string& pattern)
 
 /// Return the C++ string raw literal sequence for the given string.
 std::string raw_str(const std::string& str) {
-  if (str.find(")_\"") == std::string::npos) {
-    // by default, use the shortest possible delimiter.
-    return "R\"_(" + str + ")_\"";
-  } else {
-    // when the input string contains the shortest possible ending sequence, we
-    // generate a delimiter based on the string hash value, that is statically
-    // very unlikely to appear in the string.
-    std::size_t h = std::hash<std::string>{}(str);
-    std::string delim = std::to_string(h);
-    if (delim.size() > 16) {
-      delim.resize(16);
+    if (str.find(")_\"") == std::string::npos) {
+        // by default, use the shortest possible delimiter.
+        return "R\"_(" + str + ")_\"";
+    } else {
+        // when the input string contains the shortest possible ending sequence, we
+        // generate a delimiter based on the string hash value, that is statically
+        // very unlikely to appear in the string.
+        std::size_t h = std::hash<std::string>{}(str);
+        std::string delim = std::to_string(h);
+        if (delim.size() > 16) {
+            delim.resize(16);
+        }
+        assert(str.find(")" + delim + "\"") == std::string::npos);
+        return "R\"" + delim + "(" + str + ")" + delim + "\"";
     }
-    assert(str.find(")" + delim + "\"") == std::string::npos);
-    return "R\"" + delim + "(" + str + ")" + delim + "\"";
-  }
 }
 
 void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
