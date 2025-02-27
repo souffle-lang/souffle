@@ -171,3 +171,4 @@ positive_test(issue2160)
 
 add_subdirectory(issue2508)
 souffle_positive_functor_test(issue2508 CATEGORY evaluation)
+positive_test(issue2532)

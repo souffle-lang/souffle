@@ -1,0 +1,19 @@
+.decl term(id: symbol)
+.decl goterm(id: symbol)
+.decl taxon(id: symbol)
+.decl taxon_complement(id: symbol, taxon: symbol)
+
+term("<http://purl.obolibrary.org/obo/GO_1234567>").
+term("<http://purl.obolibrary.org/obo/NCBITaxon_1234567>").
+term("<http://purl.obolibrary.org/obo/NCBITaxon_1234>").
+term("<http://purl.obolibrary.org/obo/NCBITaxon_UNION_1234567>").
+term("<http://purl.obolibrary.org/obo/NCBITaxon_1234#NOT>").
+term(")_\"").
+
+goterm(id) :- term(id), match("<http://purl.obolibrary.org/obo/GO_.+>", id).
+taxon(id) :- term(id), match("<http://purl.obolibrary.org/obo/NCBITaxon_.*\\d+>", id).
+taxon_complement(id, taxon) :- term(id), match("<http://purl.obolibrary.org/obo/NCBITaxon_[[:digit:]]+#NOT>", id), len=strlen(id), taxon=cat(substr(id, 0, len-5), ">").
+
+.output goterm
+.output taxon
+.output taxon_complement
