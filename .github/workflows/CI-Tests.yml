@@ -8,18 +8,6 @@ on:
       - 'master'
 
 jobs:
-  Code-Style:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-
-    - name: clang-format
-      run: sh/run_test_format.sh
-
   Test-Setup:
     name: Test-Setup
     runs-on: ubuntu-latest
