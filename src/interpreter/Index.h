@@ -419,8 +419,8 @@ public:
         return data = true;
     }
 
-    void insert(const Index& src) {
-        data = src.data;
+    void insert(const Index&) {
+        data = true;
     }
 
     bool contains(const Tuple& /* t */) const {

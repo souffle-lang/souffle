@@ -117,11 +117,15 @@ option(SOUFFLE_USE_LIBFFI "Enable/Disable use of libffi" ON)
 option(SOUFFLE_CUSTOM_GETOPTLONG "Enable/Disable custom getopt_long implementation" OFF)
 option(SOUFFLE_TEST_DEBUG_REPORT "Enable/Disable generating debug-report for all tests" OFF)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set (USE_CLANG)
+endif()
+
 cmake_dependent_option(SOUFFLE_USE_LIBCPP "Link to libc++ instead of libstdc++" ON
-    "CMAKE_CXX_COMPILER_ID STREQUAL Clang" OFF)
+  "USE_CLANG" OFF)
 
 # Using Clang? Likely want to use `lld` too.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (USE_CLANG)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=lld")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
@@ -285,13 +289,13 @@ endif()
 # Memory Sanitiser
 # --------------------------------------------------
 if (SOUFFLE_SANITISE_MEMORY)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak,undefined")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak,undefined")
-    else()
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak")
-    endif()
+  if (USE_CLANG)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak,undefined")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak,undefined")
+  else()
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,leak")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,leak")
+  endif()
 endif()
 
 # --------------------------------------------------
