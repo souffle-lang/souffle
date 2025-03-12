@@ -226,6 +226,25 @@ std::optional<std::size_t> Synthesiser::compileRegex(const std::string& pattern)
     }
 }
 
+/// Return the C++ string raw literal sequence for the given string.
+std::string raw_str(const std::string& str) {
+    if (str.find(")_\"") == std::string::npos) {
+        // by default, use the shortest possible delimiter.
+        return "R\"_(" + str + ")_\"";
+    } else {
+        // when the input string contains the shortest possible ending sequence, we
+        // generate a delimiter based on the string hash value, that is statically
+        // very unlikely to appear in the string.
+        std::size_t h = std::hash<std::string>{}(str);
+        std::string delim = std::to_string(h);
+        if (delim.size() > 16) {
+            delim.resize(16);
+        }
+        assert(str.find(")" + delim + "\"") == std::string::npos);
+        return "R\"" + delim + "(" + str + ")" + delim + "\"";
+    }
+}
+
 void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
     class CodeEmitter : public ram::Visitor<void, Node const, std::ostream&> {
         using ram::Visitor<void, Node const, std::ostream&>::visit_;
@@ -343,10 +362,10 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                 if (cur == registry.end()) {
                     return;
                 }
-                out << "{{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
+                out << "{{" << raw_str(cur->first) << "," << raw_str(cur->second) << "}";
                 ++cur;
                 for (; cur != registry.end(); ++cur) {
-                    out << ",{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
+                    out << ",{" << raw_str(cur->first) << "," << raw_str(cur->second) << "}";
                 }
                 out << '}';
             };
@@ -505,8 +524,8 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
         void visit_(type_identity<LogSize>, const LogSize& size, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
-            out << "ProfileEventSingleton::instance().makeQuantityEvent( R\"(";
-            out << size.getMessage() << ")\",";
+            out << "ProfileEventSingleton::instance().makeQuantityEvent(";
+            out << raw_str(size.getMessage()) << ",";
             out << synthesiser.getRelationName(synthesiser.lookup(size.getRelation())) << "->size(),iter);";
             PRINT_END_COMMENT(out);
         }
@@ -625,7 +644,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             const auto* rel = synthesiser.lookup(timer.getRelation());
             auto relName = synthesiser.getRelationName(rel);
 
-            out << "\tLogger logger(R\"_(" << timer.getMessage() << ")_\",iter, [&](){return " << relName
+            out << "\tLogger logger(" << raw_str(timer.getMessage()) << ",iter, [&](){return " << relName
                 << "->size();});\n";
             // insert statement to be measured
             dispatch(timer.getStatement(), out);
@@ -643,7 +662,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
             const std::string ext = fileExtension(glb.config().get("profile"));
 
             // create local timer
-            out << "\tLogger logger(R\"_(" << timer.getMessage() << ")_\",iter);\n";
+            out << "\tLogger logger(" << raw_str(timer.getMessage()) << ",iter);\n";
             // insert statement to be measured
             dispatch(timer.getStatement(), out);
 
@@ -654,9 +673,9 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
 
         void visit_(type_identity<DebugInfo>, const DebugInfo& dbg, std::ostream& out) override {
             PRINT_BEGIN_COMMENT(out);
-            out << "signalHandler->setMsg(R\"_(";
-            out << dbg.getMessage();
-            out << ")_\");\n";
+            out << "signalHandler->setMsg(";
+            out << raw_str(dbg.getMessage());
+            out << ");\n";
 
             // insert statements of the rule
             dispatch(dbg.getStatement(), out);
@@ -2325,7 +2344,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                     } else {
                         out << "symTable.encode(";
                         if (lstr) {
-                            out << "R\"_(" << lstr->getConstant() << ")_\"";
+                            out << raw_str(lstr->getConstant());
                         } else {
                             out << "symTable.decode(";
                             dispatch(*args[0], out);
@@ -2333,7 +2352,7 @@ void Synthesiser::emitCode(std::ostream& out, const Statement& stmt) {
                         }
                         out << " + ";
                         if (rstr) {
-                            out << "R\"_(" << rstr->getConstant() << ")_\"";
+                            out << raw_str(rstr->getConstant());
                         } else {
                             out << "symTable.decode(";
                             dispatch(*args[1], out);
@@ -2795,8 +2814,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
             }
             rst << "{\n";
             for (const auto& p : patterns) {
-                const std::string escaped = escape(p);
-                rst << "\tstd::regex(\"" << escaped << "\"),\n";
+                rst << "  std::regex(" << raw_str(p) << "),\n";
             }
             rst << "}";
 
@@ -2835,7 +2853,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
     if (!symbolMap.empty()) {
         st << "{\n";
         for (const auto& x : symbolIndex) {
-            st << "\tR\"_(" << x << ")_\",\n";
+            st << "  " << raw_str(x) << ",\n";
         }
         st << "}";
     }
@@ -3049,10 +3067,10 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         if (cur == registry.end()) {
             return;
         }
-        o << "{{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
+        o << "{{" << raw_str(cur->first) << "," << raw_str(cur->second) << "}";
         ++cur;
         for (; cur != registry.end(); ++cur) {
-            o << ",{\"" << cur->first << "\",\"" << escape(cur->second) << "\"}";
+            o << ",{" << raw_str(cur->first) << "," << raw_str(cur->second) << "}";
         }
         o << '}';
     };
@@ -3113,7 +3131,7 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         os << "rwOperation[\"IO\"] = \"stdout\";\n";
         os << R"(rwOperation["name"] = ")" << name << "\";\n";
         os << "rwOperation[\"types\"] = ";
-        os << "\"" << escapeJSONstring(types.dump()) << "\"";
+        os << raw_str(types.dump());
         os << ";\n";
         os << "IOSystem::getInstance().getWriter(";
         os << "rwOperation, symTable, recordTable";
@@ -3182,12 +3200,13 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
         dumpFreqs.setRetType("void");
 
         for (auto const& cur : idxMap) {
-            dumpFreqs.body() << "\tProfileEventSingleton::instance().makeQuantityEvent(R\"_(" << cur.first
-                             << ")_\", freqs[" << cur.second << "],0);\n";
+            dumpFreqs.body() << "  ProfileEventSingleton::instance().makeQuantityEvent(" << raw_str(cur.first)
+                             << ", freqs[" << cur.second << "],0);\n";
         }
         for (auto const& cur : neIdxMap) {
-            dumpFreqs.body() << "\tProfileEventSingleton::instance().makeQuantityEvent(R\"_(@relation-reads;"
-                             << cur.first << ")_\", reads[" << cur.second << "],0);\n";
+            dumpFreqs.body() << "  ProfileEventSingleton::instance().makeQuantityEvent("
+                             << raw_str("@relation-reads;" + cur.first) << ", reads[" << cur.second
+                             << "],0);\n";
         }
     }
 
@@ -3230,15 +3249,15 @@ void Synthesiser::generateCode(GenDb& db, const std::string& id, bool& withShare
 
     // parse arguments
     hook << "souffle::CmdOptions opt(";
-    hook << "R\"(" << glb.config().get("") << ")\",\n";
-    hook << "R\"()\",\n";
-    hook << "R\"()\",\n";
+    hook << raw_str(glb.config().get("")) << ",\n";
+    hook << raw_str("") << ",\n";
+    hook << raw_str("") << ",\n";
     if (glb.config().has("profile")) {
         hook << "true,\n";
-        hook << "R\"(" << glb.config().get("profile") << ")\",\n";
+        hook << raw_str(glb.config().get("profile")) << ",\n";
     } else {
         hook << "false,\n";
-        hook << "R\"()\",\n";
+        hook << raw_str("") << ",\n";
     }
     hook << std::stoi(glb.config().get("jobs"));
     hook << ");\n";
