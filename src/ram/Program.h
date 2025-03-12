@@ -49,7 +49,7 @@ namespace souffle::ram {
  */
 class Program : public Node {
 private:
-    Program() : Node(NK_Program){};
+    Program() : Node(NK_Program) {}
 
 public:
     Program(VecOwn<Relation> rels, Own<Statement> main, std::map<std::string, Own<Statement>> subs)

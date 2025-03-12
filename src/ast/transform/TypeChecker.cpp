@@ -54,7 +54,7 @@ using namespace analysis;
 
 class TypeDeclarationChecker {
 public:
-    TypeDeclarationChecker(TranslationUnit& tu) : tu(tu){};
+    TypeDeclarationChecker(TranslationUnit& tu) : tu(tu) {}
     void run();
 
 private:
@@ -73,7 +73,7 @@ private:
 
 class TypeCheckerImpl : public Visitor<void> {
 public:
-    TypeCheckerImpl(TranslationUnit& tu) : tu(tu){};
+    TypeCheckerImpl(TranslationUnit& tu) : tu(tu) {}
 
     /** Analyse types, clause by clause */
     void run() {

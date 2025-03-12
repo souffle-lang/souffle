@@ -206,7 +206,7 @@ public:
 
 protected:
     AliasType(const TypeEnvironment& environment, const QualifiedName& name, const Type& alias)
-            : Type(TK_AliasType, environment, name), aliasType(alias){};
+            : Type(TK_AliasType, environment, name), aliasType(alias) {}
 
 private:
     friend class TypeEnvironment;
