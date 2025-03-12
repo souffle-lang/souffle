@@ -1487,7 +1487,7 @@ protected:
 #ifdef _MSC_VER
         return 80;
 #else
-        struct winsize w {};
+        struct winsize w;
         ioctl(0, TIOCGWINSZ, &w);
         uint32_t width = w.ws_col > 0 ? w.ws_col : 80;
         return width;

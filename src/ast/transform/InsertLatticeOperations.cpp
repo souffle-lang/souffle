@@ -41,7 +41,7 @@ namespace souffle::ast::transform {
 struct ReplaceGroundedLatticeArguments : public NodeMapper {
     ReplaceGroundedLatticeArguments(std::map<const ast::Argument*, const ast::Lattice*>& toReplace,
             VecOwn<ast::Literal>& newConstraints)
-            : toReplace(toReplace), newConstraints(newConstraints){};
+            : toReplace(toReplace), newConstraints(newConstraints) {}
 
     Own<Node> operator()(Own<Node> node) const override {
         if (auto arg = as<ast::Argument>(node)) {
@@ -94,7 +94,7 @@ struct varInfo {
  * verifying the constraints, which is not possible => the clause cannot be translated.
  */
 struct ReplaceUngroundedLatticeArguments : public NodeMapper {
-    ReplaceUngroundedLatticeArguments(varInfo& infos) : infos(infos){};
+    ReplaceUngroundedLatticeArguments(varInfo& infos) : infos(infos) {}
 
     Own<Node> operator()(Own<Node> node) const override {
         if (auto arg = as<ast::Variable>(node)) {
