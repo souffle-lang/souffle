@@ -24,7 +24,7 @@ class Cell : public CellInterface {
     const T value;
 
 public:
-    Cell(T value) : value(value){};
+    Cell(T value) : value(value) {}
     ~Cell() override = default;
 };
 
@@ -33,7 +33,7 @@ class Cell<std::chrono::microseconds> : public CellInterface {
     const std::chrono::microseconds value;
 
 public:
-    Cell(std::chrono::microseconds value) : value(value){};
+    Cell(std::chrono::microseconds value) : value(value) {}
     double getDoubleVal() const override {
         return value.count() / 1000000.0;
     }
@@ -58,7 +58,7 @@ class Cell<double> : public CellInterface {
     const double value;
 
 public:
-    Cell(double value) : value(value){};
+    Cell(double value) : value(value) {}
     double getDoubleVal() const override {
         return value;
     }
@@ -84,7 +84,7 @@ class Cell<std::string> : public CellInterface {
     const std::string value;
 
 public:
-    Cell(std::string value) : value(std::move(value)){};
+    Cell(std::string value) : value(std::move(value)) {}
     double getDoubleVal() const override {
         std::cerr << "getting double on string cell\n";
         throw this;
@@ -110,7 +110,7 @@ class Cell<int64_t> : public CellInterface {
     const int64_t value;
 
 public:
-    Cell(int64_t value) : value(value){};
+    Cell(int64_t value) : value(value) {}
     double getDoubleVal() const override {
         std::cerr << "getting double on long cell\n";
         throw this;

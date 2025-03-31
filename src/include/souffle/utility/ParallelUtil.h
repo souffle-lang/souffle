@@ -77,13 +77,13 @@ constexpr std::size_t hardware_destructive_interference_size = 2 * sizeof(max_al
 
 // section start / end => corresponding OpenMP pragmas
 // NOTE: disabled since it causes performance losses
-//#define SECTIONS_START _Pragma("omp parallel sections") {
+// #define SECTIONS_START _Pragma("omp parallel sections") {
 // NOTE: we stick to flat-level parallelism since it is faster due to thread pooling
 #define SECTIONS_START {
 #define SECTIONS_END }
 
 // the markers for a single section
-//#define SECTION_START _Pragma("omp section") {
+// #define SECTION_START _Pragma("omp section") {
 #define SECTION_START {
 #define SECTION_END }
 

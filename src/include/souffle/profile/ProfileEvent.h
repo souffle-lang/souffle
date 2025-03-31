@@ -46,7 +46,7 @@ class ProfileEventSingleton {
     profile::ProfileDatabase database{};
     std::string filename{""};
 
-    ProfileEventSingleton(){};
+    ProfileEventSingleton() {}
 
 public:
     ~ProfileEventSingleton() {
@@ -119,7 +119,7 @@ public:
         std::size_t maxRSS = processMemoryCounters.PeakWorkingSetSize / 1000;
 #else
         /* system CPU time used */
-        struct rusage ru {};
+        struct rusage ru;
         getrusage(RUSAGE_SELF, &ru);
         /* system CPU time used */
         uint64_t systemTime = ru.ru_stime.tv_sec * 1000000 + ru.ru_stime.tv_usec;

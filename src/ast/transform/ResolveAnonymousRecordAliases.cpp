@@ -96,7 +96,7 @@ bool ResolveAnonymousRecordAliasesTransformer::replaceNamedVariables(Translation
         std::map<std::string, const RecordInit*> varToRecordMap;
 
         ReplaceVariables(std::map<std::string, const RecordInit*> varToRecordMap)
-                : varToRecordMap(std::move(varToRecordMap)){};
+                : varToRecordMap(std::move(varToRecordMap)) {}
 
         Own<Node> operator()(Own<Node> node) const override {
             if (auto variable = as<ast::Variable>(node)) {

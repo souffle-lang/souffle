@@ -46,7 +46,7 @@ public:
         GetProcessMemoryInfo(hProcess, &processMemoryCounters, sizeof(processMemoryCounters));
         startMaxRSS = processMemoryCounters.PeakWorkingSetSize / 1000;
 #else
-        struct rusage ru {};
+        struct rusage ru;
         getrusage(RUSAGE_SELF, &ru);
         startMaxRSS = ru.ru_maxrss;
 #endif  // WIN32
@@ -61,7 +61,7 @@ public:
         GetProcessMemoryInfo(hProcess, &processMemoryCounters, sizeof(processMemoryCounters));
         std::size_t endMaxRSS = processMemoryCounters.PeakWorkingSetSize / 1000;
 #else
-        struct rusage ru {};
+        struct rusage ru;
         getrusage(RUSAGE_SELF, &ru);
         std::size_t endMaxRSS = ru.ru_maxrss;
 #endif  // WIN32
