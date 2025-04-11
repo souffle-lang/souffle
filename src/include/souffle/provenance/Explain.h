@@ -149,10 +149,16 @@ public:
             printInfo(rules);
 
             printPrompt("Pick a rule number: ");
+            int ruleNum = 0;
+            try {
+                ruleNum = stoi(getInput());
+            } catch (std::exception& e) {
+                printError("Invalid rule number\n");
+                return true;
+            }
 
             try {
-                std::string ruleNum = getInput();
-                auto variables = prov.explainNegationGetVariables(query.first, query.second, std::stoi(ruleNum));
+                auto variables = prov.explainNegationGetVariables(query.first, query.second, ruleNum);
                 
                 // @ and @non_matching are special sentinel values returned by ExplainProvenance
                 if (variables.size() == 1 && variables[0] == "@") {
@@ -172,7 +178,7 @@ public:
                     varValues[var] = getInput();
                 }
 
-                printTree(prov.explainNegation(query.first, std::stoi(ruleNum), query.second, varValues));
+                printTree(prov.explainNegation(query.first, ruleNum, query.second, varValues));
             } catch(const ValueReadException& e) {
                 printError(tfm::format("%s\n", e.what()));
                 return true;
