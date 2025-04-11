@@ -100,7 +100,12 @@ public:
                 return true;
             }
             query = parseTuple(command[1]);
-            printTree(prov.explain(query.first, query.second, ExplainConfig::getExplainConfig().depthLimit));
+            try {
+                printTree(prov.explain(query.first, query.second, ExplainConfig::getExplainConfig().depthLimit));
+            } catch(const ValueReadException& e) {
+                printError(tfm::format("%s\n", e.what()));
+                return true;
+            }
         } else if (command[0] == "subproof") {
             std::pair<std::string, std::vector<std::string>> query;
             int label = -1;
@@ -145,28 +150,33 @@ public:
 
             printPrompt("Pick a rule number: ");
 
-            std::string ruleNum = getInput();
-            auto variables = prov.explainNegationGetVariables(query.first, query.second, std::stoi(ruleNum));
+            try {
+                std::string ruleNum = getInput();
+                auto variables = prov.explainNegationGetVariables(query.first, query.second, std::stoi(ruleNum));
+                
+                // @ and @non_matching are special sentinel values returned by ExplainProvenance
+                if (variables.size() == 1 && variables[0] == "@") {
+                    printInfo("The tuple exists, cannot explain negation of it!\n");
+                    return true;
+                } else if (variables.size() == 1 && variables[0] == "@non_matching") {
+                    printInfo("The variable bindings don't match, cannot explain!\n");
+                    return true;
+                } else if (variables.size() == 1 && variables[0] == "@fact") {
+                    printInfo("The rule is a fact!\n");
+                    return true;
+                }
 
-            // @ and @non_matching are special sentinel values returned by ExplainProvenance
-            if (variables.size() == 1 && variables[0] == "@") {
-                printInfo("The tuple exists, cannot explain negation of it!\n");
-                return true;
-            } else if (variables.size() == 1 && variables[0] == "@non_matching") {
-                printInfo("The variable bindings don't match, cannot explain!\n");
-                return true;
-            } else if (variables.size() == 1 && variables[0] == "@fact") {
-                printInfo("The rule is a fact!\n");
+                std::map<std::string, std::string> varValues;
+                for (auto var : variables) {
+                    printPrompt("Pick a value for " + var + ": ");
+                    varValues[var] = getInput();
+                }
+
+                printTree(prov.explainNegation(query.first, std::stoi(ruleNum), query.second, varValues));
+            } catch(const ValueReadException& e) {
+                printError(tfm::format("%s\n", e.what()));
                 return true;
             }
-
-            std::map<std::string, std::string> varValues;
-            for (auto var : variables) {
-                printPrompt("Pick a value for " + var + ": ");
-                varValues[var] = getInput();
-            }
-
-            printTree(prov.explainNegation(query.first, std::stoi(ruleNum), query.second, varValues));
         } else if (command[0] == "rule" && command.size() == 2) {
             auto query = split(command[1], ' ');
             if (query.size() != 2) {
