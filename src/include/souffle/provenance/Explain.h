@@ -101,8 +101,9 @@ public:
             }
             query = parseTuple(command[1]);
             try {
-                printTree(prov.explain(query.first, query.second, ExplainConfig::getExplainConfig().depthLimit));
-            } catch(const ValueReadException& e) {
+                printTree(prov.explain(
+                        query.first, query.second, ExplainConfig::getExplainConfig().depthLimit));
+            } catch (const ValueReadException& e) {
                 printError(tfm::format("%s\n", e.what()));
                 return true;
             }
@@ -159,7 +160,7 @@ public:
 
             try {
                 auto variables = prov.explainNegationGetVariables(query.first, query.second, ruleNum);
-                
+
                 // @ and @non_matching are special sentinel values returned by ExplainProvenance
                 if (variables.size() == 1 && variables[0] == "@") {
                     printInfo("The tuple exists, cannot explain negation of it!\n");
@@ -179,7 +180,7 @@ public:
                 }
 
                 printTree(prov.explainNegation(query.first, ruleNum, query.second, varValues));
-            } catch(const ValueReadException& e) {
+            } catch (const ValueReadException& e) {
                 printError(tfm::format("%s\n", e.what()));
                 return true;
             }

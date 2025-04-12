@@ -247,14 +247,14 @@ protected:
     RamDomain valueRead(const char type, const std::string& value) const {
         try {
             switch (type) {
-            case 'i': return ramBitCast(RamSignedFromString(value));
-            case 'u': return ramBitCast(RamUnsignedFromString(value));
-            case 'f': return ramBitCast(RamFloatFromString(value));
-            case 's':
-                assert(2 <= value.size() && value[0] == '"' && value.back() == '"');
-                return symTable.encode(value.substr(1, value.size() - 2));
-            case 'r': fatal("not implemented");
-            default: fatal("unhandled type attr code");
+                case 'i': return ramBitCast(RamSignedFromString(value));
+                case 'u': return ramBitCast(RamUnsignedFromString(value));
+                case 'f': return ramBitCast(RamFloatFromString(value));
+                case 's':
+                    assert(2 <= value.size() && value[0] == '"' && value.back() == '"');
+                    return symTable.encode(value.substr(1, value.size() - 2));
+                case 'r': fatal("not implemented");
+                default: fatal("unhandled type attr code");
             }
         } catch (const std::invalid_argument& e) {
             throw ValueReadException(tfm::format("Invalid argument %s for type '%c'", value, type));
