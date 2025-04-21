@@ -420,7 +420,7 @@ public:
     }
 
     void insert(const Index& src) {
-        data = src.data;
+        data.store(src.data.load());
     }
 
     bool contains(const Tuple& /* t */) const {
