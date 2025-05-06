@@ -31,7 +31,7 @@ namespace souffle::ast::transform {
 class LatticeTransformer : public Transformer {
 public:
     std::string getName() const override {
-        return "InlineRelationsTransformer";
+        return "LatticeTransformer";
     }
 
 private:
