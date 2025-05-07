@@ -109,6 +109,10 @@ public:
                 return true;
             }
             query = parseTuple(command[1]);
+            if (query.second.size() == 0) {
+                printError("Usage: subproof relation_name(<label>)\n");
+                return true;
+            }
             label = std::stoi(query.second[0]);
             printTree(prov.explainSubproof(query.first, label, ExplainConfig::getExplainConfig().depthLimit));
         } else if (command[0] == "explainnegation") {
