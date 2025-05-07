@@ -211,7 +211,7 @@ NodePtr NodeGenerator::visit_(type_identity<ram::Conjunction>, const ram::Conjun
             dfs.push(&subconj->getRHS());
             dfs.push(&subconj->getLHS());
         } else {
-            children.emplace_back(std::move(dispatch(*term)));
+            children.emplace_back(dispatch(*term));
         }
     }
     return mk<Conjunction>(I_Conjunction, &conj, std::move(children));

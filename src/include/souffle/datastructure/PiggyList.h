@@ -267,9 +267,9 @@ public:
         iterator() = default;
 
         /* begin iterator for iterating over all elements */
-        iterator(PiggyList* bl) : bl(bl){};
+        iterator(PiggyList* bl) : bl(bl) {}
         /* ender iterator for marking the end of the iteration */
-        iterator(PiggyList* bl, std::size_t beginInd) : cIndex(beginInd), bl(bl){};
+        iterator(PiggyList* bl, std::size_t beginInd) : cIndex(beginInd), bl(bl) {}
 
         T operator*() {
             return bl->get(cIndex);
