@@ -1,0 +1,4 @@
+WARNING: `--auto-schedule` cannot be used due to missing scheduler stats; falling back to heuristic 'all-bound'
+Warning: Variable x only occurs once in file bug2426.dl at line 9
+res(a) :- B(x), A(a).
+------------^---------

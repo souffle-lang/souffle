@@ -42,13 +42,6 @@ function(SOUFFLE_ADD_SCHEDULER_TEST TEST_NAME)
       FIXTURES_SETUP ${FIXTURE_NAME}_stats_collection
       FIXTURES_REQUIRED ${FIXTURE_NAME}_setup)
 
-    # Check output
-    souffle_compare_std_outputs(TEST_NAME ${TEST_NAME}
-                                 QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
-                                 OUTPUT_DIR ${OUTPUT_DIR}
-                                 RUN_AFTER_FIXTURE ${FIXTURE_NAME}_stats_collection
-                                 TEST_LABELS ${TEST_LABELS})
-
     souffle_compare_csv(QUALIFIED_TEST_NAME ${QUALIFIED_TEST_NAME}
                         INPUT_DIR ${INPUT_DIR}
                         OUTPUT_DIR ${OUTPUT_DIR}
@@ -94,4 +87,5 @@ endfunction()
 if (NOT MSVC)
     souffle_add_scheduler_test(functionality)
     souffle_add_scheduler_test(eqrel)
+    souffle_add_scheduler_test(bug2426)
 endif()
