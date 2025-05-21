@@ -92,8 +92,9 @@ std::vector<std::size_t> SelingerProfileSipsMetric::getReordering(
         const Clause* clause, const std::vector<std::string>& atomNames) const {
     auto atoms = ast::getBodyLiterals<ast::Atom>(*clause);
 
-    // remember to exit for single atom bodies
-    if (atoms.size() <= 1) {
+    // remember to exit for single atom bodies and also if the number
+    // of relations is too large (algorithm is exponential)
+    if (atoms.size() <= 1 || atoms.size() > SELINGER_METRIC_CUTOFF) {
         std::vector<std::size_t> res;
         res.resize(atoms.size());
         std::iota(res.begin(), res.end(), 0);
