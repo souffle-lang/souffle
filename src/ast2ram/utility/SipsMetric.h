@@ -23,6 +23,13 @@
 #include <string>
 #include <vector>
 
+// define the maximum number of atoms for which the
+// SelingerProfileSipsMetric will be applied
+// The algorithm is exponential in N.
+#ifndef SELINGER_METRIC_CUTOFF
+#define SELINGER_METRIC_CUTOFF 16
+#endif
+
 namespace souffle::ram {
 class Expression;
 }  // namespace souffle::ram
