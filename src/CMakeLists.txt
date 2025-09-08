@@ -422,6 +422,20 @@ if (MSVC)
   target_compile_definitions(libsouffle PUBLIC USE_CUSTOM_GETOPTLONG)
   target_compile_definitions(compiled PUBLIC USE_CUSTOM_GETOPTLONG)
   target_compile_definitions(souffleprof PUBLIC USE_CUSTOM_GETOPTLONG)
+
+  # 16MB stack size
+  #
+  # When compiled in with Visual Studio with the default stack size of 1MB,
+  # the interpreter fails with a stack overflow in Engine::execute().
+  # The cause is the number of lambda functions that are allocated as locals on the stack.
+  # The stack frame of Engine::execute is close to 30KB.
+  # The 1MB stack will overflow at depth ~34 of Engine::execute().
+  #
+  # Tests such as inline_nqueens and magic_nqueens would fail without a large-enough
+  # stack size.
+  #
+  # See #2547.
+  target_link_options(souffle PUBLIC "/STACK:16777216")
 endif (MSVC)
 
 if (APPLE)

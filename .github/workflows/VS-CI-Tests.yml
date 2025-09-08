@@ -69,13 +69,13 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: cmd
       run: |
-        pushd "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build" & call vcvars64.bat & popd
+        pushd "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build" & call vcvars64.bat & popd
         ctest --output-on-failure --build-config Release --progress -j4 -L interpreted
 
     - name: Check others
       working-directory: ${{github.workspace}}/build
       shell: cmd
       run: |
-        pushd "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build" & call vcvars64.bat & popd
+        pushd "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build" & call vcvars64.bat & popd
         ctest --output-on-failure --build-config Release --progress -j2 -LE interpreted
 
