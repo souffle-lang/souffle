@@ -468,7 +468,12 @@ if (CHECK_OS_RESULT EQUAL 0)
       # --------------------------------------------------
 
       # Specifying runtime dependencies
-      set(CPACK_RPM_PACKAGE_REQUIRES "gcc-c++ >= 8, libffi, libffi-devel, ncurses-devel, sqlite-devel, mcpp, zlib-devel, python3")
+      if (MCPP)
+        set(CPACK_RPM_PACKAGE_REQUIRES "gcc-c++ >= 8, libffi, libffi-devel, ncurses-devel, sqlite-devel, mcpp, zlib-devel, python3")
+      else()
+        # fedora versions >= 42 no longer have mcpp
+        set(CPACK_RPM_PACKAGE_REQUIRES "gcc-c++ >= 8, libffi, libffi-devel, ncurses-devel, sqlite-devel, zlib-devel, python3")
+      endif()
 
       # Note: By default automatic dependency detection is enabled by rpm generator.
       # SET(CPACK_RPM_PACKAGE_AUTOREQPROV "no")
