@@ -1,0 +1,11 @@
+.decl m(s: number)
+.output r
+.decl r(s: number)
+.output m
+r(1).
+m(1).
+m(2).
+// m = {1,2} before subsumption, and then expect m = {1} because
+// m(2) is subsumed by m(1):
+//    m(2) <= m(1) :- !r(2), m(1).
+m(x) <= m(y) :- !r(x), m(y).
