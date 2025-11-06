@@ -70,6 +70,8 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
         Graph<std::string> variableGraph = Graph<std::string>();
         std::set<std::string> ruleVariables;
 
+        const bool isSubsumption = isA<SubsumptiveClause>(clause);
+
         // Add in the nodes
         // The nodes of G are the variables in the rule
         visit(clause, [&](const ast::Variable& var) {
@@ -109,6 +111,26 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
         // Find the connected component associated with the head
         std::set<std::string> headComponent;
         visit(*clause.getHead(), [&](const ast::Variable& var) { headComponent.insert(var.getName()); });
+
+        if (isSubsumption) {
+            // this works because subsumptive clause first two literals are the least and greatest atoms
+            // of the original clause's head: `A(least, ... ) <= A(greatest, ...) :- ...`.
+            std::set<std::string> leastAtomVariables;
+            std::set<std::string> greatestAtomVariables;
+            visit(literalsToConsider[0],
+                    [&](const ast::Variable& var) { leastAtomVariables.insert(var.getName()); });
+            visit(literalsToConsider[1],
+                    [&](const ast::Variable& var) { greatestAtomVariables.insert(var.getName()); });
+            // Create edge between any couple of variables taken respectively from the least and greatest
+            // atoms: `least <-> greatest`, since in the previous step of the algorithm we already linked
+            // variables within each atom.
+            if (!(leastAtomVariables.empty() || greatestAtomVariables.empty())) {
+                const auto vL = *leastAtomVariables.begin();
+                const auto vG = *greatestAtomVariables.begin();
+                variableGraph.insert(vL, vG);
+                variableGraph.insert(vG, vL);
+            }
+        }
 
         if (!headComponent.empty()) {
             variableGraph.visit(*headComponent.begin(), [&](const std::string& var) {
@@ -181,10 +203,17 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
             clausesToAdd.push_back(std::move(disconnectedClause));
         }
 
-        // Create the replacement clause
-        // a(x) <- b(x), c(y), d(z). --> a(x) <- newrel0(), newrel1(), b(x).
-        auto replacementClause =
-                mk<Clause>(clone(clause.getHead()), std::move(replacementAtoms), nullptr, clause.getSrcLoc());
+        // Create the replacement clause. The original literals must appear first and in order to
+        // satisfy the SubsumptiveClause invariants.
+        //
+        // `a(x) <- b(x), c(y), d(z). --> a(x) <- b(x), newrel0(), newrel1().`
+        Clause* replacementClause;
+        if (isSubsumption) {
+            replacementClause =
+                    new SubsumptiveClause(clone(clause.getHead()), {}, nullptr, clause.getSrcLoc());
+        } else {
+            replacementClause = new Clause(clone(clause.getHead()), {}, nullptr, clause.getSrcLoc());
+        }
 
         // Add the remaining body literals to the clause
         for (Literal* bodyLiteral : clause.getBodyLiterals()) {
@@ -201,9 +230,11 @@ bool PartitionBodyLiteralsTransformer::transform(TranslationUnit& translationUni
             }
         }
 
+        replacementClause->addToBody(std::move(replacementAtoms));
+
         // Replace the old clause with the new one
         clausesToRemove.push_back(&clause);
-        clausesToAdd.push_back(std::move(replacementClause));
+        clausesToAdd.push_back(std::unique_ptr<Clause>(replacementClause));
     });
 
     // Adjust the program
