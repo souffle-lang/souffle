@@ -1,0 +1,15 @@
+.decl nums(n: number)
+nums(n) :- n = range(0,665,1).
+
+.decl qry1(z: number, cnt: number)
+qry1(z, cnt) :- (z = 0; z = 1), cnt = count : {nums(n), n % 2 = z}.
+
+
+.decl last(n: number, z: number)
+last(n, z) :- nums(n), n % 2 = z.
+
+.decl qry2(z: number, cnt: number)
+qry2(z, cnt) :- (z = 0 ; z = 1), cnt = count : {last(_, z)}.
+
+.output qry1()
+.output qry2()

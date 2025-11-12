@@ -103,8 +103,8 @@ TEST(Transformers, GroundTermPropagation2) {
     Own<Clause> res = ResolveAliasesTransformer::resolveAliases(*a);
     Own<Clause> cleaned = ResolveAliasesTransformer::removeTrivialEquality(*res);
 
-    EXPECT_EQ("p(b,b) :- \n   p(b,b),\n   b = b,\n   b = b,\n   b = b.", toString(*res));
-    EXPECT_EQ("p(b,b) :- \n   p(b,b).", toString(*cleaned));
+    EXPECT_EQ("p(x,x) :- \n   p(x,x),\n   x = x,\n   x = x,\n   x = x.", toString(*res));
+    EXPECT_EQ("p(x,x) :- \n   p(x,x).", toString(*cleaned));
 }
 
 TEST(Transformers, ResolveGroundedAliases) {
@@ -297,7 +297,7 @@ TEST(Transformers, CheckClausalEquivalence) {
             "C(r) :- \n   A(r,y),\n   A(r,x),\n   x != 3,\n   x < y,\n   !B(y),\n   y > 3,\n   B(y),\n   "
             "B(x).",
             toString(*cClauses[1]));
-    EXPECT_EQ("C(x) :- \n   A(x,a),\n   a != 3,\n   !B(a),\n   A(x,b),\n   b > 3,\n   B(b),\n   a < b.",
+    EXPECT_EQ("C(x) :- \n   A(x,a),\n   a != 3,\n   !B(a),\n   A(x,c),\n   c > 3,\n   B(c),\n   a < c.",
             toString(*cClauses[2]));
 
     // Check equivalence of these clauses

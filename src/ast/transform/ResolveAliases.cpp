@@ -16,18 +16,21 @@
  ***********************************************************************/
 
 #include "ast/transform/ResolveAliases.h"
+#include "ast/Aggregator.h"
 #include "ast/Argument.h"
 #include "ast/Atom.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Functor.h"
 #include "ast/Literal.h"
+#include "ast/Negation.h"
 #include "ast/Node.h"
 #include "ast/Program.h"
 #include "ast/RecordInit.h"
 #include "ast/Relation.h"
 #include "ast/TranslationUnit.h"
 #include "ast/Variable.h"
+#include "ast/analysis/Aggregate.h"
 #include "ast/analysis/Functor.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
@@ -37,7 +40,6 @@
 #include "souffle/utility/NodeMapper.h"
 #include "souffle/utility/StreamUtil.h"
 #include "souffle/utility/StringUtil.h"
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <map>
@@ -45,7 +47,6 @@
 #include <ostream>
 #include <set>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -180,6 +181,8 @@ public:
 
     ~Equation() = default;
 
+    Equation& operator=(Equation&& other) = default;
+
     /**
      * Applies the given substitution to both sides of the equation.
      */
@@ -222,178 +225,252 @@ bool nameUnnamedInit(Clause& clause) {
     return changed;
 }
 
+/// tests whether something is a variable
+const auto isVar = [](const Argument& arg) { return isA<ast::Variable>(&arg); };
+
+/// tests whether something is a record
+const auto isRec = [](const Argument& arg) { return isA<RecordInit>(&arg); };
+
+/// tests whether something is a ADT
+const auto isAdt = [](const Argument& arg) { return isA<BranchInit>(&arg); };
+
+/// tests whether something is a generator
+const auto isGenerator = [](const Argument& arg) {
+    // aggregators
+    if (isA<Aggregator>(&arg)) return true;
+
+    // or multi-result functors
+    const auto* inf = as<IntrinsicFunctor>(arg);
+    if (inf == nullptr) return false;
+    return analysis::FunctorAnalysis::isMultiResult(*inf);
+};
+
+/// tests whether a value `a` occurs in a term `b`
+const auto occurs = [](const Argument& a, const Argument& b) {
+    bool res = false;
+    visit(b, [&](const Argument& arg) { res = (res || (arg == a)); });
+    return res;
+};
+
+void findBaseGroundedVariables(const std::vector<Literal*>& lits, std::set<std::string>& grounded) {
+    // variables appearing as functorless arguments in positive atoms or records should not
+    // be resolved
+
+    std::set<const Atom*> negativeAtoms;
+    visit(lits, [&](const Negation& neg) { negativeAtoms.insert(neg.getAtom()); });
+
+    for (const Literal* lit : lits) {
+        if (const Atom* atom = as<Atom>(lit)) {
+            if (negativeAtoms.count(atom) > 0) {
+                continue;
+            }
+
+            for (const Argument* arg : atom->getArguments()) {
+                if (const auto* var = as<ast::Variable>(arg)) {
+                    grounded.insert(var->getName());
+                }
+            }
+
+            visit(atom, [&](const RecordInit& rec) {
+                for (const Argument* arg : rec.getArguments()) {
+                    if (const auto* var = as<ast::Variable>(arg)) {
+                        grounded.insert(var->getName());
+                    }
+                }
+            });
+
+            visit(atom, [&](const BranchInit& adt) {
+                for (const Argument* arg : adt.getArguments()) {
+                    if (const auto* var = as<ast::Variable>(arg)) {
+                        grounded.insert(var->getName());
+                    }
+                }
+            });
+        }
+
+        if (const BinaryConstraint* constraint = as<BinaryConstraint>(lit)) {
+            // `@generator = ...` => `@generator` is grounded
+            if (isVar(*constraint->getLHS()) && isGenerator(*constraint->getRHS())) {
+                auto name = as<Variable>(constraint->getLHS())->getName();
+                grounded.insert(name);
+            }
+        }
+    }
+}
+
+void resolveLocalAliases(std::set<std::string> baseGroundedVariables, std::vector<Literal*> lits,
+        std::set<std::string> skipVariables, Substitution& substitution) {
+    findBaseGroundedVariables(lits, baseGroundedVariables);
+
+    // I) extract equations from the literals
+    std::vector<Equation> equations;
+    for (const Literal* lit : lits) {
+        if (const BinaryConstraint* constraint = as<BinaryConstraint>(lit)) {
+            if (isEqConstraint(constraint->getBaseOperator())) {
+                equations.push_back(Equation(constraint->getLHS(), constraint->getRHS()));
+            }
+        }
+    }
+
+    // Find and apply mappings until fixpoint when all remaining equalities are postponed.
+    //
+    // An equation of the form `v = t` is postponed as long as `t` contains at least one variable that
+    // is not grounded.
+    //
+    // When all variables in `t` are grounded, the equation `v = t` is discarded and the substitution `v -> t`
+    // is recorded and applied to all remaining equations.
+    //
+    while (!equations.empty()) {
+        size_t equation_count = equations.size();
+        // postponed equalities
+        std::vector<Equation> postponed;
+        // added equations
+        std::vector<Equation> added;
+
+        // process remaining equations
+        for (auto& equation : equations) {
+            // apply substitutions to this equation
+            equation.apply(substitution);
+
+            // shortcuts for left/right
+            const Argument& lhs = *equation.lhs;
+            const Argument& rhs = *equation.rhs;
+
+            // #1:  t = t   => skip
+            if (lhs == rhs) {
+                continue;
+            }
+
+            // #2:  [..] = [..]  => decompose
+            if (isRec(lhs) && isRec(rhs)) {
+                // get arguments
+                const auto& lhs_args = static_cast<const RecordInit&>(lhs).getArguments();
+                const auto& rhs_args = static_cast<const RecordInit&>(rhs).getArguments();
+
+                // make sure sizes are identical
+                assert(lhs_args.size() == rhs_args.size() && "Record lengths not equal");
+
+                // create new equalities
+                for (std::size_t i = 0; i < lhs_args.size(); i++) {
+                    added.push_back(Equation(lhs_args[i], rhs_args[i]));
+                }
+
+                continue;
+            }
+
+            // #3:  neither is a variable    => skip
+            if (!isVar(lhs) && !isVar(rhs)) {
+                continue;
+            }
+
+            if (isVar(lhs)) {
+                const auto& var = static_cast<const ast::Variable&>(lhs);
+                if (skipVariables.count(var.getName()) > 0) {
+                    continue;
+                }
+            }
+
+            if (isVar(rhs)) {
+                const auto& var = static_cast<const ast::Variable&>(rhs);
+                if (skipVariables.count(var.getName()) > 0) {
+                    continue;
+                }
+            }
+
+            // #4:  v = w    => add mapping
+            if (isVar(lhs) && isVar(rhs)) {
+                const auto& var = static_cast<const ast::Variable&>(lhs);
+                const auto& war = static_cast<const ast::Variable&>(rhs);
+                if ((baseGroundedVariables.count(var.getName()) == 0) &&
+                        (baseGroundedVariables.count(war.getName()) != 0)) {
+                    substitution.append(Substitution(var.getName(), &war));
+                } else {
+                    substitution.append(Substitution(war.getName(), &var));
+                }
+                continue;
+            }
+
+            // #5:  t = v   => swap
+            if (!isVar(lhs)) {
+                added.push_back(Equation(rhs, lhs));
+                continue;
+            }
+
+            // now we know lhs is a variable
+            // therefore, we have v = t
+            const auto& v = static_cast<const ast::Variable&>(lhs);
+            const Argument& t = rhs;
+
+            // #6:  t is a generator => skip
+            if (isGenerator(t)) {
+                continue;
+            }
+
+            // #7:  v occurs in t   => skip
+            if (occurs(v, t)) {
+                // TODO unless v is grounded ?
+                continue;
+            }
+
+            // #8:  t is a record   => add mapping
+            if (isRec(t) || isAdt(t)) {
+                substitution.append(Substitution(v.getName(), &t));
+                continue;
+            }
+
+            // #9:  v is already grounded   => skip
+            if (baseGroundedVariables.count(v.getName()) != 0) {
+                continue;
+            }
+
+            // if not all terms in t are grounded => postpone
+            bool all_grounded = true;
+            visit(&t, [&all_grounded, &baseGroundedVariables](const ast::Variable& v) {
+                all_grounded = all_grounded && (baseGroundedVariables.count(v.getName()) > 0);
+            });
+
+            if (all_grounded) {
+                // add new mapping
+                substitution.append(Substitution(v.getName(), &t));
+            } else {
+                postponed.push_back(equation);
+            }
+        }
+
+        if (added.empty() && postponed.size() == equation_count) {
+            // remaining equations with non-grounded terms, can happen in the presence of inlined clause
+            break;
+        }
+
+        equations.clear();
+        equations.insert(equations.end(), std::make_move_iterator(postponed.begin()),
+                std::make_move_iterator(postponed.end()));
+        equations.insert(equations.end(), std::make_move_iterator(added.begin()),
+                std::make_move_iterator(added.end()));
+    }
+}
+
 }  // namespace
 
 Own<Clause> ResolveAliasesTransformer::resolveAliases(const Clause& clause) {
-    // -- utilities --
-
-    // tests whether something is a variable
-    auto isVar = [&](const Argument& arg) { return isA<ast::Variable>(&arg); };
-
-    // tests whether something is a record
-    auto isRec = [&](const Argument& arg) { return isA<RecordInit>(&arg); };
-
-    // tests whether something is a ADT
-    auto isAdt = [&](const Argument& arg) { return isA<BranchInit>(&arg); };
-
-    // tests whether something is a generator
-    auto isGenerator = [&](const Argument& arg) {
-        // aggregators
-        if (isA<Aggregator>(&arg)) return true;
-
-        // or multi-result functors
-        const auto* inf = as<IntrinsicFunctor>(arg);
-        if (inf == nullptr) return false;
-        return analysis::FunctorAnalysis::isMultiResult(*inf);
-    };
-
-    // tests whether a value `a` occurs in a term `b`
-    auto occurs = [](const Argument& a, const Argument& b) {
-        bool res = false;
-        visit(b, [&](const Argument& arg) { res = (res || (arg == a)); });
-        return res;
-    };
-
-    // variables appearing as functorless arguments in atoms or records should not
-    // be resolved
     std::set<std::string> baseGroundedVariables;
-    for (const auto* atom : getBodyLiterals<Atom>(clause)) {
-        for (const Argument* arg : atom->getArguments()) {
-            if (const auto* var = as<ast::Variable>(arg)) {
-                baseGroundedVariables.insert(var->getName());
-            }
-        }
-        visit(*atom, [&](const RecordInit& rec) {
-            for (const Argument* arg : rec.getArguments()) {
-                if (const auto* var = as<ast::Variable>(arg)) {
-                    baseGroundedVariables.insert(var->getName());
-                }
-            }
-        });
-        visit(*atom, [&](const BranchInit& adt) {
-            for (const Argument* arg : adt.getArguments()) {
-                if (const auto* var = as<ast::Variable>(arg)) {
-                    baseGroundedVariables.insert(var->getName());
-                }
-            }
-        });
-    }
 
-    // I) extract equations
-    std::vector<Equation> equations;
-    visit(clause, [&](const BinaryConstraint& constraint) {
-        if (isEqConstraint(constraint.getBaseOperator())) {
-            equations.push_back(Equation(constraint.getLHS(), constraint.getRHS()));
-        }
+    // compute unifying substitution
+    Substitution substitution;
+    resolveLocalAliases(baseGroundedVariables, clause.getBodyLiterals(), {}, substitution);
+    visit(clause, [&clause, &baseGroundedVariables, &substitution](const Aggregator& agg) {
+        // variables used outside of the aggregate must not be mapped.
+        std::set<std::string> skipVariables = analysis::getVariablesOutsideAggregate(clause, agg);
+        resolveLocalAliases(baseGroundedVariables, agg.getBodyLiterals(), skipVariables, substitution);
     });
 
-    // II) compute unifying substitution
-    Substitution substitution;
-
-    // a utility for processing newly identified mappings
-    auto newMapping = [&](const std::string& var, const Argument* term) {
-        // found a new substitution
-        Substitution newMapping(var, term);
-
-        // apply substitution to all remaining equations
-        for (auto& equation : equations) {
-            equation.apply(newMapping);
-        }
-
-        // add mapping v -> t to substitution
-        substitution.append(newMapping);
-    };
-
-    while (!equations.empty()) {
-        // get next equation to compute
-        Equation equation = equations.back();
-        equations.pop_back();
-
-        // shortcuts for left/right
-        const Argument& lhs = *equation.lhs;
-        const Argument& rhs = *equation.rhs;
-
-        // #1:  t = t   => skip
-        if (lhs == rhs) {
-            continue;
-        }
-
-        // #2:  [..] = [..]  => decompose
-        if (isRec(lhs) && isRec(rhs)) {
-            // get arguments
-            const auto& lhs_args = static_cast<const RecordInit&>(lhs).getArguments();
-            const auto& rhs_args = static_cast<const RecordInit&>(rhs).getArguments();
-
-            // make sure sizes are identical
-            assert(lhs_args.size() == rhs_args.size() && "Record lengths not equal");
-
-            // create new equalities
-            for (std::size_t i = 0; i < lhs_args.size(); i++) {
-                equations.push_back(Equation(lhs_args[i], rhs_args[i]));
-            }
-
-            continue;
-        }
-
-        // #3:  neither is a variable    => skip
-        if (!isVar(lhs) && !isVar(rhs)) {
-            continue;
-        }
-
-        // #4:  v = w    => add mapping
-        if (isVar(lhs) && isVar(rhs)) {
-            auto& var = static_cast<const ast::Variable&>(lhs);
-            newMapping(var.getName(), &rhs);
-            continue;
-        }
-
-        // #5:  t = v   => swap
-        if (!isVar(lhs)) {
-            equations.push_back(Equation(rhs, lhs));
-            continue;
-        }
-
-        // now we know lhs is a variable
-        assert(isVar(lhs));
-
-        // therefore, we have v = t
-        const auto& v = static_cast<const ast::Variable&>(lhs);
-        const Argument& t = rhs;
-
-        // #6:  t is a generator => skip
-        if (isGenerator(t)) {
-            continue;
-        }
-
-        // #7:  v occurs in t   => skip
-        if (occurs(v, t)) {
-            continue;
-        }
-
-        assert(!occurs(v, t));
-
-        // #8:  t is a record   => add mapping
-        if (isRec(t) || isAdt(t)) {
-            newMapping(v.getName(), &t);
-            continue;
-        }
-
-        // #9:  v is already grounded   => skip
-        auto pos = baseGroundedVariables.find(v.getName());
-        if (pos != baseGroundedVariables.end()) {
-            continue;
-        }
-
-        // add new mapping
-        newMapping(v.getName(), &t);
-    }
-
-    // III) compute resulting clause
+    // compute resulting clause
     return substitution(clone(clause));
 }
 
 Own<Clause> ResolveAliasesTransformer::removeTrivialEquality(const Clause& clause) {
     auto res = Own<Clause>(clause.cloneHead());
+    // TODO also visit aggregators
 
     // add all literals, except filtering out t = t constraints
     for (Literal* literal : clause.getBodyLiterals()) {
@@ -532,29 +609,43 @@ bool ResolveAliasesTransformer::transform(TranslationUnit& translationUnit) {
     });
 
     // clean all clauses
-    for (Clause* clause : clauses) {
-        // -- Step 0 --
+    for (Clause* const clause : clauses) {
         // Name unnamed variables in record and branch inits (souffle-lang/souffle#2482)
         // This is fine as long as this transformer runs after the semantics checker
         changed |= nameUnnamedInit(*clause);
 
-        // -- Step 1 --
-        // get rid of aliases
-        Own<Clause> noAlias = resolveAliases(*clause);
+        // Repeat resolution until fixpoint.
+        //
+        // We must repeat the resolution when a variable appearing as an atom
+        // argument is replaced by a record or an adt. Because the record (or
+        // adt) arguments become grounded and gives opportunity to resolve
+        // additionnal equalities.
+        Own<Clause> modified;
+        while (true) {
+            Clause* init = modified ? modified.get() : clause;
 
-        // clean up equalities
-        Own<Clause> cleaned = removeTrivialEquality(*noAlias);
+            // get rid of aliases
+            Own<Clause> noAlias = resolveAliases(*init);
 
-        // -- Step 2 --
-        // restore simple terms in atoms
-        Own<Clause> normalised = removeComplexTermsInAtoms(*cleaned);
+            // clean up equalities
+            Own<Clause> cleaned = removeTrivialEquality(*noAlias);
 
-        // swap if changed
-        if (*normalised != *clause) {
-            changed = true;
-            program.removeClause(*clause);
-            program.addClause(std::move(normalised));
-        }
+            // restore simple terms in atoms
+            Own<Clause> normalised = removeComplexTermsInAtoms(*cleaned);
+
+            if (*normalised == *init) {
+                // reached fixpoint
+                if (modified) {
+                    // original clause modified
+                    changed = true;
+                    program.removeClause(*clause);
+                    program.addClause(std::move(normalised));
+                }
+                break;
+            }
+
+            modified = std::move(normalised);
+        };
     }
 
     return changed;
