@@ -30,6 +30,9 @@ jobs:
           - release: fedora-42
             extension: ".rpm"
             OS-name: "fedora/42"
+          - release: fedora-43
+            extension: ".rpm"
+            OS-name: "fedora/43"
 
     runs-on: ubuntu-latest
     steps:
