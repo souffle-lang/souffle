@@ -1,0 +1,6 @@
+.decl test(res:number)
+.output test()
+test(res) :-
+  x = 1,
+  res = count : { _y = range(x, 10)}.
+

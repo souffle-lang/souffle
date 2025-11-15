@@ -461,7 +461,8 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
     auto magicPipeline = mk<ast::transform::PipelineTransformer>(
             mk<ast::transform::ConditionalTransformer>(
                     glb.config().has("magic-transform"), mk<ast::transform::ExpandEqrelsTransformer>()),
-            mk<ast::transform::MagicSetTransformer>(), mk<ast::transform::ResolveAliasesTransformer>(),
+            mk<ast::transform::MagicSetTransformer>(), 
+            mk<ast::transform::ResolveAliasesTransformer>(),
             mk<ast::transform::RemoveRelationCopiesTransformer>(),
             mk<ast::transform::RemoveEmptyRelationsTransformer>(),
             mk<ast::transform::RemoveRedundantRelationsTransformer>(), clone(equivalencePipeline));
@@ -492,6 +493,10 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
             mk<ast::transform::GroundWitnessesTransformer>(),
             mk<ast::transform::UniqueAggregationVariablesTransformer>(),
             mk<ast::transform::MaterializeSingletonAggregationTransformer>(),
+              mk<ast::transform::PipelineTransformer>(
+                    // fix #2486
+                    mk<ast::transform::ResolveAliasesTransformer>(),
+                    mk<ast::transform::SimplifyAggregateTargetExpressionTransformer>()),
             mk<ast::transform::FixpointTransformer>(
                     mk<ast::transform::MaterializeAggregationQueriesTransformer>()),
             mk<ast::transform::RemoveRedundantSumsTransformer>(),
@@ -500,7 +505,8 @@ Own<ast::transform::PipelineTransformer> astTransformationPipeline(Global& glb) 
             mk<ast::transform::RemoveBooleanConstraintsTransformer>(),
             mk<ast::transform::ResolveAliasesTransformer>(), mk<ast::transform::MinimiseProgramTransformer>(),
             mk<ast::transform::InlineUnmarkExcludedTransform>(),
-            mk<ast::transform::InlineRelationsTransformer>(), mk<ast::transform::GroundedTermsChecker>(),
+            mk<ast::transform::InlineRelationsTransformer>(),
+            mk<ast::transform::GroundedTermsChecker>(),
             mk<ast::transform::ResolveAliasesTransformer>(),
             mk<ast::transform::SimplifyConstantBinaryConstraintsTransformer>(),
             mk<ast::transform::RemoveBooleanConstraintsTransformer>(),

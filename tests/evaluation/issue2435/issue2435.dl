@@ -1,0 +1,13 @@
+.decl fib (x : number, result : number)
+fib(1, 1).
+fib(2, 1).
+fib(x, result) :-
+    x = t1 + 1, fib(t1, r1),
+    x = t2 + 2, fib(t2, r2),
+    temp = r2,
+    result = r1 + temp,
+    // same as above
+    temp = result - r1,
+    x <= 10.
+
+.output fib()

@@ -28,13 +28,11 @@
 #include "ram/PackRecord.h"
 #include "ram/SignedConstant.h"
 #include "ram/StringConstant.h"
-#include "ram/SubroutineArgument.h"
 #include "ram/TupleElement.h"
 #include "ram/UndefValue.h"
 #include "ram/UnsignedConstant.h"
 #include "ram/UserDefinedOperator.h"
 #include "ram/Variable.h"
-#include "ram/utility/Utils.h"
 #include "souffle/utility/StringUtil.h"
 
 namespace souffle::ast2ram::seminaive {
@@ -45,7 +43,10 @@ Own<ram::Expression> ValueTranslator::translateValue(const ast::Argument* arg) {
 }
 
 Own<ram::Expression> ValueTranslator::visit_(type_identity<ast::Variable>, const ast::Variable& var) {
-    assert(index.isDefined(var.getName()) && "variable not grounded");
+    if (!index.isDefined(var.getName())) {
+        std::cerr << "variable not grounded: " << var.getName() << " at " << var.getSrcLoc() << "\n";
+        assert("variable not grounded" && false);
+    }
     return makeRamTupleElement(index.getDefinitionPoint(var.getName()));
 }
 

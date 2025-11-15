@@ -219,7 +219,7 @@ void DebugReport::print(std::ostream& out) const {
         $pattern: /\.?\w+/,
         literal: 'true false',
         keyword: '.pragma .functor .comp .init .override .decl .input .output .type .plan .include .once .lattice ' +
-          'ord strlen strsub range matches land lor lxor lnot bwand bwor bwxor bwnot bshl bshr bshru inline btree btree_delete override unsigned number float symbol',
+          'ord strlen strsub range matches land lor lxor lnot bwand bwor bwxor bwnot bshl bshr bshru inline btree btree_delete override unsigned number float symbol no_inline',
       }
 
       let STRING = hljs.QUOTE_STRING_MODE
