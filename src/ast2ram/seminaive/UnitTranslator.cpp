@@ -15,6 +15,7 @@
 #include "ast2ram/seminaive/UnitTranslator.h"
 #include "Global.h"
 #include "LogStatement.h"
+#include "RelationTag.h"
 #include "ast/Clause.h"
 #include "ast/Directive.h"
 #include "ast/Relation.h"
@@ -835,17 +836,13 @@ Own<ram::Statement> UnitTranslator::generateStoreRelation(const ast::Relation* r
     return mk<ram::Sequence>(std::move(storeStmts));
 }
 
-Own<ram::Relation> UnitTranslator::createRamRelation(
-        const ast::Relation* baseRelation, std::string ramRelationName) const {
+Own<ram::Relation> UnitTranslator::createRamRelation(const ast::Relation* baseRelation,
+        std::string ramRelationName, RelationRepresentation representation) const {
     auto arity = baseRelation->getArity();
 
     bool mergeAuxiliary = (ramRelationName != getNewRelationName(baseRelation->getQualifiedName()));
 
     auto auxArity = mergeAuxiliary ? baseRelation->getAuxiliaryArity() : 0;
-    auto representation = baseRelation->getRepresentation();
-    if (representation == RelationRepresentation::BTREE_DELETE && ramRelationName[0] == '@') {
-        representation = RelationRepresentation::DEFAULT;
-    }
 
     std::vector<std::string> attributeNames;
     std::vector<std::string> attributeTypeQualifiers;
@@ -865,40 +862,45 @@ VecOwn<ram::Relation> UnitTranslator::createRamRelations(const std::vector<std::
         for (const auto& rel : context->getRelationsInSCC(scc)) {
             // Add main relation
             std::string mainName = getConcreteRelationName(rel->getQualifiedName());
-            ramRelations.push_back(createRamRelation(rel, mainName));
+            const RelationRepresentation mainRepresentation = rel->getRepresentation();
+            ramRelations.push_back(createRamRelation(rel, mainName, mainRepresentation));
+
+            const bool hasSubsumptiveClause = context->hasSubsumptiveClause(rel->getQualifiedName());
+            RelationRepresentation auxiliaryRepresentation =
+                    (hasSubsumptiveClause ? RelationRepresentation::DEFAULT : mainRepresentation);
 
             if (rel->getAuxiliaryArity() > 0) {
                 // Add lub relation
                 std::string lubName = getLubRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, lubName));
+                ramRelations.push_back(createRamRelation(rel, lubName, auxiliaryRepresentation));
             }
 
             if (isRecursive || rel->getAuxiliaryArity() > 0) {
                 // Add new relation
                 std::string newName = getNewRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, newName));
+                ramRelations.push_back(createRamRelation(rel, newName, auxiliaryRepresentation));
             }
 
             // Recursive relations also require @delta and @new variants, with the same signature
             if (isRecursive) {
                 // Add delta relation
                 std::string deltaName = getDeltaRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, deltaName));
+                ramRelations.push_back(createRamRelation(rel, deltaName, auxiliaryRepresentation));
 
                 // Add auxiliary relation for subsumption
-                if (context->hasSubsumptiveClause(rel->getQualifiedName())) {
+                if (hasSubsumptiveClause) {
                     // Add reject relation
                     std::string rejectName = getRejectRelationName(rel->getQualifiedName());
-                    ramRelations.push_back(createRamRelation(rel, rejectName));
+                    ramRelations.push_back(createRamRelation(rel, rejectName, auxiliaryRepresentation));
 
                     // Add deletion relation
                     std::string toEraseName = getDeleteRelationName(rel->getQualifiedName());
-                    ramRelations.push_back(createRamRelation(rel, toEraseName));
+                    ramRelations.push_back(createRamRelation(rel, toEraseName, auxiliaryRepresentation));
                 }
-            } else if (context->hasSubsumptiveClause(rel->getQualifiedName())) {
+            } else if (hasSubsumptiveClause) {
                 // Add deletion relation for non recursive subsumptive relations
                 std::string toEraseName = getDeleteRelationName(rel->getQualifiedName());
-                ramRelations.push_back(createRamRelation(rel, toEraseName));
+                ramRelations.push_back(createRamRelation(rel, toEraseName, auxiliaryRepresentation));
             }
         }
     }

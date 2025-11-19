@@ -23,7 +23,6 @@
 #include "ast/QualifiedName.h"
 #include "parser/SrcLocation.h"
 #include <iosfwd>
-#include <vector>
 
 namespace souffle::ast {
 

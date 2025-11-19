@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "RelationTag.h"
 #include "ast/Relation.h"
 #include "ast2ram/UnitTranslator.h"
 #include "ram/Expression.h"
@@ -52,8 +53,8 @@ public:
 
 protected:
     void addRamSubroutine(std::string subroutineID, Own<ram::Statement> subroutine);
-    virtual Own<ram::Relation> createRamRelation(
-            const ast::Relation* baseRelation, std::string ramRelationName) const;
+    virtual Own<ram::Relation> createRamRelation(const ast::Relation* baseRelation,
+            std::string ramRelationName, RelationRepresentation representation) const;
     virtual VecOwn<ram::Relation> createRamRelations(const std::vector<std::size_t>& sccOrdering) const;
     Own<ram::Statement> translateRecursiveClauses(
             const ast::RelationSet& scc, const ast::Relation* rel) const;

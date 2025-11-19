@@ -1,0 +1,12 @@
+.decl kdof(A:unsigned, B:number)
+.decl ovqb(A:number, B:unsigned) magic
+.decl khkw(A:number, B:unsigned)
+
+kdof(1, -2).
+kdof(1, 9).
+
+ovqb(A^-3, B) :- kdof(B, A).
+kdof(B, A1) <= kdof(B, A2) :- A1<A2.
+khkw(A, B) :- kdof(B, A), !ovqb(A, B).
+
+.output khkw()

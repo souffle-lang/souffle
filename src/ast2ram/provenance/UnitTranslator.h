@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "RelationTag.h"
 #include "ast2ram/seminaive/UnitTranslator.h"
 
 namespace souffle::ast {
@@ -45,8 +46,8 @@ protected:
     Own<ram::Sequence> generateProgram(const ast::TranslationUnit& translationUnit) override;
     Own<ram::Statement> generateClearExpiredRelations(
             const ast::RelationSet& expiredRelations) const override;
-    Own<ram::Relation> createRamRelation(
-            const ast::Relation* baseRelation, std::string ramRelationName) const override;
+    Own<ram::Relation> createRamRelation(const ast::Relation* baseRelation, std::string ramRelationName,
+            RelationRepresentation) const override;
     VecOwn<ram::Relation> createRamRelations(const std::vector<std::size_t>& sccOrdering) const override;
     void addAuxiliaryArity(
             const ast::Relation* relation, std::map<std::string, std::string>& directives) const override;
