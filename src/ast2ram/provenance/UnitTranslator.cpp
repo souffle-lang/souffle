@@ -15,6 +15,7 @@
 #include "ast2ram/provenance/UnitTranslator.h"
 #include "Global.h"
 #include "LogStatement.h"
+#include "RelationTag.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Clause.h"
 #include "ast/Constraint.h"
@@ -69,9 +70,10 @@ Own<ram::Sequence> UnitTranslator::generateProgram(const ast::TranslationUnit& t
     return ramProgram;
 }
 
-Own<ram::Relation> UnitTranslator::createRamRelation(
-        const ast::Relation* baseRelation, std::string ramRelationName) const {
-    auto relation = seminaive::UnitTranslator::createRamRelation(baseRelation, ramRelationName);
+Own<ram::Relation> UnitTranslator::createRamRelation(const ast::Relation* baseRelation,
+        std::string ramRelationName, RelationRepresentation representation) const {
+    auto relation =
+            seminaive::UnitTranslator::createRamRelation(baseRelation, ramRelationName, representation);
 
     std::size_t arity = relation->getArity();
     std::size_t auxiliaryArity = relation->getAuxiliaryArity();
@@ -86,7 +88,7 @@ Own<ram::Relation> UnitTranslator::createRamRelation(
     attributeTypeQualifiers.push_back("i:number");
 
     return mk<ram::Relation>(ramRelationName, arity + 2, auxiliaryArity + 2, attributeNames,
-            attributeTypeQualifiers, relation->getRepresentation());
+            attributeTypeQualifiers, representation);
 }
 
 std::string UnitTranslator::getInfoRelationName(const ast::Clause* clause) const {
@@ -297,8 +299,7 @@ Own<ram::Sequence> UnitTranslator::generateInfoClauses(const ast::Program* progr
         std::ostringstream ds;
         ds << "@info.clause[";
         clause->printForDebugInfo(ds);
-        ds << "]"
-           << "\nin file ";
+        ds << "]\nin file ";
         ds << clause->getSrcLoc();
         infoClause = mk<ram::DebugInfo>(std::move(infoClause), ds.str());
 
