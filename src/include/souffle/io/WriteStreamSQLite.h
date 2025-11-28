@@ -199,10 +199,11 @@ private:
     void createRelationTable() {
         std::stringstream createTableText;
         createTableText << "CREATE TABLE IF NOT EXISTS '_" << relationName << "' (";
-        // 8 bytes per datum worst case + 1 byte per datum in header + 1 byte header length < ~1/20 DB page
+        // 8 bytes per datum worst case + 1 byte per datum in header + 1 byte header length < ~1/20 DB page (4096 bytes)
         // size See https://sqlite.org/withoutrowid.html#when_to_use_without_rowid and
         // https://sqlite.org/fileformat2.html#record_format for justification
-        bool shouldUseWithoutRowid = (arity * 9 + 1) < 200;
+        // 22*9+1 = 199 < 200 
+        bool shouldUseWithoutRowid = (arity>0 && arity<23);
         if (arity > 0) {
             createTableText << "'0' INTEGER";
             for (unsigned int i = 1; i < arity; i++) {
