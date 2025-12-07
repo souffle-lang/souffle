@@ -1,0 +1,11 @@
+.decl buyh(A:unsigned) magic
+.decl eozn(A:unsigned)
+
+buyh(6).
+buyh(7).
+buyh(3).
+
+eozn(E) :- buyh(E).
+eozn(E1) <= eozn(E2) :- E1<E2.
+
+.output eozn()

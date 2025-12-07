@@ -17,18 +17,15 @@
 #include "ast/transform/MagicSet.h"
 #include "Global.h"
 #include "ast/Aggregator.h"
-#include "ast/Attribute.h"
 #include "ast/BinaryConstraint.h"
 #include "ast/Constant.h"
 #include "ast/Directive.h"
-#include "ast/Functor.h"
 #include "ast/Node.h"
-#include "ast/NumericConstant.h"
 #include "ast/Program.h"
 #include "ast/QualifiedName.h"
 #include "ast/RecordInit.h"
 #include "ast/Relation.h"
-#include "ast/StringConstant.h"
+#include "ast/SubsumptiveClause.h"
 #include "ast/TranslationUnit.h"
 #include "ast/UnnamedVariable.h"
 #include "ast/UserDefinedAggregator.h"
@@ -39,15 +36,12 @@
 #include "ast/utility/BindingStore.h"
 #include "ast/utility/Utils.h"
 #include "ast/utility/Visitor.h"
-#include "parser/SrcLocation.h"
 #include "souffle/BinaryConstraintOps.h"
-#include "souffle/RamTypes.h"
 #include "souffle/utility/ContainerUtil.h"
 #include "souffle/utility/FunctionalUtil.h"
 #include "souffle/utility/MiscUtil.h"
 #include "souffle/utility/StringUtil.h"
 #include <algorithm>
-#include <optional>
 #include <utility>
 
 namespace souffle::ast::transform {
@@ -221,9 +215,14 @@ UnorderedQualifiedNameSet MagicSetTransformer::getStronglyIgnoredRelations(const
     const auto& precedenceGraph = tu.getAnalysis<analysis::PrecedenceGraphAnalysis>().graph();
     UnorderedQualifiedNameSet stronglyIgnoredRelations;
 
-    // - Any atom appearing at the head of a clause containing a counter
     for (const auto* clause : program.getClauses()) {
+        // - Any atom appearing at the head of a clause containing a counter
         if (visitExists(*clause, [](const Counter&) { return true; })) {
+            stronglyIgnoredRelations.insert(clause->getHead()->getQualifiedName());
+        }
+
+        // relation with a subsuptive clause
+        if (isA<SubsumptiveClause>(clause)) {
             stronglyIgnoredRelations.insert(clause->getHead()->getQualifiedName());
         }
     }
@@ -653,7 +652,13 @@ Own<Clause> AdornDatabaseTransformer::adornClause(const Clause* clause, const st
     }
 
     // Create the adorned clause with an empty body
-    auto adornedClause = mk<Clause>(getAdornmentID(relName, adornmentMarker));
+    Own<Clause> adornedClause;
+    const bool isSubsumption = isA<SubsumptiveClause>(clause);
+    if (isSubsumption) {
+        adornedClause = mk<SubsumptiveClause>(getAdornmentID(relName, adornmentMarker));
+    } else {
+        adornedClause = mk<Clause>(getAdornmentID(relName, adornmentMarker));
+    }
 
     // Copy over plans if needed
     if (clause->getExecutionPlan() != nullptr) {
