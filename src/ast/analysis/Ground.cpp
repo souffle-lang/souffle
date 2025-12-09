@@ -277,6 +277,7 @@ struct GroundednessAnalysis : public ConstraintAnalysis<BoolDisjunctVar> {
     // casts propogate groundedness in and out
     void visit_(type_identity<TypeCast>, const ast::TypeCast& cast) override {
         addConstraint(imply(getVar(cast.getValue()), getVar(cast)));
+        addConstraint(imply(getVar(cast), getVar(cast.getValue())));
     }
 };
 
