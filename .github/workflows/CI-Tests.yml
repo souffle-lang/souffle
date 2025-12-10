@@ -111,7 +111,8 @@ jobs:
       matrix:
         chunk: ${{ fromJSON(needs.Test-Setup.outputs.chunks) }}
 
-    runs-on: macos-13
+    # macos-15-intel is the last supported image based on intel CPU
+    runs-on: macos-15-intel
 
     steps:
     - name: checkout
