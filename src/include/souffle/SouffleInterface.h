@@ -21,6 +21,7 @@
 #include "souffle/SymbolTable.h"
 #include "souffle/datastructure/ConcurrentCache.h"
 #include "souffle/utility/MiscUtil.h"
+#include "souffle/utility/StringUtil.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -1134,7 +1135,10 @@ public:
      * @return The new instance(SouffleProgram*), or null pointer if the instance not found
      */
     static SouffleProgram* newInstance(const std::string& name) {
-        ProgramFactory* factory = find(name);
+        // Normalize name to handle special characters (e.g., hyphens become underscores)
+        // This matches how factory names are generated from filenames in Synthesiser.cpp
+        std::string normalizedName = identifier(name);
+        ProgramFactory* factory = find(normalizedName);
         if (factory != nullptr) {
             return factory->newInstance();
         } else {

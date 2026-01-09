@@ -1,0 +1,19 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2025, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test case for issue #2533: SWIG python bindings SEGFAULT if name of .dl file contains -
+
+.type Node <: symbol
+
+.decl edge(node1:Node, node2:Node)
+.decl path(node1:Node, node2:Node)
+.output path()
+
+edge("a","b").
+edge("b","c").
+
+path(X,Y) :- edge(X,Y).
+path(X,Y) :- path(X,Z), edge(Z,Y).
