@@ -1,0 +1,17 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b19214120..a8ed5cbe5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -102,13 +102,6 @@ option(SOUFFLE_BASH_COMPLETION "Enable/Disable bash completion" OFF)
+ cmake_dependent_option(SOUFFLE_USE_LIBCPP "Link to libc++ instead of libstdc++" ON
+     "CMAKE_CXX_COMPILER_ID STREQUAL Clang" OFF)
+ 
+-# Using Clang? Likely want to use `lld` too.
+-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=lld")
+-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld")
+-endif()
+-
+ # Add aditional modules to CMake
+ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
