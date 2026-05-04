@@ -26,7 +26,7 @@ jobs:
         fetch-tags: true
 
     - name: Dependencies Cache
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       env:
         cache-name: cache-chocolatey
       with:
@@ -53,6 +53,8 @@ jobs:
         mkdir build
 
     - name: Configure Build
+      env:
+        VCPKG_BINARY_SOURCES: clear
       working-directory: ${{github.workspace}}
       run: |
         $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
