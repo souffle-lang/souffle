@@ -157,8 +157,7 @@ jobs:
     - name: cmake-test-64bit
       uses: ./.github/actions/cmake-test
       with:
-        # disable openmp on ARM architecture, see souffle-lang/souffle#2476
-        cmake-flags: -DSOUFFLE_DOMAIN_64BIT=ON -DSOUFFLE_USE_OPENMP=OFF
+        cmake-flags: -DSOUFFLE_DOMAIN_64BIT=ON
         n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
         chunk: ${{ matrix.chunk }}
 
