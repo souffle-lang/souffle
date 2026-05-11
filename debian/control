@@ -3,7 +3,7 @@ Maintainer: Martin McGrane <mmcgrane@it.usyd.edu.au>
 Section: misc
 Priority: optional
 Standards-Version: 4.3.0
-Build-Depends: autoconf, automake, bash-completion, bison, debhelper (>= 11), flex, g++ (>= 7), libffi-dev, libncurses5-dev, libsqlite3-dev, mcpp, sqlite3, zlib1g-dev
+Build-Depends: autoconf, automake, bash-completion, bison, cmake, debhelper (>= 11), flex, g++ (>= 7), git, libffi-dev, libncurses5-dev, libsqlite3-dev, mcpp, sqlite3, python3, zlib1g-dev
 Homepage: https://souffle-lang.org/
 Vcs-Git: https://github.com/souffle-lang/souffle.git
 
