@@ -19,6 +19,7 @@
 #include "souffle/RamTypes.h"
 #include "souffle/SouffleInterface.h"
 #include "souffle/datastructure/EquivalenceRelation.h"
+#include <iterator>
 
 namespace souffle {
 
@@ -28,7 +29,13 @@ struct t_eqrel {
     using t_tuple = Tuple<RamDomain, 2>;
     using t_ind = EquivalenceRelation<t_tuple>;
     t_ind ind;
-    class iterator_0 : public std::iterator<std::forward_iterator_tag, t_tuple> {
+    class iterator_0 {
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = t_tuple;
+        using difference_type = ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+
         using nested_iterator = typename t_ind::iterator;
         nested_iterator nested;
         t_tuple value;
@@ -55,7 +62,13 @@ struct t_eqrel {
             return *this;
         }
     };
-    class iterator_1 : public std::iterator<std::forward_iterator_tag, t_tuple> {
+    class iterator_1 {
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = t_tuple;
+        using difference_type = ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+
         using nested_iterator = typename t_ind::iterator;
         nested_iterator nested;
         t_tuple value;

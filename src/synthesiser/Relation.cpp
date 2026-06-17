@@ -1072,7 +1072,13 @@ void BrieRelation::generateTypeStruct(GenDb& db) {
     // generate auxiliary iterators that use orderOut
     for (std::size_t i = 0; i < numIndexes; i++) {
         // generate auxiliary iterators which orderOut
-        decl << "class iterator_" << i << " : public std::iterator<std::forward_iterator_tag, t_tuple> {\n";
+        decl << "class iterator_" << i << " {\n";
+        decl << "    using iterator_category = std::forward_iterator_tag;\n";
+        decl << "    using value_type = t_tuple;\n";
+        decl << "    using difference_type = ptrdiff_t;\n";
+        decl << "    using pointer = value_type*;\n";
+        decl << "    using reference = value_type&;\n";
+
         decl << "    using nested_iterator = typename t_ind_" << i << "::iterator;\n";
         decl << "    nested_iterator nested;\n";
         decl << "    t_tuple value;\n";
