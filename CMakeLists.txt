@@ -257,6 +257,9 @@ endif()
 # --------------------------------------------------
 if (SOUFFLE_USE_SQLITE)
     find_package(SQLite3 REQUIRED)
+    if(NOT TARGET SQLite3::SQLite3) # CMake < 4.3
+        add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+    endif()
     if (SOUFFLE_ENABLE_TESTING)
         find_program(SQLITE3_BINARY sqlite3 REQUIRED)
     endif()
