@@ -440,12 +440,14 @@ endif (MSVC)
 
 if (APPLE)
   if ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
-    # work around a known issue with xcode15 linker
-    # c++ exceptions handling is broken otherwise
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -Wl,-ld_classic")
-    target_link_options(libsouffle PUBLIC "-ld_classic")
-    target_link_options(compiled PUBLIC "-ld_classic")
-    target_link_options(souffleprof PUBLIC "-ld_classic")
+    if (XCODE_VERSION VERSION_LESS "26" AND NOT XCODE_VERSION VERSION_LESS "15")
+      # work around a known issue with xcode15 linker
+      # c++ exceptions handling is broken otherwise
+      set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -Wl,-ld_classic")
+      target_link_options(libsouffle PUBLIC "-ld_classic")
+      target_link_options(compiled PUBLIC "-ld_classic")
+      target_link_options(souffleprof PUBLIC "-ld_classic")
+    endif()
   endif()
 endif()
 

@@ -233,6 +233,26 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         message(STATUS "Found Flex keg installed by Homebrew at ${BREW_FLEX_PREFIX}")
         set(FLEX_EXECUTABLE "${BREW_FLEX_PREFIX}/bin/flex")
     endif()
+
+    # Xcode 15 needs the -ld_classic flag to be set. In Xcode 26 it is no longer
+    # needed but does generate deprecation warnings.
+    execute_process(
+        COMMAND xcodebuild -version
+        OUTPUT_VARIABLE XCODE_OUT
+        ERROR_VARIABLE XCODE_ERR
+        RESULT_VARIABLE XCODE_SUCCESS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    if (XCODE_SUCCESS EQUAL 0)
+        string(REGEX MATCH "Xcode[ ]+([0-9]+(\\.[0-9]+)+)" XCODE_VERSION "${XCODE_OUT}")
+        set(XCODE_VERSION "${CMAKE_MATCH_1}")
+        message(STATUS "Xcode version ${XCODE_VERSION} found")
+    else()
+        message(STATUS "xcodebuild -version failed. -ld_classic will not be used.")
+        set(XCODE_VERSION "0")
+    endif()
+
 endif()
 find_package(FLEX REQUIRED)
 find_package(BISON "3.2" REQUIRED)
