@@ -20,7 +20,7 @@ jobs:
   Windows-CMake-MSVC:
     runs-on: windows-2025
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 1
         fetch-tags: true
