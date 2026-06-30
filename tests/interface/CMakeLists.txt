@@ -25,7 +25,19 @@ function(SOUFFLE_RUN_CPP_TEST)
   set(ADDITIONNAL_FLAGS)
 
   if (OPENMP_FOUND)
+    # CXX_FLAGS may be space separated, e.g., '-Xclang -fopenmp'
     list(APPEND ADDITIONNAL_FLAGS ${OpenMP_CXX_FLAGS})
+    separate_arguments(ADDITIONNAL_FLAGS)
+
+    # AppleClang needs a little more help to find omp
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+      if (NOT OpenMP_CXX_INCLUDE_DIRS STREQUAL "")
+        list(APPEND ADDITIONNAL_FLAGS "-I${OpenMP_CXX_INCLUDE_DIRS}")
+      endif()
+      if (NOT OpenMP_CXX_LIBRARIES STREQUAL "")
+        list(APPEND ADDITIONNAL_FLAGS "${OpenMP_CXX_LIBRARIES}")
+      endif()
+    endif()
   endif()
 
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
