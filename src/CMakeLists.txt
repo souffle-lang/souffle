@@ -309,8 +309,8 @@ endif()
 if (SOUFFLE_USE_SQLITE)
     target_compile_definitions(libsouffle PUBLIC USE_SQLITE)
     target_compile_definitions(compiled PUBLIC USE_SQLITE)
-    target_link_libraries(libsouffle PUBLIC SQLite::SQLite3)
-    target_link_libraries(compiled PUBLIC SQLite::SQLite3)
+    target_link_libraries(libsouffle PUBLIC SQLite3::SQLite3)
+    target_link_libraries(compiled PUBLIC SQLite3::SQLite3)
     target_include_directories(compiled PUBLIC ${SQLite3_INCLUDE_DIRS})
 endif()
 
@@ -440,12 +440,14 @@ endif (MSVC)
 
 if (APPLE)
   if ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
-    # work around a known issue with xcode15 linker
-    # c++ exceptions handling is broken otherwise
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -Wl,-ld_classic")
-    target_link_options(libsouffle PUBLIC "-ld_classic")
-    target_link_options(compiled PUBLIC "-ld_classic")
-    target_link_options(souffleprof PUBLIC "-ld_classic")
+    if (XCODE_VERSION VERSION_LESS "26" AND NOT XCODE_VERSION VERSION_LESS "15")
+      # work around a known issue with xcode15 linker
+      # c++ exceptions handling is broken otherwise
+      set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -Wl,-ld_classic")
+      target_link_options(libsouffle PUBLIC "-ld_classic")
+      target_link_options(compiled PUBLIC "-ld_classic")
+      target_link_options(souffleprof PUBLIC "-ld_classic")
+    endif()
   endif()
 endif()
 
@@ -474,6 +476,9 @@ endif()
 
 if (OPENMP_FOUND)
   string(APPEND SOUFFLE_COMPILED_CXX_FLAGS " ${OpenMP_CXX_FLAGS}")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    string(APPEND SOUFFLE_COMPILED_CXX_FLAGS " ${OpenMP_CXX_LIBRARIES}")
+  endif()
   list(APPEND SOUFFLE_COMPILED_INCS ${OpenMP_CXX_INCLUDE_DIRS})
 endif()
 
@@ -560,6 +565,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   set(SOUFFLE_COMPILED_LINK_OPTIONS "/link ${SOUFFLE_COMPILED_LINK_OPTIONS}")
 endif ()
 
+list(REMOVE_DUPLICATES SOUFFLE_COMPILED_RPATHS)
 list(JOIN SOUFFLE_COMPILED_RPATHS "${OS_PATH_DELIMITER}" SOUFFLE_COMPILED_RPATH_LIST)
 
 list(TRANSFORM SOUFFLE_COMPILED_INCS PREPEND "-I")

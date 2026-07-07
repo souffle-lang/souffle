@@ -34,7 +34,13 @@ public:
     context createContext() {
         return context();
     }
-    class iterator : public std::iterator<std::forward_iterator_tag, Tuple<RamDomain, Arity>> {
+    class iterator {
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = Tuple<RamDomain, Arity>;
+        using difference_type = ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+
         typename std::vector<Tuple<RamDomain, Arity>>::const_iterator it;
 
     public:
