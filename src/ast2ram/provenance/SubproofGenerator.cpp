@@ -205,6 +205,8 @@ Own<ram::Operation> SubproofGenerator::generateReturnInstantiatedValues(const as
     for (const auto* constraint : ast::getBodyLiterals<const ast::BinaryConstraint>(clause)) {
         values.push_back(context.translateValue(*valueIndex, constraint->getLHS()));
         values.push_back(context.translateValue(*valueIndex, constraint->getRHS()));
+        values.push_back(mk<ram::UndefValue>());
+        values.push_back(mk<ram::UndefValue>());
     }
 
     // final provenance negation
