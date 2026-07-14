@@ -147,4 +147,18 @@ souffle::RamDomain my_to_number_fun(
 souffle::RamDomain my_identity(souffle::SymbolTable*, souffle::RecordTable*, souffle::RamDomain arg) {
     return arg;
 }
+
+souffle::RamDomain my_make_a(
+        souffle::SymbolTable*, souffle::RecordTable* recordTable, souffle::RamDomain arg) {
+    return souffle::packADT(*recordTable, 0, {arg});
+}
+
+souffle::RamDomain my_make_b(
+        souffle::SymbolTable*, souffle::RecordTable* recordTable, souffle::RamDomain arg) {
+    return souffle::packADT(*recordTable, 1, {arg});
+}
+
+souffle::RamDomain my_make_c(souffle::SymbolTable*, souffle::RecordTable* recordTable) {
+    return souffle::packADT(*recordTable, 2, {});
+}
 }  // end of extern "C"
