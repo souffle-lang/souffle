@@ -1,0 +1,11 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2019, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+// Test for different attribute types via Python SWIG bindings
+
+.decl data(name:symbol, num:number, value:unsigned, score:float)
+.input data()
+.output data()

@@ -1,0 +1,14 @@
+Name: path
+Arity: 2
+Size: 6
+Signature: <s:Node,s:Node>
+Attr 0: name=src, type=s:Node
+Attr 1: name=dst, type=s:Node
+len(path): 6
+Tuples:
+  A -> B
+  A -> C
+  A -> D
+  B -> C
+  B -> D
+  C -> D
