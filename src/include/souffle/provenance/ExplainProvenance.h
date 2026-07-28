@@ -35,6 +35,11 @@
 namespace souffle {
 class TreeNode;
 
+class ValueReadException : public std::runtime_error {
+public:
+    ValueReadException(const std::string& what_arg) : std::runtime_error(what_arg) {}
+};
+
 /** Equivalence class for variables in query command */
 class Equivalence {
 public:
@@ -240,15 +245,21 @@ protected:
     }
 
     RamDomain valueRead(const char type, const std::string& value) const {
-        switch (type) {
-            case 'i': return ramBitCast(RamSignedFromString(value));
-            case 'u': return ramBitCast(RamUnsignedFromString(value));
-            case 'f': return ramBitCast(RamFloatFromString(value));
-            case 's':
-                assert(2 <= value.size() && value[0] == '"' && value.back() == '"');
-                return symTable.encode(value.substr(1, value.size() - 2));
-            case 'r': fatal("not implemented");
-            default: fatal("unhandled type attr code");
+        try {
+            switch (type) {
+                case 'i': return ramBitCast(RamSignedFromString(value));
+                case 'u': return ramBitCast(RamUnsignedFromString(value));
+                case 'f': return ramBitCast(RamFloatFromString(value));
+                case 's':
+                    assert(2 <= value.size() && value[0] == '"' && value.back() == '"');
+                    return symTable.encode(value.substr(1, value.size() - 2));
+                case 'r': fatal("not implemented");
+                default: fatal("unhandled type attr code");
+            }
+        } catch (const std::invalid_argument& e) {
+            throw ValueReadException(tfm::format("Invalid argument %s for type '%c'", value, type));
+        } catch (const std::out_of_range& e) {
+            throw ValueReadException(tfm::format("Out of range value %s for type '%c'", value, type));
         }
     }
 };
