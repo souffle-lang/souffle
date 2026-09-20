@@ -220,7 +220,7 @@ jobs:
       run: lcov $(for i in coverage-*-*/coverage.info; do echo -a $i; done) --output-file coverage.info
 
     - name: upload-coverage-report
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage.info
