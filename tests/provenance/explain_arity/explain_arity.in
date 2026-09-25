@@ -1,0 +1,7 @@
+explain path(1)
+explain path(1, 3, 4)
+explain path()
+explain named("1")
+explainnegation path(1)
+explain path(1, 3)
+exit
