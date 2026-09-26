@@ -100,6 +100,9 @@ public:
                 return true;
             }
             query = parseTuple(command[1]);
+            if (!checkArity(query)) {
+                return true;
+            }
             printTree(prov.explain(query.first, query.second, ExplainConfig::getExplainConfig().depthLimit));
         } else if (command[0] == "subproof") {
             std::pair<std::string, std::vector<std::string>> query;
@@ -124,6 +127,9 @@ public:
                 return true;
             }
             query = parseTuple(command[1]);
+            if (!checkArity(query)) {
+                return true;
+            }
 
             // a counter for the rule numbers
             std::size_t i = 1;
@@ -294,6 +300,20 @@ private:
 
     /* Print an error, such as a wrong command */
     virtual void printError(const std::string& error) = 0;
+
+    /**
+     * Check that a parsed tuple has the arity of its relation, printing an error if not.
+     * Unknown relations are reported by the individual commands.
+     */
+    bool checkArity(const std::pair<std::string, std::vector<std::string>>& tuple) {
+        auto arity = prov.getPrimaryArity(tuple.first);
+        if (arity && *arity != tuple.second.size()) {
+            printError(tfm::format("Relation %s has arity %d, but %d argument(s) were given\n", tuple.first,
+                    *arity, tuple.second.size()));
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Parse tuple, split into relation name and values
