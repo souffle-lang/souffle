@@ -196,6 +196,11 @@ public:
             const RecordTable& recordTable)
             : WriteStreamJSON(rwOperation, symbolTable, recordTable), isFirst(true),
               file(getFileName(rwOperation), std::ios::out | std::ios::binary) {
+        if (!file.is_open()) {
+            std::stringstream errorMessage;
+            errorMessage << "Cannot write to <" << getFileName(rwOperation) << ">.";
+            throw std::invalid_argument(errorMessage.str());
+        }
         file << "[";
     }
 

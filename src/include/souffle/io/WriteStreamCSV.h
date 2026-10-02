@@ -133,6 +133,11 @@ public:
         if (getOr(rwOperation, "headers", "false") == "true") {
             file << rwOperation.at("attributeNames") << std::endl;
         }
+        if (!file.is_open()) {
+            std::stringstream errorMessage;
+            errorMessage << "Cannot write to <" << getFileName(rwOperation) << ">.";
+            throw std::invalid_argument(errorMessage.str());
+        }
         file << std::setprecision(std::numeric_limits<RamFloat>::max_digits10);
     }
 
@@ -172,6 +177,11 @@ public:
             const RecordTable& recordTable)
             : WriteStreamCSV(rwOperation, symbolTable, recordTable),
               file(getFileName(rwOperation), std::ios::out | std::ios::binary) {
+        if (!file.is_open()) {
+            std::stringstream errorMessage;
+            errorMessage << "Cannot write to <" << getFileName(rwOperation) << ">.";
+            throw std::invalid_argument(errorMessage.str());
+        }
         if (getOr(rwOperation, "headers", "false") == "true") {
             file << rwOperation.at("attributeNames") << std::endl;
         }
