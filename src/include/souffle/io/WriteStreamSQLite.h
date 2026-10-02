@@ -240,8 +240,8 @@ private:
                 } else {
                     firstWhere = false;
                 }
-                whereClause << "'_" << relationName << "'.'" << tableColumnName << "' = "
-                            << "'_symtab_" << tableColumnName << "'.id";
+                whereClause << "'_" << relationName << "'.'" << tableColumnName << "' = " << "'_symtab_"
+                            << tableColumnName << "'.id";
             } else {
                 projectionClause << "'_" << relationName << "'.'" << tableColumnName << "' AS '"
                                  << viewColumnName << "'";
