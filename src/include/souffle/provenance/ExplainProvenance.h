@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <map>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -188,6 +189,18 @@ public:
      * @param rels, vector of relation, argument pairs
      * */
     virtual void queryProcess(const std::vector<std::pair<std::string, std::vector<std::string>>>& rels) = 0;
+
+    /**
+     * Get the arity of a relation, excluding provenance annotations
+     * @return the arity, or nothing if the program has no such relation
+     */
+    std::optional<std::size_t> getPrimaryArity(const std::string& relName) const {
+        auto rel = prog.getRelation(relName);
+        if (rel == nullptr) {
+            return std::nullopt;
+        }
+        return rel->getPrimaryArity();
+    }
 
 protected:
     SouffleProgram& prog;
