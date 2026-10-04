@@ -93,15 +93,22 @@ L(@myappend(l)) :- L(l), l = [x, _l1], x < 10.
 .output L
 
 // Testing ADTS
-.type MyADT = A { x : number }
+// Branches are deliberately declared in reverse lexical order. Their IDs are
+// still assigned lexically: A = 0, B = 1, and C = 2.
+.type MyADT = C {}
             | B { x : symbol }
+            | A { x : number }
 
 .functor my_to_number_fun(val: MyADT): number stateful
 .functor my_identity(val: MyADT): MyADT stateful
+.functor my_make_a(val: number): MyADT stateful
+.functor my_make_b(val: symbol): MyADT stateful
+.functor my_make_c(): MyADT stateful
 
 .decl gen_adt(val: MyADT)
 .decl my_to_number(val: number)
 .decl identity(val: MyADT)
+.decl constructed(val: MyADT)
 
 gen_adt($A(1234)).
 gen_adt($B("5678")).
@@ -110,4 +117,10 @@ my_to_number(@my_to_number_fun(v)) :- gen_adt(v).
 
 identity(@my_identity(v)) :- gen_adt(v).
 
+constructed(@my_make_a(1234)).
+constructed(@my_make_b("5678")).
+constructed($C()).
+constructed(@my_make_c()).
+
 .output my_to_number, identity
+.output constructed(rfc4180=true)

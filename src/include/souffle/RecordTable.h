@@ -61,4 +61,72 @@ RamDomain pack(RecordTableT&& recordTab, const std::initializer_list<RamDomain>&
     return recordTab.pack(std::data(initlist), initlist.size());
 }
 
+/**
+ * @brief Construct a value belonging to an enumerated algebraic data type.
+ *
+ * An ADT is enumerated when none of its branches has fields.
+ *
+ * An ADT branch ID is the branch's zero-based position in the lexicographical
+ * ordering of the ADT's qualified branch names.
+ */
+inline RamDomain packADTEnum(const RamDomain branch) {
+    return branch;
+}
+
+/**
+ * @brief Construct a value belonging to a non-enumerated algebraic data type.
+ *
+ * An ADT is non-enumerated when at least one of its branches has a field. This
+ * function must also be used for an empty branch of such an ADT.
+ *
+ * The arguments must already be represented as RamDomain values, using the
+ * same symbol and record tables as the program that will consume the ADT. This
+ * helper hides the special record encodings used for empty, unary, and
+ * multi-argument branches.
+ *
+ * @param branch Zero-based position in the lexicographical ordering of the
+ * ADT's qualified branch names.
+ * @param arguments Branch field values in declaration order, encoded as
+ * RamDomain values.
+ */
+inline RamDomain packADT(
+        RecordTable& recordTab, const RamDomain branch, const RamDomain* arguments, const std::size_t arity) {
+    const RamDomain branchValue = arity == 1 ? arguments[0] : recordTab.pack(arguments, arity);
+    return recordTab.pack({branch, branchValue});
+}
+
+/**
+ * @brief Construct a non-enumerated ADT value from an initialization list.
+ * @param branch Zero-based position in lexicographical branch-name order.
+ * @param arguments Branch field values in declaration order, encoded as
+ * RamDomain values.
+ */
+inline RamDomain packADT(
+        RecordTable& recordTab, const RamDomain branch, const std::initializer_list<RamDomain>& arguments) {
+    return packADT(recordTab, branch, std::data(arguments), arguments.size());
+}
+
+/**
+ * @brief Construct a non-enumerated ADT value from a fixed-size tuple.
+ * @param branch Zero-based position in lexicographical branch-name order.
+ * @param arguments Branch field values in declaration order, encoded as
+ * RamDomain values.
+ */
+template <std::size_t Arity>
+RamDomain packADT(RecordTable& recordTab, const RamDomain branch, const Tuple<RamDomain, Arity>& arguments) {
+    return packADT(recordTab, branch, arguments.data(), Arity);
+}
+
+/**
+ * @brief Construct a non-enumerated ADT value from a span.
+ * @param branch Zero-based position in lexicographical branch-name order.
+ * @param arguments Branch field values in declaration order, encoded as
+ * RamDomain values.
+ */
+template <std::size_t Arity>
+RamDomain packADT(
+        RecordTable& recordTab, const RamDomain branch, const span<const RamDomain, Arity> arguments) {
+    return packADT(recordTab, branch, arguments.data(), arguments.size());
+}
+
 }  // namespace souffle
