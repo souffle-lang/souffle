@@ -335,8 +335,12 @@ target_link_libraries(souffle libsouffle)
 install(TARGETS souffle DESTINATION bin)
 
 if (EMSCRIPTEN)
+target_compile_options(libsouffle PUBLIC -sDISABLE_EXCEPTION_CATCHING=0)
+target_compile_options(souffle PRIVATE -sDISABLE_EXCEPTION_CATCHING=0)
 target_link_libraries(souffle -sMODULARIZE=1
-                      -s'EXPORTED_RUNTIME_METHODS=["FS"]' -sEXPORT_NAME="SOUFFLE")
+                      -sALLOW_MEMORY_GROWTH=1
+                      -sDISABLE_EXCEPTION_CATCHING=0
+                      -s'EXPORTED_RUNTIME_METHODS=["FS","callMain"]' -sEXPORT_NAME="SOUFFLE")
 endif()
 
 # Copy the dlls in the same directory as Souffle so that they will
