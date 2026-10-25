@@ -162,6 +162,46 @@ jobs:
         n-chunks: ${{ needs.Test-Setup.outputs.n-chunks }}
         chunk: ${{ matrix.chunk }}
 
+  Emscripten:
+    timeout-minutes: 60
+
+    name: Emscripten (WebAssembly)
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 1
+        fetch-tags: true
+
+    - name: install-deps
+      run: sudo apt-get update && sudo apt-get install -y bison flex
+
+    - name: install-emsdk
+      run: |
+        git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+        ~/emsdk/emsdk install 6.0.13
+        ~/emsdk/emsdk activate 6.0.13
+
+    - name: build
+      run: |
+        source ~/emsdk/emsdk_env.sh
+        emcmake cmake -S . -B build-wasm -DCMAKE_BUILD_TYPE=Release -DSOUFFLE_ENABLE_TESTING=OFF
+        cmake --build build-wasm --target souffle -j4
+
+    - name: test
+      run: node sh/test_wasm.mjs build-wasm/src/souffle.js
+
+    - name: upload-wasm-artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: souffle-wasm
+        path: |
+          build-wasm/src/souffle.js
+          build-wasm/src/souffle.wasm
+
   Memory-Check:
     needs: Test-Setup
     timeout-minutes: 150
