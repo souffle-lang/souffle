@@ -12,6 +12,7 @@
 
 #include "MainDriver.h"
 
+#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -37,12 +38,27 @@ bool processArgs(souffle::Global& glb, int argc, char** argv) {
     return true;
 }
 
-}  // namespace
-
-int main(int argc, char** argv) {
+int run(int argc, char** argv) {
     souffle::Global glb;
 
     processArgs(glb, argc, argv);
 
     return souffle::main(glb, argv[0]);
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+#ifdef __EMSCRIPTEN__
+    // In WebAssembly an uncaught C++ exception aborts the module without printing its
+    // message, as a native build would; report it instead.
+    try {
+        return run(argc, argv);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+#else
+    return run(argc, argv);
+#endif
 }

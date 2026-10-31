@@ -52,6 +52,34 @@ Or use `git` to obtain the source code of Soufflé.
 
 Build instructions can be found [here](https://souffle-lang.github.io/build).
 
+### WebAssembly
+
+Soufflé's interpreter can be compiled to WebAssembly with [Emscripten](https://emscripten.org/), to run Datalog programs in a web browser or in Node.js:
+
+    $ emcmake cmake -S . -B build-wasm -DCMAKE_BUILD_TYPE=Release -DSOUFFLE_ENABLE_TESTING=OFF
+    $ cmake --build build-wasm --target souffle
+
+This produces `build-wasm/src/souffle.js` and `build-wasm/src/souffle.wasm`.
+`souffle.js` defines a factory function `SOUFFLE` (a global in a browser, the module's export in Node.js), which instantiates the module.
+Write the program and any input facts to the module's in-memory file system, and then run Soufflé with `callMain`:
+
+```js
+const souffle = await SOUFFLE({
+  noInitialRun: true,
+  print: (line) => console.log(line),     // standard output
+  printErr: (line) => console.error(line) // errors
+});
+souffle.FS.writeFile('program.dl', '.decl edge(x: number, y: number) ...');
+const status = souffle.callMain(['--no-preprocessor', '-D-', 'program.dl']);
+```
+
+* `--no-preprocessor` is required, since there is no C preprocessor available to run on the program; directives such as `#include` and `#define` are therefore not supported.
+* `-D-` prints the output relations to standard output; alternatively, `-D` with a directory writes them to files in the in-memory file system, to be read with `souffle.FS.readFile`. Likewise, `-F` reads input facts from files there.
+* `callMain` can only be called once per instance, so create a new instance for each run. The browser caches the `.wasm` file, so this is quick.
+* Only the interpreter is available: compiling Datalog to C++ (`-c`, `-g`) and user-defined functors need a C++ compiler at runtime.
+
+`sh/test_wasm.mjs` is a small test of the WebAssembly build, run with `node sh/test_wasm.mjs build-wasm/src/souffle.js`.
+
 ## Legacy code
 
 If you have written code for an older version of Souffle, please use the command line flag `--legacy`.
