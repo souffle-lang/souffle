@@ -1,0 +1,10 @@
+// Souffle - A Datalog Compiler
+// Copyright (c) 2026, The Souffle Developers. All rights reserved
+// Licensed under the Universal Permissive License v 1.0 as shown at:
+// - https://opensource.org/licenses/UPL
+// - <souffle root>/licenses/SOUFFLE-UPL.txt
+
+.decl foo(a: symbol)
+.output foo(IO=file, filename="this_dir_is_missing/and_this_file_too.csv.gz", compress=true)
+foo("bar").
+

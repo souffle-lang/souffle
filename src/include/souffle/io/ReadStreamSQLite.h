@@ -114,6 +114,7 @@ protected:
     void throwError(const std::string& message) {
         std::stringstream error;
         error << message << sqlite3_errmsg(db) << "\n";
+        sqlite3_close(db);
         throw std::invalid_argument(error.str());
     }
 
