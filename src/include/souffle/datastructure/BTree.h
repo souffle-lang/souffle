@@ -1026,7 +1026,7 @@ protected:
     node* volatile root;
 
     // a lock to synchronize update operations on the root pointer
-    lock_type root_lock;
+    mutable lock_type root_lock;
 #else
     // a pointer to the root node of this tree
     node* root;
@@ -1241,6 +1241,12 @@ public:
 
                 // get next pointer
                 auto next = cur->getChild(idx);
+                if (next == nullptr) {
+                    if (cur->lock.validate(cur_lease)) {
+                        assert(false && "B-tree inner node has null child");
+                    }
+                    return insert(k, hints);
+                }
 
                 // get lease on next level
                 auto next_lease = next->lock.start_read();
@@ -1568,6 +1574,91 @@ public:
      * referencing its position. If not found, an end-iterator will be returned.
      */
     iterator find(const Key& k, operation_hints& hints) const {
+#ifdef IS_PARALLEL
+        node* cur = nullptr;
+        lock_type::Lease cur_lease;
+
+        auto checkHints = [&](node* last_find_end) {
+            if (!last_find_end) return false;
+
+            auto hint_lease = last_find_end->lock.start_read();
+            if (!covers(last_find_end, k)) return false;
+            if (!last_find_end->lock.validate(hint_lease)) return false;
+
+            cur = last_find_end;
+            cur_lease = hint_lease;
+            return true;
+        };
+
+        // test last location searched (temporal locality)
+        if (hints.last_find_end.any(checkHints)) {
+            // register it as a hit
+            hint_stats.contains.addHit();
+        } else {
+            // register it as a miss
+            hint_stats.contains.addMiss();
+        }
+
+        if (!cur) {
+            do {
+                auto root_lease = root_lock.start_read();
+                cur = root;
+
+                if (cur == nullptr) {
+                    if (root_lock.end_read(root_lease)) {
+                        return end();
+                    }
+                    continue;
+                }
+
+                cur_lease = cur->lock.start_read();
+
+                if (root_lock.end_read(root_lease)) {
+                    break;
+                }
+            } while (true);
+        }
+
+        while (true) {
+            auto a = &(cur->keys[0]);
+            auto b = &(cur->keys[cur->numElements]);
+
+            auto pos = search(k, a, b, comp);
+
+            if (pos < b && equal(*pos, k)) {
+                if (!cur->lock.validate(cur_lease)) {
+                    return find(k, hints);
+                }
+                hints.last_find_end.access(cur);
+                return iterator(cur, static_cast<field_index_type>(pos - a));
+            }
+
+            if (!cur->inner) {
+                if (!cur->lock.validate(cur_lease)) {
+                    return find(k, hints);
+                }
+                hints.last_find_end.access(cur);
+                return end();
+            }
+
+            // continue search in child node
+            auto next = cur->getChild(pos - a);
+            if (next == nullptr) {
+                if (cur->lock.validate(cur_lease)) {
+                    assert(false && "B-tree inner node has null child");
+                }
+                return find(k, hints);
+            }
+
+            auto next_lease = next->lock.start_read();
+            if (!cur->lock.end_read(cur_lease)) {
+                return find(k, hints);
+            }
+
+            cur = next;
+            cur_lease = next_lease;
+        }
+#else
         if (empty()) {
             return end();
         }
@@ -1611,6 +1702,7 @@ public:
             // continue search in child node
             cur = cur->getChild(pos - a);
         }
+#endif
     }
 
     /**
