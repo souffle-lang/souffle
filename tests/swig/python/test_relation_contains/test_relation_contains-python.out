@@ -1,0 +1,8 @@
+path contains (A, B): True
+path contains (B, C): True
+path contains (C, D): True
+path contains (A, C): True
+path contains (A, D): True
+path contains (B, D): True
+path contains (D, A): False
+path contains (X, Y): False

@@ -1,0 +1,11 @@
+Relation: data
+Arity: 4
+  Attr 0: name (s:symbol)
+  Attr 1: num (i:number)
+  Attr 2: value (u:unsigned)
+  Attr 3: score (f:float)
+
+Stored 3 tuples:
+  Alice: num=-10, value=100, score=3.14
+  Bob: num=0, value=200, score=2.71
+  Charlie: num=42, value=300, score=1.41
