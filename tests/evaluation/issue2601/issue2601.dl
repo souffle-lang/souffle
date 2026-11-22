@@ -1,0 +1,7 @@
+.decl hit(kind: symbol)
+.output hit
+
+hit("equal") :- rhs = (0u), rhs = 0.
+hit("not_equal") :- rhs = (0u), rhs != 0.
+hit("different") :- rhs = (0u), rhs != 1.
+hit("not_different") :- rhs = (0u), rhs = 1.
