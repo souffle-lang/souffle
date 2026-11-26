@@ -70,6 +70,55 @@ TEST(Pack, InitListHelper) {
     EXPECT_EQ(3, ptr[2]);
 }
 
+TEST(PackADT, Enum) {
+    EXPECT_EQ(2, packADTEnum(2));
+}
+
+TEST(PackADT, EmptyBranch) {
+    SpecializedRecordTable<0, 2> recordTable;
+
+    const RamDomain ref = packADT(recordTable, 3, {});
+    const RamDomain* adt = recordTable.unpack(ref, 2);
+
+    EXPECT_EQ(3, adt[0]);
+    EXPECT_EQ(recordTable.pack(nullptr, 0), adt[1]);
+}
+
+TEST(PackADT, UnaryBranch) {
+    SpecializedRecordTable<2> recordTable;
+
+    const RamDomain ref = packADT(recordTable, 4, {42});
+    const RamDomain* adt = recordTable.unpack(ref, 2);
+
+    EXPECT_EQ(4, adt[0]);
+    EXPECT_EQ(42, adt[1]);
+}
+
+TEST(PackADT, MultiArgumentBranch) {
+    SpecializedRecordTable<2, 3> recordTable;
+    const Tuple<RamDomain, 3> arguments = {{10, 20, 30}};
+
+    const RamDomain ref = packADT(recordTable, 5, arguments);
+    const RamDomain* adt = recordTable.unpack(ref, 2);
+    const RamDomain* unpackedArguments = recordTable.unpack(adt[1], 3);
+
+    EXPECT_EQ(5, adt[0]);
+    EXPECT_EQ(10, unpackedArguments[0]);
+    EXPECT_EQ(20, unpackedArguments[1]);
+    EXPECT_EQ(30, unpackedArguments[2]);
+}
+
+TEST(PackADT, NestedBranch) {
+    SpecializedRecordTable<2> recordTable;
+
+    const RamDomain inner = packADT(recordTable, 0, {7});
+    const RamDomain outer = packADT(recordTable, 1, {inner});
+    const RamDomain* unpackedOuter = recordTable.unpack(outer, 2);
+
+    EXPECT_EQ(1, unpackedOuter[0]);
+    EXPECT_EQ(inner, unpackedOuter[1]);
+}
+
 TEST(Enumerate, Empty) {
     SpecializedRecordTable<2> recordTable;
 
